@@ -87,6 +87,8 @@ jobs:
           SWEEP_DAILY_CAP: ${{ secrets.SWEEP_DAILY_CAP }}
         run: |
           : > .secrets.env
+          # Accept the push key as raw .p8 text or as base64; store it as base64 on one line.
+          if printf '%s' "$APNS_KEY_P8" | grep -q "BEGIN"; then APNS_KEY_P8=$(printf '%s\n' "$APNS_KEY_P8" | base64 -w0); fi
           for name in ANTHROPIC_API_KEY ANTHROPIC_MODEL BAGET_CRON_SECRET APNS_KEY_P8 APNS_KEY_ID APNS_TEAM_ID APNS_TOPIC SWEEP_DAILY_CAP; do
             value="${!name}"
             if [ -n "$value" ]; then printf '%s=%s\n' "$name" "$value" >> .secrets.env; fi

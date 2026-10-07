@@ -82,6 +82,7 @@ In your private repository: Settings > Secrets and variables > Actions > New rep
 | `SWEEP_DAILY_CAP` | optional; most sweeps per person per day, default 12 | backend |
 
 To base64 a `.p8` on Windows (PowerShell): `[Convert]::ToBase64String([IO.File]::ReadAllBytes("AuthKey_XXXX.p8")) | Set-Clipboard`.
+On an iPhone or any device with no command line: open the `.p8` in a text editor and paste its full contents (including the BEGIN and END lines) as the secret. Both workflows accept raw text or base64.
 On Mac or Linux: `base64 -i AuthKey_XXXX.p8 | pbcopy` or `base64 -w0 AuthKey_XXXX.p8`.
 
 ### 5. Deploy and install

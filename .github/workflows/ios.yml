@@ -66,7 +66,12 @@ jobs:
           ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
         run: |
           mkdir -p "$RUNNER_TEMP/keys"
-          echo "$ASC_KEY_P8_BASE64" | base64 --decode > "$RUNNER_TEMP/keys/AuthKey.p8"
+          # Accept the key as raw .p8 text or as base64.
+          if printf '%s' "$ASC_KEY_P8_BASE64" | grep -q "BEGIN"; then
+            printf '%s\n' "$ASC_KEY_P8_BASE64" > "$RUNNER_TEMP/keys/AuthKey.p8"
+          else
+            echo "$ASC_KEY_P8_BASE64" | base64 --decode > "$RUNNER_TEMP/keys/AuthKey.p8"
+          fi
           chmod 600 "$RUNNER_TEMP/keys/AuthKey.p8"
       - name: Archive
         env:
