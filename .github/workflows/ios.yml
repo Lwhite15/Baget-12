@@ -23,7 +23,7 @@ jobs:
   check:
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate project
@@ -35,6 +35,9 @@ jobs:
             -project Baget.xcodeproj -scheme Baget -configuration Debug \
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO | tee build.log | grep -E "error:|warning: unre|BUILD (SUCCEEDED|FAILED)" || true
+          # Surface compile errors as annotations, readable from the API without downloading logs.
+          grep -E "^/.*: error: " build.log | sed -E 's#^.*/Baget/##' | sort -u | head -40 | while IFS= read -r line; do echo "::error::$line"; done
+          echo "::notice::$(grep -cE ': warning: ' build.log || true) compiler warnings"
           grep -q "BUILD SUCCEEDED" build.log
       - name: Upload build log
         if: failure()
@@ -53,7 +56,7 @@ jobs:
       ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
       ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate project
