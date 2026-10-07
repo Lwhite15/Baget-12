@@ -1,0 +1,282 @@
+import SwiftUI
+
+struct FindsView: View {
+    @Environment(AppStore.self) private var store
+    @Environment(Router.self) private var router
+    @State private var filter: Category? = nil
+    @State private var sweeping = false
+
+    private func rank(_ f: Find) -> Int { (f.status == .open ? 1000 : 0) + f.score }
+
+    var body: some View {
+        let present = Category.allCases.filter { c in store.state.finds.contains { Catalog.item($0.itemID)?.category == c } }
+        let finds = store.state.finds
+            .filter { f in filter == nil || Catalog.item(f.itemID)?.category == filter }
+            .sorted { rank($0) > rank($1) }
+
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                SectionTitle(text: "What your squad found")
+                ScrollView(.horizontal) {
+                    HStack(spacing: 8) {
+                        Button { filter = nil } label: { Pill(text: "All", selected: filter == nil) }
+                        ForEach(present) { c in
+                            Button { filter = c } label: { Pill(text: c.info.label, selected: filter == c) }
+                        }
+                    }
+                }
+                .scrollIndicators(.hidden)
+
+                HStack(spacing: 10) {
+                    Circle().fill(Theme.green).frame(width: 8, height: 8)
+                    Text("\(store.state.agents.count) agents hunting · \(store.state.finds.filter { $0.status == .open }.count) finds waiting on you")
+                        .font(.footnote).foregroundStyle(Theme.muted)
+                    Spacer()
+                    Button(sweeping ? "Searching…" : "Sweep now") {
+                        if store.isCloud {
+                            sweeping = true
+                            Task { @MainActor in
+                                let msg = await store.cloudSweep()
+                                sweeping = false
+                                if let msg { router.say(msg) }
+                            }
+                        } else {
+                            let res = store.sweep()
+                            Analytics.track(.sweepRun, ["found": res.found, "manual": true])
+                            if res.found == 0 { router.say("Nothing new fits you right now") }
+                        }
+                    }
+                    .disabled(sweeping)
+                    .font(.footnote.weight(.bold)).foregroundStyle(Theme.accent)
+                }
+                .glassCard()
+
+                if finds.isEmpty {
+                    EmptyCard(text: store.state.agents.isEmpty ? "Deploy an agent first, then run a sweep." : "Nothing here yet. Pull down on Live or tap Sweep now.")
+                }
+                LazyVStack(spacing: 14) {
+                    ForEach(finds) { f in FindCard(find: f) }
+                }
+                if !store.isCloud {
+                    Text("Sample data: listings, prices and drop times are illustrative, and nothing is purchased.")
+                        .font(.caption).foregroundStyle(Theme.muted)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 24)
+        }
+        .scrollIndicators(.hidden)
+    }
+}
+
+struct FindCard: View {
+    @Environment(AppStore.self) private var store
+    @Environment(Router.self) private var router
+    let find: Find
+    @State private var askingWhy = false
+
+    var body: some View {
+        if let item = Catalog.item(find.itemID) {
+            let agent = store.agent(find.agentID)
+            let diff = item.market - item.price
+            let pct = Int((diff / item.price * 100).rounded())
+            VStack(alignment: .leading, spacing: 12) {
+                Plate(item: item, label: store.whenLabel(item), live: store.isLive(item), height: 120)
+                Text(item.title).font(.headline).foregroundStyle(Theme.ink)
+                FlowRow {
+                    Tag(text: item.category.info.label)
+                    if let agent, item.category.info.sizeRequired, !agent.size.isEmpty { Tag(text: agent.size) }
+                }
+                Text((item.traits + (item.creator.map { [$0] } ?? [])).joined(separator: " · "))
+                    .font(.caption).italic().foregroundStyle(Theme.muted)
+                HStack {
+                    priceCell("PRICE", Fmt.money(item.price), nil)
+                    priceCell("MARKET", Fmt.money(item.market), nil)
+                    priceCell("SPREAD", "\(diff > 0 ? "+" : "")\(pct)%", diff > 0 ? Theme.green : diff < 0 ? Theme.hot : nil)
+                }
+                .padding(.vertical, 8)
+                .overlay(alignment: .top) { Divider().overlay(Theme.line) }
+                .overlay(alignment: .bottom) { Divider().overlay(Theme.line) }
+
+                if let agent {
+                    Text("Why \(agent.name) picked this:").font(.footnote).foregroundStyle(Theme.muted)
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach(find.why, id: \.self) { w in
+                            HStack(alignment: .firstTextBaseline, spacing: 7) {
+                                Circle().fill(Theme.accent).frame(width: 5, height: 5)
+                                Text(w).font(.footnote).foregroundStyle(Theme.ink)
+                            }
+                        }
+                    }
+                    if find.status == .open {
+                        let take = store.take(agent, item)
+                        (Text("\(agent.name): ").bold().foregroundStyle(take.caution ? Theme.warn : Theme.accent) + Text(take.text).foregroundStyle(Theme.ink))
+                            .font(.footnote)
+                            .padding(10)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background((take.caution ? Theme.warn : Theme.accent).opacity(0.10), in: RoundedRectangle(cornerRadius: 12))
+                    }
+                }
+                HStack(spacing: 8) {
+                    Text("\(find.score)%").font(.caption.monospaced()).foregroundStyle(Theme.ink)
+                    Meter(value: Double(find.score) / 100)
+                    Text("match").font(.caption).foregroundStyle(Theme.muted)
+                }
+                actions(item: item, agent: agent)
+            }
+            .glassCard()
+            .confirmationDialog("What was off? \(agent?.name ?? "Your agent") will learn from it.", isPresented: $askingWhy, titleVisibility: .visible) {
+                ForEach(AppStore.PassReason.allCases) { r in
+                    Button(r.rawValue) {
+                        store.pass(find.id, reason: r)
+                        Analytics.track(.findPassed, ["reason": r.rawValue, "category": item.category.rawValue])
+                        if r != .later { router.say("\(agent?.name ?? "Your agent") is learning from that") }
+                    }
+                }
+            }
+        }
+    }
+
+    private func priceCell(_ label: String, _ value: String, _ tint: Color?) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label).font(.system(size: 9, weight: .semibold)).tracking(1).foregroundStyle(Theme.muted)
+            Text(value).font(.system(.subheadline, design: .monospaced).weight(.semibold)).foregroundStyle(tint ?? Theme.ink)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    @ViewBuilder private func actions(item: Item, agent: Agent?) -> some View {
+        switch find.status {
+        case .acquired:
+            Label("Acquired · \(Fmt.money(item.price))", systemImage: "checkmark.seal.fill")
+                .font(.footnote.weight(.bold)).foregroundStyle(Theme.green)
+                .frame(maxWidth: .infinity).padding(10)
+                .background(Theme.green.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+        case .passed:
+            HStack {
+                Text("Passed\(find.passReason.map { " · \($0)" } ?? "")").font(.footnote).foregroundStyle(Theme.muted).frame(maxWidth: .infinity)
+                Button("Undo") { store.undoPass(find.id) }.buttonStyle(GhostButton())
+            }
+        case .open:
+            HStack(spacing: 8) {
+                Button(store.isSoldOut(item) ? "Watch restock" : agent?.mode == .alert ? "Shop it" : "Acquire") {
+                    router.sheet = .checkout(find.id)
+                }.buttonStyle(PrimaryButton())
+                Button("Pass") { askingWhy = true }.buttonStyle(GhostButton())
+                Button { router.sheet = .share(itemID: item.id, friendID: nil, suggestion: false) } label: {
+                    Image(systemName: "square.and.arrow.up")
+                }.buttonStyle(GhostButton()).frame(width: 54).accessibilityLabel("Share with friends")
+            }
+        }
+    }
+}
+
+struct CheckoutView: View {
+    @Environment(AppStore.self) private var store
+    @Environment(Router.self) private var router
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
+    let findID: String
+    @State private var amountText = ""
+
+    var body: some View {
+        if let f = store.state.finds.first(where: { $0.id == findID }), let item = Catalog.item(f.itemID) {
+            let a = store.agent(f.agentID)
+            let live = store.isLive(item)
+            let soldOut = store.isSoldOut(item)
+            let block = blockReason(item: item, agent: a, live: live, soldOut: soldOut)
+            let cloud = store.isCloud && !item.isSample
+
+            VStack(alignment: .leading, spacing: 16) {
+                Text(item.title).font(.title2.weight(.heavy)).foregroundStyle(Theme.ink)
+                Text([item.source, item.sku].filter { !$0.isEmpty }.joined(separator: " · ")).font(.footnote).foregroundStyle(Theme.muted)
+                Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 12) {
+                    GridRow { cell("Price", item.priceKnown ? Fmt.money(item.price) : "Not listed"); cell(cloud ? "Agent" : "Charged to", a?.name ?? "—") }
+                    GridRow {
+                        cell(item.category.info.sizeRequired ? (item.category.info.sizeLabel ?? "Size") : "Category",
+                             item.category.info.sizeRequired ? (a?.size.isEmpty == false ? a!.size : "Any") : item.category.info.label)
+                        cell("Left after", a.map { Fmt.money(max(0, store.remaining($0) - item.price)) } ?? "—")
+                    }
+                }
+                .glassCard()
+
+                if cloud {
+                    Text(cloudNote(item: item, block: block, soldOut: soldOut, live: live))
+                        .font(.subheadline).foregroundStyle(Theme.muted)
+                    if let link = item.url.flatMap({ URL(string: $0) }), !soldOut {
+                        Button {
+                            Analytics.track(.checkoutOpened, ["category": item.category.rawValue, "toStore": true])
+                            openURL(link)
+                        } label: { Label("Open at \(item.source)", systemImage: "arrow.up.right.square") }
+                            .buttonStyle(PrimaryButton())
+                    }
+                    if !item.priceKnown && live && !soldOut {
+                        TextField("What did you pay? (USD)", text: $amountText)
+                            .keyboardType(.decimalPad)
+                            .padding(10).background(Theme.bg.opacity(0.6), in: RoundedRectangle(cornerRadius: 12))
+                            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.line))
+                    }
+                } else {
+                    Text(block ?? "Sample checkout. No card is charged.")
+                        .font(.subheadline).foregroundStyle(Theme.muted)
+                }
+                Spacer()
+                HStack {
+                    Button("Cancel") { dismiss() }.buttonStyle(GhostButton())
+                    if soldOut || !live {
+                        Button(soldOut ? "Watch for restock" : "Remind me at release") {
+                            store.watch(findID)
+                            Analytics.track(.findWatched, ["category": item.category.rawValue])
+                            router.say(soldOut ? "Restock watch on" : "Got it. Your agent will ping you at release.")
+                            dismiss()
+                        }.buttonStyle(PrimaryButton())
+                    } else if cloud {
+                        Button("I bought it") {
+                            let amount = item.priceKnown ? item.price : Double(amountText.replacingOccurrences(of: ",", with: "")) ?? 0
+                            store.confirmPurchase(findID, amount: amount)
+                            Analytics.track(.purchaseConfirmed, ["amount": amount, "category": item.category.rawValue, "score": f.score, "agentMode": a?.mode.rawValue ?? ""])
+                            router.say("Added to your \(Date.now.formatted(.dateTime.month(.wide))) spending")
+                            dismiss()
+                        }
+                        .buttonStyle(GhostButton())
+                        .disabled(!item.priceKnown && (Double(amountText.replacingOccurrences(of: ",", with: "")) ?? 0) <= 0)
+                    } else if block == nil {
+                        Button("Confirm purchase") {
+                            store.confirmPurchase(findID)
+                            Analytics.track(.purchaseConfirmed, ["amount": item.price, "category": item.category.rawValue, "score": f.score, "agentMode": a?.mode.rawValue ?? ""])
+                            router.say("Acquired")
+                            dismiss()
+                        }.buttonStyle(PrimaryButton())
+                    }
+                }
+            }
+            .padding(20)
+            .presentationDetents([.medium, .large])
+            .onAppear { Analytics.track(.checkoutOpened, ["category": item.category.rawValue, "blocked": block != nil]) }
+        }
+    }
+
+    private func cloudNote(item: Item, block: String?, soldOut: Bool, live: Bool) -> String {
+        if soldOut || !live { return block ?? "" }
+        let caution = block.map { "Heads up: \($0) " } ?? ""
+        return caution + "You buy it at \(item.source); Baget never charges you. Tap \"I bought it\" afterwards so it counts toward your monthly spending."
+    }
+
+    private func blockReason(item: Item, agent a: Agent?, live: Bool, soldOut: Bool) -> String? {
+        let name = a?.name ?? "Your agent"
+        if soldOut { return "Sold out right now. \(name) will watch for a restock and tell you the moment it's back." }
+        if !live { return "This isn't available yet. Your agent will hold your spot and ask again at release." }
+        guard let a else { return nil }
+        let left = store.remaining(a)
+        if item.price > left { return "\(a.name) only has \(Fmt.money(left)) left this month. Raise its limit to buy this." }
+        if a.maxPerItem > 0 && item.price > a.maxPerItem { return "This is above \(a.name)'s \(Fmt.money(a.maxPerItem)) per-item cap." }
+        return nil
+    }
+
+    private func cell(_ label: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label.uppercased()).font(.system(size: 9, weight: .semibold)).tracking(1).foregroundStyle(Theme.muted)
+            Text(value).font(.system(.subheadline, design: .monospaced).weight(.semibold)).foregroundStyle(Theme.ink)
+        }
+    }
+}

@@ -1,0 +1,63 @@
+# XcodeGen project definition. `xcodegen generate` turns this into Baget.xcodeproj.
+# The cloud build does that for you; on a Mac, run: brew install xcodegen && xcodegen generate
+name: Baget
+options:
+  bundleIdPrefix: app.baget
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    # Your Apple Developer Team ID (10 characters). The cloud build fills this in from a secret.
+    DEVELOPMENT_TEAM: ""
+    # Your Supabase project (URL and the public anon or publishable key). Leave empty and the app runs
+    # with sample data only. The cloud build fills these in from secrets.
+    BAGET_SUPABASE_URL: ""
+    BAGET_SUPABASE_ANON_KEY: ""
+
+targets:
+  Baget:
+    type: application
+    platform: iOS
+    sources:
+      - path: Baget
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.baget.ios
+        PRODUCT_NAME: Baget
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_PREVIEWS: YES
+    entitlements:
+      path: Baget/Baget.entitlements
+      properties:
+        com.apple.developer.applesignin:
+          - Default
+        # Xcode switches this to "production" when it exports for TestFlight and the App Store.
+        aps-environment: development
+    info:
+      path: Baget/Info.plist
+      properties:
+        CFBundleDisplayName: Baget
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UILaunchScreen:
+          UIColorName: ""
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIUserInterfaceStyle: Dark
+        # Background sweeps: iOS wakes the app to run them.
+        UIBackgroundModes:
+          - fetch
+        BGTaskSchedulerPermittedIdentifiers:
+          - app.baget.sweep
+        ITSAppUsesNonExemptEncryption: false
+        BagetSupabaseURL: $(BAGET_SUPABASE_URL)
+        BagetSupabaseAnonKey: $(BAGET_SUPABASE_ANON_KEY)
+    scheme:
+      gatherCoverageData: false

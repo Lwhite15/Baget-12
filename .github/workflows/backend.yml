@@ -1,0 +1,108 @@
+# Tests and deploys the Baget backend to Supabase.
+#  * test: runs on every push. Database security tests on a real Postgres, and the edge function tests.
+#  * deploy: runs on pushes to main that touch supabase/, or by hand (Actions > Backend > Run workflow).
+#    Applies the database migrations, deploys the edge functions, stores server secrets and turns on the scheduler.
+#    Skipped until the Supabase secrets exist (see README).
+name: Backend
+
+on:
+  push:
+    branches: [main]
+    paths: ["supabase/**", ".github/workflows/backend.yml"]
+  pull_request:
+    paths: ["supabase/**"]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Database security tests
+        run: |
+          set -o pipefail
+          psql -q -v ON_ERROR_STOP=1 -f supabase/tests/supabase_stub.sql
+          for f in $(ls supabase/migrations/*.sql | sort); do psql -q -v ON_ERROR_STOP=1 -f "$f"; done
+          psql -q -t -v ON_ERROR_STOP=1 -f supabase/tests/security_test.sql 2>&1 | tee db-tests.txt | grep -E "PASS|FAIL" || true
+          if grep -q "FAIL" db-tests.txt; then echo "Database tests failed"; exit 1; fi
+          echo "$(grep -c PASS db-tests.txt) database checks passed"
+      - name: Edge function tests
+        run: node --experimental-strip-types --no-warnings supabase/tests/functions.test.ts
+
+  deploy:
+    needs: test
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - name: Check secrets
+        id: ready
+        run: |
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ] || [ -z "$PROJECT_REF" ] || [ -z "$SUPABASE_DB_PASSWORD" ]; then
+            echo "Supabase secrets aren't set yet, so nothing was deployed. See README > Backend."
+            echo "go=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.ready.outputs.go == 'true'
+      - uses: supabase/setup-cli@v1
+        if: steps.ready.outputs.go == 'true'
+        with:
+          version: latest
+      - name: Apply database migrations
+        if: steps.ready.outputs.go == 'true'
+        run: |
+          supabase link --project-ref "$PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+          supabase db push --password "$SUPABASE_DB_PASSWORD"
+      - name: Store server secrets
+        if: steps.ready.outputs.go == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_MODEL: ${{ secrets.ANTHROPIC_MODEL }}
+          BAGET_CRON_SECRET: ${{ secrets.BAGET_CRON_SECRET }}
+          APNS_KEY_P8: ${{ secrets.APNS_KEY_P8_BASE64 }}
+          APNS_KEY_ID: ${{ secrets.APNS_KEY_ID }}
+          APNS_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APNS_TOPIC: ${{ secrets.BUNDLE_ID }}
+          SWEEP_DAILY_CAP: ${{ secrets.SWEEP_DAILY_CAP }}
+        run: |
+          : > .secrets.env
+          for name in ANTHROPIC_API_KEY ANTHROPIC_MODEL BAGET_CRON_SECRET APNS_KEY_P8 APNS_KEY_ID APNS_TEAM_ID APNS_TOPIC SWEEP_DAILY_CAP; do
+            value="${!name}"
+            if [ -n "$value" ]; then printf '%s=%s\n' "$name" "$value" >> .secrets.env; fi
+          done
+          if [ -s .secrets.env ]; then supabase secrets set --project-ref "$PROJECT_REF" --env-file .secrets.env; fi
+          rm -f .secrets.env
+      - name: Deploy edge functions
+        if: steps.ready.outputs.go == 'true'
+        run: supabase functions deploy --project-ref "$PROJECT_REF"
+      - name: Turn on the scheduler
+        if: steps.ready.outputs.go == 'true'
+        env:
+          BAGET_CRON_SECRET: ${{ secrets.BAGET_CRON_SECRET }}
+        run: |
+          if [ -z "$BAGET_CRON_SECRET" ]; then echo "Add the BAGET_CRON_SECRET secret to schedule sweeps."; exit 0; fi
+          sleep 10
+          curl -fsS -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/setup" \
+            -H "Content-Type: application/json" -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d '{}'
+          echo

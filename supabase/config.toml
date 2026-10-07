@@ -1,0 +1,22 @@
+# Supabase CLI settings used by the deploy pipeline.
+project_id = "baget"
+
+# Every function checks who is calling itself: signed-in users are verified with Supabase Auth,
+# and scheduler/database calls must carry the shared BAGET_CRON_SECRET. So the gateway's JWT check is off.
+[functions.sweep]
+verify_jwt = false
+
+[functions.chat]
+verify_jwt = false
+
+[functions.read-photo]
+verify_jwt = false
+
+[functions.push]
+verify_jwt = false
+
+[functions.setup]
+verify_jwt = false
+
+[functions.delete-account]
+verify_jwt = false
