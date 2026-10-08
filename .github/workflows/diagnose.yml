@@ -1,0 +1,46 @@
+# Read-only checks on the live backend. Prints findings as annotations; never prints secrets.
+name: Diagnose
+on:
+  workflow_dispatch:
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - name: Listings, photos and sweep errors
+        run: |
+          q() { curl -sS -X POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query" \
+                  -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" \
+                  -d "$(jq -n --arg q "$1" '{query:$q}')"; }
+          q "select count(*) total, count(image_url) with_photo, count(image_checked_at) checked from public.listings" | jq -c . | sed 's/^/::notice::counts /'
+          q "select left(title,60) t, source, url, image_url, image_checked_at is not null checked from public.listings order by last_seen_at desc limit 25" > listings.json
+          jq -r '.[] | "::notice::\(.checked) | \(.t) | \(.source) | \(.url) | photo=\(.image_url)"' listings.json
+          q "select created_at, trigger, listings, finds, left(coalesce(error,''),200) error from public.sweep_runs order by created_at desc limit 10" | jq -r '.[] | "::notice::sweep \(.created_at) \(.trigger) listings=\(.listings) finds=\(.finds) err=\(.error)"'
+          jq -r '.[].url' listings.json > urls.txt
+      - name: Fetch store pages like the server does
+        run: |
+          UA="Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1"
+          head -12 urls.txt | while read -r u; do
+            [ -z "$u" ] && continue
+            code=$(curl -sS -L --max-time 10 -A "$UA" -H "Accept: text/html" -o page.html -w "%{http_code}" "$u" || echo ERR)
+            og=$(grep -oiE '<meta[^>]+(og:image|twitter:image)[^>]*>' page.html | head -2 | tr '\n' ' ' | cut -c1-250)
+            ld=$(grep -ciE 'application/ld\+json' page.html || true)
+            echo "::notice::HTTP $code | ld+json=$ld | $(echo "$u" | cut -c1-80) | $og"
+          done
+      - name: Photo-check model answers
+        run: |
+          for m in claude-haiku-5-5 claude-sonnet-5-5; do
+            r=$(curl -sS https://api.anthropic.com/v1/messages -H "x-api-key: $ANTHROPIC_API_KEY" -H "anthropic-version: 2023-06-01" \
+              -H "content-type: application/json" -d "{\"model\":\"$m\",\"max_tokens\":5,\"messages\":[{\"role\":\"user\",\"content\":\"Say ok\"}]}")
+            echo "::notice::model $m -> $(echo "$r" | jq -c '{type, err: .error.message, text: .content[0].text}' | cut -c1-200)"
+          done
+      - name: Edge function errors (last 2 hours)
+        run: |
+          sql="select timestamp, event_message from function_logs where event_message ilike '%image%' or event_message ilike '%error%' order by timestamp desc limit 15"
+          curl -sS -G "https://api.supabase.com/v1/projects/${PROJECT_REF}/analytics/endpoints/logs.all" \
+            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" --data-urlencode "sql=$sql" \
+            --data-urlencode "iso_timestamp_start=$(date -u -d '-2 hours' +%Y-%m-%dT%H:%M:%SZ)" \
+            --data-urlencode "iso_timestamp_end=$(date -u +%Y-%m-%dT%H:%M:%SZ)" | jq -r '(.result // [])[] | "::notice::log \(.event_message | tostring | .[0:220])"' || true
