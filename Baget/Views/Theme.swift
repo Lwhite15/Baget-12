@@ -162,30 +162,28 @@ struct Plate: View {
     var live = false
     var height: CGFloat = 120
     var lead = false
-    @State private var photo: UIImage?
+    @State private var photo: ProductPhoto?
 
     private var photoURL: URL? {
         guard let s = item.imageURL, s.hasPrefix("https://") else { return nil }
         return URL(string: s)
     }
+    private var radius: CGFloat { lead ? 22 : 18 }
+    /// A photo that couldn't be cut out shows on white, the way stores shoot products.
+    private var onWhite: Bool { photo.map { !$0.lifted } ?? false }
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            if photo != nil {
-                // Product shots are usually on white: show the whole product on a light panel.
-                RoundedRectangle(cornerRadius: lead ? 22 : 18, style: .continuous).fill(Color.white)
-            } else if lead {
-                RoundedRectangle(cornerRadius: 22, style: .continuous).fill(Theme.gradient)
-            } else {
-                RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Theme.glass)
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(RadialGradient(colors: [Theme.blue.opacity(0.4), .clear], center: .topLeading, startRadius: 0, endRadius: 220))
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(RadialGradient(colors: [Theme.green.opacity(0.28), .clear], center: .bottomTrailing, startRadius: 0, endRadius: 220))
-            }
+            background
             if let photo {
-                Image(uiImage: photo).resizable().scaledToFit()
-                    .padding(.horizontal, 12).padding(.top, 26).padding(.bottom, 22)
+                Image(uiImage: photo.image)
+                    .resizable()
+                    .interpolation(.high)
+                    .scaledToFit()
+                    .shadow(color: photo.lifted ? .black.opacity(0.45) : .clear, radius: 14, y: 8)
+                    .padding(.horizontal, photo.lifted ? 18 : 10)
+                    .padding(.top, 30)
+                    .padding(.bottom, 24)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .accessibilityLabel(item.title)
                     .transition(.opacity)
@@ -205,20 +203,39 @@ struct Plate: View {
                 }
                 Text(item.sku.isEmpty ? item.source : "\(item.sku) · \(item.source)")
                     .font(.system(size: 10, design: .monospaced))
-                    .foregroundStyle(photo != nil ? Color.black.opacity(0.55) : (lead ? Theme.accentInk.opacity(0.7) : Theme.muted))
+                    .foregroundStyle(onWhite ? Color.black.opacity(0.5) : (photo != nil ? Theme.muted : (lead ? Theme.accentInk.opacity(0.7) : Theme.muted)))
                     .lineLimit(1)
             }
             .padding(12)
         }
         .frame(height: height)
-        .clipShape(RoundedRectangle(cornerRadius: lead ? 22 : 18, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
         .task(id: photoURL) {
             guard let url = photoURL else { photo = nil; return }
             if let hit = ImageCache.shared.cached(url) { photo = hit; return }
-            let img = await ImageCache.shared.load(url)
-            withAnimation(.easeOut(duration: 0.2)) { photo = img }
+            let p = await ImageCache.shared.load(url)
+            withAnimation(.easeOut(duration: 0.25)) { photo = p }
         }
     }
+
+    @ViewBuilder private var background: some View {
+        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+        if onWhite {
+            shape.fill(Color.white)
+        } else if photo != nil {
+            // Cut-out product on a soft spotlight.
+            shape.fill(Theme.panel)
+            shape.fill(RadialGradient(colors: [Theme.cyan.opacity(0.22), .clear], center: .center, startRadius: 0, endRadius: height * 0.8))
+            shape.strokeBorder(Theme.line)
+        } else if lead {
+            shape.fill(Theme.gradient)
+        } else {
+            shape.fill(Theme.glass)
+            shape.fill(RadialGradient(colors: [Theme.blue.opacity(0.4), .clear], center: .topLeading, startRadius: 0, endRadius: 220))
+            shape.fill(RadialGradient(colors: [Theme.green.opacity(0.28), .clear], center: .bottomTrailing, startRadius: 0, endRadius: 220))
+        }
+    }
+
     var initials: String { item.brand.split(separator: " ").compactMap { $0.first }.prefix(3).map { String($0) }.joined().uppercased() }
 }
 

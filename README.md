@@ -21,7 +21,8 @@ A native iPhone app (SwiftUI, iOS 17+) with a Supabase backend where the agents 
 1. You sign in with Apple. Your agents, finds, purchases, taste photos and friends live in your account.
 2. Every 15 minutes the database scheduler wakes the `sweep` function. Each agent whose interval has passed
    (every 6 hours by default; you choose in the app) asks Claude to search the web for products that fit its brief.
-   Claude returns real listings with links. The server reads each store page for its product photo, then scores
+   Claude returns real listings with links. The server reads each store page for product photos, and Claude
+   checks which one shows that exact item (or none, rather than a wrong photo). Then the server scores
    the listings against your taste and size, the same way the app does.
 3. New finds become friend-style notifications in your agent's voice. They're pushed to your iPhone right away,
    or held until 8am during quiet hours (restocks and imminent drops still come through).
@@ -103,6 +104,7 @@ whenever you want a new build on your phone.
 |---|---|
 | Supabase | Free tier covers a personal squad and a handful of friends |
 | Web sweep | About $0.05 to $0.10 per agent per sweep: up to 4 searches at $0.01 each, plus reading the results |
+| Product photo check | Under $0.01 per listing (a small Claude model looks at up to 3 candidate photos) |
 | Chat message | About $0.01 to $0.05, more when the agent searches the web |
 | Reading a taste photo | About $0.01 |
 | Apple Developer Program | $99/year |

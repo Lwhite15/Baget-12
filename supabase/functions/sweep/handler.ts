@@ -4,7 +4,7 @@
 // Cost guards: agents per run, searches per agent, and sweeps per user per day are all capped (see env below).
 import { type Agent, CATEGORIES, GROUP_OF, type Listing, friendLine, heldForMorning, kindFor, match, missionLabel, norm } from "../_shared/match.ts";
 import { type Block, type ClaudeMessage, HttpError, claude, db, env, handle, isScheduler, json, parseJSON, requireUser, textOf } from "../_shared/platform.ts";
-import { addImages, findImage } from "../_shared/images.ts";
+import { addImages } from "../_shared/images.ts";
 
 const num = (name: string, fallback: number) => {
   const v = Number(env(name));
@@ -33,6 +33,7 @@ Look for things that are available to buy now, releasing in the next two weeks, 
 
 Rules:
 - Only include products you actually found on a page during this search, with that page's URL. Never invent a product, price, date or URL.
+- The url must be the product's own page (one item), not a search, category, collection, editorial or home page.
 - Price in US dollars as a number, or null if the page doesn't show one. "market" is the typical resale or secondhand price if you saw one, else null.
 - drop_at is the release date and time in ISO 8601 if it's upcoming, else null.
 - sizes_in_stock only if the page lists them, else null.
@@ -138,12 +139,12 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
 
 /** Listings saved before photos were looked up (or whose page didn't answer): try each once. */
 export async function backfillImages(limit: number) {
-  const rows = await db.select<{ id: string; url: string }>("listings",
-    `select=id,url&image_url=is.null&url=not.is.null&image_checked_at=is.null&order=last_seen_at.desc&limit=${limit}`);
-  await Promise.all(rows.map(async (r) => {
-    const image = await findImage(r.url).catch(() => null);
-    await db.update("listings", `id=eq.${r.id}`, { image_url: image, image_checked_at: new Date().toISOString() });
-  }));
+  const rows = await db.select<{ id: string; url: string; title: string; brand: string; category: string }>("listings",
+    `select=id,url,title,brand,category&image_url=is.null&url=not.is.null&image_checked_at=is.null&order=last_seen_at.desc&limit=${limit}`);
+  const items = rows.map((r) => ({ ...r, image_url: null as string | null }));
+  await addImages(items);
+  await Promise.all(items.map((r) =>
+    db.update("listings", `id=eq.${r.id}`, { image_url: r.image_url, image_checked_at: new Date().toISOString() })));
   return rows.length;
 }
 

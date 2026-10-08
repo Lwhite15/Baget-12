@@ -279,15 +279,21 @@ await test("delete-account removes photos then the account", async () => {
 
 // ── product photos ──
 const I = await import("../functions/_shared/images.ts");
-await test("extractImage prefers og:image and resolves relative links", () => {
-  const html = `<head><meta name="twitter:image" content="https://cdn.shop.com/tw.jpg">
-    <meta content="/img/p1.jpg?w=1200&amp;h=1200" property="og:image"></head>`;
-  assert.equal(I.extractImage(html, "https://shop.com/p/1"), "https://shop.com/img/p1.jpg?w=1200&h=1200");
+const html = (body: string) => new Response(body, { headers: { "content-type": "text/html" } });
+const jpeg = (kb = 20) => new Response(new Uint8Array(kb * 1024), { headers: { "content-type": "image/jpeg" } });
+const claudeSays = (match: number | null) => ok({ content: [{ type: "text", text: JSON.stringify({ match }) }], stop_reason: "end_turn" });
+
+await test("imageCandidates: product schema first, logos and banners dropped", () => {
+  const page = `<head><meta property="og:image" content="https://cdn.shop.com/share/og-default.jpg">
+    <meta name="twitter:image" content="/img/p1.jpg?w=1200&amp;h=1200">
+    <meta property="og:image" content="https://cdn.shop.com/assets/logo.png"></head>
+    <body><script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","logo":"https://cdn.shop.com/l.png"},
+      {"@type":"Product","name":"Hwyl","image":[{"@type":"ImageObject","url":"https:\\/\\/cdn.shop.com\\/products\\/hwyl-50ml.jpg"}]}]}</script></body>`;
+  assert.deepEqual(I.imageCandidates(page, "https://shop.com/p/1"), ["https://cdn.shop.com/products/hwyl-50ml.jpg", "https://shop.com/img/p1.jpg?w=1200&h=1200"]);
   assert.equal(I.extractImage(`<meta property="og:image" content="//cdn.x.com/a.png">`, "https://x.com/p"), "https://cdn.x.com/a.png");
-  const ld = `<script type="application/ld+json">{"@type":"Product","image":["https:\\/\\/cdn.y.com\\/p.jpg"]}</script>`;
-  assert.equal(I.extractImage(ld, "https://y.com/p"), "https://cdn.y.com/p.jpg");
   assert.equal(I.extractImage(`<meta property="og:image" content="http://insecure.com/a.jpg">`, "https://x.com"), null);
   assert.equal(I.extractImage(`<meta property="og:image" content="https://x.com/logo.svg">`, "https://x.com"), null);
+  assert.equal(I.extractImage(`<meta property="og:image" content="https://x.com/static/favicon-512.png">`, "https://x.com"), null);
 });
 await test("safePublicUrl refuses internal and odd addresses", () => {
   for (const bad of ["http://shop.com/p", "https://localhost/p", "https://169.254.169.254/latest", "https://10.0.0.1/",
@@ -296,30 +302,55 @@ await test("safePublicUrl refuses internal and odd addresses", () => {
   }
   assert.ok(I.safePublicUrl("https://www.aesop.com/hwyl"));
 });
-await test("findImage follows safe redirects only", async () => {
-  const page = (img: string) => new Response(`<html><head><meta property="og:image" content="${img}"></head>`, { headers: { "content-type": "text/html" } });
+await test("pages follow safe redirects only", async () => {
   const fake = async (u: string) => u.includes("/old")
     ? new Response(null, { status: 301, headers: { location: "/new" } })
     : u.includes("evil") ? new Response(null, { status: 302, headers: { location: "https://127.0.0.1/admin" } })
-    : page("https://cdn.shop.com/p.jpg");
+    : html(`<head><meta property="og:image" content="https://cdn.shop.com/p.jpg"></head>`);
   assert.equal(await I.findImage("https://shop.com/old", fake as never), "https://cdn.shop.com/p.jpg");
   assert.equal(await I.findImage("https://evil.com/x", fake as never), null);
   assert.equal(await I.findImage("https://192.168.1.1/x", fake as never), null);
 });
-await test("sweep saves the store's product photo with each listing", async () => {
+await test("Claude picks the photo that shows the product, or none", async () => {
+  const fake = async (u: string) => u.endsWith(".jpg") ? jpeg() : new Response("", { status: 404 });
+  let sent: any;
+  const pick2 = async (b: any) => { sent = b; return { content: [{ type: "text", text: '{"match": 2}' }], stop_reason: "end_turn" }; };
+  assert.equal(await I.chooseImage({ title: "Hwyl", brand: "Aesop" }, ["https://c.com/a.jpg", "https://c.com/b.jpg"], fake as never, pick2 as never), "https://c.com/b.jpg");
+  assert.equal(sent.messages[0].content.filter((c: any) => c.type === "image").length, 2);
+  assert.match(sent.model, /haiku/);
+  const none = async () => ({ content: [{ type: "text", text: '{"match": null}' }], stop_reason: "end_turn" });
+  assert.equal(await I.chooseImage({ title: "Hwyl" }, ["https://c.com/a.jpg"], fake as never, none as never), null);
+  const broken = async () => { throw new Error("overloaded"); };
+  assert.equal(await I.chooseImage({ title: "Hwyl" }, ["https://c.com/a.jpg"], fake as never, broken as never), null);
+  const tiny = async () => jpeg(1);
+  assert.equal(await I.chooseImage({ title: "Hwyl" }, ["https://c.com/a.jpg"], tiny as never, pick2 as never), null);
+});
+await test("addImages drops a photo shared by two different products", async () => {
+  const fake = async (u: string) => u.endsWith(".jpg") ? jpeg() : html(`<meta property="og:image" content="https://cdn.s.com/store-hero.jpg">`);
+  const yes = async () => ({ content: [{ type: "text", text: '{"match": 1}' }], stop_reason: "end_turn" });
+  const ls = [{ title: "A", url: "https://s.com/a", image_url: null }, { title: "B", url: "https://s.com/b", image_url: null }];
+  await I.addImages(ls as never, fake as never, yes as never);
+  assert.deepEqual(ls.map((l) => l.image_url), [null, null]);
+});
+await test("sweep saves only verified product photos", async () => {
   let saved: any[] = [];
   reset([
-    [/api\.anthropic\.com/, () => ok({ content: [{ type: "text", text: listingJSON }], stop_reason: "end_turn", usage: { input_tokens: 10, output_tokens: 10 } })],
-    [/GET https:\/\/www\.nike\.com\/launch/, () => new Response(`<head><meta property="og:image" content="https://static.nike.com/ts.png"></head>`, { headers: { "content-type": "text/html" } })],
-    [/GET https:\/\/kith\.com/, () => new Response("nope", { status: 403 })],
+    [/api\.anthropic\.com/, (_u, _i, b) => /haiku/.test(b.model)
+      ? claudeSays(JSON.stringify(b).includes("Travis") ? 1 : null)
+      : ok({ content: [{ type: "text", text: listingJSON }], stop_reason: "end_turn", usage: { input_tokens: 10, output_tokens: 10 } })],
+    [/GET https:\/\/www\.nike\.com\/launch/, () => html(`<head><meta property="og:image" content="https://static.nike.com/ts.jpg"></head>`)],
+    [/GET https:\/\/static\.nike\.com\/ts\.jpg/, () => jpeg()],
+    [/GET https:\/\/kith\.com\/cdn/, () => jpeg()],
+    [/GET https:\/\/kith\.com/, () => html(`<head><meta property="og:image" content="https://kith.com/cdn/aj4.jpg"></head>`)],
     [/rpc\/upsert_listings/, (_u, _i, b) => { saved = b.p_listings; return ok(saved.map((l: any, i: number) => ({ fingerprint: l.fingerprint, id: `l${i}`, already_found: false }))); }],
     [/taste_photos/, () => ok([])],
     [/rpc\/record_finds/, () => ok(1)],
     [/sweep_runs/, () => ok({})],
   ]);
   await sweep.sweepAgent({ ...jumpman, settings: {}, tz: "America/New_York" } as never, "manual");
-  assert.equal(saved.find((l) => l.url.includes("nike")).image_url, "https://static.nike.com/ts.png");
-  assert.equal(saved.find((l) => l.url.includes("kith")).image_url, null);
+  assert.equal(saved.find((l) => l.url.includes("nike")).image_url, "https://static.nike.com/ts.jpg");
+  assert.equal(saved.find((l) => l.url.includes("kith")).image_url, null, "Claude said the Kith photo isn't the product");
+  assert.ok(calls.some((c) => c.url.includes("kith.com/cdn/aj4.jpg")), "the Kith photo was downloaded and shown to Claude");
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
