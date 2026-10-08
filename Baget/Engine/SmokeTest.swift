@@ -30,6 +30,8 @@ enum SmokeTest {
         store.like("smoke-find"); store.unlike("smoke-find"); store.like("smoke-find")
         if let other = store.state.finds.first(where: { $0.id != "smoke-find" && $0.status == .open }) { store.pass(other.id, reason: .style) }
         let pause: UInt64 = 1_500_000_000
+        // Tap a Live item: it opens in Finds.
+        if let story = store.stories().first { router.openInFinds(story, store: store); try? await Task.sleep(nanoseconds: 1_500_000_000) }
         for tab in [AppTab.live, .finds, .squad, .friends, .live] {
             router.tab = tab
             try? await Task.sleep(nanoseconds: pause)

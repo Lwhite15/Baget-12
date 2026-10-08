@@ -106,6 +106,28 @@ final class Router {
     /// Set when Buy opens a store; when you come back, Baget asks whether you bought it.
     var buyOpened: String?
     var askBought: String?
+    /// A find to scroll to and highlight on the Finds tab (from tapping an item on Live).
+    var focusFind: String?
+
+    /// Opens an item in Finds. If it isn't there yet, its agent adds it first.
+    @MainActor func openInFinds(_ story: Story, store: AppStore) {
+        var find = store.state.finds.first { $0.itemID == story.item.id }
+        if find == nil, let aid = story.agentID, !(story.match?.notInSize ?? false) {
+            find = store.ensureFind(agentID: aid, itemID: story.item.id)
+            if find != nil { Analytics.track(.storySentToAgent, ["category": story.item.category.rawValue, "from": "tap"]) }
+        }
+        guard let f = find else {
+            say(story.agentID == nil ? "Deploy a \(story.item.category.info.label.lowercased()) agent to track this" : "Not in your size, so it isn't in Finds")
+            return
+        }
+        switch f.status {
+        case .passed: store.undoPass(f.id)            // you went looking for it, so bring it back
+        case .acquired: say("You bought this one"); return
+        default: break
+        }
+        focusFind = f.id
+        tab = .finds
+    }
 
     @MainActor func say(_ text: String) {
         withAnimation { toast = text }

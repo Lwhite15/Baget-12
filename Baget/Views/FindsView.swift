@@ -5,6 +5,7 @@ struct FindsView: View {
     @Environment(Router.self) private var router
     @State private var filter: Category? = nil
     @State private var likedOnly = false
+    @State private var highlighted: String?
     @State private var sweeping = false
 
     private func rank(_ f: Find) -> Int { (f.status == .open ? 1000 : f.status == .liked ? 500 : 0) + f.score }
@@ -18,6 +19,7 @@ struct FindsView: View {
             .filter { f in !likedOnly || f.status == .liked }
             .sorted { rank($0) > rank($1) }
 
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 SectionTitle(text: "What your squad found")
@@ -62,7 +64,9 @@ struct FindsView: View {
                     EmptyCard(text: store.state.agents.isEmpty ? "Deploy an agent first, then run a sweep." : "Nothing here yet. Pull down on Live or tap Sweep now.")
                 }
                 LazyVStack(spacing: 14) {
-                    ForEach(finds) { f in FindCard(find: f) }
+                    ForEach(finds) { f in
+                        FindCard(find: f, highlighted: highlighted == f.id).id(f.id)
+                    }
                 }
                 if !store.isCloud {
                     Text("Sample data: listings, prices and drop times are illustrative, and nothing is purchased.")
@@ -73,6 +77,21 @@ struct FindsView: View {
             .padding(.bottom, 24)
         }
         .scrollIndicators(.hidden)
+        .onChange(of: router.focusFind, initial: true) { _, id in
+            guard let id else { return }
+            // Make sure it's visible: clear filters, then scroll to it and light it up for a moment.
+            filter = nil
+            likedOnly = false
+            router.focusFind = nil
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(250))
+                withAnimation(.easeInOut(duration: 0.35)) { proxy.scrollTo(id, anchor: .top) }
+                withAnimation { highlighted = id }
+                try? await Task.sleep(for: .seconds(2.2))
+                withAnimation(.easeOut(duration: 0.6)) { if highlighted == id { highlighted = nil } }
+            }
+        }
+        }
     }
 }
 
@@ -80,6 +99,7 @@ struct FindCard: View {
     @Environment(AppStore.self) private var store
     @Environment(Router.self) private var router
     let find: Find
+    var highlighted = false
     @State private var askingWhy = false
     @Environment(\.openURL) private var openURL
 
@@ -133,7 +153,7 @@ struct FindCard: View {
                 }
                 actions(item: item, agent: agent)
             }
-            .glassCard()
+            .glassCard(highlighted: highlighted)
             .confirmationDialog("What was off? \(agent?.name ?? "Your agent") will learn from it.", isPresented: $askingWhy, titleVisibility: .visible) {
                 ForEach(AppStore.PassReason.allCases) { r in
                     Button(r.rawValue) {

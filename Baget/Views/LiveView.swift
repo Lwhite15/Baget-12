@@ -132,9 +132,11 @@ struct StoryActions: View {
         HStack(spacing: 8) {
             if let agent, !(story.match?.notInSize ?? false) {
                 if tracked {
-                    Label("In your Finds", systemImage: "checkmark.circle.fill")
-                        .font(.footnote.weight(.semibold)).foregroundStyle(Theme.green)
-                        .frame(maxWidth: .infinity)
+                    Button { router.openInFinds(story, store: store) } label: {
+                        IconText(icon: "chevron.right", text: "View in Finds", trailing: true)
+                    }
+                    .buttonStyle(GhostButton())
+                    .tint(Theme.green)
                 } else {
                     Button("Send to \(agent.name)") {
                         store.ensureFind(agentID: agent.id, itemID: story.item.id)
@@ -160,18 +162,25 @@ struct StoryActions: View {
 
 struct LeadStoryView: View {
     @Environment(AppStore.self) private var store
+    @Environment(Router.self) private var router
     let story: Story
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Plate(item: story.item, label: story.isLive ? "AVAILABLE NOW" : store.whenLabel(story.item), height: 230, lead: true)
-                .shadow(color: Theme.cyan.opacity(0.35), radius: 24, y: 12)
-            Kicker(story: story)
-            Text(story.headline)
-                .font(.system(size: 30, weight: .heavy))
-                .tracking(-0.8)
-                .foregroundStyle(Theme.ink)
-                .fixedSize(horizontal: false, vertical: true)
-            Text(story.dek).font(.callout).foregroundStyle(Theme.muted)
+            VStack(alignment: .leading, spacing: 12) {
+                Plate(item: story.item, label: story.isLive ? "AVAILABLE NOW" : store.whenLabel(story.item), height: 230, lead: true)
+                    .shadow(color: Theme.cyan.opacity(0.35), radius: 24, y: 12)
+                Kicker(story: story)
+                Text(story.headline)
+                    .font(.system(size: 30, weight: .heavy))
+                    .tracking(-0.8)
+                    .foregroundStyle(Theme.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(story.dek).font(.callout).foregroundStyle(Theme.muted)
+            }
+            .contentShape(Rectangle())
+            .onTapGesture { router.openInFinds(story, store: store) }
+            .accessibilityAddTraits(.isButton)
+            .accessibilityHint("Opens it in Finds")
             if story.forYou, let why = story.match?.why.first {
                 (Text("Why it's here: ").foregroundStyle(Theme.muted) + Text(why).foregroundStyle(Theme.ink).bold()).font(.footnote)
             }
@@ -183,18 +192,27 @@ struct LeadStoryView: View {
 
 struct StoryRow: View {
     @Environment(AppStore.self) private var store
+    @Environment(Router.self) private var router
     let story: Story
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
             Plate(item: story.item, label: story.isLive ? "NOW" : store.whenLabel(story.item), live: story.isLive, height: 104)
                 .frame(width: 104)
+                .contentShape(Rectangle())
+                .onTapGesture { router.openInFinds(story, store: store) }
             VStack(alignment: .leading, spacing: 7) {
-                Kicker(story: story)
-                Text(story.headline).font(.headline).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
-                Text(story.dek).font(.footnote).foregroundStyle(Theme.muted).lineLimit(3)
-                if story.forYou, let why = story.match?.why.first {
-                    Text(why).font(.caption.weight(.semibold)).foregroundStyle(Theme.green).lineLimit(2)
+                VStack(alignment: .leading, spacing: 7) {
+                    Kicker(story: story)
+                    Text(story.headline).font(.headline).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
+                    Text(story.dek).font(.footnote).foregroundStyle(Theme.muted).lineLimit(3)
+                    if story.forYou, let why = story.match?.why.first {
+                        Text(why).font(.caption.weight(.semibold)).foregroundStyle(Theme.green).lineLimit(2)
+                    }
                 }
+                .contentShape(Rectangle())
+                .onTapGesture { router.openInFinds(story, store: store) }
+                .accessibilityAddTraits(.isButton)
+                .accessibilityHint("Opens it in Finds")
                 StoryActions(story: story)
             }
         }
