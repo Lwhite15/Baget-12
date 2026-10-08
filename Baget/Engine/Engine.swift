@@ -129,11 +129,9 @@ enum Matcher {
 
     /// How well the agent knows the shopper, 0-100.
     static func intel(_ a: Agent) -> Int {
-        var k = 14
+        var k = 26
         k += min(a.keywords.count, 5) * 6
         k += (!a.size.isEmpty || !a.mission.info.sizeRequired) ? 10 : 0
-        k += a.maxPerItem > 0 ? 6 : 0
-        k += a.monthlyLimit > 0 ? 6 : 0
         k += min(a.style.traits.count, 5) * 6
         k += min(a.style.makers.count, 3) * 5
         k += min(a.style.creators.count, 2) * 5
@@ -221,7 +219,7 @@ enum Fmt {
 
 enum FriendVoice {
     static func line(agent a: Agent, kind: NoteKind, item: Item?, extra: String = "",
-                     when: String = "", remaining: Double = 0, usedPercent: Int = 0) -> String {
+                     when: String = "") -> String {
         let t = item?.title ?? ""
         let src = item?.source ?? ""
         let price = item.map { Fmt.money($0.price) } ?? ""
@@ -252,11 +250,9 @@ enum FriendVoice {
 
         case (.bought, .hype): return "Done! Grabbed the \(t) for \(price). It's in your Finds."
         case (.bought, .chill): return "Got it for you: the \(t), \(price). It's in your Finds."
-        case (.bought, .straight): return "Purchased \(t) for \(price). \(Fmt.money(remaining)) left this month."
+        case (.bought, .straight): return "Purchased \(t) for \(price). It's in your Finds."
 
-        case (.budget, .hype): return "Heads up, we're at \(usedPercent)% of this month's budget. I'll only ping you for the really good stuff now."
-        case (.budget, .chill): return "Quick check-in: you're at \(usedPercent)% of your monthly limit, so I'll be pickier for a bit."
-        case (.budget, .straight): return "Budget: \(usedPercent)% of \(Fmt.money(a.monthlyLimit)) used this month."
+        case (.budget, _): return "Still hunting for you."
 
         case (.learned, .hype): return "Noticed you're really into \(extra) lately. Hunting more of that now!"
         case (.learned, .chill): return "Seems like \(extra) is your thing lately. I'll keep an eye out for more."

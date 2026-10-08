@@ -192,11 +192,11 @@ struct CheckoutView: View {
                 Text(item.title).font(.title2.weight(.heavy)).foregroundStyle(Theme.ink)
                 Text([item.source, item.sku].filter { !$0.isEmpty }.joined(separator: " · ")).font(.footnote).foregroundStyle(Theme.muted)
                 Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 12) {
-                    GridRow { cell("Price", item.priceKnown ? Fmt.money(item.price) : "Not listed"); cell(cloud ? "Agent" : "Charged to", a?.name ?? "—") }
+                    GridRow { cell("Price", item.priceKnown ? Fmt.money(item.price) : "Not listed"); cell("Agent", a?.name ?? "—") }
                     GridRow {
                         cell(item.category.info.sizeRequired ? (item.category.info.sizeLabel ?? "Size") : "Category",
                              item.category.info.sizeRequired ? (a?.size.isEmpty == false ? a!.size : "Any") : item.category.info.label)
-                        cell("Left after", a.map { Fmt.money(max(0, store.remaining($0) - item.price)) } ?? "—")
+                        cell("Store", item.source.isEmpty ? "—" : item.source)
                     }
                 }
                 .glassCard()
@@ -267,10 +267,7 @@ struct CheckoutView: View {
         let name = a?.name ?? "Your agent"
         if soldOut { return "Sold out right now. \(name) will watch for a restock and tell you the moment it's back." }
         if !live { return "This isn't available yet. Your agent will hold your spot and ask again at release." }
-        guard let a else { return nil }
-        let left = store.remaining(a)
-        if item.price > left { return "\(a.name) only has \(Fmt.money(left)) left this month. Raise its limit to buy this." }
-        if a.maxPerItem > 0 && item.price > a.maxPerItem { return "This is above \(a.name)'s \(Fmt.money(a.maxPerItem)) per-item cap." }
+        _ = a
         return nil
     }
 

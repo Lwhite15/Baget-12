@@ -113,18 +113,6 @@ final class AppStore {
         return best
     }
 
-    func spentThisMonth(_ a: Agent) -> Double {
-        let key = Fmt.monthKey(.now)
-        return state.purchases.filter { $0.agentID == a.id && Fmt.monthKey($0.date) == key }.reduce(0) { $0 + $1.amount }
-    }
-    func remaining(_ a: Agent) -> Double { max(0, a.monthlyLimit - spentThisMonth(a)) }
-    func monthTotal(_ key: String) -> Double { state.purchases.filter { Fmt.monthKey($0.date) == key }.reduce(0) { $0 + $1.amount } }
-
-    func lastMonths(_ n: Int) -> [Date] {
-        let cal = Calendar.current
-        let start = cal.date(from: cal.dateComponents([.year, .month], from: .now)) ?? .now
-        return (0..<n).reversed().compactMap { cal.date(byAdding: .month, value: -$0, to: start) }
-    }
 
     func owned(by a: Agent) -> [Item] {
         state.finds.filter { $0.agentID == a.id && $0.status == .acquired }.compactMap { Catalog.item($0.itemID) }
@@ -133,13 +121,10 @@ final class AppStore {
     /// The honest friend's take on a find.
     func take(_ a: Agent, _ item: Item) -> FriendTake {
         let twin = owned(by: a).first { $0.id != item.id && $0.brand == item.brand && Set($0.traits).intersection(item.traits).count >= 2 }
-        let used = a.monthlyLimit > 0 ? (spentThisMonth(a) + item.price) / a.monthlyLimit : 0
         if isSoldOut(item) { return FriendTake(text: "Sold out at the source. I'll watch for a restock and won't let you overpay resale.", caution: false) }
         if let twin { return FriendTake(text: "You already picked up the \(twin.title). This is close. Sure you want both?", caution: true) }
-        if a.maxPerItem > 0 && item.price > a.maxPerItem { return FriendTake(text: "It's over your \(Fmt.money(a.maxPerItem)) cap. I can watch for a price drop instead.", caution: true) }
         if a.priceNote > 0 && item.price > a.priceNote { return FriendTake(text: "You've passed on things at this price before. Flagging it anyway because it fits you so well.", caution: true) }
         if item.market < item.price * 0.97 { return FriendTake(text: "Market's below the asking price right now. I'd wait or buy it secondhand.", caution: true) }
-        if a.monthlyLimit > 0 && used > 0.85 && a.mode != .alert { return FriendTake(text: "This would put you at \(Int(used * 100))% of this month's limit.", caution: true) }
         if item.price > 0 && item.market > item.price * 1.25 { return FriendTake(text: "Asking is \(Int(safe: ((item.market / item.price - 1) * 100).rounded()))% under market. If you love it, this is the moment.", caution: false) }
         return FriendTake(text: "Fair price, right in your lane.", caution: false)
     }
@@ -172,8 +157,7 @@ final class AppStore {
                                            "score": find.score, "mode": b.agent.mode.rawValue, "background": background,
                                            "fromLearning": b.match.why.contains { $0.hasPrefix("You've gone for") }])
             let a = b.agent
-            if a.mode == .auto && find.score >= 80 && !isSoldOut(item) && item.price <= a.maxPerItem && item.price <= remaining(a) && isLive(item) {
-                let before = a.monthlyLimit > 0 ? spentThisMonth(a) / a.monthlyLimit : 0
+            if a.mode == .auto && find.score >= 80 && !isSoldOut(item) && item.priceKnown && isLive(item) {
                 find.status = .acquired
                 state.finds.insert(find, at: 0)
                 record(a, item)
@@ -181,8 +165,6 @@ final class AppStore {
                 log("\(a.name) auto-bought \(item.title) for \(Fmt.money(item.price))")
                 bought += 1
                 if let n = notify(a, .bought, item, findID: find.id) { notes.append(n) }
-                let after = a.monthlyLimit > 0 ? spentThisMonth(a) / a.monthlyLimit : 0
-                if before < 0.85 && after >= 0.85, let n = notify(a, .budget, item) { notes.append(n) }
             } else {
                 state.finds.insert(find, at: 0)
                 log("\(a.name) flagged \(item.title) (\(find.score)% match)")
@@ -272,9 +254,7 @@ final class AppStore {
     func notify(_ a: Agent, _ kind: NoteKind, _ item: Item?, findID: String? = nil, extra: String = "") -> AppNote? {
         if let g = kind.group, !state.settings.groups.contains(g) { return nil }
         let urgent = kind == .restock || kind == .bought || (kind == .release && (item.map { dropDate($0).timeIntervalSinceNow < 90 * 60 } ?? false))
-        let used = a.monthlyLimit > 0 ? Int(safe: (spentThisMonth(a) / a.monthlyLimit * 100).rounded()) : 0
-        let body = FriendVoice.line(agent: a, kind: kind, item: item, extra: extra,
-                                    when: item.map { whenText($0) } ?? "", remaining: remaining(a), usedPercent: used)
+        let body = FriendVoice.line(agent: a, kind: kind, item: item, extra: extra, when: item.map { whenText($0) } ?? "")
         let note = AppNote(id: UUID().uuidString.lowercased(), agentID: a.id, kind: kind, body: body, findID: findID,
                            heldForMorning: state.settings.quietHours && inQuietHours() && !urgent, senderName: a.name)
         state.notes.insert(note, at: 0)

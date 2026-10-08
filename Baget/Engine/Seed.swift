@@ -8,19 +8,19 @@ extension AppStore {
         state.agents = [
             Agent(id: "a1", name: "Jumpman Scout", mission: .category(.sneakers), keywords: ["aj1", "retro"],
                   style: StyleProfile(traits: ["jordan 1", "suede", "low top"], makers: ["Jordan"], creators: ["Travis Scott"]),
-                  size: "US M 10.5", maxPerItem: 350, monthlyLimit: 900, mode: .ask, voice: .hype),
+                  size: "US M 10.5", maxPerItem: 0, monthlyLimit: 0, mode: .ask, voice: .hype),
             Agent(id: "a2", name: "Thursday Drop Desk", mission: .category(.apparel), keywords: ["box logo"],
                   style: StyleProfile(traits: ["heavyweight fleece", "outerwear"], makers: ["Supreme", "Stüssy"], creators: ["The North Face"]),
-                  size: "L", maxPerItem: 500, monthlyLimit: 1200, mode: .alert, voice: .hype),
+                  size: "L", maxPerItem: 0, monthlyLimit: 0, mode: .alert, voice: .hype),
             Agent(id: "a3", name: "Knightsbridge Nose", mission: .category(.fragrance), keywords: ["harrods exclusive"],
                   style: StyleProfile(traits: ["oud", "rose", "saffron", "incense"], makers: ["Frédéric Malle", "Maison Francis Kurkdjian"], creators: ["Dominique Ropion"]),
-                  size: "50ml or 100ml", maxPerItem: 500, monthlyLimit: 1500, mode: .ask, voice: .chill),
+                  size: "50ml or 100ml", maxPerItem: 0, monthlyLimit: 0, mode: .ask, voice: .chill),
             Agent(id: "a4", name: "Air-Cooled Desk", mission: .category(.cars), keywords: ["911"],
                   style: StyleProfile(traits: ["air-cooled", "manual", "coupe"], makers: ["Porsche", "BMW M"], creators: []),
-                  size: "", maxPerItem: 150_000, monthlyLimit: 150_000, mode: .alert, voice: .straight),
+                  size: "", maxPerItem: 0, monthlyLimit: 0, mode: .alert, voice: .straight),
             Agent(id: "a5", name: "Studio Hunter", mission: .category(.furniture), keywords: [],
                   style: StyleProfile(traits: ["mid-century", "walnut", "teak", "cane"], makers: ["Herman Miller"], creators: ["Pierre Jeanneret", "Eames"]),
-                  size: "", maxPerItem: 12_000, monthlyLimit: 15_000, mode: .ask, voice: .chill),
+                  size: "", maxPerItem: 0, monthlyLimit: 0, mode: .ask, voice: .chill),
         ]
 
         let cal = Calendar.current

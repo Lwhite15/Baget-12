@@ -266,7 +266,7 @@ enum NoteGroup: String, Codable, CaseIterable, Identifiable {
         case .finds: return "New finds and drops"
         case .restocks: return "Restocks"
         case .steals: return "Prices well under market"
-        case .money: return "Purchases and budget"
+        case .money: return "Purchases"
         case .learning: return "What my agents learn"
         }
     }

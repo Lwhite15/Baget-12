@@ -21,7 +21,6 @@ export function sweepPrompt(a: Agent, today: string): string {
     a.makers.length ? `Brands and makers they like: ${a.makers.join(", ")}` : "",
     a.creators.length ? `Creators they follow: ${a.creators.join(", ")}` : "",
     a.size ? `Their size: ${a.size}` : "",
-    a.max_per_item > 0 ? `Max price per item: $${a.max_per_item}` : "",
     Object.entries(a.learned ?? {}).filter(([, w]) => w < 0).length
       ? `Not into: ${Object.entries(a.learned).filter(([, w]) => w < 0).map(([k]) => k).join(", ")}` : "",
   ].filter(Boolean).join("\n");

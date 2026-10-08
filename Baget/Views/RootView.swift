@@ -21,7 +21,6 @@ struct RootView: View {
             Group {
                 switch sheet {
                 case .inbox: InboxView()
-                case .spending: SpendingView()
                 case .deploy: DeployAgentView(prefill: router.deployPrefill)
                 case .customizeBar: CustomizeBarView()
                 case .profile: ProfileView()
@@ -79,13 +78,6 @@ struct RootView: View {
                     .accessibilityAddTraits(.isHeader)
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button { router.sheet = .spending } label: {
-                        VStack(alignment: .trailing, spacing: 0) {
-                            Text(monthName.uppercased() + " TOTAL").font(.system(size: 9, weight: .semibold)).foregroundStyle(Theme.muted)
-                            Text(Fmt.money(store.monthTotal(Fmt.monthKey(.now)))).font(.system(.subheadline, design: .monospaced).weight(.semibold)).gradientText()
-                        }
-                    }
-                    .accessibilityLabel("Monthly spending")
                     Button { router.sheet = .inbox } label: {
                         Image(systemName: "bell.fill")
                             .foregroundStyle(Theme.ink)
@@ -104,7 +96,6 @@ struct RootView: View {
         }
     }
 
-    private var monthName: String { Date.now.formatted(.dateTime.month(.wide)) }
 
     @ViewBuilder private var bannerView: some View {
         if let n = store.banner {

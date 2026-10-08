@@ -17,7 +17,7 @@ const TOOLS = [
   },
   {
     name: "update_profile",
-    description: "Record what you learned about the person's taste, size or budget. Every field optional. Returns the updated profile.",
+    description: "Record what you learned about the person's taste or size. Every field optional. Returns the updated profile.",
     input_schema: {
       type: "object",
       properties: {
@@ -25,7 +25,6 @@ const TOOLS = [
         add_makers: { type: "array", items: { type: "string" } }, remove_makers: { type: "array", items: { type: "string" } },
         add_creators: { type: "array", items: { type: "string" } }, add_keywords: { type: "array", items: { type: "string" } },
         dislikes: { type: "array", items: { type: "string" } }, size: { type: "string" },
-        max_per_item: { type: "number" }, monthly_limit: { type: "number" },
       },
     },
   },
@@ -56,7 +55,7 @@ What you know about them (JSON):
 ${JSON.stringify(profile)}
 
 How to work:
-- When they reveal a taste, dislike, brand, creator, size or budget, call update_profile, then say in a few words what you picked up.
+- When they reveal a taste, dislike, brand, creator or size, call update_profile, then say in a few words what you picked up.
 - To find things: try search_saved_listings first; use web_search for anything current it doesn't have. Only mention products, prices and dates you actually saw. Never invent them.
 - When something is a strong fit, call flag_find so it lands in their Finds.
 - When they want to buy, call propose_purchase. That only lines up checkout; they finish the purchase themselves at the store. Never say you bought something.
@@ -84,7 +83,7 @@ export const handler = handle(async (req) => {
   const photos = await db.select<{ summary: string; tags: string[] }>("taste_photos", `select=summary,tags&agent_id=eq.${a.id}&limit=6`);
   const profile = () => ({
     name: a.name, mission: missionLabel(a), keywords: a.keywords, traits_they_love: a.traits, makers_they_like: a.makers,
-    creators_they_follow: a.creators, size: a.size || null, max_per_item: a.max_per_item || null, monthly_limit: a.monthly_limit,
+    creators_they_follow: a.creators, size: a.size || null,
     learned_from_actions: a.learned, prefers_under: a.price_note || null, taste_photos: photos,
     bought: recent.filter((f) => f.status === "acquired").map((f) => f.listing?.title),
     passed_on: recent.filter((f) => f.status === "passed").map((f) => ({ item: f.listing?.title, reason: f.pass_reason ?? "" })),
@@ -135,8 +134,6 @@ export const handler = handle(async (req) => {
         learned,
       };
       if (typeof input.size === "string" && input.size.trim()) patch.size = input.size.trim().slice(0, 40);
-      if (Number(input.max_per_item) > 0) patch.max_per_item = Number(input.max_per_item);
-      if (Number(input.monthly_limit) > 0) patch.monthly_limit = Number(input.monthly_limit);
       await db.update("agents", `id=eq.${a.id}&user_id=eq.${user.id}`, patch);
       a = { ...a, ...patch } as Agent;
       actions.push({ type: "profile_updated" });
@@ -161,8 +158,7 @@ export const handler = handle(async (req) => {
         "finds", `select=id,listing:listings(title,price,url,source)&id=eq.${enc(String(input.find_id))}&user_id=eq.${user.id}`);
       if (!f) throw new Error("No find with that id");
       actions.push({ type: "checkout", find_id: f.id, title: f.listing.title });
-      return { checkout_ready: true, price: f.listing.price, store: f.listing.source, url: f.listing.url,
-               within_cap: !a.max_per_item || !f.listing.price || f.listing.price <= a.max_per_item, monthly_limit: a.monthly_limit };
+      return { checkout_ready: true, price: f.listing.price, store: f.listing.source, url: f.listing.url };
     }
     throw new Error(`Unknown tool ${name}`);
   }

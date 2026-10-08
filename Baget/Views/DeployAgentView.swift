@@ -19,8 +19,6 @@ struct DeployAgentView: View {
     @State private var traits = ""
     @State private var makers = ""
     @State private var creators = ""
-    @State private var maxText = ""
-    @State private var limitText = ""
     @State private var voice: Voice = .chill
     @State private var mode: BuyMode = .ask
     @State private var error: String?
@@ -43,7 +41,7 @@ struct DeployAgentView: View {
         Agent(id: UUID().uuidString.lowercased(), name: name.trimmingCharacters(in: .whitespaces), mission: mission,
               keywords: TextMatch.list(keywords).map { $0.lowercased() },
               style: StyleProfile(traits: TextMatch.list(traits).map { $0.lowercased() }, makers: TextMatch.list(makers), creators: TextMatch.list(creators)),
-              size: sizeString, maxPerItem: Double(maxText) ?? 0, monthlyLimit: Double(limitText) ?? 0, mode: mode, voice: voice)
+              size: sizeString, maxPerItem: 0, monthlyLimit: 0, mode: mode, voice: voice)
     }
 
     private var shoeOptions: [Double] {
@@ -77,6 +75,9 @@ struct DeployAgentView: View {
                         ForEach(Voice.allCases) { v in Text(v.label).tag(v) }
                     }
                     Text(voice.blurb).font(.caption).foregroundStyle(Theme.muted)
+                    Picker("When it finds something", selection: $mode) {
+                        ForEach(BuyMode.allCases) { m in Text(m.label).tag(m) }
+                    }
                 }
 
                 Section {
@@ -131,14 +132,6 @@ struct DeployAgentView: View {
                     LabeledField(label: info.creatorsLabel, placeholder: info.creatorsPlaceholder, text: $creators)
                 } header: { Text("\(category == nil ? "" : info.label + " ")style profile") } footer: {
                     Text("Teach it your taste, not just names. It surfaces things that share these traits, even ones you've never heard of.")
-                }
-
-                Section("Budget") {
-                    HStack { Text("Max per item"); Spacer(); TextField("400", text: $maxText).keyboardType(.numberPad).multilineTextAlignment(.trailing).frame(width: 110) }
-                    HStack { Text("Monthly limit"); Spacer(); TextField("1000", text: $limitText).keyboardType(.numberPad).multilineTextAlignment(.trailing).frame(width: 110) }
-                    Picker("When it finds something", selection: $mode) {
-                        ForEach(BuyMode.allCases) { m in Text(m.label).tag(m) }
-                    }
                 }
 
                 Section {
@@ -198,7 +191,6 @@ struct DeployAgentView: View {
         var a = draft
         if case .custom(let t) = a.mission, t.isEmpty { error = "Tell the agent what to hunt."; return }
         if Sizes.required(a) && !Sizes.has(a) { error = "Pick your \(category == .sneakers ? "shoe size" : "size"). This agent only hunts things in stock in your size."; return }
-        if a.monthlyLimit <= 0 { error = "Set a monthly spending limit, even if it only alerts you."; return }
         if a.name.isEmpty { a.name = String("\(a.mission.label.capitalizedFirst) Hunter".prefix(40)) }
         if store.state.agents.count >= 12 { error = "A squad can have up to 12 agents. Retire one to add another."; return }
         // The icon: a photo is kept on the phone now and uploaded once the agent exists.

@@ -27,7 +27,7 @@ A native iPhone app (SwiftUI, iOS 17+) with a Supabase backend where the agents 
 3. New finds become friend-style notifications in your agent's voice. They're pushed to your iPhone right away,
    or held until 8am during quiet hours (restocks and imminent drops still come through).
 4. You can talk to an agent: it updates your profile, searches the web live, flags finds and lines up checkout.
-5. You buy at the store's own site. "I bought it" records the purchase in your monthly spending. Baget never charges anyone.
+5. You buy at the store's own site. "I bought it" logs the purchase on the server (for metrics and so agents learn what you buy). The app doesn't show spending totals. Baget never charges anyone.
 
 Signed out, the app still works as a sample tour with built-in sample data.
 

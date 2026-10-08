@@ -123,8 +123,8 @@ export function covers(a: Agent, l: Listing): boolean {
   return words(a.mission_custom ?? "").some((w) => hay.includes(w));
 }
 export function intel(a: Agent): number {
-  let k = 14 + Math.min(a.keywords.length, 5) * 6 + ((a.size || !sizeRequired(a)) ? 10 : 0) + (a.max_per_item > 0 ? 6 : 0) +
-    (a.monthly_limit > 0 ? 6 : 0) + Math.min(a.traits.length, 5) * 6 + Math.min(a.makers.length, 3) * 5 + Math.min(a.creators.length, 2) * 5;
+  let k = 26 + Math.min(a.keywords.length, 5) * 6 + ((a.size || !sizeRequired(a)) ? 10 : 0) +
+    Math.min(a.traits.length, 5) * 6 + Math.min(a.makers.length, 3) * 5 + Math.min(a.creators.length, 2) * 5;
   return Math.min(100, k);
 }
 export function match(a: Agent, l: Listing, photoTags: string[] = []): Match | null {

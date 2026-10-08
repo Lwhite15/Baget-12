@@ -46,8 +46,6 @@ struct AgentCard: View {
     @State private var confirmRetire = false
 
     var body: some View {
-        let spent = store.spentThisMonth(agent)
-        let used = agent.monthlyLimit > 0 ? spent / agent.monthlyLimit : 0
         let k = Matcher.intel(agent)
         let finds = store.state.finds.filter { $0.agentID == agent.id }.count
         let learned = agent.learned.filter { $0.value != 0 }.sorted { abs($0.value) > abs($1.value) }.prefix(8)
@@ -87,16 +85,7 @@ struct AgentCard: View {
             HStack {
                 stat(agent.mission.info.sizeRequired ? (agent.mission.info.sizeLabel ?? "Size") : "Mission",
                      agent.mission.info.sizeRequired ? (agent.size.isEmpty ? "Any" : agent.size) : agent.mission.label)
-                stat("Max per item", agent.maxPerItem > 0 ? Fmt.money(agent.maxPerItem) : "None")
-            }
-
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Text("\(Fmt.money(spent)) of \(Fmt.money(agent.monthlyLimit)) this month").font(.caption).foregroundStyle(Theme.muted)
-                    Spacer()
-                    Text("\(Fmt.money(store.remaining(agent))) left").font(.caption.monospaced()).foregroundStyle(Theme.muted)
-                }
-                Meter(value: used, tint: AnyShapeStyle(used >= 1 ? Theme.hot : used >= 0.75 ? Theme.warn : Theme.green))
+                stat("When it finds something", agent.mode.short)
             }
 
             VStack(alignment: .leading, spacing: 6) {

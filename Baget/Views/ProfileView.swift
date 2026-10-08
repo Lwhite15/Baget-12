@@ -261,9 +261,6 @@ struct ProfileView: View {
             Button { router.sheet = .customizeBar } label: {
                 Label("Customize the Live bar", systemImage: "slider.horizontal.3")
             }
-            Button { router.sheet = .spending } label: {
-                Label("Monthly spending", systemImage: "chart.bar.xaxis")
-            }
         }
         .foregroundStyle(Theme.ink)
     }
