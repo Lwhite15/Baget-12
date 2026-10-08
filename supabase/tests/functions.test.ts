@@ -267,12 +267,59 @@ await test("push: delivers to each phone and drops dead tokens", async () => {
 await test("delete-account removes photos then the account", async () => {
   reset([
     [/auth\/v1\/user$/, () => ok({ id: jumpman.user_id })],
-    [/object\/list\/taste-photos/, (_u, _i, b) => { assert.equal(b.prefix, `${jumpman.user_id}/`); return ok([{ name: "p1.jpg" }]); }],
-    [/DELETE .*object\/taste-photos/, (_u, _i, b) => { assert.deepEqual(b.prefixes, [`${jumpman.user_id}/p1.jpg`]); return ok([]); }],
+    [/object\/list\/taste-photos/, (_u, _i, b) => b.prefix === `${jumpman.user_id}/`
+      ? ok([{ name: "p1.jpg", id: "f1" }, { name: "avatars", id: null }])
+      : (assert.equal(b.prefix, `${jumpman.user_id}/avatars/`), ok([{ name: "me.jpg", id: "f2" }]))],
+    [/DELETE .*object\/taste-photos/, (_u, _i, b) => { assert.deepEqual(b.prefixes, [`${jumpman.user_id}/p1.jpg`, `${jumpman.user_id}/avatars/me.jpg`]); return ok([]); }],
     [/DELETE .*admin\/users/, (u) => { assert.ok(u.pathname.endsWith(jumpman.user_id)); return ok({}); }],
   ]);
   const res = await del.handler(post("delete-account", {}, { Authorization: "Bearer user-jwt" }));
   assert.deepEqual(await res.json(), { deleted: true });
+});
+
+// ── product photos ──
+const I = await import("../functions/_shared/images.ts");
+await test("extractImage prefers og:image and resolves relative links", () => {
+  const html = `<head><meta name="twitter:image" content="https://cdn.shop.com/tw.jpg">
+    <meta content="/img/p1.jpg?w=1200&amp;h=1200" property="og:image"></head>`;
+  assert.equal(I.extractImage(html, "https://shop.com/p/1"), "https://shop.com/img/p1.jpg?w=1200&h=1200");
+  assert.equal(I.extractImage(`<meta property="og:image" content="//cdn.x.com/a.png">`, "https://x.com/p"), "https://cdn.x.com/a.png");
+  const ld = `<script type="application/ld+json">{"@type":"Product","image":["https:\\/\\/cdn.y.com\\/p.jpg"]}</script>`;
+  assert.equal(I.extractImage(ld, "https://y.com/p"), "https://cdn.y.com/p.jpg");
+  assert.equal(I.extractImage(`<meta property="og:image" content="http://insecure.com/a.jpg">`, "https://x.com"), null);
+  assert.equal(I.extractImage(`<meta property="og:image" content="https://x.com/logo.svg">`, "https://x.com"), null);
+});
+await test("safePublicUrl refuses internal and odd addresses", () => {
+  for (const bad of ["http://shop.com/p", "https://localhost/p", "https://169.254.169.254/latest", "https://10.0.0.1/",
+                     "https://[::1]/", "https://shop.com:8443/p", "https://user:pw@shop.com/", "https://intranet/", "https://db.internal/"]) {
+    assert.equal(I.safePublicUrl(bad), null, bad);
+  }
+  assert.ok(I.safePublicUrl("https://www.aesop.com/hwyl"));
+});
+await test("findImage follows safe redirects only", async () => {
+  const page = (img: string) => new Response(`<html><head><meta property="og:image" content="${img}"></head>`, { headers: { "content-type": "text/html" } });
+  const fake = async (u: string) => u.includes("/old")
+    ? new Response(null, { status: 301, headers: { location: "/new" } })
+    : u.includes("evil") ? new Response(null, { status: 302, headers: { location: "https://127.0.0.1/admin" } })
+    : page("https://cdn.shop.com/p.jpg");
+  assert.equal(await I.findImage("https://shop.com/old", fake as never), "https://cdn.shop.com/p.jpg");
+  assert.equal(await I.findImage("https://evil.com/x", fake as never), null);
+  assert.equal(await I.findImage("https://192.168.1.1/x", fake as never), null);
+});
+await test("sweep saves the store's product photo with each listing", async () => {
+  let saved: any[] = [];
+  reset([
+    [/api\.anthropic\.com/, () => ok({ content: [{ type: "text", text: listingJSON }], stop_reason: "end_turn", usage: { input_tokens: 10, output_tokens: 10 } })],
+    [/GET https:\/\/www\.nike\.com\/launch/, () => new Response(`<head><meta property="og:image" content="https://static.nike.com/ts.png"></head>`, { headers: { "content-type": "text/html" } })],
+    [/GET https:\/\/kith\.com/, () => new Response("nope", { status: 403 })],
+    [/rpc\/upsert_listings/, (_u, _i, b) => { saved = b.p_listings; return ok(saved.map((l: any, i: number) => ({ fingerprint: l.fingerprint, id: `l${i}`, already_found: false }))); }],
+    [/taste_photos/, () => ok([])],
+    [/rpc\/record_finds/, () => ok(1)],
+    [/sweep_runs/, () => ok({})],
+  ]);
+  await sweep.sweepAgent({ ...jumpman, settings: {}, tz: "America/New_York" } as never, "manual");
+  assert.equal(saved.find((l) => l.url.includes("nike")).image_url, "https://static.nike.com/ts.png");
+  assert.equal(saved.find((l) => l.url.includes("kith")).image_url, null);
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

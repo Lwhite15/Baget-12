@@ -162,9 +162,19 @@ struct Plate: View {
     var live = false
     var height: CGFloat = 120
     var lead = false
+    @State private var photo: UIImage?
+
+    private var photoURL: URL? {
+        guard let s = item.imageURL, s.hasPrefix("https://") else { return nil }
+        return URL(string: s)
+    }
+
     var body: some View {
         ZStack(alignment: .topLeading) {
-            if lead {
+            if photo != nil {
+                // Product shots are usually on white: show the whole product on a light panel.
+                RoundedRectangle(cornerRadius: lead ? 22 : 18, style: .continuous).fill(Color.white)
+            } else if lead {
                 RoundedRectangle(cornerRadius: 22, style: .continuous).fill(Theme.gradient)
             } else {
                 RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Theme.glass)
@@ -173,25 +183,41 @@ struct Plate: View {
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
                     .fill(RadialGradient(colors: [Theme.green.opacity(0.28), .clear], center: .bottomTrailing, startRadius: 0, endRadius: 220))
             }
+            if let photo {
+                Image(uiImage: photo).resizable().scaledToFit()
+                    .padding(.horizontal, 12).padding(.top, 26).padding(.bottom, 22)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .accessibilityLabel(item.title)
+                    .transition(.opacity)
+            }
             VStack(alignment: .leading) {
                 Text(label)
                     .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(live ? .white : (lead ? Theme.accentInk : Theme.ink))
+                    .foregroundStyle(live ? .white : (photo != nil ? Theme.ink : (lead ? Theme.accentInk : Theme.ink)))
                     .padding(.horizontal, 8).padding(.vertical, 4)
-                    .background(Capsule().fill(live ? Theme.hot : (lead ? Color.white.opacity(0.25) : Theme.bg.opacity(0.6))))
+                    .background(Capsule().fill(live ? Theme.hot : (photo != nil ? Theme.bg.opacity(0.85) : (lead ? Color.white.opacity(0.25) : Theme.bg.opacity(0.6)))))
                 Spacer()
-                Text(initials)
-                    .font(.system(size: lead ? 84 : 40, weight: .heavy))
-                    .tracking(-2)
-                    .foregroundStyle(lead ? Theme.accentInk : Theme.ink)
-                Text("\(item.sku) · \(item.source)")
+                if photo == nil {
+                    Text(initials)
+                        .font(.system(size: lead ? 84 : 40, weight: .heavy))
+                        .tracking(-2)
+                        .foregroundStyle(lead ? Theme.accentInk : Theme.ink)
+                }
+                Text(item.sku.isEmpty ? item.source : "\(item.sku) · \(item.source)")
                     .font(.system(size: 10, design: .monospaced))
-                    .foregroundStyle(lead ? Theme.accentInk.opacity(0.7) : Theme.muted)
+                    .foregroundStyle(photo != nil ? Color.black.opacity(0.55) : (lead ? Theme.accentInk.opacity(0.7) : Theme.muted))
                     .lineLimit(1)
             }
             .padding(12)
         }
         .frame(height: height)
+        .clipShape(RoundedRectangle(cornerRadius: lead ? 22 : 18, style: .continuous))
+        .task(id: photoURL) {
+            guard let url = photoURL else { photo = nil; return }
+            if let hit = ImageCache.shared.cached(url) { photo = hit; return }
+            let img = await ImageCache.shared.load(url)
+            withAnimation(.easeOut(duration: 0.2)) { photo = img }
+        }
     }
     var initials: String { item.brand.split(separator: " ").compactMap { $0.first }.prefix(3).map { String($0) }.joined().uppercased() }
 }

@@ -21,7 +21,8 @@ A native iPhone app (SwiftUI, iOS 17+) with a Supabase backend where the agents 
 1. You sign in with Apple. Your agents, finds, purchases, taste photos and friends live in your account.
 2. Every 15 minutes the database scheduler wakes the `sweep` function. Each agent whose interval has passed
    (every 6 hours by default; you choose in the app) asks Claude to search the web for products that fit its brief.
-   Claude returns real listings with links. The server scores them against your taste and size, the same way the app does.
+   Claude returns real listings with links. The server reads each store page for its product photo, then scores
+   the listings against your taste and size, the same way the app does.
 3. New finds become friend-style notifications in your agent's voice. They're pushed to your iPhone right away,
    or held until 8am during quiet hours (restocks and imminent drops still come through).
 4. You can talk to an agent: it updates your profile, searches the web live, flags finds and lines up checkout.
@@ -143,5 +144,3 @@ Sweep costs per run (searches, tokens, errors) are in the `sweep_runs` table.
 
 - **Buying for you.** Auto-buy needs checkout integrations with retailers and a careful look at each store's
   rules on automated purchasing. Today agents line up checkout and you buy at the store.
-- **Product photos in listings.** Sweeps keep an image link when they find one; the app shows the brand
-  tile instead of loading outside images for now.

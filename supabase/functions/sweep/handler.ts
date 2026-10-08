@@ -4,6 +4,7 @@
 // Cost guards: agents per run, searches per agent, and sweeps per user per day are all capped (see env below).
 import { type Agent, CATEGORIES, GROUP_OF, type Listing, friendLine, heldForMorning, kindFor, match, missionLabel, norm } from "../_shared/match.ts";
 import { type Block, type ClaudeMessage, HttpError, claude, db, env, handle, isScheduler, json, parseJSON, requireUser, textOf } from "../_shared/platform.ts";
+import { addImages, findImage } from "../_shared/images.ts";
 
 const num = (name: string, fallback: number) => {
   const v = Number(env(name));
@@ -101,6 +102,7 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
     const listings = cleanListings(parseJSON(textOf(final)), a.mission_category ?? "other");
     run.listings = listings.length;
     if (!listings.length) return run;
+    await addImages(listings);   // the product photo from each store page
 
     const saved = await db.rpc<{ fingerprint: string; id: string; already_found: boolean }[]>("upsert_listings", { p_user: a.user_id, p_listings: listings });
     const ids = new Map(saved.map((s) => [s.fingerprint, s]));
@@ -134,6 +136,17 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
   }
 }
 
+/** Listings saved before photos were looked up (or whose page didn't answer): try each once. */
+export async function backfillImages(limit: number) {
+  const rows = await db.select<{ id: string; url: string }>("listings",
+    `select=id,url&image_url=is.null&url=not.is.null&image_checked_at=is.null&order=last_seen_at.desc&limit=${limit}`);
+  await Promise.all(rows.map(async (r) => {
+    const image = await findImage(r.url).catch(() => null);
+    await db.update("listings", `id=eq.${r.id}`, { image_url: image, image_checked_at: new Date().toISOString() });
+  }));
+  return rows.length;
+}
+
 export const handler = handle(async (req) => {
   const body = await req.json().catch(() => ({})) as { agent_id?: string };
   const dailyCap = num("SWEEP_DAILY_CAP", 12);
@@ -151,6 +164,7 @@ export const handler = handle(async (req) => {
     }
   }
   const runs = await Promise.all(candidates.map((a) => sweepAgent(a, trigger)));
+  if (trigger === "scheduled") await backfillImages(num("IMAGE_BACKFILL", 8)).catch((e) => console.error("images", e));
   const errors = runs.filter((r) => r.error);
   if (errors.length === runs.length && runs.length > 0 && trigger === "manual") {
     const msg = errors[0].error ?? "";

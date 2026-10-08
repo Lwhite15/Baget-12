@@ -13,7 +13,7 @@ enum SmokeTest {
         let item = Item(id: "smoke-unpriced", title: "Smoke Test Eau de Parfum", brand: "Smoke Lab", category: .fragrance, sku: "",
                         price: 0, market: 0, source: "example.com", dropOffset: 0, soldOutAtStart: false, creator: nil,
                         traits: ["smoky"], tags: [], shoeSizes: nil, topSizes: nil,
-                        url: "https://example.com/p", priceKnown: false, isSample: false)
+                        url: "https://example.com/p", imageURL: "https://example.com/missing-photo.jpg", priceKnown: false, isSample: false)
         Catalog.cloud[item.id] = item
         if let agent = store.state.agents.first {
             store.state.finds.insert(Find(id: "smoke-find", itemID: item.id, agentID: agent.id, score: 80, why: ["Smoke test"]), at: 0)
