@@ -73,6 +73,12 @@ jobs:
             echo "$ASC_KEY_P8_BASE64" | base64 --decode > "$RUNNER_TEMP/keys/AuthKey.p8"
           fi
           chmod 600 "$RUNNER_TEMP/keys/AuthKey.p8"
+          # Shape checks only; never print values.
+          head -1 "$RUNNER_TEMP/keys/AuthKey.p8" | grep -q "BEGIN PRIVATE KEY" || echo "::error::ASC_KEY_P8_BASE64 doesn't look like a .p8 key (no BEGIN PRIVATE KEY line after decoding)."
+          [ ${#TEAM_ID} -eq 10 ] || echo "::error::APPLE_TEAM_ID should be 10 characters; it is ${#TEAM_ID}."
+          [ ${#ASC_KEY_ID} -eq 10 ] || echo "::error::ASC_KEY_ID should be 10 characters; it is ${#ASC_KEY_ID}."
+          [ ${#ASC_ISSUER_ID} -eq 36 ] || echo "::error::ASC_ISSUER_ID should be a 36-character ID like 69a6de7e-...; it is ${#ASC_ISSUER_ID}."
+          case "$BUNDLE_ID" in *" "*|"") echo "::error::BUNDLE_ID is empty or has spaces.";; esac
       - name: Archive
         env:
           PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
@@ -94,7 +100,13 @@ jobs:
             PRODUCT_BUNDLE_IDENTIFIER="$BUNDLE_ID" \
             CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
             BAGET_SUPABASE_URL="$SUPABASE_URL" \
-            BAGET_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" | tail -n 40
+            BAGET_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" > archive.log 2>&1 || {
+              { grep -E "error:|Error Domain|No profiles|No Account|not available|Provisioning|requires a provisioning|signing" archive.log || true; } \
+                | grep -v "^ *export " | sort -u | head -25 | while IFS= read -r line; do echo "::error::${line}"; done
+              tail -n 60 archive.log
+              exit 65
+            }
+          tail -n 20 archive.log
       - name: Upload to TestFlight
         run: |
           cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
@@ -115,7 +127,13 @@ jobs:
             -allowProvisioningUpdates \
             -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey.p8" \
             -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" > export.log 2>&1 || {
+              { grep -E "error:|Error Domain|failed|Failed|not available|Provisioning|already been used|bundle version" export.log || true; } \
+                | sort -u | head -25 | while IFS= read -r line; do echo "::error::${line}"; done
+              tail -n 60 export.log
+              exit 1
+            }
+          tail -n 20 export.log
       - name: Remove key
         if: always()
         run: rm -rf "$RUNNER_TEMP/keys"
