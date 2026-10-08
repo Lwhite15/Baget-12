@@ -401,6 +401,7 @@ await test("made-up links (404) are dropped from a sweep", async () => {
 
 await test("likes, buys and style passes steer the next web search", async () => {
   reset([[/rest\/v1\/finds/, (u) => {
+    if (!/status=in/.test(u.search)) return ok([{ listing: { title: "Air Jordan 1 Low OG Mocha" } }, { listing: { title: "Dunk Low Panda" } }]);
     assert.match(u.search, /status=in\.\(liked,acquired,passed\)/);
     return ok([
       { status: "liked", pass_reason: null, listing: { title: "Air Jordan 1 Low OG Mocha", brand: "Jordan" } },
@@ -410,7 +411,8 @@ await test("likes, buys and style passes steer the next web search", async () =>
     ]);
   }]]);
   const r = await sweep.reactionsFor("agent-1");
-  assert.deepEqual(r, { liked: ["Air Jordan 1 Low OG Mocha"], bought: ["Jordan 4 Bred"], passed: ["Nike Dunk Low Panda"] });
+  assert.deepEqual(r, { liked: ["Air Jordan 1 Low OG Mocha"], bought: ["Jordan 4 Bred"], passed: ["Nike Dunk Low Panda"],
+                        seen: ["Air Jordan 1 Low OG Mocha", "Dunk Low Panda"] });
   const prompt = sweep.sweepPrompt({ ...jumpman, learned: { suede: 3, "patent leather": -2 } } as never, "2026-10-08", r);
   assert.match(prompt, /They liked: Air Jordan 1 Low OG Mocha/);
   assert.match(prompt, /They passed on as not their style: Nike Dunk Low Panda/);
@@ -418,6 +420,39 @@ await test("likes, buys and style passes steer the next web search", async () =>
   assert.match(prompt, /find more in that spirit/);
   assert.doesNotMatch(prompt, /Off-White/, "a price pass isn't a taste signal");
   assert.doesNotMatch(prompt, /Max price|monthly/i);
+  assert.match(prompt, /Already shown to them \(find different things\): Air Jordan 1 Low OG Mocha; Dunk Low Panda/);
+  assert.match(prompt, /at least two discovery picks/);
+});
+await test("each sweep hunts from different angles", () => {
+  const t0 = new Date("2026-10-08T12:00:00Z");
+  const a1 = sweep.anglesFor("agent-1", t0), a2 = sweep.anglesFor("agent-1", new Date(t0.getTime() + 3 * 3600_000));
+  assert.equal(a1.length, 2);
+  assert.notEqual(a1[0], a1[1]);
+  assert.notDeepEqual(a1, a2, "the next run uses different angles");
+  const seen = new Set<string>();
+  for (let i = 0; i < 8; i++) seen.add(sweep.anglesFor("agent-1", new Date(t0.getTime() + i * 3 * 3600_000))[0]);
+  assert.equal(seen.size, sweep.ANGLES.length, "a day of runs covers every angle");
+});
+await test("discovery picks keep the agent's own pitch and text you about it", async () => {
+  const disc = '```json\n{"listings":[{"title":"Salehe Bembury x New Balance 2002R","brand":"New Balance","category":"sneakers","price":160,"source":"New Balance","url":"https://www.newbalance.com/pd/salehe-2002r/M2002R.html","traits":["suede"],"sizes_in_stock":["10.5"],"discovery":true,"pitch":"Same earthy suede you liked on the Mocha 1s, from a designer you have not tried yet."}]}\n```';
+  let recorded: any[] = [];
+  reset([
+    [/api\.anthropic\.com/, (_u, _i, b) => /haiku/.test(b.model) ? claudeSays(null)
+      : ok({ content: [{ type: "text", text: disc }], stop_reason: "end_turn", usage: { input_tokens: 10, output_tokens: 10 } })],
+    [/rest\/v1\/finds/, () => ok([])],
+    [/rpc\/upsert_listings/, (_u, _i, b) => ok(b.p_listings.map((l: any) => ({ fingerprint: l.fingerprint, id: "l1", already_found: false })))],
+    [/taste_photos/, () => ok([])],
+    [/rpc\/record_finds/, (_u, _i, b) => { recorded = b.p_finds; return ok(recorded.length); }],
+    [/sweep_runs/, () => ok({})],
+    [/newbalance\.com/, () => html("<head></head>")],
+  ]);
+  await sweep.sweepAgent({ ...jumpman, settings: {}, tz: "America/New_York" } as never, "manual", new Date("2026-10-08T15:00:00Z"));
+  assert.equal(recorded.length, 1);
+  assert.match(recorded[0].why[0], /earthy suede/);
+  assert.match(recorded[0].why[1], /^Discovery/);
+  assert.match(recorded[0].note.body, /didn't ask for but I think you'll love: Salehe Bembury/);
+  const asked = calls.find((c) => /anthropic/.test(c.url) && !/haiku/.test(c.body.model));
+  assert.equal(asked!.body.tools[0].max_uses, 6);
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

@@ -14,20 +14,45 @@ const num = (name: string, fallback: number) => {
 interface Candidate extends Agent { tz: string; settings: Record<string, unknown>; last_swept_at: string | null }
 
 /** What the person did with earlier finds: the clearest signal of taste there is. */
-export interface Reactions { liked: string[]; bought: string[]; passed: string[] }
+export interface Reactions { liked: string[]; bought: string[]; passed: string[]; seen?: string[] }
 
 export async function reactionsFor(agentId: string): Promise<Reactions> {
-  const rows = await db.select<{ status: string; pass_reason: string | null; listing: { title: string; brand: string } | null }>(
-    "finds", `select=status,pass_reason,listing:listings(title,brand)&agent_id=eq.${agentId}&status=in.(liked,acquired,passed)&order=created_at.desc&limit=40`);
+  const [rows, recent] = await Promise.all([
+    db.select<{ status: string; pass_reason: string | null; listing: { title: string; brand: string } | null }>(
+      "finds", `select=status,pass_reason,listing:listings(title,brand)&agent_id=eq.${agentId}&status=in.(liked,acquired,passed)&order=created_at.desc&limit=40`),
+    db.select<{ listing: { title: string } | null }>(
+      "finds", `select=listing:listings(title)&agent_id=eq.${agentId}&order=created_at.desc&limit=30`).catch(() => []),
+  ]);
   const name = (r: typeof rows[number]) => r.listing ? (r.listing.brand && !r.listing.title.includes(r.listing.brand) ? `${r.listing.brand} ${r.listing.title}` : r.listing.title) : "";
   return {
     liked: rows.filter((r) => r.status === "liked").map(name).filter(Boolean).slice(0, 12),
     bought: rows.filter((r) => r.status === "acquired").map(name).filter(Boolean).slice(0, 8),
     passed: rows.filter((r) => r.status === "passed" && (r.pass_reason ?? "").includes("style")).map(name).filter(Boolean).slice(0, 12),
+    seen: recent.map((r) => r.listing?.title ?? "").filter(Boolean),
   };
 }
 
-export function sweepPrompt(a: Agent, today: string, r: Reactions = { liked: [], bought: [], passed: [] }): string {
+/** Each sweep hunts from a different angle, so agents keep turning up new things instead of the same results. */
+export const ANGLES = [
+  "new releases and drops in the next two weeks (brand sites, release calendars, launch apps)",
+  "restocks and back-in-stock items (brand sites, authorized retailers)",
+  "deals: items listed below their usual resale or market price",
+  "collaborations and limited editions from brands and creators they like",
+  "adjacent discoveries: makers, models or creators they haven't named but would likely love, based on their likes",
+  "secondhand, vintage and archive pieces on reputable marketplaces (Grailed, eBay, The RealReal, Bring a Trailer, 1stDibs)",
+  "smaller boutiques and independent stores that carry what they like",
+  "what's trending right now in their lane that fits their taste",
+];
+
+export function anglesFor(agentId: string, now: Date): string[] {
+  let h = 0;
+  for (const c of agentId) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const slot = Math.floor(now.getTime() / (3 * 3600_000));
+  const first = (h + slot) % ANGLES.length;
+  return [ANGLES[first], ANGLES[(first + 3) % ANGLES.length]];
+}
+
+export function sweepPrompt(a: Agent, today: string, r: Reactions = { liked: [], bought: [], passed: [] }, angles: string[] = [ANGLES[0], ANGLES[4]]): string {
   const leaning = Object.entries(a.learned ?? {}).filter(([, w]) => w >= 2).sort((x, y) => y[1] - x[1]).map(([k]) => k).slice(0, 10);
   const parts = [
     `Mission: ${missionLabel(a)}`,
@@ -43,13 +68,23 @@ export function sweepPrompt(a: Agent, today: string, r: Reactions = { liked: [],
     r.liked.length ? `They liked: ${r.liked.join("; ")}` : "",
     r.passed.length ? `They passed on as not their style: ${r.passed.join("; ")}` : "",
   ].filter(Boolean).join("\n");
-  return `Today is ${today}. You are ${a.name}, a personal shopping scout. Search the web for specific products that fit this person right now.
+  return `Today is ${today}. You are ${a.name}, this person's personal scout. You work for them like a best friend with great taste who's always hunting: proactive, thorough and opinionated. Don't wait to be told exactly what to look for. Search the web hard and come back with specific products they'd be excited to see.
 
 ${parts}
 
-Look for things that are available to buy now, releasing in the next two weeks, or restocking.${r.liked.length || r.bought.length ? `
-Their likes and buys are the strongest signal: find more in that spirit (same makers, materials, notes, silhouettes, eras), but not the same items again.` : ""}${r.passed.length ? `
-Steer away from what they passed on as not their style.` : ""} Prefer official brand sites, authorized retailers, release calendars and reputable marketplaces. Use the person's taste to discover things beyond the exact names they gave.
+This run, hunt from these angles first:
+1. ${angles[0]}
+2. ${angles[1]}
+Then use any searches left on whatever looks most promising.
+
+How to hunt:
+- Use several different searches, not one. Vary the wording, check brand sites, retailers, release calendars and marketplaces.
+- Things available now, releasing in the next two weeks, or restocking.
+- Take initiative: include at least two discovery picks the person never named (a maker, model, note, collab or era that fits their taste), and mark them "discovery": true.${r.liked.length || r.bought.length ? `
+- Their likes and buys are the strongest signal: find more in that spirit (same makers, materials, notes, silhouettes, eras), but not the same items again.` : ""}${r.passed.length ? `
+- Steer away from what they passed on as not their style.` : ""}${r.seen?.length ? `
+- Already shown to them (find different things): ${r.seen.slice(0, 30).join("; ")}` : ""}
+- For each product, write "pitch": one short sentence, in your own voice, on why it's for them.
 
 Rules:
 - Only include products you actually found on a page during this search, with that page's URL. Never invent a product, price, date or URL.
@@ -61,10 +96,10 @@ Rules:
 - drop_at is the release date and time in ISO 8601 if it's upcoming, else null.
 - sizes_in_stock only if the page lists them, else null.
 - traits are short lowercase descriptors of the product (materials, colors, notes, specs, era).
-- At most 6 products. Fewer good ones beat more weak ones. If nothing fits, return an empty list.
+- Up to 8 products. Aim for 5 or more strong ones; never pad with weak ones.
 
 End your reply with only this JSON in a \`\`\`json block:
-{"listings":[{"title":"","brand":"","category":"${a.mission_category ?? "other"}","price":null,"market":null,"source":"store name","url":"https://...","image_url":null,"drop_at":null,"sold_out":false,"creator":null,"traits":[],"sizes_in_stock":null,"sku":""}]}`;
+{"listings":[{"title":"","brand":"","category":"${a.mission_category ?? "other"}","price":null,"market":null,"source":"store name","url":"https://...","image_url":null,"drop_at":null,"sold_out":false,"creator":null,"traits":[],"sizes_in_stock":null,"sku":"","discovery":false,"pitch":""}]}`;
 }
 
 /** Cleans what Claude returned. Anything without a real web address is dropped. */
@@ -80,11 +115,11 @@ export function isSearchPage(url: string): boolean {
   return false;
 }
 
-export function cleanListings(raw: unknown, fallbackCategory: string): (Listing & { fingerprint: string; url: string; sku: string; image_url: string | null })[] {
+export function cleanListings(raw: unknown, fallbackCategory: string): (Listing & { fingerprint: string; url: string; sku: string; image_url: string | null; discovery: boolean; pitch: string })[] {
   const arr = (raw as { listings?: unknown[] })?.listings;
   if (!Array.isArray(arr)) return [];
   const out = [];
-  for (const r of arr.slice(0, 8) as Record<string, unknown>[]) {
+  for (const r of arr.slice(0, 10) as Record<string, unknown>[]) {
     const title = typeof r.title === "string" ? r.title.trim().slice(0, 200) : "";
     const url = typeof r.url === "string" ? r.url.trim() : "";
     let host = "";
@@ -115,6 +150,8 @@ export function cleanListings(raw: unknown, fallbackCategory: string): (Listing 
       tags: [],
       sizes_in_stock: sizes && sizes.length ? sizes : null,
       sku: typeof r.sku === "string" ? r.sku.trim().slice(0, 60) : "",
+      discovery: r.discovery === true,
+      pitch: typeof r.pitch === "string" ? r.pitch.trim().slice(0, 160) : "",
     });
   }
   return out;
@@ -124,11 +161,11 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
   const run = { user_id: a.user_id, agent_id: a.id, trigger, searches: 0, listings: 0, finds: 0, input_tokens: 0, output_tokens: 0, error: null as string | null };
   try {
     const reactions = await reactionsFor(a.id).catch(() => undefined);
-    const messages: ClaudeMessage[] = [{ role: "user", content: sweepPrompt(a, now.toISOString().slice(0, 10), reactions) }];
-    const tools = [{ type: "web_search_20250305", name: "web_search", max_uses: num("SWEEP_MAX_SEARCHES", 4), user_location: { type: "approximate", country: "US" } }];
+    const messages: ClaudeMessage[] = [{ role: "user", content: sweepPrompt(a, now.toISOString().slice(0, 10), reactions, anglesFor(a.id, now)) }];
+    const tools = [{ type: "web_search_20250305", name: "web_search", max_uses: num("SWEEP_MAX_SEARCHES", 6), user_location: { type: "approximate", country: "US" } }];
     let final: Block[] = [];
     for (let turn = 0; turn < 3; turn++) {
-      const res = await claude({ max_tokens: 4000, messages, tools });
+      const res = await claude({ max_tokens: 6000, messages, tools });
       run.input_tokens += res.usage?.input_tokens ?? 0;
       run.output_tokens += res.usage?.output_tokens ?? 0;
       run.searches += res.usage?.server_tool_use?.web_search_requests ?? 0;
@@ -159,12 +196,17 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
       const s = ids.get(l.fingerprint);
       if (!s || s.already_found) continue;
       const m = match(a, l, photoTags);
-      if (!m || m.notInSize || m.score < 45) continue;
+      // Discovery picks are the agent's own initiative, so they don't need to hit the stated keywords as hard.
+      if (!m || m.notInSize || m.score < (l.discovery ? 35 : 45)) continue;
       const kind = kindFor(l, now.getTime());
       const wantNote = !groups || groups.includes(GROUP_OF[kind]);
+      const why = [...(l.pitch ? [l.pitch] : []), ...(l.discovery ? ["Discovery: something new it found for you"] : []), ...m.why].slice(0, 6);
+      const body = l.discovery && l.pitch
+        ? `Found something you didn't ask for but I think you'll love: ${l.title}${l.price ? ` ($${Math.round(l.price)})` : ""} at ${l.source}. ${l.pitch}`
+        : friendLine(a, kind, l, m.score, now.getTime());
       finds.push({
-        listing_id: s.id, score: m.score, why: m.why,
-        ...(wantNote ? { note: { kind, body: friendLine(a, kind, l, m.score, now.getTime()), held: heldForMorning(kind, l, a.tz, quiet, now) } } : {}),
+        listing_id: s.id, score: Math.max(m.score, l.discovery ? 60 : 0), why,
+        ...(wantNote ? { note: { kind, body: body.slice(0, 480), held: heldForMorning(kind, l, a.tz, quiet, now) } } : {}),
       });
     }
     run.finds = finds.length ? await db.rpc<number>("record_finds", { p_agent: a.id, p_finds: finds }) : 0;
@@ -197,7 +239,7 @@ export const handler = handle(async (req) => {
   if (isScheduler(req) && body.backfill) {
     return json(await backfillImages(Math.min(30, Math.max(1, Number(body.backfill)))));
   }
-  const dailyCap = num("SWEEP_DAILY_CAP", 12);
+  const dailyCap = num("SWEEP_DAILY_CAP", 30);
   let candidates: Candidate[];
   let trigger: "scheduled" | "manual";
   if (isScheduler(req)) {

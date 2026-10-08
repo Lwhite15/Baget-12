@@ -361,7 +361,7 @@ struct LiveTab: Codable, Identifiable, Hashable {
 }
 
 struct Settings: Codable, Hashable {
-    var sweepMinutes: Int = 360
+    var sweepMinutes: Int = 180
     var quietHours: Bool = true
     var groups: Set<NoteGroup> = Set(NoteGroup.allCases)
     var shareTasteWithFriends: Bool = true

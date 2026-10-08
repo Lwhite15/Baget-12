@@ -20,7 +20,7 @@ A native iPhone app (SwiftUI, iOS 17+) with a Supabase backend where the agents 
 
 1. You sign in with Apple. Your agents, finds, purchases, taste photos and friends live in your account.
 2. Every 15 minutes the database scheduler wakes the `sweep` function. Each agent whose interval has passed
-   (every 6 hours by default; you choose in the app) asks Claude to search the web for products that fit its brief.
+   (every 3 hours by default; you choose in the app) asks Claude to search the web for products that fit its brief.
    Claude returns real listings with links. The server reads each store page for product photos, and Claude
    checks which one shows that exact item (or none, rather than a wrong photo). Then the server scores
    the listings against your taste and size, the same way the app does.
@@ -85,7 +85,8 @@ In your private repository: Settings > Secrets and variables > Actions > New rep
 | `ASC_KEY_P8_BASE64` | the build `.p8`, base64-encoded | app |
 | `SERPER_API_KEY` | image search key from serper.dev, for product photos (or use `BRAVE_API_KEY` from Brave Search API) | backend |
 | `ANTHROPIC_MODEL` | optional; defaults to `claude-sonnet-5-5` | backend |
-| `SWEEP_DAILY_CAP` | optional; most sweeps per person per day, default 12 | backend |
+| `SWEEP_DAILY_CAP` | optional; most sweeps per person per day, default 30 | backend |
+| `SWEEP_MAX_SEARCHES` | optional; web searches per sweep, default 6 | backend |
 
 To base64 a `.p8` on Windows (PowerShell): `[Convert]::ToBase64String([IO.File]::ReadAllBytes("AuthKey_XXXX.p8")) | Set-Clipboard`.
 On an iPhone or any device with no command line: open the `.p8` in a text editor and paste its full contents (including the BEGIN and END lines) as the secret. Both workflows accept raw text or base64.
@@ -118,14 +119,14 @@ Actions > Backend > Run workflow. The last step checks photos for everything alr
 | What | Cost |
 |---|---|
 | Supabase | Free tier covers a personal squad and a handful of friends |
-| Web sweep | About $0.05 to $0.10 per agent per sweep: up to 4 searches at $0.01 each, plus reading the results |
+| Web sweep | About $0.10 to $0.20 per agent per sweep: up to 6 searches at $0.01 each, plus reading the results |
 | Product photo search | About $0.001 per listing on Serper (2,500 free searches to start) |
 | Product photo check | Under $0.01 per listing (a small Claude model looks at up to 3 candidate photos) |
 | Chat message | About $0.01 to $0.05, more when the agent searches the web |
 | Reading a taste photo | About $0.01 |
 | Apple Developer Program | $99/year |
 
-Example: 5 agents sweeping every 6 hours is 20 sweeps a day, roughly $1 to $2 a day. Change how often agents search
+Example: 5 agents sweeping every 3 hours is 40 sweeps a day, but the daily cap of 30 holds it to about $3 to $6 a day. Change how often agents search
 in the app (your icon at the top left > Notifications and background), and cap it with `SWEEP_DAILY_CAP` and your Anthropic spend limit.
 Each squad has at most 12 agents, and each agent can be swept by hand at most once every 10 minutes.
 
