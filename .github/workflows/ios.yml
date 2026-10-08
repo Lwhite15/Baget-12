@@ -118,6 +118,12 @@ jobs:
               exit 65
             }
           tail -n 20 archive.log
+          # The archive is unsigned, so carry the app's capabilities in with a placeholder signature.
+          # The export then signs for distribution and keeps Sign in with Apple and push.
+          APP="$RUNNER_TEMP/Baget.xcarchive/Products/Applications/Baget.app"
+          sed 's#<string>development</string>#<string>production</string>#' Baget/Baget.entitlements > "$RUNNER_TEMP/dist.entitlements"
+          codesign --force --sign - --entitlements "$RUNNER_TEMP/dist.entitlements" --timestamp=none "$APP"
+          codesign -d --entitlements :- "$APP" 2>/dev/null | grep -c -E "applesignin|aps-environment" | xargs -I{} echo "::notice::Archive carries {} of 2 capabilities"
       - name: Upload to TestFlight
         run: |
           cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
@@ -146,8 +152,9 @@ jobs:
             }
           tail -n 20 export.log
           # Check the shipped app kept Sign in with Apple and push.
-          cd "$RUNNER_TEMP/export" && unzip -q -o *.ipa -d ipa
-          codesign -d --entitlements :- ipa/Payload/Baget.app > ents.plist 2>/dev/null || true
+          cd "$RUNNER_TEMP/export" && ls && unzip -q -o ./*.ipa -d ipa
+          codesign -d --entitlements :- ipa/Payload/*.app > ents.plist 2>/dev/null || true
+          echo "Entitlement keys: $(grep -o '<key>[^<]*</key>' ents.plist | tr '\n' ' ')"
           grep -q "applesignin" ents.plist && echo "::notice::Signed build includes Sign in with Apple" || echo "::warning::Signed build is missing the Sign in with Apple entitlement"
           grep -q "aps-environment" ents.plist && echo "::notice::Signed build includes push notifications" || echo "::warning::Signed build is missing the push entitlement"
       - name: Remove key
