@@ -63,16 +63,19 @@ struct RootView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button { router.sheet = .profile } label: { AvatarView(size: 32) }
+                    Button { router.sheet = .profile } label: { AvatarView(size: 30) }
                         .accessibilityLabel("You: icon, settings and account")
                 }
-                ToolbarItem(placement: .topBarLeading) {
+                // The name sits in the middle; on iOS 26 a leading text item gets squeezed into a glass bubble.
+                ToolbarItem(placement: .principal) {
                     HStack(spacing: 0) {
                         Text("Baget").foregroundStyle(Theme.ink)
                         Text(".").gradientText()
                     }
-                    .font(.system(size: 24, weight: .heavy))
+                    .font(.system(size: 22, weight: .heavy))
                     .tracking(-0.8)
+                    .fixedSize()
+                    .accessibilityAddTraits(.isHeader)
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     Button { router.sheet = .spending } label: {
