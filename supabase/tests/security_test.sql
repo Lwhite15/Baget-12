@@ -97,6 +97,18 @@ select public.record_finds((select id from public.agents where name = 'Jumpman S
 select t.ok((select last_swept_at is not null from public.agents where name = 'Jumpman Scout'), 'sweep time recorded');
 select t.ok(t.n($$select * from public.sweep_candidates(20, 12, null, null) x where x ->> 'name' = 'Jumpman Scout'$$) = 0, 'swept agent not due again yet');
 select t.ok(t.n($$select * from public.sweep_candidates(20, 12, 'aaaaaaaa-0000-0000-0000-000000000001', null)$$) = 0, 'manual sweep cooldown');
+-- Listings without sizes (fragrance, furniture) arrive with JSON nulls; they must save, not error.
+select * from public.upsert_listings('aaaaaaaa-0000-0000-0000-000000000001',
+  '[{"fingerprint":"aesop|hwyl eau de parfum","title":"Aesop Hwyl Eau de Parfum","brand":"Aesop","category":"fragrance","price":195,"source":"Aesop","url":"https://www.aesop.com/hwyl","image_url":null,"drop_at":null,"creator":null,"traits":["smoky","woody"],"tags":[],"sizes_in_stock":null,"sold_out":false}]'::jsonb);
+select t.ok((select sizes_in_stock is null and traits = '{smoky,woody}' from public.listings where fingerprint = 'aesop|hwyl eau de parfum'), 'listing with null sizes saves');
+select * from public.upsert_listings('aaaaaaaa-0000-0000-0000-000000000001',
+  '[{"fingerprint":"aesop|hwyl eau de parfum","title":"Aesop Hwyl Eau de Parfum","price":190,"traits":"smoky","sizes_in_stock":null}]'::jsonb);
+select t.ok((select price = 190 and traits = '{smoky,woody}' from public.listings where fingerprint = 'aesop|hwyl eau de parfum'), 'update with scalar and null lists keeps what was there');
+select t.ok(public.record_finds((select id from public.agents where name = 'Jumpman Scout'),
+  jsonb_build_array(jsonb_build_object('listing_id', (select id from public.listings where fingerprint = 'aesop|hwyl eau de parfum'), 'score', 70, 'why', null))) = 1,
+  'find with null reasons saves');
+delete from public.finds where listing_id = (select id from public.listings where fingerprint = 'aesop|hwyl eau de parfum');
+delete from public.listings where fingerprint = 'aesop|hwyl eau de parfum';
 reset role;
 
 -- ── Larry acts on his finds ──
