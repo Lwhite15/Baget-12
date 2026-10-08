@@ -4,7 +4,7 @@
 // Cost guards: agents per run, searches per agent, and sweeps per user per day are all capped (see env below).
 import { type Agent, CATEGORIES, GROUP_OF, type Listing, friendLine, heldForMorning, kindFor, match, missionLabel, norm } from "../_shared/match.ts";
 import { type Block, type ClaudeMessage, HttpError, claude, db, env, handle, isScheduler, json, parseJSON, requireUser, textOf } from "../_shared/platform.ts";
-import { addImages, linkIsDead } from "../_shared/images.ts";
+import { addImages, linkIsDead, traceImage } from "../_shared/images.ts";
 
 const num = (name: string, fallback: number) => {
   const v = Number(env(name));
@@ -235,7 +235,14 @@ export async function backfillImages(limit: number) {
 }
 
 export const handler = handle(async (req) => {
-  const body = await req.json().catch(() => ({})) as { agent_id?: string; backfill?: number };
+  const body = await req.json().catch(() => ({})) as { agent_id?: string; backfill?: number; trace_image?: boolean };
+  if (isScheduler(req) && body.trace_image) {
+    const [l] = await db.select<{ url: string; title: string; brand: string; category: string }>("listings",
+      "select=url,title,brand,category&url=not.is.null&url=like.*carhartt*&order=last_seen_at.desc&limit=1");
+    const [any] = l ? [l] : await db.select<{ url: string; title: string; brand: string; category: string }>("listings",
+      "select=url,title,brand,category&url=not.is.null&order=last_seen_at.desc&limit=1");
+    return json(any ? await traceImage(any) : { none: true });
+  }
   if (isScheduler(req) && body.backfill) {
     return json(await backfillImages(Math.min(30, Math.max(1, Number(body.backfill)))));
   }

@@ -13,14 +13,19 @@ const b64urlText = (t: string) => b64url(new TextEncoder().encode(t));
 /** Accepts the .p8 key as PEM text (with real or escaped newlines), base64 of the whole PEM file,
  *  or just the base64 body between the BEGIN/END lines. */
 export function pemToDer(raw: string): Uint8Array {
-  let text = raw.trim().replace(/\\n/g, "\n");
+  // Phones "smart punctuate" pasted keys: dashes become en/em dashes, quotes curl. Undo that first.
+  let text = raw.trim().replace(/\\n/g, "\n").replace(/[\u2010-\u2015\u2212]/g, "-");
   if (!text.includes("BEGIN")) {
     try {
       const decoded = atob(text.replace(/\s+/g, ""));
-      if (decoded.includes("BEGIN")) text = decoded;   // base64 of the whole file
+      if (decoded.includes("BEGIN")) text = decoded.replace(/[\u2010-\u2015\u2212]/g, "-");   // base64 of the whole file
     } catch { /* already the bare body */ }
   }
-  const body = text.replace(/-----[^-]+-----/g, "").replace(/\s+/g, "");
+  // Decoding base64 of a file pasted with smart dashes leaves UTF-8 bytes for them; drop the header and footer by their words.
+  const body = text
+    .replace(/[^\x20-\x7e\n]+/g, "-")
+    .replace(/-*\s*(BEGIN|END)\s+[A-Z ]*KEY\s*-*/g, "")
+    .replace(/[^A-Za-z0-9+/=]/g, "");
   const bin = atob(body);
   const out = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);

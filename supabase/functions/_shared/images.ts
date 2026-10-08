@@ -313,3 +313,43 @@ export async function linkIsDead(url: string, fetchFn: FetchFn = fetch): Promise
   await got.body?.cancel().catch(() => {});
   return got.status === 404 || got.status === 410;
 }
+
+/** For the Diagnose workflow: every step of finding a photo for one listing, with what happened at each. */
+export async function traceImage(l: { url: string; title: string; brand?: string; category?: string }, fetchFn: FetchFn = fetch, ask: Claude = claude) {
+  const t: Record<string, unknown> = { title: l.title, url: l.url };
+  try {
+    const got = await safeGet(l.url, "text/html,application/xhtml+xml", fetchFn, 6000).catch((e) => { t.pageError = String(e); return null; });
+    t.pageStatus = got ? got.res.status : "blocked or failed";
+    if (got) {
+      const html = await readBytes(got.res, 800_000, true);
+      t.pageBytes = html.length;
+      t.pageCandidates = imageCandidates(html, got.url).slice(0, 4);
+    }
+  } catch (e) { t.pageError = String((e as Error).message); }
+  const q = searchQuery(l.title, l.brand);
+  t.searchQuery = q;
+  const hits = await imageSearch(q, fetchFn);
+  t.searchHits = hits.length;
+  const cands = [...((t.pageCandidates as string[]) ?? []).slice(0, 2), ...hits];
+  t.downloads = [];
+  for (const c of cands.slice(0, 5)) {
+    const u = typeof c === "string" ? c : c.url;
+    try {
+      const got = await safeGet(u, "image/jpeg,image/png,image/webp,image/*;q=0.8", fetchFn, 8000);
+      if (!got) { (t.downloads as unknown[]).push({ u: u.slice(0, 120), result: "blocked or failed" }); continue; }
+      const type = got.res.headers.get("content-type");
+      const len = (await got.res.arrayBuffer()).byteLength;
+      (t.downloads as unknown[]).push({ u: u.slice(0, 120), status: got.res.status, type, bytes: len });
+    } catch (e) { (t.downloads as unknown[]).push({ u: u.slice(0, 120), error: String((e as Error).message).slice(0, 120) }); }
+  }
+  try {
+    const chosen = await chooseImage(l, cands, fetchFn, async (body) => {
+      const r = await ask(body);
+      t.claudeSaid = r.content.filter((b) => b.type === "text").map((b) => b.text).join("").slice(0, 200);
+      return r;
+    });
+    t.chosen = chosen?.source ?? null;
+    if (chosen) t.stored = await storePhoto(`trace:${l.url}`, chosen);
+  } catch (e) { t.chooseError = String((e as Error).message).slice(0, 200); }
+  return t;
+}

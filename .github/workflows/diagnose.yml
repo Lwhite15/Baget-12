@@ -17,6 +17,11 @@ jobs:
           r=$(curl -sS -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/push" -H "Content-Type: application/json" \
                 -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d '{"diagnose":true}')
           echo "::notice::push key: $r"
+          t=$(curl -sS -m 140 -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/sweep" -H "Content-Type: application/json" \
+                -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d '{"trace_image":true}')
+          echo "$t" | jq -c '{title, pageStatus, pageError, pageCandidates, searchQuery, searchHits}' | sed 's/^/::notice::photo trace 1: /'
+          echo "$t" | jq -c '{downloads}' | cut -c1-900 | sed 's/^/::notice::photo trace 2: /'
+          echo "$t" | jq -c '{claudeSaid, chosen, stored, chooseError, error, detail}' | sed 's/^/::notice::photo trace 3: /'
           q() { curl -sS -X POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query" \
                   -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" \
                   -d "$(jq -n --arg q "$1" '{query:$q}')"; }
