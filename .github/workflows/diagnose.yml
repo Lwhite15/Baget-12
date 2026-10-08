@@ -18,8 +18,8 @@ jobs:
           q "select created_at, trigger, searches, listings, finds, left(coalesce(error,''),200) as err from public.sweep_runs order by created_at desc limit 3" | jq -r 'if type=="array" then .[] | "::notice::sweep \(.created_at) \(.trigger) searches=\(.searches) listings=\(.listings) finds=\(.finds) err=\(.err)" else "::notice::sweep_runs query: \(tostring | .[0:300])" end'
           q "select count(*) as agents, min(last_swept_at) as oldest, max(last_swept_at) as newest from public.agents" | jq -c . | sed 's/^/::notice::agents /'
           q "select coalesce(settings->>'sweepMinutes','unset') as every, (select count(*) from public.sweep_runs r where r.user_id = p.id and r.created_at > now() - interval '24 hours') as runs_24h from public.profiles p" | jq -c . | sed 's/^/::notice::profiles /'
-          q "select jobname, schedule, active from cron.job" | jq -c . | sed 's/^/::notice::cron /'
-          q "select status, left(coalesce(return_message,''),160) as msg, start_time from cron.job_run_details order by start_time desc limit 4" | jq -c . | sed 's/^/::notice::cron runs /'
+          q "select count(*) as devices, string_agg(distinct environment, ',') as envs from public.device_tokens" | jq -c . | sed 's/^/::notice::devices /'
+          q "select count(*) filter (where pushed_at is not null) as pushed, count(*) filter (where pushed_at is null and not held_for_morning) as unpushed, count(*) filter (where held_for_morning) as held, max(created_at) as newest from public.notes" | jq -c . | sed 's/^/::notice::notes /'
           q "select status_code, left(coalesce(content::text, error_msg, ''),220) as body, created from net._http_response order by created desc limit 5" | jq -c . | sed 's/^/::notice::http /'
       - name: Listings, photos and sweep errors
         run: |
@@ -50,11 +50,12 @@ jobs:
       - name: Edge function errors (last 2 hours)
         run: |
           for sql in \
-            "select timestamp, event_message, metadata from function_logs order by timestamp desc limit 40" ; do
+            "select timestamp, event_message from function_edge_logs order by timestamp desc limit 20" \
+            "select timestamp, event_message from edge_logs order by timestamp desc limit 5" ; do
             curl -sS -G "https://api.supabase.com/v1/projects/${PROJECT_REF}/analytics/endpoints/logs" \
               -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" --data-urlencode "sql=$sql" \
               --data-urlencode "iso_timestamp_start=$(date -u -d '-2 hours' +%Y-%m-%dT%H:%M:%SZ)" \
               --data-urlencode "iso_timestamp_end=$(date -u +%Y-%m-%dT%H:%M:%SZ)" > logs.json || true
             echo "::notice::logs response: $(head -c 300 logs.json | tr '\n' ' ')"
-            jq -r '(.result // [])[] | .event_message | tostring' logs.json | grep -iE "error|fail|image|serper|throw|exception|unhandled" | head -8 | cut -c1-300 | sed 's/^/::notice::log /' || true
+            jq -r '(.result // [])[] | .event_message | tostring' logs.json | grep -iE " 50[0-9] |error|fail" | head -6 | cut -c1-300 | sed 's/^/::notice::log /' || true
           done
