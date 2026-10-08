@@ -1,7 +1,7 @@
 // Talk to an agent. Claude plays the agent, can search the live web, and acts through tools that run here
 // on the server against the user's own data. It never buys anything: the most it does is line up checkout.
 import { type Agent, intel, match, missionLabel, norm, words } from "../_shared/match.ts";
-import { type Block, type ClaudeMessage, HttpError, claude, db, enc, handle, json, requireUser, textOf } from "../_shared/platform.ts";
+import { type Block, type ClaudeMessage, HttpError, claude, db, enc, handle, isScheduler, json, requireUser, textOf } from "../_shared/platform.ts";
 import { cleanListings } from "../sweep/handler.ts";
 import { addImages } from "../_shared/images.ts";
 
@@ -64,8 +64,17 @@ ${a.mission_category === "sneakers" || a.mission_category === "apparel" ? (a.siz
 }
 
 export const handler = handle(async (req) => {
-  const user = await requireUser(req);
-  const body = await req.json().catch(() => ({})) as { agent_id?: string; messages?: Turn[] };
+  let body = await req.json().catch(() => ({})) as { agent_id?: string; messages?: Turn[]; trace?: boolean };
+  let user: { id: string };
+  if (isScheduler(req) && body.trace) {
+    // Diagnose: chat as the newest agent's owner, exactly as the app would.
+    const [ag] = await db.select<{ id: string; user_id: string }>("agents", "select=id,user_id&order=created_at.desc&limit=1");
+    if (!ag) return json({ none: true });
+    user = { id: ag.user_id };
+    body = { agent_id: ag.id, messages: [{ role: "user", content: "Find me something new I'd like" }] };
+  } else {
+    user = await requireUser(req);
+  }
   if (!body.agent_id || !Array.isArray(body.messages) || body.messages.length === 0) throw new HttpError(400, "agent_id and messages are required");
   const turns = body.messages
     .filter((m) => (m.role === "user" || m.role === "assistant") && typeof m.content === "string" && m.content.trim())
