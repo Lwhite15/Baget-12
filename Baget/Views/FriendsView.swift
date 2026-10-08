@@ -91,7 +91,7 @@ struct FriendsView: View {
     }
 }
 
-struct Avatar: View {
+struct FriendAvatar: View {
     let friend: Friend
     var size: CGFloat = 32
     var body: some View {
@@ -116,7 +116,7 @@ struct SuggestionCard: View {
             let notInSize = best?.match.notInSize ?? false
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 10) {
-                    Avatar(friend: f)
+                    FriendAvatar(friend: f)
                     (Text(f.name).bold().foregroundStyle(Theme.ink) + Text(" suggested for you · \(Fmt.ago(suggestion.date))").foregroundStyle(Theme.muted))
                         .font(.footnote)
                 }
@@ -178,7 +178,7 @@ struct FriendCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 12) {
-                Avatar(friend: friend, size: 42)
+                FriendAvatar(friend: friend, size: 42)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(friend.isPending && !friend.incoming ? friend.handle : friend.name).font(.headline).foregroundStyle(Theme.ink)
                     Text(friend.isPending
@@ -225,7 +225,7 @@ struct ShareCard: View {
                 ForEach(share.replies, id: \.self) { r in
                     if let f = store.friend(r.friendID) {
                         HStack(alignment: .top, spacing: 8) {
-                            Avatar(friend: f, size: 26)
+                            FriendAvatar(friend: f, size: 26)
                             (Text(f.name).bold() + Text(" \(r.text)"))
                                 .font(.footnote).foregroundStyle(Theme.ink)
                                 .padding(.horizontal, 10).padding(.vertical, 7)
@@ -269,7 +269,7 @@ struct ShareView: View {
                             if picked.contains(f.id) { picked.remove(f.id) } else { picked.insert(f.id) }
                         } label: {
                             HStack {
-                                Avatar(friend: f, size: 28)
+                                FriendAvatar(friend: f, size: 28)
                                 VStack(alignment: .leading) {
                                     Text(f.name).foregroundStyle(Theme.ink)
                                     Text(f.handle).font(.caption).foregroundStyle(Theme.muted)
