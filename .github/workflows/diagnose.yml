@@ -15,7 +15,7 @@ jobs:
           q() { curl -sS -X POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query" \
                   -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" \
                   -d "$(jq -n --arg q "$1" '{query:$q}')"; }
-          q "select created_at, trigger, searches, listings, finds, left(coalesce(error,''),200) as err from public.sweep_runs order by created_at desc limit 12" | jq -r 'if type=="array" then .[] | "::notice::sweep \(.created_at) \(.trigger) searches=\(.searches) listings=\(.listings) finds=\(.finds) err=\(.err)" else "::notice::sweep_runs query: \(tostring | .[0:300])" end'
+          q "select created_at, trigger, searches, listings, finds, left(coalesce(error,''),200) as err from public.sweep_runs order by created_at desc limit 3" | jq -r 'if type=="array" then .[] | "::notice::sweep \(.created_at) \(.trigger) searches=\(.searches) listings=\(.listings) finds=\(.finds) err=\(.err)" else "::notice::sweep_runs query: \(tostring | .[0:300])" end'
           q "select count(*) as agents, min(last_swept_at) as oldest, max(last_swept_at) as newest from public.agents" | jq -c . | sed 's/^/::notice::agents /'
           q "select coalesce(settings->>'sweepMinutes','unset') as every, (select count(*) from public.sweep_runs r where r.user_id = p.id and r.created_at > now() - interval '24 hours') as runs_24h from public.profiles p" | jq -c . | sed 's/^/::notice::profiles /'
           q "select jobname, schedule, active from cron.job" | jq -c . | sed 's/^/::notice::cron /'
