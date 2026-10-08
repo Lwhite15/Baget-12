@@ -58,8 +58,10 @@ struct PrimaryButton: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.subheadline.weight(.bold))
+            .lineLimit(1)
+            .minimumScaleFactor(0.85)
             .foregroundStyle(Theme.accentInk)
-            .padding(.horizontal, 16).padding(.vertical, 11)
+            .padding(.horizontal, 10).padding(.vertical, 11)
             .frame(maxWidth: .infinity)
             .background(Theme.gradient, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
             .shadow(color: Theme.cyan.opacity(0.35), radius: 10, y: 4)
@@ -71,8 +73,10 @@ struct GhostButton: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.subheadline.weight(.semibold))
+            .lineLimit(1)
+            .minimumScaleFactor(0.85)
             .foregroundStyle(Theme.ink)
-            .padding(.horizontal, 14).padding(.vertical, 10)
+            .padding(.horizontal, 10).padding(.vertical, 10)
             .frame(maxWidth: .infinity)
             .background(Theme.glass, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 13, style: .continuous).strokeBorder(Theme.line))

@@ -167,7 +167,7 @@ struct FindCard: View {
             }
         case .liked:
             HStack(spacing: 8) {
-                Button { store.unlike(find.id) } label: { Label("Liked", systemImage: "heart.fill") }
+                Button { store.unlike(find.id) } label: { IconText(icon: "heart.fill", text: "Liked") }
                     .buttonStyle(GhostButton()).tint(Theme.hot)
                     .accessibilityHint("Tap to unlike")
                 if let link { buyButton(item, link) }
@@ -182,9 +182,10 @@ struct FindCard: View {
                 Button {
                     store.like(find.id)
                     router.say("\(agent?.name ?? "Your agent") will find more like this")
-                } label: { Label("Like", systemImage: "heart") }
+                } label: { IconText(icon: "heart", text: "Like") }
                     .buttonStyle(PrimaryButton())
-                Button("Pass") { askingWhy = true }.buttonStyle(GhostButton())
+                    .layoutPriority(1)
+                Button("Pass") { askingWhy = true }.buttonStyle(GhostButton()).layoutPriority(1)
                 if let link { buyButton(item, link) }
                 shareButton(item)
             }
@@ -196,16 +197,30 @@ struct FindCard: View {
             Analytics.track(.checkoutOpened, ["category": item.category.rawValue, "toStore": true, "from": "find"])
             router.buyOpened = find.id
             openURL(link)
-        } label: { Label("Buy", systemImage: "arrow.up.right") }
+        } label: { IconText(icon: "arrow.up.right", text: "Buy", trailing: true) }
             .buttonStyle(GhostButton())
-            .frame(width: 92)
+            .frame(width: 78)
             .accessibilityLabel("Buy at \(item.source)")
     }
 
     private func shareButton(_ item: Item) -> some View {
         Button { router.sheet = .share(itemID: item.id, friendID: nil, suggestion: false) } label: {
             Image(systemName: "square.and.arrow.up")
-        }.buttonStyle(GhostButton()).frame(width: 54).accessibilityLabel("Share with friends")
+        }.buttonStyle(GhostButton()).frame(width: 48).accessibilityLabel("Share with friends")
+    }
+}
+
+/// An icon and a word, tight together, never wrapping.
+struct IconText: View {
+    let icon: String
+    let text: String
+    var trailing = false
+    var body: some View {
+        HStack(spacing: 5) {
+            if !trailing { Image(systemName: icon).imageScale(.small) }
+            Text(text).fixedSize()
+            if trailing { Image(systemName: icon).imageScale(.small) }
+        }
     }
 }
 
