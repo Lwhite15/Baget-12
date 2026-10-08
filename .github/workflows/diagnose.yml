@@ -51,7 +51,7 @@ jobs:
         run: |
           for sql in \
             "select timestamp, event_message, metadata from function_logs order by timestamp desc limit 40" ; do
-            curl -sS -G "https://api.supabase.com/v1/projects/${PROJECT_REF}/analytics/endpoints/logs.all" \
+            curl -sS -G "https://api.supabase.com/v1/projects/${PROJECT_REF}/analytics/endpoints/logs" \
               -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" --data-urlencode "sql=$sql" \
               --data-urlencode "iso_timestamp_start=$(date -u -d '-2 hours' +%Y-%m-%dT%H:%M:%SZ)" \
               --data-urlencode "iso_timestamp_end=$(date -u +%Y-%m-%dT%H:%M:%SZ)" > logs.json || true
