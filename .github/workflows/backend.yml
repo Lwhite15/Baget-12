@@ -138,5 +138,6 @@ jobs:
             out=$(curl -sS -m 150 -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/sweep" \
               -H "Content-Type: application/json" -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d '{"backfill": 10}' || echo '{}')
             echo "::notice::Photo check round $round: $out"
-            echo "$out" | grep -q '"checked":0' && break
+            if echo "$out" | grep -q '"checked":0'; then break; fi
           done
+          exit 0
