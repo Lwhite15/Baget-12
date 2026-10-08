@@ -49,8 +49,12 @@ jobs:
           done
       - name: Edge function errors (last 2 hours)
         run: |
-          sql="select timestamp, event_message from function_logs where event_message ilike '%image%' or event_message ilike '%error%' order by timestamp desc limit 15"
-          curl -sS -G "https://api.supabase.com/v1/projects/${PROJECT_REF}/analytics/endpoints/logs.all" \
-            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" --data-urlencode "sql=$sql" \
-            --data-urlencode "iso_timestamp_start=$(date -u -d '-2 hours' +%Y-%m-%dT%H:%M:%SZ)" \
-            --data-urlencode "iso_timestamp_end=$(date -u +%Y-%m-%dT%H:%M:%SZ)" | jq -r '(.result // [])[] | "::notice::log \(.event_message | tostring | .[0:220])"' || true
+          for sql in \
+            "select timestamp, event_message, metadata from function_logs order by timestamp desc limit 40" ; do
+            curl -sS -G "https://api.supabase.com/v1/projects/${PROJECT_REF}/analytics/endpoints/logs.all" \
+              -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" --data-urlencode "sql=$sql" \
+              --data-urlencode "iso_timestamp_start=$(date -u -d '-2 hours' +%Y-%m-%dT%H:%M:%SZ)" \
+              --data-urlencode "iso_timestamp_end=$(date -u +%Y-%m-%dT%H:%M:%SZ)" > logs.json || true
+            echo "::notice::logs response: $(head -c 300 logs.json | tr '\n' ' ')"
+            jq -r '(.result // [])[] | .event_message | tostring' logs.json | grep -iE "error|fail|image|serper|throw|exception|unhandled" | head -8 | cut -c1-300 | sed 's/^/::notice::log /' || true
+          done
