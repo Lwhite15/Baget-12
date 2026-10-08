@@ -80,6 +80,7 @@ In your private repository: Settings > Secrets and variables > Actions > New rep
 | `ASC_KEY_ID` | build key's Key ID from 3.4 | app |
 | `ASC_ISSUER_ID` | Issuer ID from 3.4 | app |
 | `ASC_KEY_P8_BASE64` | the build `.p8`, base64-encoded | app |
+| `SERPER_API_KEY` | image search key from serper.dev, for product photos (or use `BRAVE_API_KEY` from Brave Search API) | backend |
 | `ANTHROPIC_MODEL` | optional; defaults to `claude-sonnet-5-5` | backend |
 | `SWEEP_DAILY_CAP` | optional; most sweeps per person per day, default 12 | backend |
 
@@ -98,12 +99,24 @@ On Mac or Linux: `base64 -i AuthKey_XXXX.p8 | pbcopy` or `base64 -w0 AuthKey_XXX
 Every push to `main` re-runs the checks. Backend changes redeploy automatically; run the iOS workflow
 whenever you want a new build on your phone.
 
+## Product photos
+
+Most big stores (eBay, Edmunds, Carvana, Harrods...) block servers from reading their pages and apps from loading
+their images. So for each listing the server runs an image search for the product's exact name (Serper, which returns
+Google Images results, or Brave), downloads the top results, and has Claude pick the one that shows that exact item:
+same model, generation and colorway (for cars, the same model and trim). The chosen photo is copied into the public
+`product-photos` bucket so the app can always load it. If nothing matches, the tile shows the brand letters.
+
+Set it up: sign up at serper.dev, copy the API key, add it as the GitHub secret `SERPER_API_KEY`, then run
+Actions > Backend > Run workflow. The last step checks photos for everything already saved.
+
 ## Costs
 
 | What | Cost |
 |---|---|
 | Supabase | Free tier covers a personal squad and a handful of friends |
 | Web sweep | About $0.05 to $0.10 per agent per sweep: up to 4 searches at $0.01 each, plus reading the results |
+| Product photo search | About $0.001 per listing on Serper (2,500 free searches to start) |
 | Product photo check | Under $0.01 per listing (a small Claude model looks at up to 3 candidate photos) |
 | Chat message | About $0.01 to $0.05, more when the agent searches the web |
 | Reading a taste photo | About $0.01 |

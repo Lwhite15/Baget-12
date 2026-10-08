@@ -4,7 +4,7 @@
 // Cost guards: agents per run, searches per agent, and sweeps per user per day are all capped (see env below).
 import { type Agent, CATEGORIES, GROUP_OF, type Listing, friendLine, heldForMorning, kindFor, match, missionLabel, norm } from "../_shared/match.ts";
 import { type Block, type ClaudeMessage, HttpError, claude, db, env, handle, isScheduler, json, parseJSON, requireUser, textOf } from "../_shared/platform.ts";
-import { addImages } from "../_shared/images.ts";
+import { addImages, linkIsDead } from "../_shared/images.ts";
 
 const num = (name: string, fallback: number) => {
   const v = Number(env(name));
@@ -32,7 +32,10 @@ Look for things that are available to buy now, releasing in the next two weeks, 
 
 Rules:
 - Only include products you actually found on a page during this search, with that page's URL. Never invent a product, price, date or URL.
-- The url must be the product's own page (one item), not a search, category, collection, editorial or home page.
+- The url must be the product's own page: one item you could add to a cart, or one specific vehicle or marketplace listing
+  (eBay /itm/, Grailed /listings/, StockX product page, a dealer's page for that one car). Never a search results,
+  category, collection, inventory, editorial or home page. If you only found a search or category page, leave it out.
+- The title is the exact product name as the page shows it, including model, colorway or variant.
 - Price in US dollars as a number, or null if the page doesn't show one. "market" is the typical resale or secondhand price if you saw one, else null.
 - drop_at is the release date and time in ISO 8601 if it's upcoming, else null.
 - sizes_in_stock only if the page lists them, else null.
@@ -44,6 +47,18 @@ End your reply with only this JSON in a \`\`\`json block:
 }
 
 /** Cleans what Claude returned. Anything without a real web address is dropped. */
+/** Search results and category pages aren't products. eBay items live under /itm/. */
+export function isSearchPage(url: string): boolean {
+  let u: URL;
+  try { u = new URL(url); } catch { return true; }
+  const path = u.pathname.toLowerCase();
+  if (/[?&](_nkw|q|query|keyword|keywords|searchterm|search|k|text)=/i.test(u.search)) return true;
+  if (/(^|\/)(search|sch|searchresults|results)(\/|$)/.test(path)) return true;
+  if (/(^|\.)ebay\./.test(u.hostname) && !path.startsWith("/itm/")) return true;
+  if (path === "/" || path === "") return true;
+  return false;
+}
+
 export function cleanListings(raw: unknown, fallbackCategory: string): (Listing & { fingerprint: string; url: string; sku: string; image_url: string | null })[] {
   const arr = (raw as { listings?: unknown[] })?.listings;
   if (!Array.isArray(arr)) return [];
@@ -53,7 +68,7 @@ export function cleanListings(raw: unknown, fallbackCategory: string): (Listing 
     const url = typeof r.url === "string" ? r.url.trim() : "";
     let host = "";
     try { const u = new URL(url); if (u.protocol === "https:" || u.protocol === "http:") host = u.hostname.replace(/^www\./, ""); } catch { /* bad url */ }
-    if (!title || !host) continue;
+    if (!title || !host || isSearchPage(url)) continue;
     const price = typeof r.price === "number" && r.price >= 0 ? r.price : null;
     const market = typeof r.market === "number" && r.market > 0 ? r.market : null;
     const cat = typeof r.category === "string" && (CATEGORIES as string[]).includes(r.category) ? r.category : fallbackCategory;
@@ -99,10 +114,15 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
       if (res.stop_reason !== "pause_turn") break;
       messages.push({ role: "assistant", content: res.content });   // continue a long search turn
     }
-    const listings = cleanListings(parseJSON(textOf(final)), a.mission_category ?? "other");
+    let listings = cleanListings(parseJSON(textOf(final)), a.mission_category ?? "other");
     run.listings = listings.length;
     if (!listings.length) return run;
-    await addImages(listings);   // the product photo from each store page
+    // Made-up links (404) go; then each real one gets a verified product photo.
+    const dead = await Promise.all(listings.map((l) => linkIsDead(l.url)));
+    listings = listings.filter((_, i) => !dead[i]);
+    run.listings = listings.length;
+    if (!listings.length) return run;
+    await addImages(listings);
 
     const saved = await db.rpc<{ fingerprint: string; id: string; already_found: boolean }[]>("upsert_listings", { p_user: a.user_id, p_listings: listings });
     const ids = new Map(saved.map((s) => [s.fingerprint, s]));
@@ -140,15 +160,21 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
 export async function backfillImages(limit: number) {
   const rows = await db.select<{ id: string; url: string; title: string; brand: string; category: string }>("listings",
     `select=id,url,title,brand,category&image_url=is.null&url=not.is.null&image_checked_at=is.null&order=last_seen_at.desc&limit=${limit}`);
-  const items = rows.map((r) => ({ ...r, image_url: null as string | null }));
-  await addImages(items);
-  await Promise.all(items.map((r) =>
-    db.update("listings", `id=eq.${r.id}`, { image_url: r.image_url, image_checked_at: new Date().toISOString() })));
-  return rows.length;
+  let found = 0;
+  for (let i = 0; i < rows.length; i += 6) {
+    const items = rows.slice(i, i + 6).map((r) => ({ ...r, fingerprint: r.id, image_url: null as string | null }));
+    found += await addImages(items);
+    await Promise.all(items.map((r) =>
+      db.update("listings", `id=eq.${r.id}`, { image_url: r.image_url, image_checked_at: new Date().toISOString() })));
+  }
+  return { checked: rows.length, found };
 }
 
 export const handler = handle(async (req) => {
-  const body = await req.json().catch(() => ({})) as { agent_id?: string };
+  const body = await req.json().catch(() => ({})) as { agent_id?: string; backfill?: number };
+  if (isScheduler(req) && body.backfill) {
+    return json(await backfillImages(Math.min(30, Math.max(1, Number(body.backfill)))));
+  }
   const dailyCap = num("SWEEP_DAILY_CAP", 12);
   let candidates: Candidate[];
   let trigger: "scheduled" | "manual";
@@ -164,7 +190,7 @@ export const handler = handle(async (req) => {
     }
   }
   const runs = await Promise.all(candidates.map((a) => sweepAgent(a, trigger)));
-  if (trigger === "scheduled") await backfillImages(num("IMAGE_BACKFILL", 8)).catch((e) => console.error("images", e));
+  if (trigger === "scheduled") await backfillImages(num("IMAGE_BACKFILL", 12)).catch((e) => console.error("images", e));
   const errors = runs.filter((r) => r.error);
   if (errors.length === runs.length && runs.length > 0 && trigger === "manual") {
     const msg = errors[0].error ?? "";

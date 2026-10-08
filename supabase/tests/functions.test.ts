@@ -315,7 +315,7 @@ await test("Claude picks the photo that shows the product, or none", async () =>
   const fake = async (u: string) => u.endsWith(".jpg") ? jpeg() : new Response("", { status: 404 });
   let sent: any;
   const pick2 = async (b: any) => { sent = b; return { content: [{ type: "text", text: '{"match": 2}' }], stop_reason: "end_turn" }; };
-  assert.equal(await I.chooseImage({ title: "Hwyl", brand: "Aesop" }, ["https://c.com/a.jpg", "https://c.com/b.jpg"], fake as never, pick2 as never), "https://c.com/b.jpg");
+  assert.equal((await I.chooseImage({ title: "Hwyl", brand: "Aesop" }, ["https://c.com/a.jpg", "https://c.com/b.jpg"], fake as never, pick2 as never))?.source, "https://c.com/b.jpg");
   assert.equal(sent.messages[0].content.filter((c: any) => c.type === "image").length, 2);
   assert.match(sent.model, /haiku/);
   const none = async () => ({ content: [{ type: "text", text: '{"match": null}' }], stop_reason: "end_turn" });
@@ -342,15 +342,61 @@ await test("sweep saves only verified product photos", async () => {
     [/GET https:\/\/static\.nike\.com\/ts\.jpg/, () => jpeg()],
     [/GET https:\/\/kith\.com\/cdn/, () => jpeg()],
     [/GET https:\/\/kith\.com/, () => html(`<head><meta property="og:image" content="https://kith.com/cdn/aj4.jpg"></head>`)],
+    [/POST .*storage\/v1\/object\/product-photos\//, () => ok({ Key: "x" })],
     [/rpc\/upsert_listings/, (_u, _i, b) => { saved = b.p_listings; return ok(saved.map((l: any, i: number) => ({ fingerprint: l.fingerprint, id: `l${i}`, already_found: false }))); }],
     [/taste_photos/, () => ok([])],
     [/rpc\/record_finds/, () => ok(1)],
     [/sweep_runs/, () => ok({})],
   ]);
   await sweep.sweepAgent({ ...jumpman, settings: {}, tz: "America/New_York" } as never, "manual");
-  assert.equal(saved.find((l) => l.url.includes("nike")).image_url, "https://static.nike.com/ts.jpg");
+  assert.match(saved.find((l) => l.url.includes("nike")).image_url, /^https:\/\/proj\.supabase\.co\/storage\/v1\/object\/public\/product-photos\/[0-9a-f]{32}\.jpg$/);
   assert.equal(saved.find((l) => l.url.includes("kith")).image_url, null, "Claude said the Kith photo isn't the product");
   assert.ok(calls.some((c) => c.url.includes("kith.com/cdn/aj4.jpg")), "the Kith photo was downloaded and shown to Claude");
+});
+
+await test("image search query drops mileage, sizes, item numbers and seller notes", () => {
+  assert.equal(I.searchQuery("2026 Porsche 911 GT3 Coupe (Certified, 1,280 mi)", "Porsche"), "2026 Porsche 911 GT3 Coupe");
+  assert.equal(I.searchQuery("Supreme Chino Pant (26SS) Black - 818989", "Supreme"), "Supreme Chino Pant Black");
+  assert.equal(I.searchQuery("SS26 Supreme Chino Pant Playboy Black - Size 38", "Supreme"), "SS26 Supreme Chino Pant Playboy Black");
+  assert.equal(I.searchQuery("Oud for Greatness Eau de Parfum 90ml", "Initio Parfums Privés"), "Initio Parfums Privés Oud for Greatness Eau de Parfum 90ml");
+});
+await test("search pages aren't products", () => {
+  for (const bad of ["https://www.ebay.com/shop/supreme-chino?_nkw=supreme+chino", "https://www.ebay.com/sch/i.html?_nkw=x",
+                     "https://www.amazon.com/s?k=oud", "https://www.harrods.com/en-us/search?q=oud", "https://www.nike.com/"]) {
+    assert.equal(sweep.isSearchPage(bad), true, bad);
+  }
+  for (const good of ["https://www.ebay.com/itm/388812345678", "https://www.harrods.com/en-us/p/initio-oud-for-greatness-edp-90ml-000000000006433113",
+                      "https://www.edmunds.com/inventory/vin.html?vin=WP0AC2A99TS260000"]) {
+    assert.equal(sweep.isSearchPage(good), false, good);
+  }
+});
+await test("image search through Serper, falling back to Google's thumbnail when the store blocks the full photo", async () => {
+  process.env.SERPER_API_KEY = "serper-test";
+  try {
+    let asked: any;
+    const fake = async (u: string, init: any = {}) => {
+      if (u === "https://google.serper.dev/images") {
+        asked = JSON.parse(init.body);
+        return ok({ images: [
+          { imageUrl: "https://blocked.com/gt3.jpg", thumbnailUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:gt3", imageWidth: 1600, imageHeight: 900 },
+          { imageUrl: "https://tiny.com/x.jpg", imageWidth: 100, imageHeight: 80 },
+        ] });
+      }
+      if (u.includes("blocked.com")) return new Response("no", { status: 403 });
+      if (u.includes("gstatic")) return jpeg(6);
+      return new Response("", { status: 404 });
+    };
+    const hits = await I.imageSearch("2026 Porsche 911 GT3 Coupe", fake as never);
+    assert.equal(asked.q, "2026 Porsche 911 GT3 Coupe");
+    assert.equal(hits.length, 1, "tiny images are skipped");
+    const yes = async () => ({ content: [{ type: "text", text: '{"match": 1}' }], stop_reason: "end_turn" });
+    const chosen = await I.chooseImage({ title: "2026 Porsche 911 GT3 Coupe", category: "cars" }, hits, fake as never, yes as never);
+    assert.equal(chosen?.source, "https://encrypted-tbn0.gstatic.com/images?q=tbn:gt3");
+  } finally { delete process.env.SERPER_API_KEY; }
+});
+await test("made-up links (404) are dropped from a sweep", async () => {
+  assert.equal(await I.linkIsDead("https://us.supreme.com/products/fake", (async () => new Response("", { status: 404 })) as never), true);
+  assert.equal(await I.linkIsDead("https://www.edmunds.com/x", (async () => new Response("", { status: 403 })) as never), false);
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

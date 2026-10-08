@@ -145,7 +145,7 @@ export const handler = handle(async (req) => {
       if (!listingId) {
         const cleaned = cleanListings({ listings: [{ ...input, category: a.mission_category ?? "other" }] }, a.mission_category ?? "other");
         if (!cleaned.length) throw new Error("Need a listing_id, or a title and a real https URL for something you found");
-        await addImages(cleaned);
+        await addImages(cleaned);   // verified product photo
         const [saved] = await db.rpc<{ id: string }[]>("upsert_listings", { p_user: user.id, p_listings: cleaned });
         listingId = saved.id;
       }

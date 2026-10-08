@@ -85,11 +85,14 @@ jobs:
           APNS_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APNS_TOPIC: ${{ secrets.BUNDLE_ID }}
           SWEEP_DAILY_CAP: ${{ secrets.SWEEP_DAILY_CAP }}
+          SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
+          BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
+          IMAGE_MODEL: ${{ secrets.IMAGE_MODEL }}
         run: |
           : > .secrets.env
           # Accept the push key as raw .p8 text or as base64; store it as base64 on one line.
           if printf '%s' "$APNS_KEY_P8" | grep -q "BEGIN"; then APNS_KEY_P8=$(printf '%s\n' "$APNS_KEY_P8" | base64 -w0); fi
-          for name in ANTHROPIC_API_KEY ANTHROPIC_MODEL BAGET_CRON_SECRET APNS_KEY_P8 APNS_KEY_ID APNS_TEAM_ID APNS_TOPIC SWEEP_DAILY_CAP; do
+          for name in ANTHROPIC_API_KEY ANTHROPIC_MODEL BAGET_CRON_SECRET APNS_KEY_P8 APNS_KEY_ID APNS_TEAM_ID APNS_TOPIC SWEEP_DAILY_CAP SERPER_API_KEY BRAVE_API_KEY IMAGE_MODEL; do
             value="${!name}"
             if [ -n "$value" ]; then printf '%s=%s\n' "$name" "$value" >> .secrets.env; fi
           done
@@ -120,3 +123,21 @@ jobs:
           curl -fsS -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/setup" \
             -H "Content-Type: application/json" -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d '{}'
           echo
+      - name: Find photos for saved listings
+        if: steps.ready.outputs.go == 'true'
+        env:
+          BAGET_CRON_SECRET: ${{ secrets.BAGET_CRON_SECRET }}
+          SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
+          BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
+        run: |
+          if [ -z "$SERPER_API_KEY" ] && [ -z "$BRAVE_API_KEY" ]; then
+            echo "::warning::No image search key (SERPER_API_KEY or BRAVE_API_KEY), so finds can't get product photos. See README > Product photos."
+            exit 0
+          fi
+          [ -z "$BAGET_CRON_SECRET" ] && exit 0
+          for round in 1 2 3; do
+            out=$(curl -sS -m 150 -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/sweep" \
+              -H "Content-Type: application/json" -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d '{"backfill": 12}' || echo '{}')
+            echo "::notice::Photo check round $round: $out"
+            echo "$out" | grep -q '"checked":0' && break
+          done
