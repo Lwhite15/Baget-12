@@ -64,14 +64,18 @@ ${a.mission_category === "sneakers" || a.mission_category === "apparel" ? (a.siz
 }
 
 export const handler = handle(async (req) => {
-  let body = await req.json().catch(() => ({})) as { agent_id?: string; messages?: Turn[]; trace?: boolean };
+  let body = await req.json().catch(() => ({})) as { agent_id?: string; messages?: Turn[]; trace?: boolean; agent_index?: number; follow_up?: boolean };
   let user: { id: string };
   if (isScheduler(req) && body.trace) {
     // Diagnose: chat as the newest agent's owner, exactly as the app would.
-    const [ag] = await db.select<{ id: string; user_id: string }>("agents", "select=id,user_id&order=created_at.desc&limit=1");
+    const ags = await db.select<{ id: string; user_id: string; name: string }>("agents", "select=id,user_id,name&order=created_at.desc&limit=12");
+    const ag = ags[Math.min(ags.length - 1, Math.max(0, Number(body.agent_index ?? 0)))];
     if (!ag) return json({ none: true });
     user = { id: ag.user_id };
-    body = { agent_id: ag.id, messages: [{ role: "user", content: "Find me something new I'd like" }] };
+    const msgs: Turn[] = [{ role: "user", content: "What have you learned about me?" }];
+    if (body.follow_up) msgs.push({ role: "assistant", content: "I know a few things about your taste so far." }, { role: "user", content: "Find me something new I'd like" });
+    body = { agent_id: ag.id, messages: msgs };
+    console.log("trace chat", ag.name);
   } else {
     user = await requireUser(req);
   }

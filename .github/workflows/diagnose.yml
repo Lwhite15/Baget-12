@@ -17,9 +17,11 @@ jobs:
           r=$(curl -sS -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/push" -H "Content-Type: application/json" \
                 -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d '{"diagnose":true}')
           echo "::notice::push key: $r"
-          c=$(curl -sS -m 150 -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/chat" -H "Content-Type: application/json" \
-                -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d '{"trace":true}')
-          echo "::notice::chat test: $(echo "$c" | cut -c1-900)"
+          for i in 0 1 2 3 4 5; do
+            c=$(curl -sS -m 150 -w ' [HTTP %{http_code} in %{time_total}s]' -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/chat" -H "Content-Type: application/json" \
+                  -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d "{\"trace\":true,\"agent_index\":$i,\"follow_up\":true}")
+            echo "::notice::chat agent $i: $(echo "$c" | jq -r '.error // empty' 2>/dev/null | head -c 400) $(echo "$c" | tail -c 400)"
+          done
           t=$(curl -sS -m 140 -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/sweep" -H "Content-Type: application/json" \
                 -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d '{"trace_image":true}')
           echo "$t" | jq -c '{title, pageStatus, pageError, pageCandidates, searchQuery, searchHits}' | sed 's/^/::notice::photo trace 1: /'
