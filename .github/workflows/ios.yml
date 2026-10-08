@@ -1,6 +1,6 @@
 # Builds Baget in the cloud. No Mac needed.
 #
-#  * "check" runs on every push: compiles the app for the simulator, no Apple account needed.
+#  * "check" runs when app code changes: compiles the app for the simulator, no Apple account needed.
 #    Use it to confirm the code builds.
 #  * "testflight" runs when you start it by hand (Actions tab > iOS > Run workflow):
 #    builds, signs and uploads to TestFlight, then you install it on your iPhone from the TestFlight app.
@@ -8,10 +8,10 @@
 name: iOS
 
 on:
+  # Mac minutes cost about 10x Linux minutes, so only app changes trigger a build.
   push:
     branches: [main]
-    paths-ignore: ["supabase/**", "README.md"]
-  pull_request:
+    paths: ["Baget/**", "project.yml"]
   workflow_dispatch:
     inputs:
       upload:
