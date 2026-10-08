@@ -455,4 +455,27 @@ await test("discovery picks keep the agent's own pitch and text you about it", a
   assert.equal(asked!.body.tools[0].max_uses, 6);
 });
 
+await test("Claude hiccups are retried, and people see a plain message if it keeps failing", async () => {
+  let n = 0;
+  reset([[/api\.anthropic\.com/, () => (++n === 1 ? new Response("overloaded", { status: 529 }) : ok({ content: [{ type: "text", text: "hi" }], stop_reason: "end_turn" }))]]);
+  const r = await P.claude({ max_tokens: 10, messages: [{ role: "user", content: "x" }] });
+  assert.equal(r.content[0].text, "hi");
+  assert.equal(n, 2, "retried once after a 529");
+  let logged: any;
+  reset([
+    [/api\.anthropic\.com/, () => new Response("upstream reset", { status: 500 })],
+    [/rest\/v1\/function_errors/, (_u, _i, b) => { logged = b; return ok({}); }],
+    [/auth\/v1\/user$/, () => ok({ id: jumpman.user_id })],
+    [/rest\/v1\/agents/, () => ok([jumpman])],
+    [/rest\/v1\/finds/, () => ok([])],
+    [/rest\/v1\/taste_photos/, () => ok([])],
+  ]);
+  const res = await chat.handler(post("chat", { agent_id: jumpman.id, messages: [{ role: "user", content: "hey" }] }, { Authorization: "Bearer user-jwt" }));
+  assert.equal(res.status, 502);
+  assert.equal((await res.json()).error, "Your agent couldn't reach Claude just now. Try again in a moment.");
+  assert.equal(calls.filter((c) => /anthropic/.test(c.url)).length, 3, "three attempts");
+  assert.match(logged.message, /Claude 500 upstream reset/);
+  assert.equal(logged.fn, "chat");
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

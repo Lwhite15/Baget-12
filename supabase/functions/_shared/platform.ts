@@ -34,10 +34,24 @@ function serverHeaders(extra: Record<string, string> = {}): Record<string, strin
 
 export class HttpError extends Error {
   status: number;
-  constructor(status: number, message: string) {
+  /** The technical reason, kept for the error log; `message` is what people see. */
+  detail?: string;
+  constructor(status: number, message: string, detail?: string) {
     super(message);
     this.status = status;
+    this.detail = detail;
   }
+}
+
+/** Server errors go to public.function_errors (server-only table) so they can be diagnosed later. */
+async function logError(req: Request, status: number, message: string) {
+  try {
+    const fn = new URL(req.url).pathname.split("/").filter(Boolean).pop() ?? "?";
+    await fetch(`${SUPABASE_URL()}/rest/v1/function_errors`, {
+      method: "POST", headers: serverHeaders({ Prefer: "return=minimal" }),
+      body: JSON.stringify({ fn: fn.slice(0, 40), status, message: message.slice(0, 1000) }),
+    });
+  } catch { /* logging must never break a response */ }
 }
 
 /** Database access as the server (bypasses row level security, so every query must filter by user itself). */
@@ -113,8 +127,12 @@ export function handle(fn: (req: Request) => Promise<Response>) {
     try {
       return await fn(req);
     } catch (e) {
-      if (e instanceof HttpError) return json({ error: e.message }, e.status);
+      if (e instanceof HttpError) {
+        if (e.status >= 500) await logError(req, e.status, e.detail ?? e.message);
+        return json({ error: e.message }, e.status);
+      }
       console.error(e);
+      await logError(req, 500, String((e as Error)?.stack ?? (e as Error)?.message ?? e));
       // Internal callers (the scheduler, the database, the deploy) get the real reason; people never do.
       const internal = isScheduler(req);
       return json({ error: "Something went wrong on our side. Try again in a minute.",
@@ -139,14 +157,30 @@ export interface ClaudeResponse {
 export async function claude(body: Record<string, unknown>): Promise<ClaudeResponse> {
   const key = env("ANTHROPIC_API_KEY");
   if (!key) throw new HttpError(503, "The agents aren't connected to Claude yet (no API key on the server).");
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify({ model: MODEL(), ...body }),
-  });
-  if (r.status === 429 || r.status === 529) throw new HttpError(503, "Claude is busy right now. Try again in a minute.");
-  if (!r.ok) throw new HttpError(502, `Claude request failed: ${r.status} ${(await r.text()).slice(0, 300)}`);
-  return await r.json() as ClaudeResponse;
+  const payload = JSON.stringify({ model: MODEL(), ...body });
+  // Claude is occasionally busy or briefly unavailable: retry twice with a short wait before giving up.
+  let last = "";
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt) await new Promise((r) => setTimeout(r, attempt === 1 ? 1500 : 4000));
+    let r: Response;
+    try {
+      r = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+        body: payload,
+      });
+    } catch (e) {
+      last = `network: ${(e as Error).message}`;
+      continue;
+    }
+    if (r.ok) return await r.json() as ClaudeResponse;
+    last = `${r.status} ${(await r.text()).slice(0, 600)}`;
+    if (![408, 429, 500, 502, 503, 504, 529].includes(r.status)) break;   // a real request problem: retrying won't help
+  }
+  if (/^(429|529)/.test(last)) throw new HttpError(503, "Claude is busy right now. Try again in a minute.", `Claude ${last}`);
+  if (/API key|authentication|401/.test(last)) throw new HttpError(503, "The agents can't reach Claude (API key problem).", `Claude ${last}`);
+  if (/credit|billing|balance/i.test(last)) throw new HttpError(503, "The agents are out of Claude credit. Add credit at console.anthropic.com.", `Claude ${last}`);
+  throw new HttpError(502, "Your agent couldn't reach Claude just now. Try again in a moment.", `Claude ${last}`);
 }
 
 export function textOf(content: Block[]): string {
