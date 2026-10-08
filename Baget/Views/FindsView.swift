@@ -80,7 +80,7 @@ struct FindCard: View {
             let agent = store.agent(find.agentID)
             let known = item.priceKnown && item.price > 0
             let diff = known && item.market > 0 ? item.market - item.price : 0
-            let pct = known && item.market > 0 ? Int(safe: (diff / item.price * 100).rounded()) : 0
+            let pct = Int((item.market - item.price) / item.price * 100)
             VStack(alignment: .leading, spacing: 12) {
                 Plate(item: item, label: store.whenLabel(item), live: store.isLive(item), height: 120)
                 Text(item.title).font(.headline).foregroundStyle(Theme.ink)
