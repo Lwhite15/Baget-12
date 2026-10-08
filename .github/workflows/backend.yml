@@ -131,13 +131,12 @@ jobs:
           BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
         run: |
           if [ -z "$SERPER_API_KEY" ] && [ -z "$BRAVE_API_KEY" ]; then
-            echo "::warning::No image search key (SERPER_API_KEY or BRAVE_API_KEY), so finds can't get product photos. See README > Product photos."
-            exit 0
+            echo "::warning::No image search key (SERPER_API_KEY or BRAVE_API_KEY). Photos come only from store pages that answer; blocked stores (eBay, Edmunds, Harrods) need the key. See README > Product photos."
           fi
           [ -z "$BAGET_CRON_SECRET" ] && exit 0
-          for round in 1 2 3; do
+          for round in 1 2 3 4 5 6; do
             out=$(curl -sS -m 150 -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/sweep" \
-              -H "Content-Type: application/json" -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d '{"backfill": 12}' || echo '{}')
+              -H "Content-Type: application/json" -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d '{"backfill": 10}' || echo '{}')
             echo "::notice::Photo check round $round: $out"
             echo "$out" | grep -q '"checked":0' && break
           done
