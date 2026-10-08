@@ -115,7 +115,10 @@ export function handle(fn: (req: Request) => Promise<Response>) {
     } catch (e) {
       if (e instanceof HttpError) return json({ error: e.message }, e.status);
       console.error(e);
-      return json({ error: "Something went wrong on our side. Try again in a minute." }, 500);
+      // Internal callers (the scheduler, the database, the deploy) get the real reason; people never do.
+      const internal = isScheduler(req);
+      return json({ error: "Something went wrong on our side. Try again in a minute.",
+                    ...(internal ? { detail: String((e as Error)?.message ?? e).slice(0, 300) } : {}) }, 500);
     }
   };
 }

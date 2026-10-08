@@ -9,7 +9,22 @@ jobs:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      BAGET_CRON_SECRET: ${{ secrets.BAGET_CRON_SECRET }}
     steps:
+      - name: Push notifications
+        run: |
+          r=$(curl -sS -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/push" -H "Content-Type: application/json" \
+                -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d '{"diagnose":true}')
+          echo "::notice::push key: $r"
+          q() { curl -sS -X POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query" \
+                  -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" \
+                  -d "$(jq -n --arg q "$1" '{query:$q}')"; }
+          id=$(q "select id from public.notes where pushed_at is null and not held_for_morning and kind <> 'learned' order by created_at desc limit 1" | jq -r '.[0].id // empty')
+          if [ -n "$id" ]; then
+            r=$(curl -sS -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/push" -H "Content-Type: application/json" \
+                  -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d "{\"note_id\":\"$id\"}")
+            echo "::notice::deliver newest unsent note: $r"
+          fi
       - name: Scheduler and sweep runs
         run: |
           q() { curl -sS -X POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query" \
