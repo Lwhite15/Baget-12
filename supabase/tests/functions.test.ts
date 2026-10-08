@@ -40,7 +40,7 @@ const del = await import("../functions/delete-account/handler.ts");
 const jumpman = {
   id: "11111111-1111-1111-1111-111111111111", user_id: "aaaaaaaa-0000-0000-0000-000000000001", name: "Jumpman Scout",
   mission_category: "sneakers", mission_custom: null, keywords: ["aj1"], traits: ["suede", "low top"], makers: ["Jordan"],
-  creators: ["Travis Scott"], size: "US M 10.5", max_per_item: 350, monthly_limit: 900, mode: "ask", voice: "hype",
+  creators: ["Travis Scott"], size: "US M 10.5", mode: "ask", voice: "hype",
   learned: {}, price_note: 0,
 } as any;
 const ts = { title: "Travis Scott x Air Jordan 1 Low OG", brand: "Jordan", category: "sneakers", price: 150, market: 610, source: "Nike SNKRS",
@@ -397,6 +397,27 @@ await test("image search through Serper, falling back to Google's thumbnail when
 await test("made-up links (404) are dropped from a sweep", async () => {
   assert.equal(await I.linkIsDead("https://us.supreme.com/products/fake", (async () => new Response("", { status: 404 })) as never), true);
   assert.equal(await I.linkIsDead("https://www.edmunds.com/x", (async () => new Response("", { status: 403 })) as never), false);
+});
+
+await test("likes, buys and style passes steer the next web search", async () => {
+  reset([[/rest\/v1\/finds/, (u) => {
+    assert.match(u.search, /status=in\.\(liked,acquired,passed\)/);
+    return ok([
+      { status: "liked", pass_reason: null, listing: { title: "Air Jordan 1 Low OG Mocha", brand: "Jordan" } },
+      { status: "acquired", pass_reason: null, listing: { title: "Jordan 4 Bred", brand: "Jordan" } },
+      { status: "passed", pass_reason: "not my style", listing: { title: "Dunk Low Panda", brand: "Nike" } },
+      { status: "passed", pass_reason: "too pricey", listing: { title: "Off-White Jordan 1", brand: "Jordan" } },
+    ]);
+  }]]);
+  const r = await sweep.reactionsFor("agent-1");
+  assert.deepEqual(r, { liked: ["Air Jordan 1 Low OG Mocha"], bought: ["Jordan 4 Bred"], passed: ["Nike Dunk Low Panda"] });
+  const prompt = sweep.sweepPrompt({ ...jumpman, learned: { suede: 3, "patent leather": -2 } } as never, "2026-10-08", r);
+  assert.match(prompt, /They liked: Air Jordan 1 Low OG Mocha/);
+  assert.match(prompt, /They passed on as not their style: Nike Dunk Low Panda/);
+  assert.match(prompt, /Leaning into lately.*suede/);
+  assert.match(prompt, /find more in that spirit/);
+  assert.doesNotMatch(prompt, /Off-White/, "a price pass isn't a taste signal");
+  assert.doesNotMatch(prompt, /Max price|monthly/i);
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

@@ -359,6 +359,33 @@ final class AppStore {
         save()
     }
 
+    /// You like it: the agent leans into its brand and traits, and keeps an eye on it if it isn't buyable yet.
+    func like(_ findID: String) {
+        guard let fi = state.finds.firstIndex(where: { $0.id == findID }), let item = Catalog.item(state.finds[fi].itemID) else { return }
+        guard state.finds[fi].status != .liked else { return }
+        state.finds[fi].status = .liked
+        state.finds[fi].passReason = nil
+        let watchIt = isSoldOut(item) || !isLive(item)
+        if watchIt { state.finds[fi].watching = true }
+        var patch: [String: Any] = ["status": "liked", "pass_reason": NSNull()]
+        if watchIt { patch["watching"] = true }
+        push { api in try await api.update("finds", "id=eq.\(findID)", patch) }
+        log("You liked \(item.title)")
+        learn(state.finds[fi].agentID, from: item, delta: 2)
+        Analytics.track(.findLiked, ["category": item.category.rawValue, "score": state.finds[fi].score, "watching": watchIt])
+        save()
+    }
+
+    func unlike(_ findID: String) {
+        guard let fi = state.finds.firstIndex(where: { $0.id == findID }), state.finds[fi].status == .liked,
+              let item = Catalog.item(state.finds[fi].itemID) else { return }
+        state.finds[fi].status = .open
+        push { api in try await api.update("finds", "id=eq.\(findID)", ["status": "open"]) }
+        learn(state.finds[fi].agentID, from: item, delta: -2)
+        Analytics.track(.findUnliked, ["category": item.category.rawValue])
+        save()
+    }
+
     enum PassReason: String, CaseIterable, Identifiable {
         case style = "Not my style", price = "Too pricey", own = "Have one like it", later = "Just not now"
         var id: String { rawValue }
@@ -366,13 +393,14 @@ final class AppStore {
 
     func pass(_ findID: String, reason: PassReason) {
         guard let fi = state.finds.firstIndex(where: { $0.id == findID }), let item = Catalog.item(state.finds[fi].itemID) else { return }
+        if state.finds[fi].status == .liked { learn(state.finds[fi].agentID, from: item, delta: -2) }
         state.finds[fi].status = .passed
         state.finds[fi].passReason = reason.rawValue.lowercased()
         let reasonText = reason.rawValue.lowercased()
         push { api in try await api.update("finds", "id=eq.\(findID)", ["status": "passed", "pass_reason": reasonText]) }
         let aid = state.finds[fi].agentID
         switch reason {
-        case .style: learn(aid, from: item, delta: -1, note: "you're not into \(item.traits.prefix(2).joined(separator: ", "))")
+        case .style: learn(aid, from: item, delta: -2, note: "you're not into \(item.traits.prefix(2).joined(separator: ", "))")
         case .price:
             if let i = agentIndex(aid) {
                 let current = state.agents[i].priceNote > 0 ? state.agents[i].priceNote : .infinity

@@ -33,8 +33,8 @@ select t.ok((select handle <> 'larryw' and handle like 'larryw%' from public.pro
 set role authenticated;
 select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
 
-insert into public.agents (name, mission_category, keywords, traits, makers, size, max_per_item, monthly_limit)
-values ('Jumpman Scout', 'sneakers', '{aj1}', '{suede,"low top"}', '{Jordan}', 'US M 10.5', 350, 900);
+insert into public.agents (name, mission_category, keywords, traits, makers, size)
+values ('Jumpman Scout', 'sneakers', '{aj1}', '{suede,"low top"}', '{Jordan}', 'US M 10.5');
 select t.ok(t.n('select * from public.agents') = 1, 'larry sees his agent');
 select t.err($$insert into public.agents (user_id, name, mission_category) values ('bbbbbbbb-0000-0000-0000-000000000002', 'x', 'cars')$$,
              'cannot create an agent for someone else');
@@ -117,6 +117,11 @@ set role authenticated;
 select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
 select t.ok(t.n('select * from public.finds') = 1, 'larry sees his find');
 select t.ok(t.n('select * from public.listings') = 2, 'listings readable when signed in');
+select t.ok((select count(*) from public.finds) = 1, 'larry has one find to react to');
+update public.finds set status = 'liked';
+select t.ok((select status from public.finds limit 1) = 'liked', 'a find can be liked');
+select t.err($$update public.finds set status = 'loved'$$, 'only known find statuses');
+update public.finds set status = 'open';
 select t.err($$update public.finds set score = 99$$, 'cannot inflate match scores');
 update public.finds set status = 'acquired';
 insert into public.purchases (title, amount, category, agent_name, listing_id, agent_id)

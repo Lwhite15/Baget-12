@@ -13,7 +13,22 @@ const num = (name: string, fallback: number) => {
 
 interface Candidate extends Agent { tz: string; settings: Record<string, unknown>; last_swept_at: string | null }
 
-export function sweepPrompt(a: Agent, today: string): string {
+/** What the person did with earlier finds: the clearest signal of taste there is. */
+export interface Reactions { liked: string[]; bought: string[]; passed: string[] }
+
+export async function reactionsFor(agentId: string): Promise<Reactions> {
+  const rows = await db.select<{ status: string; pass_reason: string | null; listing: { title: string; brand: string } | null }>(
+    "finds", `select=status,pass_reason,listing:listings(title,brand)&agent_id=eq.${agentId}&status=in.(liked,acquired,passed)&order=created_at.desc&limit=40`);
+  const name = (r: typeof rows[number]) => r.listing ? (r.listing.brand && !r.listing.title.includes(r.listing.brand) ? `${r.listing.brand} ${r.listing.title}` : r.listing.title) : "";
+  return {
+    liked: rows.filter((r) => r.status === "liked").map(name).filter(Boolean).slice(0, 12),
+    bought: rows.filter((r) => r.status === "acquired").map(name).filter(Boolean).slice(0, 8),
+    passed: rows.filter((r) => r.status === "passed" && (r.pass_reason ?? "").includes("style")).map(name).filter(Boolean).slice(0, 12),
+  };
+}
+
+export function sweepPrompt(a: Agent, today: string, r: Reactions = { liked: [], bought: [], passed: [] }): string {
+  const leaning = Object.entries(a.learned ?? {}).filter(([, w]) => w >= 2).sort((x, y) => y[1] - x[1]).map(([k]) => k).slice(0, 10);
   const parts = [
     `Mission: ${missionLabel(a)}`,
     a.keywords.length ? `Must-have keywords: ${a.keywords.join(", ")}` : "",
@@ -23,12 +38,18 @@ export function sweepPrompt(a: Agent, today: string): string {
     a.size ? `Their size: ${a.size}` : "",
     Object.entries(a.learned ?? {}).filter(([, w]) => w < 0).length
       ? `Not into: ${Object.entries(a.learned).filter(([, w]) => w < 0).map(([k]) => k).join(", ")}` : "",
+    leaning.length ? `Leaning into lately (from what they liked and bought): ${leaning.join(", ")}` : "",
+    r.bought.length ? `They bought: ${r.bought.join("; ")}` : "",
+    r.liked.length ? `They liked: ${r.liked.join("; ")}` : "",
+    r.passed.length ? `They passed on as not their style: ${r.passed.join("; ")}` : "",
   ].filter(Boolean).join("\n");
   return `Today is ${today}. You are ${a.name}, a personal shopping scout. Search the web for specific products that fit this person right now.
 
 ${parts}
 
-Look for things that are available to buy now, releasing in the next two weeks, or restocking. Prefer official brand sites, authorized retailers, release calendars and reputable marketplaces. Use the person's taste to discover things beyond the exact names they gave.
+Look for things that are available to buy now, releasing in the next two weeks, or restocking.${r.liked.length || r.bought.length ? `
+Their likes and buys are the strongest signal: find more in that spirit (same makers, materials, notes, silhouettes, eras), but not the same items again.` : ""}${r.passed.length ? `
+Steer away from what they passed on as not their style.` : ""} Prefer official brand sites, authorized retailers, release calendars and reputable marketplaces. Use the person's taste to discover things beyond the exact names they gave.
 
 Rules:
 - Only include products you actually found on a page during this search, with that page's URL. Never invent a product, price, date or URL.
@@ -102,7 +123,8 @@ export function cleanListings(raw: unknown, fallbackCategory: string): (Listing 
 export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", now = new Date()) {
   const run = { user_id: a.user_id, agent_id: a.id, trigger, searches: 0, listings: 0, finds: 0, input_tokens: 0, output_tokens: 0, error: null as string | null };
   try {
-    const messages: ClaudeMessage[] = [{ role: "user", content: sweepPrompt(a, now.toISOString().slice(0, 10)) }];
+    const reactions = await reactionsFor(a.id).catch(() => undefined);
+    const messages: ClaudeMessage[] = [{ role: "user", content: sweepPrompt(a, now.toISOString().slice(0, 10), reactions) }];
     const tools = [{ type: "web_search_20250305", name: "web_search", max_uses: num("SWEEP_MAX_SEARCHES", 4), user_location: { type: "approximate", country: "US" } }];
     let final: Block[] = [];
     for (let turn = 0; turn < 3; turn++) {

@@ -79,13 +79,14 @@ export const handler = handle(async (req) => {
   let a: Agent = agent;
 
   const recent = await db.select<{ status: string; pass_reason: string | null; listing: { title: string } }>(
-    "finds", `select=status,pass_reason,listing:listings(title)&user_id=eq.${user.id}&agent_id=eq.${a.id}&order=created_at.desc&limit=12`);
+    "finds", `select=status,pass_reason,listing:listings(title)&user_id=eq.${user.id}&agent_id=eq.${a.id}&order=created_at.desc&limit=20`);
   const photos = await db.select<{ summary: string; tags: string[] }>("taste_photos", `select=summary,tags&agent_id=eq.${a.id}&limit=6`);
   const profile = () => ({
     name: a.name, mission: missionLabel(a), keywords: a.keywords, traits_they_love: a.traits, makers_they_like: a.makers,
     creators_they_follow: a.creators, size: a.size || null,
     learned_from_actions: a.learned, prefers_under: a.price_note || null, taste_photos: photos,
     bought: recent.filter((f) => f.status === "acquired").map((f) => f.listing?.title),
+    liked: recent.filter((f) => f.status === "liked").map((f) => f.listing?.title),
     passed_on: recent.filter((f) => f.status === "passed").map((f) => ({ item: f.listing?.title, reason: f.pass_reason ?? "" })),
     profile_completeness_pct: intel(a),
   });

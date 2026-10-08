@@ -41,7 +41,7 @@ struct DeployAgentView: View {
         Agent(id: UUID().uuidString.lowercased(), name: name.trimmingCharacters(in: .whitespaces), mission: mission,
               keywords: TextMatch.list(keywords).map { $0.lowercased() },
               style: StyleProfile(traits: TextMatch.list(traits).map { $0.lowercased() }, makers: TextMatch.list(makers), creators: TextMatch.list(creators)),
-              size: sizeString, maxPerItem: 0, monthlyLimit: 0, mode: mode, voice: voice)
+              size: sizeString, mode: mode, voice: voice)
     }
 
     private var shoeOptions: [Double] {

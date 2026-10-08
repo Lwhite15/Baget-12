@@ -202,8 +202,6 @@ struct Agent: Codable, Identifiable, Hashable {
     var keywords: [String]
     var style: StyleProfile
     var size: String
-    var maxPerItem: Double
-    var monthlyLimit: Double
     var mode: BuyMode
     var voice: Voice
     /// What the agent picked up from your buys and passes: positive = likes, negative = not into.
@@ -228,7 +226,7 @@ struct TastePhoto: Codable, Identifiable, Hashable {
 
 // MARK: - Finds, purchases, notifications
 
-enum FindStatus: String, Codable { case open, passed, acquired }
+enum FindStatus: String, Codable { case open, liked, passed, acquired }
 
 struct Find: Codable, Identifiable, Hashable {
     var id: String

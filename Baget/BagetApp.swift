@@ -103,6 +103,9 @@ final class Router {
     var sheet: ActiveSheet?
     var deployPrefill: Mission?
     var toast: String?
+    /// Set when Buy opens a store; when you come back, Baget asks whether you bought it.
+    var buyOpened: String?
+    var askBought: String?
 
     @MainActor func say(_ text: String) {
         withAnimation { toast = text }

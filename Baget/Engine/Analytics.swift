@@ -27,6 +27,8 @@ enum AnalyticsEvent: String {
     case autoPurchased = "auto_purchased"
     case findWatched = "find_watched"
     case findPassed = "find_passed"
+    case findLiked = "find_liked"
+    case findUnliked = "find_unliked"
     // notifications
     case notificationSent = "notification_sent"
     case notificationOpened = "notification_opened"

@@ -26,6 +26,9 @@ enum SmokeTest {
             store.setAgentIcon(agent.id, icon: icon, photo: nil)
             store.state.agents.indices.dropFirst().first.map { store.setAgentIcon(store.state.agents[$0].id, icon: nil, photo: nil) }
         }
+        // Like, unlike and like again, plus a sample find passed for style: the learning paths.
+        store.like("smoke-find"); store.unlike("smoke-find"); store.like("smoke-find")
+        if let other = store.state.finds.first(where: { $0.id != "smoke-find" && $0.status == .open }) { store.pass(other.id, reason: .style) }
         let pause: UInt64 = 1_500_000_000
         for tab in [AppTab.live, .finds, .squad, .friends, .live] {
             router.tab = tab

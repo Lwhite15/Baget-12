@@ -3,6 +3,7 @@ import SwiftUI
 struct RootView: View {
     @Environment(AppStore.self) private var store
     @Environment(Router.self) private var router
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         @Bindable var router = router
@@ -50,6 +51,29 @@ struct RootView: View {
             store.syncProblem = nil
             router.say(problem)
         }
+        // Back from a store after tapping Buy: did you buy it? A yes is logged and teaches the agent.
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active, let id = router.buyOpened else { return }
+            router.buyOpened = nil
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(700))
+                if store.state.finds.contains(where: { $0.id == id && $0.status != .acquired }) { router.askBought = id }
+            }
+        }
+        .alert(boughtTitle, isPresented: Binding(get: { router.askBought != nil }, set: { if !$0 { router.askBought = nil } })) {
+            Button("Yes, I bought it") {
+                if let id = router.askBought, let f = store.state.finds.first(where: { $0.id == id }), let item = Catalog.item(f.itemID) {
+                    let amount = item.priceKnown ? item.price : 0
+                    store.confirmPurchase(id, amount: amount)
+                    Analytics.track(.purchaseConfirmed, ["amount": amount, "category": item.category.rawValue, "score": f.score, "from": "buy"])
+                    router.say("Nice. \(store.agent(f.agentID)?.name ?? "Your agent") will find more like it.")
+                }
+                router.askBought = nil
+            }
+            Button("Not yet", role: .cancel) { router.askBought = nil }
+        } message: {
+            Text("Your agent learns the most from what you actually buy.")
+        }
         .fullScreenCover(isPresented: Binding(get: { store.needsWelcome }, set: { _ in })) {
             WelcomeView().environment(store)
         }
@@ -96,6 +120,12 @@ struct RootView: View {
         }
     }
 
+
+    private var boughtTitle: String {
+        guard let id = router.askBought, let f = store.state.finds.first(where: { $0.id == id }),
+              let item = Catalog.item(f.itemID) else { return "Did you buy it?" }
+        return "Did you buy the \(item.title)?"
+    }
 
     @ViewBuilder private var bannerView: some View {
         if let n = store.banner {

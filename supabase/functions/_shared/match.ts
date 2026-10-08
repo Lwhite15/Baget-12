@@ -15,8 +15,6 @@ export interface Agent {
   makers: string[];
   creators: string[];
   size: string;
-  max_per_item: number;
-  monthly_limit: number;
   mode: "alert" | "ask" | "auto";
   voice: "hype" | "chill" | "straight";
   learned: Record<string, number>;

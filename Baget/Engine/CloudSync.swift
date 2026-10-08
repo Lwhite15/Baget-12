@@ -44,8 +44,6 @@ struct AgentRow: Decodable {
     let makers: [String]
     let creators: [String]
     let size: String
-    let maxPerItem: Double
-    let monthlyLimit: Double
     let mode: String
     let voice: String
     let learned: [String: Int]
@@ -277,7 +275,7 @@ extension AppStore {
                 Agent(id: r.id, name: r.name,
                       mission: r.missionCategory.flatMap { Category(rawValue: $0) }.map { Mission.category($0) } ?? Mission.custom(r.missionCustom ?? ""),
                       keywords: r.keywords, style: StyleProfile(traits: r.traits, makers: r.makers, creators: r.creators),
-                      size: r.size, maxPerItem: r.maxPerItem, monthlyLimit: r.monthlyLimit,
+                      size: r.size,
                       mode: BuyMode(rawValue: r.mode) ?? .ask, voice: Voice(rawValue: r.voice) ?? .chill,
                       learned: r.learned, priceNote: r.priceNote,
                       tasteBoard: (board[r.id] ?? []).map { TastePhoto(id: $0.id, addedAt: $0.createdAt, tags: $0.tags, summary: $0.summary, storagePath: $0.storagePath) },
@@ -374,7 +372,7 @@ extension AppStore {
 
     func agentFields(_ a: Agent) -> [String: Any] {
         ["name": a.name, "keywords": a.keywords, "traits": a.style.traits, "makers": a.style.makers, "creators": a.style.creators,
-         "size": a.size, "max_per_item": a.maxPerItem, "monthly_limit": a.monthlyLimit, "mode": a.mode.rawValue,
+         "size": a.size, "mode": a.mode.rawValue,
          "voice": a.voice.rawValue, "learned": a.learned, "price_note": a.priceNote, "icon": Self.iconJSON(a.icon)]
     }
 

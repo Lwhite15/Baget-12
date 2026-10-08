@@ -4,14 +4,16 @@ struct FindsView: View {
     @Environment(AppStore.self) private var store
     @Environment(Router.self) private var router
     @State private var filter: Category? = nil
+    @State private var likedOnly = false
     @State private var sweeping = false
 
-    private func rank(_ f: Find) -> Int { (f.status == .open ? 1000 : 0) + f.score }
+    private func rank(_ f: Find) -> Int { (f.status == .open ? 1000 : f.status == .liked ? 500 : 0) + f.score }
 
     var body: some View {
         let present = Category.allCases.filter { c in store.state.finds.contains { Catalog.item($0.itemID)?.category == c } }
         let finds = store.state.finds
             .filter { f in filter == nil || Catalog.item(f.itemID)?.category == filter }
+            .filter { f in !likedOnly || f.status == .liked || f.status == .acquired }
             .sorted { rank($0) > rank($1) }
 
         ScrollView {
@@ -19,7 +21,10 @@ struct FindsView: View {
                 SectionTitle(text: "What your squad found")
                 ScrollView(.horizontal) {
                     HStack(spacing: 8) {
-                        Button { filter = nil } label: { Pill(text: "All", selected: filter == nil) }
+                        Button { filter = nil; likedOnly = false } label: { Pill(text: "All", selected: filter == nil && !likedOnly) }
+                        if store.state.finds.contains(where: { $0.status == .liked || $0.status == .acquired }) {
+                            Button { likedOnly.toggle() } label: { Pill(text: "♥ Liked", selected: likedOnly) }
+                        }
                         ForEach(present) { c in
                             Button { filter = c } label: { Pill(text: c.info.label, selected: filter == c) }
                         }
@@ -74,6 +79,7 @@ struct FindCard: View {
     @Environment(Router.self) private var router
     let find: Find
     @State private var askingWhy = false
+    @Environment(\.openURL) private var openURL
 
     var body: some View {
         if let item = Catalog.item(find.itemID) {
@@ -147,9 +153,10 @@ struct FindCard: View {
     }
 
     @ViewBuilder private func actions(item: Item, agent: Agent?) -> some View {
+        let link = BuyLink.url(item)
         switch find.status {
         case .acquired:
-            Label("Acquired · \(Fmt.money(item.price))", systemImage: "checkmark.seal.fill")
+            Label("You bought this", systemImage: "checkmark.seal.fill")
                 .font(.footnote.weight(.bold)).foregroundStyle(Theme.green)
                 .frame(maxWidth: .infinity).padding(10)
                 .background(Theme.green.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
@@ -158,17 +165,60 @@ struct FindCard: View {
                 Text("Passed\(find.passReason.map { " · \($0)" } ?? "")").font(.footnote).foregroundStyle(Theme.muted).frame(maxWidth: .infinity)
                 Button("Undo") { store.undoPass(find.id) }.buttonStyle(GhostButton())
             }
+        case .liked:
+            HStack(spacing: 8) {
+                Button { store.unlike(find.id) } label: { Label("Liked", systemImage: "heart.fill") }
+                    .buttonStyle(GhostButton()).tint(Theme.hot)
+                    .accessibilityHint("Tap to unlike")
+                if let link { buyButton(item, link) }
+                shareButton(item)
+            }
+            if find.watching && (store.isSoldOut(item) || !store.isLive(item)) {
+                Text(store.isSoldOut(item) ? "\(agent?.name ?? "Your agent") will text you if it restocks." : "\(agent?.name ?? "Your agent") will text you at release.")
+                    .font(.caption).foregroundStyle(Theme.muted)
+            }
         case .open:
             HStack(spacing: 8) {
-                Button(store.isSoldOut(item) ? "Watch restock" : agent?.mode == .alert ? "Shop it" : "Acquire") {
-                    router.sheet = .checkout(find.id)
-                }.buttonStyle(PrimaryButton())
+                Button {
+                    store.like(find.id)
+                    router.say("\(agent?.name ?? "Your agent") will find more like this")
+                } label: { Label("Like", systemImage: "heart") }
+                    .buttonStyle(PrimaryButton())
                 Button("Pass") { askingWhy = true }.buttonStyle(GhostButton())
-                Button { router.sheet = .share(itemID: item.id, friendID: nil, suggestion: false) } label: {
-                    Image(systemName: "square.and.arrow.up")
-                }.buttonStyle(GhostButton()).frame(width: 54).accessibilityLabel("Share with friends")
+                if let link { buyButton(item, link) }
+                shareButton(item)
             }
         }
+    }
+
+    private func buyButton(_ item: Item, _ link: URL) -> some View {
+        Button {
+            Analytics.track(.checkoutOpened, ["category": item.category.rawValue, "toStore": true, "from": "find"])
+            router.buyOpened = find.id
+            openURL(link)
+        } label: { Label("Buy", systemImage: "arrow.up.right") }
+            .buttonStyle(GhostButton())
+            .frame(width: 92)
+            .accessibilityLabel("Buy at \(item.source)")
+    }
+
+    private func shareButton(_ item: Item) -> some View {
+        Button { router.sheet = .share(itemID: item.id, friendID: nil, suggestion: false) } label: {
+            Image(systemName: "square.and.arrow.up")
+        }.buttonStyle(GhostButton()).frame(width: 54).accessibilityLabel("Share with friends")
+    }
+}
+
+/// Where an item can actually be bought: its own https page, never a search page.
+enum BuyLink {
+    static func url(_ item: Item) -> URL? {
+        guard !item.isSample, let s = item.url, s.hasPrefix("https://"), let u = URL(string: s), let host = u.host else { return nil }
+        let q = (u.query ?? "").lowercased()
+        let path = u.path.lowercased()
+        if ["_nkw=", "q=", "query=", "keyword=", "k=", "search="].contains(where: { q.hasPrefix($0) || q.contains("&" + $0) }) { return nil }
+        if path.contains("/search") || path.contains("/sch/") || path.isEmpty || path == "/" { return nil }
+        if host.contains("ebay.") && !path.hasPrefix("/itm/") { return nil }
+        return u
     }
 }
 
@@ -204,9 +254,10 @@ struct CheckoutView: View {
                 if cloud {
                     Text(cloudNote(item: item, block: block, soldOut: soldOut, live: live))
                         .font(.subheadline).foregroundStyle(Theme.muted)
-                    if let link = item.url.flatMap({ URL(string: $0) }), !soldOut {
+                    if let link = BuyLink.url(item), !soldOut {
                         Button {
                             Analytics.track(.checkoutOpened, ["category": item.category.rawValue, "toStore": true])
+                            router.buyOpened = findID
                             openURL(link)
                         } label: { Label("Open at \(item.source)", systemImage: "arrow.up.right.square") }
                             .buttonStyle(PrimaryButton())
@@ -236,7 +287,7 @@ struct CheckoutView: View {
                             let amount = item.priceKnown ? item.price : Double(amountText.replacingOccurrences(of: ",", with: "")) ?? 0
                             store.confirmPurchase(findID, amount: amount)
                             Analytics.track(.purchaseConfirmed, ["amount": amount, "category": item.category.rawValue, "score": f.score, "agentMode": a?.mode.rawValue ?? ""])
-                            router.say("Added to your \(Date.now.formatted(.dateTime.month(.wide))) spending")
+                            router.say("Logged. \(a?.name ?? "Your agent") will learn from it.")
                             dismiss()
                         }
                         .buttonStyle(GhostButton())
@@ -245,7 +296,7 @@ struct CheckoutView: View {
                         Button("Confirm purchase") {
                             store.confirmPurchase(findID)
                             Analytics.track(.purchaseConfirmed, ["amount": item.price, "category": item.category.rawValue, "score": f.score, "agentMode": a?.mode.rawValue ?? ""])
-                            router.say("Acquired")
+                            router.say("Bought")
                             dismiss()
                         }.buttonStyle(PrimaryButton())
                     }
@@ -260,7 +311,7 @@ struct CheckoutView: View {
     private func cloudNote(item: Item, block: String?, soldOut: Bool, live: Bool) -> String {
         if soldOut || !live { return block ?? "" }
         let caution = block.map { "Heads up: \($0) " } ?? ""
-        return caution + "You buy it at \(item.source); Baget never charges you. Tap \"I bought it\" afterwards so it counts toward your monthly spending."
+        return caution + "You buy it at \(item.source); Baget never charges you. Tap \"I bought it\" afterwards so your agent learns from it."
     }
 
     private func blockReason(item: Item, agent a: Agent?, live: Bool, soldOut: Bool) -> String? {
