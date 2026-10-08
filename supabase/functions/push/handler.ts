@@ -53,9 +53,15 @@ export const handler = handle(async (req) => {
   if (body.diagnose) return json(await diagnose());
   if (body.release) {
     const ids = await db.rpc<string[]>("release_held_notes", {});
-    let sent = 0;
-    for (const id of (ids ?? []).slice(0, 200)) sent += await deliver(typeof id === "string" ? id : (id as { release_held_notes: string }).release_held_notes);
-    return json({ released: ids?.length ?? 0, sent });
+    let sent = 0, failed = 0;
+    const tryDeliver = async (id: string) => { try { sent += await deliver(id); } catch (e) { failed++; console.error("push", (e as Error).message); } };
+    for (const id of (ids ?? []).slice(0, 200)) await tryDeliver(typeof id === "string" ? id : (id as { release_held_notes: string }).release_held_notes);
+    // Retry the newest few texts from the last 12 hours that never went out (for example while the push key was being fixed).
+    const since = new Date(Date.now() - 12 * 3600_000).toISOString();
+    const stuck = await db.select<{ id: string }>("notes",
+      `select=id&pushed_at=is.null&held_for_morning=eq.false&kind=neq.learned&created_at=gt.${since}&order=created_at.desc&limit=5`);
+    for (const n of stuck) await tryDeliver(n.id);
+    return json({ released: ids?.length ?? 0, retried: stuck.length, sent, failed });
   }
   if (!body.note_id || !/^[0-9a-f-]{36}$/i.test(body.note_id)) throw new HttpError(400, "note_id required");
   return json({ sent: await deliver(body.note_id) });
