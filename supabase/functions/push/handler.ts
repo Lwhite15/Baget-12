@@ -1,7 +1,7 @@
 // Delivers notifications to iPhones.
 //  * {note_id}: called by the database the moment a notification is saved.
 //  * {release: true}: called hourly by the scheduler to send notes held overnight by quiet hours.
-import { apnsConfigured, pemToDer, sendPush, signJWT } from "../_shared/apns.ts";
+import { apnsConfigured, lastApns, pemToDer, sendPush, signJWT } from "../_shared/apns.ts";
 import { HttpError, db, env, handle, isScheduler, json } from "../_shared/platform.ts";
 
 interface Note { id: string; user_id: string; body: string; sender_name: string; kind: string; find_id: string | null; held_for_morning: boolean; pushed_at: string | null }
@@ -39,6 +39,13 @@ async function diagnose() {
     out.derBytes = pemToDer(p8).length;
     await signJWT(p8, kid, team, Math.floor(Date.now() / 1000));
     out.signs = true;
+    // Send one real test notification to each registered device and report what Apple said.
+    const devices = await db.select<{ token: string; environment: string }>("device_tokens", "select=token,environment&limit=3");
+    out.tests = [];
+    for (const d of devices) {
+      const r = await sendPush(d.token, d.environment, { aps: { alert: { title: "Baget", body: "Notifications are on. Your squad will text you here." }, sound: "default" } });
+      (out.tests as unknown[]).push({ environment: d.environment, tokenLength: d.token.length, result: r, apple: lastApns });
+    }
   } catch (e) {
     out.signs = false;
     out.error = String((e as Error).message).slice(0, 200);

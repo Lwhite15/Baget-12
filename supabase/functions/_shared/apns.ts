@@ -57,6 +57,8 @@ export function apnsConfigured(): boolean {
 }
 
 export type PushResult = "sent" | "drop-token" | "failed";
+/** The last answer from Apple, for diagnosis. */
+export let lastApns: { status: number; reason: string; host: string } | null = null;
 
 export async function sendPush(token: string, environment: string, payload: Record<string, unknown>, collapseId?: string): Promise<PushResult> {
   const host = environment === "sandbox" ? "https://api.sandbox.push.apple.com" : "https://api.push.apple.com";
@@ -69,9 +71,10 @@ export async function sendPush(token: string, environment: string, payload: Reco
   };
   if (collapseId) headers["apns-collapse-id"] = collapseId.slice(0, 64);
   const r = await fetch(`${host}/3/device/${token}`, { method: "POST", headers, body: JSON.stringify(payload) });
-  if (r.ok) return "sent";
+  if (r.ok) { lastApns = { status: r.status, reason: "", host }; return "sent"; }
   let reason = "";
   try { reason = (await r.json())?.reason ?? ""; } catch { /* empty body */ }
+  lastApns = { status: r.status, reason, host };
   if (r.status === 410 || reason === "BadDeviceToken" || reason === "Unregistered" || reason === "DeviceTokenNotForTopic") return "drop-token";
   if (reason === "ExpiredProviderToken" || reason === "InvalidProviderToken") cached = null;
   console.error(`APNs ${r.status} ${reason}`);
