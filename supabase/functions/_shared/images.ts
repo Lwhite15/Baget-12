@@ -346,6 +346,9 @@ export async function traceImage(l: { url: string; title: string; brand?: string
     const chosen = await chooseImage(l, cands, fetchFn, async (body) => {
       const r = await ask(body);
       t.claudeSaid = r.content.filter((b) => b.type === "text").map((b) => b.text).join("").slice(0, 200);
+      t.claudeStop = r.stop_reason;
+      t.claudeBlocks = r.content.map((b) => b.type);
+      t.claudeUsage = (r as unknown as { usage?: unknown }).usage;
       return r;
     });
     t.chosen = chosen?.source ?? null;
