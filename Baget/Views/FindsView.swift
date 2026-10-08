@@ -10,8 +10,10 @@ struct FindsView: View {
     private func rank(_ f: Find) -> Int { (f.status == .open ? 1000 : f.status == .liked ? 500 : 0) + f.score }
 
     var body: some View {
-        let present = Category.allCases.filter { c in store.state.finds.contains { Catalog.item($0.itemID)?.category == c } }
+        let present = Category.allCases.filter { c in store.state.finds.contains { $0.status != .passed && Catalog.item($0.itemID)?.category == c } }
+        // Passed finds leave the screen; the agent still learns from them and won't show them again.
         let finds = store.state.finds
+            .filter { $0.status != .passed }
             .filter { f in filter == nil || Catalog.item(f.itemID)?.category == filter }
             .filter { f in !likedOnly || f.status == .liked || f.status == .acquired }
             .sorted { rank($0) > rank($1) }
@@ -137,7 +139,7 @@ struct FindCard: View {
                     Button(r.rawValue) {
                         store.pass(find.id, reason: r)
                         Analytics.track(.findPassed, ["reason": r.rawValue, "category": item.category.rawValue])
-                        if r != .later { router.say("\(agent?.name ?? "Your agent") is learning from that") }
+                        router.say(r == .later ? "Passed" : "Passed. \(agent?.name ?? "Your agent") is learning from that")
                     }
                 }
             }
