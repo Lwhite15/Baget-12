@@ -97,6 +97,11 @@ select public.record_finds((select id from public.agents where name = 'Jumpman S
 select t.ok((select last_swept_at is not null from public.agents where name = 'Jumpman Scout'), 'sweep time recorded');
 select t.ok(t.n($$select * from public.sweep_candidates(20, 12, null, null) x where x ->> 'name' = 'Jumpman Scout'$$) = 0, 'swept agent not due again yet');
 select t.ok(t.n($$select * from public.sweep_candidates(20, 12, 'aaaaaaaa-0000-0000-0000-000000000001', null)$$) = 0, 'manual sweep cooldown');
+-- With a cap of 2 runs a day and 2 agents, each agent waits 24h; with a cap of 48 it can go after the 3h default.
+update public.agents set last_swept_at = now() - interval '5 hours';
+select t.ok(t.n($$select * from public.sweep_candidates(20, 2, null, null) x where x ->> 'name' = 'Jumpman Scout'$$) = 0, 'sweeps spread to fit the daily cap');
+select t.ok(t.n($$select * from public.sweep_candidates(20, 48, null, null) x where x ->> 'name' = 'Jumpman Scout'$$) = 1, 'roomy cap: due after the 3 hour default');
+update public.agents set last_swept_at = now();
 -- Listings without sizes (fragrance, furniture) arrive with JSON nulls; they must save, not error.
 select * from public.upsert_listings('aaaaaaaa-0000-0000-0000-000000000001',
   '[{"fingerprint":"aesop|hwyl eau de parfum","title":"Aesop Hwyl Eau de Parfum","brand":"Aesop","category":"fragrance","price":195,"source":"Aesop","url":"https://www.aesop.com/hwyl","image_url":null,"drop_at":null,"creator":null,"traits":["smoky","woody"],"tags":[],"sizes_in_stock":null,"sold_out":false}]'::jsonb);
