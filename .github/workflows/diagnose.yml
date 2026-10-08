@@ -1,9 +1,10 @@
-# Read-only checks on the live backend. Prints findings as annotations; never prints secrets.
+# Read-only checks on the live backend (plus one test push). Prints findings as annotations; never prints secrets.
+# GitHub shows about 10 annotations per job, so each check is its own job.
 name: Diagnose
 on:
   workflow_dispatch:
 jobs:
-  images:
+  push:
     runs-on: ubuntu-latest
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -25,6 +26,14 @@ jobs:
                   -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d "{\"note_id\":\"$id\"}")
             echo "::notice::deliver newest unsent note: $r"
           fi
+  scheduler:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      BAGET_CRON_SECRET: ${{ secrets.BAGET_CRON_SECRET }}
+    steps:
       - name: Scheduler and sweep runs
         run: |
           q() { curl -sS -X POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query" \
@@ -36,25 +45,53 @@ jobs:
           q "select count(*) as devices, string_agg(distinct environment, ',') as envs from public.device_tokens" | jq -c . | sed 's/^/::notice::devices /'
           q "select count(*) filter (where pushed_at is not null) as pushed, count(*) filter (where pushed_at is null and not held_for_morning) as unpushed, count(*) filter (where held_for_morning) as held, max(created_at) as newest from public.notes" | jq -c . | sed 's/^/::notice::notes /'
           q "select status_code, left(coalesce(content::text, error_msg, ''),220) as body, created from net._http_response order by created desc limit 5" | jq -c . | sed 's/^/::notice::http /'
+  listings:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      BAGET_CRON_SECRET: ${{ secrets.BAGET_CRON_SECRET }}
+    steps:
       - name: Listings, photos and sweep errors
         run: |
           q() { curl -sS -X POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query" \
                   -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" \
                   -d "$(jq -n --arg q "$1" '{query:$q}')"; }
           q "select count(*) total, count(image_url) with_photo, count(image_checked_at) checked from public.listings" | jq -c . | sed 's/^/::notice::counts /'
-          q "select left(title,60) t, source, url, image_url, image_checked_at is not null checked from public.listings order by last_seen_at desc limit 25" > listings.json
+          q "select left(title,60) t, source, url, image_url, image_checked_at is not null checked from public.listings order by last_seen_at desc limit 9" > listings.json
           jq -r '.[] | "::notice::\(.checked) | \(.t) | \(.source) | \(.url) | photo=\(.image_url)"' listings.json
           jq -r '.[].url' listings.json > urls.txt
+  pages:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      BAGET_CRON_SECRET: ${{ secrets.BAGET_CRON_SECRET }}
+    steps:
       - name: Fetch store pages like the server does
         run: |
+          q() { curl -sS -X POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query" \
+                  -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" \
+                  -d "$(jq -n --arg q "$1" '{query:$q}')"; }
           UA="Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1"
-          head -12 urls.txt | while read -r u; do
+          q "select url from public.listings order by last_seen_at desc limit 10" | jq -r ".[].url" > urls.txt
+          head -10 urls.txt | while read -r u; do
             [ -z "$u" ] && continue
             code=$(curl -sS -L --max-time 10 -A "$UA" -H "Accept: text/html" -o page.html -w "%{http_code}" "$u" || echo ERR)
             og=$(grep -oiE '<meta[^>]+(og:image|twitter:image)[^>]*>' page.html | head -2 | tr '\n' ' ' | cut -c1-250)
             ld=$(grep -ciE 'application/ld\+json' page.html || true)
             echo "::notice::HTTP $code | ld+json=$ld | $(echo "$u" | cut -c1-80) | $og"
           done
+  models:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      BAGET_CRON_SECRET: ${{ secrets.BAGET_CRON_SECRET }}
+    steps:
       - name: Photo-check model answers
         run: |
           for m in claude-haiku-5-5 claude-sonnet-5-5; do
@@ -62,6 +99,14 @@ jobs:
               -H "content-type: application/json" -d "{\"model\":\"$m\",\"max_tokens\":5,\"messages\":[{\"role\":\"user\",\"content\":\"Say ok\"}]}")
             echo "::notice::model $m -> $(echo "$r" | jq -c '{type, err: .error.message, text: .content[0].text}' | cut -c1-200)"
           done
+  logs:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      BAGET_CRON_SECRET: ${{ secrets.BAGET_CRON_SECRET }}
+    steps:
       - name: Edge function errors (last 2 hours)
         run: |
           for sql in \
