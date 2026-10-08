@@ -21,9 +21,16 @@ on:
 
 jobs:
   check:
-    runs-on: macos-15
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v5
+      - name: Use Xcode 26
+        run: |
+          X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | grep -v -i beta | sort -V | tail -1)
+          [ -z "$X" ] && X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          if [ -z "$X" ]; then echo "::error::No Xcode 26 on this runner"; ls -d /Applications/Xcode*; exit 1; fi
+          sudo xcode-select -s "$X"
+          echo "::notice::Using $(xcodebuild -version | tr '\n' ' ')"
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate project
@@ -49,7 +56,7 @@ jobs:
   testflight:
     if: github.event_name == 'workflow_dispatch' && inputs.upload
     needs: check
-    runs-on: macos-15
+    runs-on: macos-26
     env:
       TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       BUNDLE_ID: ${{ secrets.BUNDLE_ID }}
@@ -57,6 +64,13 @@ jobs:
       ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
     steps:
       - uses: actions/checkout@v5
+      - name: Use Xcode 26
+        run: |
+          X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | grep -v -i beta | sort -V | tail -1)
+          [ -z "$X" ] && X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          if [ -z "$X" ]; then echo "::error::No Xcode 26 on this runner"; ls -d /Applications/Xcode*; exit 1; fi
+          sudo xcode-select -s "$X"
+          echo "::notice::Using $(xcodebuild -version | tr '\n' ' ')"
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate project
