@@ -124,14 +124,14 @@ jobs:
           sed 's#<string>development</string>#<string>production</string>#' Baget/Baget.entitlements > "$RUNNER_TEMP/dist.entitlements"
           codesign --force --sign - --entitlements "$RUNNER_TEMP/dist.entitlements" --timestamp=none "$APP"
           echo "::notice::Archive entitlements: $(codesign -d --entitlements - --xml "$APP" 2>/dev/null | grep -o '<key>[^<]*</key>' | sed 's/<[^>]*>//g' | tr '\n' ' ')"
-      - name: Upload to TestFlight
+      - name: Sign for distribution
         run: |
           cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0"><dict>
             <key>method</key><string>app-store-connect</string>
-            <key>destination</key><string>upload</string>
+            <key>destination</key><string>export</string>
             <key>teamID</key><string>${TEAM_ID}</string>
             <key>signingStyle</key><string>automatic</string>
             <key>manageAppVersionAndBuildNumber</key><false/>
@@ -145,18 +145,38 @@ jobs:
             -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey.p8" \
             -authenticationKeyID "$ASC_KEY_ID" \
             -authenticationKeyIssuerID "$ASC_ISSUER_ID" > export.log 2>&1 || {
-              { grep -E "error:|Error Domain|failed|Failed|not available|Provisioning|already been used|bundle version" export.log || true; } \
+              { grep -E "error:|Error Domain|failed|Failed|not available|Provisioning" export.log || true; } \
                 | sort -u | head -25 | while IFS= read -r line; do echo "::error::${line}"; done
               tail -n 60 export.log
               exit 1
             }
-          tail -n 20 export.log
-          # Check the shipped app kept Sign in with Apple and push.
-          cd "$RUNNER_TEMP/export" && ls && unzip -q -o ./*.ipa -d ipa
+          tail -n 10 export.log
+      - name: Check the signed app
+        run: |
+          # Sign in with Apple and push must survive signing, or the app can't log in or text you.
+          cd "$RUNNER_TEMP/export"
+          IPA=$(ls *.ipa | head -1)
+          unzip -q -o "$IPA" -d ipa
           codesign -d --entitlements - --xml ipa/Payload/*.app > ents.plist 2>/dev/null || true
           echo "::notice::Signed build entitlements: $(grep -o '<key>[^<]*</key>' ents.plist | sed 's/<[^>]*>//g' | tr '\n' ' ')"
-          grep -q "applesignin" ents.plist && echo "::notice::Signed build includes Sign in with Apple" || echo "::warning::Signed build is missing the Sign in with Apple entitlement"
-          grep -q "aps-environment" ents.plist && echo "::notice::Signed build includes push notifications" || echo "::warning::Signed build is missing the push entitlement"
+          grep -q "com.apple.developer.applesignin" ents.plist || { echo "::error::Signed build is missing Sign in with Apple. Is it ticked on the App ID?"; exit 1; }
+          grep -q "aps-environment" ents.plist || { echo "::error::Signed build is missing push notifications. Is it ticked on the App ID?"; exit 1; }
+          grep -A1 "aps-environment" ents.plist | grep -q production || echo "::warning::Push environment isn't production."
+      - name: Upload to TestFlight
+        run: |
+          mkdir -p "$RUNNER_TEMP/private_keys"
+          cp "$RUNNER_TEMP/keys/AuthKey.p8" "$RUNNER_TEMP/private_keys/AuthKey_${ASC_KEY_ID}.p8"
+          IPA=$(ls "$RUNNER_TEMP"/export/*.ipa | head -1)
+          API_PRIVATE_KEYS_DIR="$RUNNER_TEMP/private_keys" xcrun altool --upload-app -f "$IPA" -t ios \
+            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID" > upload.log 2>&1 || {
+              { grep -E "ERROR|error|Error" upload.log || true; } | sort -u | head -20 | while IFS= read -r line; do echo "::error::${line}"; done
+              tail -n 40 upload.log
+              rm -rf "$RUNNER_TEMP/private_keys"
+              exit 1
+            }
+          rm -rf "$RUNNER_TEMP/private_keys"
+          tail -n 10 upload.log
+          echo "::notice::Uploaded build ${{ github.run_number }} to TestFlight"
       - name: Remove key
         if: always()
-        run: rm -rf "$RUNNER_TEMP/keys"
+        run: rm -rf "$RUNNER_TEMP/keys" "$RUNNER_TEMP/private_keys"
