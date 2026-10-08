@@ -15,6 +15,8 @@ enum AnalyticsEvent: String {
     case agentLearned = "agent_learned"
     case tastePhotoAdded = "taste_photo_added"
     case signedIn = "signed_in"
+    case avatarChanged = "avatar_changed"
+    case profileOpened = "profile_opened"
     case chatSent = "chat_sent"
     case sweepRun = "sweep_run"
     // finds funnel

@@ -46,7 +46,7 @@ struct WelcomeView: View {
                 Button("Look around with sample data first") { store.exploreSamples() }
                     .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.accent)
                     .frame(maxWidth: .infinity)
-                Text("Signing in creates your Baget account. You can delete it any time in Notifications > Account.")
+                Text("Signing in creates your Baget account. You can delete it any time from your icon at the top left.")
                     .font(.caption).foregroundStyle(Theme.muted).frame(maxWidth: .infinity)
                     .multilineTextAlignment(.center)
             }

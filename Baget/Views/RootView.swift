@@ -24,6 +24,7 @@ struct RootView: View {
                 case .spending: SpendingView()
                 case .deploy: DeployAgentView(prefill: router.deployPrefill)
                 case .customizeBar: CustomizeBarView()
+                case .profile: ProfileView()
                 case .checkout(let id): CheckoutView(findID: id)
                 case .share(let itemID, let friendID, let suggestion): ShareView(itemID: itemID, preselect: friendID, isSuggestion: suggestion)
                 case .suggestFor(let fid): SuggestForView(friendID: fid)
@@ -61,6 +62,10 @@ struct RootView: View {
                 content
             }
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button { router.sheet = .profile } label: { AvatarView(size: 32) }
+                        .accessibilityLabel("You: icon, settings and account")
+                }
                 ToolbarItem(placement: .topBarLeading) {
                     HStack(spacing: 0) {
                         Text("Baget").foregroundStyle(Theme.ink)

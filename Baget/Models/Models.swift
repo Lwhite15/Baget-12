@@ -394,6 +394,7 @@ struct AppState: Codable {
     var lastSynced: Date? = nil
     /// The person chose to look around with sample data instead of signing in.
     var exploringSamples = false
+    var avatar = Avatar()
 
     init() {}
 
@@ -422,6 +423,26 @@ struct AppState: Codable {
         chats = (try? c.decode([String: [ChatTurn]].self, forKey: .chats)) ?? [:]
         lastSynced = try? c.decode(Date.self, forKey: .lastSynced)
         exploringSamples = (try? c.decode(Bool.self, forKey: .exploringSamples)) ?? false
+        avatar = (try? c.decode(Avatar.self, forKey: .avatar)) ?? Avatar()
+    }
+}
+
+/// Your icon: initials or an emoji on a colored tile, or a photo.
+struct Avatar: Codable, Hashable {
+    enum Style: String, Codable, CaseIterable { case initials, emoji, photo }
+    var style: Style = .initials
+    var emoji: String = "🔥"
+    var color: Int = 0
+    /// The photo's id: its file on this phone, and avatars/<id>.jpg in your account's photo folder.
+    var photoID: String? = nil
+
+    init() {}
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        style = (try? c.decode(Style.self, forKey: .style)) ?? .initials
+        emoji = (try? c.decode(String.self, forKey: .emoji)) ?? "🔥"
+        color = (try? c.decode(Int.self, forKey: .color)) ?? 0
+        photoID = try? c.decode(String.self, forKey: .photoID)
     }
 }
 

@@ -35,6 +35,8 @@ final class AppStore {
     var chatBusy: String?
     /// Bumped when a taste photo finishes downloading, so boards redraw.
     var photoVersion = 0
+    /// Bumped when your icon photo changes or finishes downloading.
+    var avatarVersion = 0
     var pushRegistered = false
     @ObservationIgnored var pulling = false
     @ObservationIgnored var lastSettingsSnapshot: Data?

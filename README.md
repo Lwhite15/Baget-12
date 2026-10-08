@@ -107,7 +107,7 @@ whenever you want a new build on your phone.
 | Apple Developer Program | $99/year |
 
 Example: 5 agents sweeping every 6 hours is 20 sweeps a day, roughly $1 to $2 a day. Change how often agents search
-in the app (Notifications > Background and alerts), and cap it with `SWEEP_DAILY_CAP` and your Anthropic spend limit.
+in the app (your icon at the top left > Notifications and background), and cap it with `SWEEP_DAILY_CAP` and your Anthropic spend limit.
 Each squad has at most 12 agents, and each agent can be swept by hand at most once every 10 minutes.
 
 ## Data and privacy
@@ -117,7 +117,7 @@ Each squad has at most 12 agents, and each agent can be swept by hand at most on
 - Taste photos go to a private storage folder only the owner can read. On the phone they're cached for speed.
 - Your session lives in the iPhone Keychain. Server keys (Claude, Apple push) live only in Supabase's secret store.
 - Friends see your taste profile only if you allow it, and your purchases only if you turn that on.
-- Account deletion (Notifications > Account) permanently removes the account and everything in it.
+- Account deletion (your icon at the top left > Delete my account) permanently removes the account and everything in it.
 - Metrics are anonymous, write-only and can be turned off in the app.
 
 ## Run the tests yourself

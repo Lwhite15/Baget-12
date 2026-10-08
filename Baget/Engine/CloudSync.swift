@@ -143,6 +143,7 @@ struct SettingsBlob: Codable {
     var quietHours: Bool?
     var groups: [String]?
     var liveTabs: [LiveTab]?
+    var avatar: Avatar?
 }
 
 private struct SweepReply: Decodable { let swept: Int?; let found: Int?; let message: String? }
@@ -307,6 +308,7 @@ extension AppStore {
             if let q = blob.quietHours { state.settings.quietHours = q }
             if let g = blob.groups { state.settings.groups = Set(g.compactMap { NoteGroup(rawValue: $0) }) }
             if let tabs = blob.liveTabs, !tabs.isEmpty { state.liveTabs = tabs }
+            if let a = blob.avatar { state.avatar = a }
         }
         lastSettingsSnapshot = settingsSnapshot()
     }
@@ -314,7 +316,8 @@ extension AppStore {
     /// What the server should hold for settings; compared on every save so any screen's change syncs.
     func settingsSnapshot() -> Data? {
         let blob = SettingsBlob(sweepMinutes: state.settings.sweepMinutes, quietHours: state.settings.quietHours,
-                                groups: state.settings.groups.map(\.rawValue).sorted(), liveTabs: state.liveTabs)
+                                groups: state.settings.groups.map(\.rawValue).sorted(), liveTabs: state.liveTabs,
+                                avatar: state.avatar)
         var obj: [String: Any] = [:]
         if let d = try? JSONEncoder().encode(blob), let j = try? JSONSerialization.jsonObject(with: d) { obj["settings"] = j }
         obj["share_taste"] = state.settings.shareTasteWithFriends

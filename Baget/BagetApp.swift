@@ -68,7 +68,7 @@ struct BagetApp: App {
 
 /// Which sheet is open. One place, so any screen can open any sheet.
 enum ActiveSheet: Identifiable, Hashable {
-    case inbox, spending, deploy, customizeBar
+    case inbox, spending, deploy, customizeBar, profile
     case checkout(String)
     case share(itemID: String, friendID: String?, suggestion: Bool)
     case suggestFor(String)
@@ -81,6 +81,7 @@ enum ActiveSheet: Identifiable, Hashable {
         case .spending: return "spending"
         case .deploy: return "deploy"
         case .customizeBar: return "customize"
+        case .profile: return "profile"
         case .checkout(let f): return "checkout-\(f)"
         case .share(let i, let f, let s): return "share-\(i)-\(f ?? "")-\(s)"
         case .suggestFor(let f): return "suggest-\(f)"

@@ -6,8 +6,6 @@ struct InboxView: View {
     @Environment(Router.self) private var router
     @Environment(\.dismiss) private var dismiss
     @State private var tab = 0
-    @State private var permission: UNAuthorizationStatus = .notDetermined
-    @AppStorage("baget.analyticsEnabled") private var metricsOn = true
 
     var body: some View {
         NavigationStack {
@@ -34,7 +32,6 @@ struct InboxView: View {
                     }
                 }
             }
-            .task { permission = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus }
         }
     }
 
@@ -69,9 +66,33 @@ struct InboxView: View {
     }
 
     private var settings: some View {
+        AlertSettingsForm(onSimulate: { tab = 0 })
+    }
+
+    private func open(_ n: AppNote) {
+        store.markRead([n.id])
+        Analytics.track(.notificationOpened, ["kind": n.kind.rawValue, "inApp": true])
+        if n.friendID != nil { router.tab = .friends; dismiss(); return }
+        if let fid = n.findID, let f = store.state.finds.first(where: { $0.id == fid }), f.status == .open,
+           [.release, .available, .steal, .restock].contains(n.kind) {
+            router.sheet = .checkout(fid)
+        } else {
+            router.tab = n.kind == .learned ? .squad : .finds
+            dismiss()
+        }
+    }
+}
+
+/// How often agents search, quiet hours, what they text you about, and metrics.
+struct AlertSettingsForm: View {
+    @Environment(AppStore.self) private var store
+    var onSimulate: () -> Void = {}
+    @State private var permission: UNAuthorizationStatus = .notDetermined
+    @AppStorage("baget.analyticsEnabled") private var metricsOn = true
+
+    var body: some View {
         @Bindable var store = store
         return Form {
-            AccountSection()
             if permission == .denied {
                 Section {
                     Text("Notifications are off for Baget. Turn them on in iPhone Settings so your squad can text you.").font(.footnote)
@@ -125,7 +146,7 @@ struct InboxView: View {
                     Button("Simulate 3 hours away") {
                         store.catchUp(minutes: 180)
                         Analytics.track(.backgroundSimulated, [:])
-                        tab = 0
+                        onSimulate()
                     }
                 } header: { Text("Try it") } footer: {
                     Text("Fast-forwards three hours of background sweeps so you can see what your squad does while you're gone. Each agent's texting style is set on its card in Squad.")
@@ -136,19 +157,7 @@ struct InboxView: View {
         .scrollContentBackground(.hidden)
         .onChange(of: store.state.settings) { _, _ in store.save() }
         .onChange(of: metricsOn) { _, on in Analytics.enabled = on }
-    }
-
-    private func open(_ n: AppNote) {
-        store.markRead([n.id])
-        Analytics.track(.notificationOpened, ["kind": n.kind.rawValue, "inApp": true])
-        if n.friendID != nil { router.tab = .friends; dismiss(); return }
-        if let fid = n.findID, let f = store.state.finds.first(where: { $0.id == fid }), f.status == .open,
-           [.release, .available, .steal, .restock].contains(n.kind) {
-            router.sheet = .checkout(fid)
-        } else {
-            router.tab = n.kind == .learned ? .squad : .finds
-            dismiss()
-        }
+        .task { permission = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus }
     }
 }
 
