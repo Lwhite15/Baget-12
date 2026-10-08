@@ -18,12 +18,21 @@ enum SmokeTest {
         if let agent = store.state.agents.first {
             store.state.finds.insert(Find(id: "smoke-find", itemID: item.id, agentID: agent.id, score: 80, why: ["Smoke test"]), at: 0)
         }
+        if let agent = store.state.agents.first {
+            var icon = Avatar()
+            icon.style = .emoji
+            icon.emoji = "🦍"
+            icon.color = 2
+            store.setAgentIcon(agent.id, icon: icon, photo: nil)
+            store.state.agents.indices.dropFirst().first.map { store.setAgentIcon(store.state.agents[$0].id, icon: nil, photo: nil) }
+        }
         let pause: UInt64 = 1_500_000_000
         for tab in [AppTab.live, .finds, .squad, .friends, .live] {
             router.tab = tab
             try? await Task.sleep(nanoseconds: pause)
         }
-        for sheet in [ActiveSheet.profile, .inbox, .spending, .checkout("smoke-find"), .customizeBar] {
+        let firstAgent = store.state.agents.first?.id ?? "a1"
+        for sheet in [ActiveSheet.agentIcon(firstAgent), .profile, .inbox, .spending, .checkout("smoke-find"), .customizeBar, .deploy] {
             router.sheet = sheet
             try? await Task.sleep(nanoseconds: pause)
             router.sheet = nil

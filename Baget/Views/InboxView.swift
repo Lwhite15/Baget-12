@@ -44,7 +44,7 @@ struct InboxView: View {
                 ForEach(store.state.notes) { n in
                     Button { open(n) } label: {
                         HStack(alignment: .top, spacing: 11) {
-                            AppIcon()
+                            NoteIcon(note: n)
                             VStack(alignment: .leading, spacing: 3) {
                                 HStack {
                                     Text(store.noteSender(n)).font(.footnote.weight(.semibold)).foregroundStyle(Theme.ink)

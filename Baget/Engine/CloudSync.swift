@@ -50,6 +50,25 @@ struct AgentRow: Decodable {
     let voice: String
     let learned: [String: Int]
     let priceNote: Double
+    let icon: IconRow?
+}
+
+/// An icon as stored in jsonb. Empty ({}) means the default.
+struct IconRow: Decodable {
+    let style: String?
+    let emoji: String?
+    let color: Int?
+    let photoID: String?
+
+    var avatar: Avatar? {
+        guard let s = style, let st = Avatar.Style(rawValue: s) else { return nil }
+        var a = Avatar()
+        a.style = st
+        if let emoji { a.emoji = emoji }
+        if let color { a.color = color }
+        a.photoID = photoID
+        return a
+    }
 }
 
 struct TastePhotoRow: Decodable {
@@ -261,7 +280,8 @@ extension AppStore {
                       size: r.size, maxPerItem: r.maxPerItem, monthlyLimit: r.monthlyLimit,
                       mode: BuyMode(rawValue: r.mode) ?? .ask, voice: Voice(rawValue: r.voice) ?? .chill,
                       learned: r.learned, priceNote: r.priceNote,
-                      tasteBoard: (board[r.id] ?? []).map { TastePhoto(id: $0.id, addedAt: $0.createdAt, tags: $0.tags, summary: $0.summary, storagePath: $0.storagePath) })
+                      tasteBoard: (board[r.id] ?? []).map { TastePhoto(id: $0.id, addedAt: $0.createdAt, tags: $0.tags, summary: $0.summary, storagePath: $0.storagePath) },
+                      icon: r.icon?.avatar)
             }
             state.finds = finds.map { f in
                 Find(id: f.id, itemID: f.listingId, agentID: f.agentId ?? "", score: f.score, why: f.why,
@@ -355,7 +375,13 @@ extension AppStore {
     func agentFields(_ a: Agent) -> [String: Any] {
         ["name": a.name, "keywords": a.keywords, "traits": a.style.traits, "makers": a.style.makers, "creators": a.style.creators,
          "size": a.size, "max_per_item": a.maxPerItem, "monthly_limit": a.monthlyLimit, "mode": a.mode.rawValue,
-         "voice": a.voice.rawValue, "learned": a.learned, "price_note": a.priceNote]
+         "voice": a.voice.rawValue, "learned": a.learned, "price_note": a.priceNote, "icon": Self.iconJSON(a.icon)]
+    }
+
+    static func iconJSON(_ icon: Avatar?) -> [String: Any] {
+        guard let icon, let d = try? JSONEncoder().encode(icon),
+              let obj = try? JSONSerialization.jsonObject(with: d) as? [String: Any] else { return [:] }
+        return obj
     }
 
     func pushAgent(_ id: String) {

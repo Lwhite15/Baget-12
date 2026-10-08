@@ -23,12 +23,54 @@ extension AppStore {
     }
 
     var avatarImage: UIImage? {
+        guard state.avatar.style == .photo else { return nil }
+        return iconImage(state.avatar.photoID)
+    }
+
+    // MARK: Icon photos (yours and your agents')
+
+    /// A cached icon photo, downloaded from your account the first time this phone needs it.
+    func iconImage(_ photoID: String?) -> UIImage? {
         _ = avatarVersion
-        guard state.avatar.style == .photo, let id = state.avatar.photoID else { return nil }
+        guard let id = photoID else { return nil }
         if let img = UIImage(contentsOfFile: avatarURL(id).path) { return img }
         fetchAvatarIfNeeded(id)
         return nil
     }
+
+    /// Crops to a square and keeps a small copy on this phone. Returns its id and bytes for uploading.
+    func storeIconPhoto(_ image: UIImage) -> (id: String, jpeg: Data)? {
+        let square = Self.squareCrop(PhotoTaste.normalized(image, maxSide: 1024))
+        guard let jpeg = PhotoTaste.normalized(square, maxSide: 512).jpegData(compressionQuality: 0.82) else { return nil }
+        let id = UUID().uuidString.lowercased()
+        try? jpeg.write(to: avatarURL(id), options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+        avatarVersion += 1
+        return (id, jpeg)
+    }
+
+    /// Uploads an icon photo, then runs `then` (so other devices only hear about photos that exist).
+    func uploadIconPhoto(id: String, jpeg: Data, replacing old: String? = nil, then: (@MainActor (Backend) async throws -> Void)? = nil) {
+        guard isCloud, let uid = api.userID else { return }
+        let path = avatarPath(id, uid: uid)
+        let oldPath = old.map { avatarPath($0, uid: uid) }
+        push { api in
+            try await api.upload(bucket: "taste-photos", path: path, jpeg: jpeg)
+            if let then { try await then(api) }
+            if let oldPath { try? await api.removeFile(bucket: "taste-photos", path: oldPath) }
+        }
+    }
+
+    func deleteIconPhoto(_ id: String?) {
+        guard let id else { return }
+        try? FileManager.default.removeItem(at: avatarURL(id))
+        avatarVersion += 1
+        if isCloud, let uid = api.userID {
+            let path = avatarPath(id, uid: uid)
+            push { api in try? await api.removeFile(bucket: "taste-photos", path: path) }
+        }
+    }
+
+    // MARK: Your icon
 
     func setAvatarStyle(_ style: Avatar.Style) {
         guard state.avatar.style != style else { return }
@@ -48,47 +90,66 @@ extension AppStore {
         save()
     }
 
-    /// Crops to a square, keeps a small copy, and uploads it before telling your other devices about it.
     func setAvatarPhoto(_ image: UIImage) {
-        let square = Self.squareCrop(PhotoTaste.normalized(image, maxSide: 1024))
-        guard let jpeg = PhotoTaste.normalized(square, maxSide: 512).jpegData(compressionQuality: 0.82) else { return }
-        let id = UUID().uuidString.lowercased()
-        try? jpeg.write(to: avatarURL(id), options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+        guard let (id, jpeg) = storeIconPhoto(image) else { return }
         let old = state.avatar.photoID
         if let old { try? FileManager.default.removeItem(at: avatarURL(old)) }
-        avatarVersion += 1
-
-        guard isCloud, let uid = api.userID else {
-            state.avatar.photoID = id
-            state.avatar.style = .photo
-            save()
-            return
-        }
-        // Show it right away on this phone; sync the settings only once the file is up.
         state.avatar.photoID = id
         state.avatar.style = .photo
-        avatarVersion += 1
-        let path = avatarPath(id, uid: uid)
-        let oldPath = old.map { avatarPath($0, uid: uid) }
-        push { api in
-            try await api.upload(bucket: "taste-photos", path: path, jpeg: jpeg)
-            self.save()
-            if let oldPath { try? await api.removeFile(bucket: "taste-photos", path: oldPath) }
+        if isCloud {
+            // Shown here right away; the settings sync (which tells other devices) waits for the upload.
+            uploadIconPhoto(id: id, jpeg: jpeg, replacing: old) { _ in self.save() }
+        } else {
+            save()
         }
-        Analytics.track(.avatarChanged, ["style": "photo"])
+        Analytics.track(.avatarChanged, ["style": "photo", "who": "you"])
     }
 
     func removeAvatarPhoto() {
         guard let id = state.avatar.photoID else { return }
-        try? FileManager.default.removeItem(at: avatarURL(id))
         state.avatar.photoID = nil
         state.avatar.style = .initials
-        avatarVersion += 1
         save()
-        if isCloud, let uid = api.userID {
-            let path = avatarPath(id, uid: uid)
-            push { api in try? await api.removeFile(bucket: "taste-photos", path: path) }
+        deleteIconPhoto(id)
+    }
+
+    // MARK: Agent icons
+
+    /// Sets an agent's icon. A new photo is kept on the phone, uploaded, then saved to the agent.
+    func setAgentIcon(_ agentID: String, icon: Avatar?, photo: UIImage?) {
+        guard let i = agentIndex(agentID) else { return }
+        let oldPhoto = state.agents[i].icon?.photoID
+        var icon = icon
+        var upload: (id: String, jpeg: Data)?
+        if let photo, let stored = storeIconPhoto(photo) {
+            upload = stored
+            var a = icon ?? Avatar()
+            a.style = .photo
+            a.photoID = stored.id
+            icon = a
         }
+        if icon?.style != .photo { icon?.photoID = nil }
+        state.agents[i].icon = icon
+        save()
+        let keepsOld = icon?.photoID == oldPhoto
+        if !keepsOld, let oldPhoto, upload == nil { deleteIconPhoto(oldPhoto) }
+        let field = ["icon": Self.iconJSON(icon)]
+        if let upload {
+            uploadIconPhoto(id: upload.id, jpeg: upload.jpeg, replacing: keepsOld ? nil : oldPhoto) { api in
+                try await api.update("agents", "id=eq.\(agentID)", field)
+            }
+            if !isCloud, let oldPhoto, !keepsOld { try? FileManager.default.removeItem(at: avatarURL(oldPhoto)) }
+        } else {
+            push { api in try await api.update("agents", "id=eq.\(agentID)", field) }
+        }
+        Analytics.track(.avatarChanged, ["style": icon?.style.rawValue ?? "default", "who": "agent"])
+    }
+
+    /// Two letters for an agent: "Grail Hunter" -> "GH".
+    static func initials(_ name: String) -> String {
+        let words = name.split(separator: " ").filter { !$0.isEmpty }
+        if words.count >= 2 { return (String(words[0].prefix(1)) + String(words[1].prefix(1))).uppercased() }
+        return String(words.first?.prefix(2) ?? "A").uppercased()
     }
 
     private func fetchAvatarIfNeeded(_ id: String) {

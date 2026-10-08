@@ -212,6 +212,8 @@ struct Agent: Codable, Identifiable, Hashable {
     var priceNote: Double = 0
     /// Photos you showed the agent to teach it your taste (newest first, up to 6).
     var tasteBoard: [TastePhoto] = []
+    /// The agent's icon. Nil shows its initials on the house gradient.
+    var icon: Avatar? = nil
 }
 
 struct TastePhoto: Codable, Identifiable, Hashable {

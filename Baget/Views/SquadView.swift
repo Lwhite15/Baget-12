@@ -55,7 +55,10 @@ struct AgentCard: View {
         let styleTags = agent.style.traits + agent.style.makers + agent.style.creators
 
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top) {
+            HStack(alignment: .top, spacing: 12) {
+                Button { router.sheet = .agentIcon(agent.id) } label: { AgentAvatarView(agent: agent, size: 46) }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Change \(agent.name)'s icon")
                 VStack(alignment: .leading, spacing: 2) {
                     Text(agent.name).font(.title3.weight(.heavy)).foregroundStyle(Theme.ink)
                     Text("\(agent.mission.label) · \(finds) find\(finds == 1 ? "" : "s")").font(.caption.monospaced()).foregroundStyle(Theme.muted)

@@ -77,6 +77,7 @@ enum ActiveSheet: Identifiable, Hashable {
     case suggestFor(String)
     case tastePhoto(String)
     case chat(String)
+    case agentIcon(String)
 
     var id: String {
         switch self {
@@ -90,6 +91,7 @@ enum ActiveSheet: Identifiable, Hashable {
         case .suggestFor(let f): return "suggest-\(f)"
         case .tastePhoto(let a): return "photo-\(a)"
         case .chat(let a): return "chat-\(a)"
+        case .agentIcon(let a): return "icon-\(a)"
         }
     }
 }

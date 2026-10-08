@@ -25,6 +25,8 @@ struct DeployAgentView: View {
     @State private var mode: BuyMode = .ask
     @State private var error: String?
     @State private var didPrefill = false
+    @State private var icon = Avatar()
+    @State private var iconPhoto: UIImage?
 
     private var info: CategoryInfo { category?.info ?? customMissionInfo }
     private var mission: Mission { category.map { .category($0) } ?? .custom(customText.trimmingCharacters(in: .whitespaces)) }
@@ -75,6 +77,20 @@ struct DeployAgentView: View {
                         ForEach(Voice.allCases) { v in Text(v.label).tag(v) }
                     }
                     Text(voice.blurb).font(.caption).foregroundStyle(Theme.muted)
+                }
+
+                Section {
+                    HStack(spacing: 14) {
+                        AgentAvatarView(agent: nil, size: 56, preview: icon, previewPhoto: iconPhoto, nameOverride: previewName)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(previewName).font(.headline).foregroundStyle(Theme.ink)
+                            Text("Shows on its card and on every text it sends you.").font(.caption).foregroundStyle(Theme.muted)
+                        }
+                    }
+                    .padding(.vertical, 2)
+                    IconPickerRows(icon: $icon, photo: $iconPhoto)
+                } header: { Text("Icon") } footer: {
+                    Text("Optional. Use a photo, an emoji, or its initials. You can change it later by tapping the icon on its card.")
                 }
 
                 if category == .sneakers {
@@ -173,6 +189,11 @@ struct DeployAgentView: View {
         }
     }
 
+    private var previewName: String {
+        let n = name.trimmingCharacters(in: .whitespaces)
+        return n.isEmpty ? String("\(mission.label.capitalizedFirst) Hunter".prefix(40)) : n
+    }
+
     private func deploy() {
         var a = draft
         if case .custom(let t) = a.mission, t.isEmpty { error = "Tell the agent what to hunt."; return }
@@ -180,11 +201,26 @@ struct DeployAgentView: View {
         if a.monthlyLimit <= 0 { error = "Set a monthly spending limit, even if it only alerts you."; return }
         if a.name.isEmpty { a.name = String("\(a.mission.label.capitalizedFirst) Hunter".prefix(40)) }
         if store.state.agents.count >= 12 { error = "A squad can have up to 12 agents. Retire one to add another."; return }
+        // The icon: a photo is kept on the phone now and uploaded once the agent exists.
+        var upload: (id: String, jpeg: Data)?
+        if icon.style == .photo {
+            if let p = iconPhoto, let stored = store.storeIconPhoto(p) {
+                upload = stored
+                var i = icon
+                i.photoID = stored.id
+                a.icon = i
+            }
+        } else if icon != Avatar() {
+            var i = icon
+            i.photoID = nil
+            a.icon = i
+        }
         store.deploy(a)
         if store.isCloud {
             let agent = a
             Task { @MainActor in
                 let msg = await store.cloudDeploy(agent)
+                if let upload, store.agent(agent.id) != nil { store.uploadIconPhoto(id: upload.id, jpeg: upload.jpeg) }
                 router.say(msg)
             }
         }

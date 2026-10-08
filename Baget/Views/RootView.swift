@@ -30,6 +30,7 @@ struct RootView: View {
                 case .suggestFor(let fid): SuggestForView(friendID: fid)
                 case .tastePhoto(let aid): TastePhotoView(agentID: aid)
                 case .chat(let aid): ChatView(agentID: aid)
+                case .agentIcon(let aid): AgentIconView(agentID: aid)
                 }
             }
             .environment(store)
@@ -112,7 +113,7 @@ struct RootView: View {
                 router.sheet = .inbox
             } label: {
                 HStack(alignment: .top, spacing: 11) {
-                    AppIcon()
+                    NoteIcon(note: n)
                     VStack(alignment: .leading, spacing: 2) {
                         HStack {
                             Text(store.noteSender(n)).font(.footnote.weight(.semibold)).foregroundStyle(Theme.ink)
@@ -166,5 +167,18 @@ struct AppIcon: View {
             .foregroundStyle(Theme.accentInk)
             .frame(width: size, height: size)
             .background(Theme.gradient, in: RoundedRectangle(cornerRadius: size * 0.28, style: .continuous))
+    }
+}
+
+/// The sender's icon on a notification: the agent's own icon, or Baget's.
+struct NoteIcon: View {
+    @Environment(AppStore.self) private var store
+    let note: AppNote
+    var body: some View {
+        if note.friendID == nil, let id = note.agentID, let a = store.agent(id) {
+            AgentAvatarView(agent: a, size: 36)
+        } else {
+            AppIcon()
+        }
     }
 }
