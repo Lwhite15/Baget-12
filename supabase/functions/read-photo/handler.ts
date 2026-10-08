@@ -32,7 +32,7 @@ If the photo has nothing to do with ${missionLabel(a)}, still pull out style cue
 Reply with only JSON: {"summary": "one friendly sentence in your voice about what you see and what it says about their taste", "traits": ["up to 6 short lowercase descriptors"], "makers": [], "creators": []}`;
 
   const res = await claude({
-    max_tokens: 600,
+    max_tokens: 2000,
     messages: [{ role: "user", content: [
       { type: "image", source: { type: "base64", media_type: media, data: body.image_base64 } },
       { type: "text", text: prompt },

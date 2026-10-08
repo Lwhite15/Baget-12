@@ -245,7 +245,7 @@ Prefer a clean product shot over a busy scene. Not acceptable: logos, banners, t
 collages of several products, or a different product, model or colorway.
 Reply with only JSON: {"match": <image number, or null if none qualify>}` });
   try {
-    const res = await ask({ model: env("IMAGE_MODEL") ?? "claude-haiku-5-5", max_tokens: 30, messages: [{ role: "user", content }] });
+    const res = await ask({ model: env("IMAGE_MODEL") ?? "claude-haiku-5-5", max_tokens: 1500, messages: [{ role: "user", content }] });
     const text = res.content.filter((b) => b.type === "text").map((b) => b.text).join("");
     const m = text.match(/"match"\s*:\s*(null|\d+)/);
     if (!m || m[1] === "null") return null;

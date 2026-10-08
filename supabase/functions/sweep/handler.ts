@@ -165,7 +165,7 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
     const tools = [{ type: "web_search_20250305", name: "web_search", max_uses: num("SWEEP_MAX_SEARCHES", 6), user_location: { type: "approximate", country: "US" } }];
     let final: Block[] = [];
     for (let turn = 0; turn < 3; turn++) {
-      const res = await claude({ max_tokens: 6000, messages, tools });
+      const res = await claude({ max_tokens: 12000, messages, tools });
       run.input_tokens += res.usage?.input_tokens ?? 0;
       run.output_tokens += res.usage?.output_tokens ?? 0;
       run.searches += res.usage?.server_tool_use?.web_search_requests ?? 0;

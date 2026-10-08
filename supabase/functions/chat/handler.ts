@@ -168,7 +168,7 @@ export const handler = handle(async (req) => {
   const narration: string[] = [];
   let reply = "";
   for (let round = 0; round < 6; round++) {
-    const res = await claude({ max_tokens: 1200, system: rules(a, profile()), messages, tools: TOOLS });
+    const res = await claude({ max_tokens: 3000, system: rules(a, profile()), messages, tools: TOOLS });
     const text = textOf(res.content);
     if (res.stop_reason === "pause_turn") { messages.push({ role: "assistant", content: res.content }); continue; }
     if (res.stop_reason !== "tool_use") { reply = text; break; }
