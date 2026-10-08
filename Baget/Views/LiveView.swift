@@ -216,7 +216,7 @@ struct TrendingView: View {
                     Text("\(i + 1)").font(.system(size: 24, weight: .heavy)).gradientText().frame(width: 24)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(item.title).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
-                        Text("+\(Int(((item.market / item.price - 1) * 100).rounded()))% vs asking · \(item.category.info.label)")
+                        Text("+\(Int(safe: ((item.market / item.price - 1) * 100).rounded()))% vs asking · \(item.category.info.label)")
                             .font(.caption.monospaced()).foregroundStyle(Theme.muted)
                     }
                 }
@@ -232,7 +232,7 @@ struct AwayCard: View {
     let report: AwayReport
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("WHILE YOU WERE AWAY · \(report.minutes >= 90 ? "\(Int((Double(report.minutes) / 60).rounded())) HOURS" : "\(report.minutes) MINUTES")")
+            Text("WHILE YOU WERE AWAY · \(report.minutes >= 90 ? "\(Int(safe: (Double(report.minutes) / 60).rounded())) HOURS" : "\(report.minutes) MINUTES")")
                 .font(.caption.weight(.bold)).tracking(1).gradientText()
             Text(report.sweeps > 0
                  ? "Your squad ran \(report.sweeps) sweep\(report.sweeps == 1 ? "" : "s"), checked about \(report.checked) listings and found \(report.found) new thing\(report.found == 1 ? "" : "s") for you.\(report.restocks > 0 ? " One of your watched items restocked." : "")\(report.bought > 0 ? " Auto-buy landed \(report.bought)." : "")"

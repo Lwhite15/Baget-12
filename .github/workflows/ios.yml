@@ -41,11 +41,46 @@ jobs:
           xcodebuild build \
             -project Baget.xcodeproj -scheme Baget -configuration Debug \
             -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO | tee build.log | grep -E "error:|warning: unre|BUILD (SUCCEEDED|FAILED)" || true
           # Surface compile errors as annotations, readable from the API without downloading logs.
           { grep -E "^/.*: error: " build.log || true; } | sed -E 's#^.*/Baget/##' | sort -u | head -40 | while IFS= read -r line; do echo "::error::$line"; done
           echo "::notice::$(grep -cE ': warning: ' build.log || true) compiler warnings; $(grep -c 'BUILD SUCCEEDED' build.log || true) BUILD SUCCEEDED"
           grep -q "BUILD SUCCEEDED" build.log
+      - name: Launch test on the simulator
+        run: |
+          APP=$(ls -d build/Build/Products/Debug-iphonesimulator/Baget.app | head -1)
+          BUNDLE=$(/usr/libexec/PlistBuddy -c "Print CFBundleIdentifier" "$APP/Info.plist")
+          UDID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; print(next(x["udid"] for k,v in d.items() if "iOS" in k for x in v if x["name"].startswith("iPhone")))')
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b >/dev/null
+          xcrun simctl install "$UDID" "$APP"
+          mkdir -p crashes && touch crashes/.start
+          xcrun simctl launch "$UDID" "$BUNDLE" -BagetSmokeTest
+          sleep 30
+          DATA=$(xcrun simctl get_app_container "$UDID" "$BUNDLE" data)
+          IPS=$(find "$HOME/Library/Logs/DiagnosticReports" -name "Baget*.ips" -newer crashes/.start 2>/dev/null | head -1)
+          if [ -n "$IPS" ]; then
+            echo "::error::Baget crashed on launch in the simulator"
+            python3 - "$IPS" <<'PY'
+          import json, sys
+          raw = open(sys.argv[1]).read().split("\n", 1)
+          body = json.loads(raw[1]) if len(raw) > 1 else {}
+          ex = body.get("exception", {})
+          print(f"::error::Exception: {ex.get('type')} {ex.get('signal')} {body.get('termination', {}).get('indicator', '')}")
+          imgs = body.get("usedImages", [])
+          for t in body.get("threads", []):
+              if t.get("triggered"):
+                  for f in t.get("frames", [])[:25]:
+                      img = imgs[f.get("imageIndex", 0)].get("name", "?") if imgs else "?"
+                      sym = f.get("symbol", "?")
+                      loc = f" {f.get('sourceFile')}:{f.get('sourceLine')}" if f.get("sourceFile") else ""
+                      print(f"::error::{img} {sym}{loc}")
+          PY
+            exit 1
+          fi
+          if [ ! -f "$DATA/Documents/smoke-ok" ]; then echo "::error::The launch test didn't finish (no crash report found)"; exit 1; fi
+          echo "::notice::Launch test passed: every tab and sheet opened, including a find with no price"
       - name: Upload build log
         if: failure()
         uses: actions/upload-artifact@v4

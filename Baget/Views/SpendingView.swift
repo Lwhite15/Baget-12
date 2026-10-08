@@ -112,10 +112,10 @@ struct SpendingView: View {
     private func subtitle(count: Int, total: Double, prev: Double?, prevMonth: Date?, isNow: Bool, limits: Double) -> String {
         var s = "\(count) purchase\(count == 1 ? "" : "s")"
         if let prev, prev > 0, let prevMonth {
-            let d = Int(((total / prev - 1) * 100).rounded())
+            let d = Int(safe: ((total / prev - 1) * 100).rounded())
             s += " · \(d > 0 ? "+" : "")\(d)% vs \(prevMonth.formatted(.dateTime.month(.abbreviated)))"
         }
-        if isNow && limits > 0 { s += " · \(Int((total / limits * 100).rounded()))% of your squad's combined \(Fmt.money(limits)) limit" }
+        if isNow && limits > 0 { s += " · \(Int(safe: (total / limits * 100).rounded()))% of your squad's combined \(Fmt.money(limits)) limit" }
         return s
     }
 

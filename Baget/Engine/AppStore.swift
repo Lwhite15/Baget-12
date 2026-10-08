@@ -89,14 +89,14 @@ final class AppStore {
         if m <= 0 { return "AVAILABLE" }
         if m < 60 { return "IN \(Int(m.rounded(.up)))M" }
         if m < 1440 { return "IN \(Int(m / 60))H \(Int(m.truncatingRemainder(dividingBy: 60)))M" }
-        return "IN \(Int((m / 1440).rounded()))D"
+        return "IN \(Int(safe: (m / 1440).rounded()))D"
     }
 
     func whenText(_ item: Item) -> String {
         let m = dropDate(item).timeIntervalSinceNow / 60
         if m <= 0 { return "right now" }
         if m < 60 { return "in \(Int(m.rounded(.up))) minutes" }
-        if m < 1440 { return "in about \(Int((m / 60).rounded())) hours" }
+        if m < 1440 { return "in about \(Int(safe: (m / 60).rounded())) hours" }
         return m < 2880 ? "tomorrow" : "this week"
     }
 
@@ -140,7 +140,7 @@ final class AppStore {
         if a.priceNote > 0 && item.price > a.priceNote { return FriendTake(text: "You've passed on things at this price before. Flagging it anyway because it fits you so well.", caution: true) }
         if item.market < item.price * 0.97 { return FriendTake(text: "Market's below the asking price right now. I'd wait or buy it secondhand.", caution: true) }
         if a.monthlyLimit > 0 && used > 0.85 && a.mode != .alert { return FriendTake(text: "This would put you at \(Int(used * 100))% of this month's limit.", caution: true) }
-        if item.market > item.price * 1.25 { return FriendTake(text: "Asking is \(Int(((item.market / item.price - 1) * 100).rounded()))% under market. If you love it, this is the moment.", caution: false) }
+        if item.price > 0 && item.market > item.price * 1.25 { return FriendTake(text: "Asking is \(Int(safe: ((item.market / item.price - 1) * 100).rounded()))% under market. If you love it, this is the moment.", caution: false) }
         return FriendTake(text: "Fair price, right in your lane.", caution: false)
     }
 
@@ -157,8 +157,8 @@ final class AppStore {
     func sweep(background: Bool = false, quiet: Bool = false) -> (found: Int, bought: Int, notes: Int) {
         let unseen = Catalog.items.filter { !state.seenItemIDs.contains($0.id) }
         let avgIntel = state.agents.isEmpty ? 0 : Double(state.agents.map(Matcher.intel).reduce(0, +)) / Double(state.agents.count)
-        let quota = background ? max(2, Int((1 + Double(state.agents.count) * 0.6).rounded()))
-                               : Int((2 + Double(state.agents.count) * 1.2 + avgIntel / 25).rounded())
+        let quota = background ? max(2, Int(safe: (1 + Double(state.agents.count) * 0.6).rounded()))
+                               : Int(safe: (2 + Double(state.agents.count) * 1.2 + avgIntel / 25).rounded())
         var found = 0, bought = 0
         var notes: [AppNote] = []
         for item in unseen {
@@ -272,7 +272,7 @@ final class AppStore {
     func notify(_ a: Agent, _ kind: NoteKind, _ item: Item?, findID: String? = nil, extra: String = "") -> AppNote? {
         if let g = kind.group, !state.settings.groups.contains(g) { return nil }
         let urgent = kind == .restock || kind == .bought || (kind == .release && (item.map { dropDate($0).timeIntervalSinceNow < 90 * 60 } ?? false))
-        let used = a.monthlyLimit > 0 ? Int((spentThisMonth(a) / a.monthlyLimit * 100).rounded()) : 0
+        let used = a.monthlyLimit > 0 ? Int(safe: (spentThisMonth(a) / a.monthlyLimit * 100).rounded()) : 0
         let body = FriendVoice.line(agent: a, kind: kind, item: item, extra: extra,
                                     when: item.map { whenText($0) } ?? "", remaining: remaining(a), usedPercent: used)
         let note = AppNote(id: UUID().uuidString.lowercased(), agentID: a.id, kind: kind, body: body, findID: findID,
@@ -545,7 +545,7 @@ final class AppStore {
 
     func stories() -> [Story] {
         Catalog.all.map { (item: Item) -> Story in
-            let pct = item.price > 0 ? Int(((item.market / item.price - 1) * 100).rounded()) : 0
+            let pct = item.price > 0 ? Int(safe: ((item.market / item.price - 1) * 100).rounded()) : 0
             let drop = dropDate(item).timeIntervalSinceNow / 60
             let kind: String, head: String
             if isSoldOut(item) { kind = "Restock watch"; head = "\(item.title) Sold Out Fast. Here's the Restock Play" }

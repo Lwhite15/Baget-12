@@ -78,8 +78,9 @@ struct FindCard: View {
     var body: some View {
         if let item = Catalog.item(find.itemID) {
             let agent = store.agent(find.agentID)
-            let diff = item.market - item.price
-            let pct = Int((diff / item.price * 100).rounded())
+            let known = item.priceKnown && item.price > 0
+            let diff = known && item.market > 0 ? item.market - item.price : 0
+            let pct = known && item.market > 0 ? Int(safe: (diff / item.price * 100).rounded()) : 0
             VStack(alignment: .leading, spacing: 12) {
                 Plate(item: item, label: store.whenLabel(item), live: store.isLive(item), height: 120)
                 Text(item.title).font(.headline).foregroundStyle(Theme.ink)
@@ -90,9 +91,9 @@ struct FindCard: View {
                 Text((item.traits + (item.creator.map { [$0] } ?? [])).joined(separator: " · "))
                     .font(.caption).italic().foregroundStyle(Theme.muted)
                 HStack {
-                    priceCell("PRICE", Fmt.money(item.price), nil)
-                    priceCell("MARKET", Fmt.money(item.market), nil)
-                    priceCell("SPREAD", "\(diff > 0 ? "+" : "")\(pct)%", diff > 0 ? Theme.green : diff < 0 ? Theme.hot : nil)
+                    priceCell("PRICE", known ? Fmt.money(item.price) : "See store", nil)
+                    priceCell("MARKET", known && item.market > 0 ? Fmt.money(item.market) : "—", nil)
+                    priceCell("SPREAD", known && item.market > 0 ? "\(diff > 0 ? "+" : "")\(pct)%" : "—", diff > 0 ? Theme.green : diff < 0 ? Theme.hot : nil)
                 }
                 .padding(.vertical, 8)
                 .overlay(alignment: .top) { Divider().overlay(Theme.line) }

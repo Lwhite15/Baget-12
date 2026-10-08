@@ -1,5 +1,12 @@
 import Foundation
 
+extension Int {
+    /// Int(Double) traps on NaN or infinity (for example 0 / 0 when a price is unknown). This never does.
+    init(safe d: Double) {
+        self = d.isFinite ? Int(Swift.max(Swift.min(d, 1e12), -1e12)) : 0
+    }
+}
+
 // MARK: - Text helpers
 
 enum TextMatch {
@@ -178,9 +185,9 @@ enum Matcher {
         let intelBoost = Double(intel(a))
         if fit == true { why.append("In stock in your size, \(a.size)") }
         if why.isEmpty || (why.count == 1 && fit == true) {
-            return Match(score: Int((28 + intelBoost * 0.12).rounded()), why: ["Broad mission match only"] + why)
+            return Match(score: Int(safe: (28 + intelBoost * 0.12).rounded()), why: ["Broad mission match only"] + why)
         }
-        let s = Int((35 + pts * 0.55 + intelBoost * 0.1).rounded())
+        let s = Int(safe: (35 + pts * 0.55 + intelBoost * 0.1).rounded())
         return Match(score: max(5, min(98, s)), why: why)
     }
 }
@@ -219,7 +226,7 @@ enum FriendVoice {
         let src = item?.source ?? ""
         let price = item.map { Fmt.money($0.price) } ?? ""
         let hook = item.map { hookFor(a, $0) } ?? ""
-        let pct = item.map { Int(((1 - $0.price / max($0.market, 1)) * 100).rounded()) } ?? 0
+        let pct = item.map { Int(safe: ((1 - $0.price / max($0.market, 1)) * 100).rounded()) } ?? 0
         let market = item.map { Fmt.money($0.market) } ?? ""
 
         switch (kind, a.voice) {

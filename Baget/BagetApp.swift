@@ -31,6 +31,9 @@ struct BagetApp: App {
                 .environment(router)
                 .preferredColorScheme(.dark)
                 .task {
+                    #if DEBUG
+                    if SmokeTest.enabled { await SmokeTest.run(store: store, router: router); return }
+                    #endif
                     if store.isCloud { await store.registerForPush() } else { await Notifier.requestPermission() }
                 }
         }
