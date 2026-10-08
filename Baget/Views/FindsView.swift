@@ -10,12 +10,12 @@ struct FindsView: View {
     private func rank(_ f: Find) -> Int { (f.status == .open ? 1000 : f.status == .liked ? 500 : 0) + f.score }
 
     var body: some View {
-        let present = Category.allCases.filter { c in store.state.finds.contains { $0.status != .passed && Catalog.item($0.itemID)?.category == c } }
-        // Passed finds leave the screen; the agent still learns from them and won't show them again.
+        let present = Category.allCases.filter { c in store.state.finds.contains { $0.status != .passed && $0.status != .acquired && Catalog.item($0.itemID)?.category == c } }
+        // Passed and bought finds leave the screen; the agent still learns from them and won't show them again.
         let finds = store.state.finds
-            .filter { $0.status != .passed }
+            .filter { $0.status != .passed && $0.status != .acquired }
             .filter { f in filter == nil || Catalog.item(f.itemID)?.category == filter }
-            .filter { f in !likedOnly || f.status == .liked || f.status == .acquired }
+            .filter { f in !likedOnly || f.status == .liked }
             .sorted { rank($0) > rank($1) }
 
         ScrollView {
@@ -24,7 +24,7 @@ struct FindsView: View {
                 ScrollView(.horizontal) {
                     HStack(spacing: 8) {
                         Button { filter = nil; likedOnly = false } label: { Pill(text: "All", selected: filter == nil && !likedOnly) }
-                        if store.state.finds.contains(where: { $0.status == .liked || $0.status == .acquired }) {
+                        if store.state.finds.contains(where: { $0.status == .liked }) {
                             Button { likedOnly.toggle() } label: { Pill(text: "♥ Liked", selected: likedOnly) }
                         }
                         ForEach(present) { c in
@@ -304,7 +304,7 @@ struct CheckoutView: View {
                             let amount = item.priceKnown ? item.price : Double(amountText.replacingOccurrences(of: ",", with: "")) ?? 0
                             store.confirmPurchase(findID, amount: amount)
                             Analytics.track(.purchaseConfirmed, ["amount": amount, "category": item.category.rawValue, "score": f.score, "agentMode": a?.mode.rawValue ?? ""])
-                            router.say("Logged. \(a?.name ?? "Your agent") will learn from it.")
+                            router.say("Logged and off your list. \(a?.name ?? "Your agent") will learn from it.")
                             dismiss()
                         }
                         .buttonStyle(GhostButton())
@@ -313,7 +313,7 @@ struct CheckoutView: View {
                         Button("Confirm purchase") {
                             store.confirmPurchase(findID)
                             Analytics.track(.purchaseConfirmed, ["amount": item.price, "category": item.category.rawValue, "score": f.score, "agentMode": a?.mode.rawValue ?? ""])
-                            router.say("Bought")
+                            router.say("Bought. It's off your list.")
                             dismiss()
                         }.buttonStyle(PrimaryButton())
                     }

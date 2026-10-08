@@ -66,7 +66,7 @@ struct RootView: View {
                     let amount = item.priceKnown ? item.price : 0
                     store.confirmPurchase(id, amount: amount)
                     Analytics.track(.purchaseConfirmed, ["amount": amount, "category": item.category.rawValue, "score": f.score, "from": "buy"])
-                    router.say("Nice. \(store.agent(f.agentID)?.name ?? "Your agent") will find more like it.")
+                    router.say("Nice. It's off your list, and \(store.agent(f.agentID)?.name ?? "your agent") will find more like it.")
                 }
                 router.askBought = nil
             }
