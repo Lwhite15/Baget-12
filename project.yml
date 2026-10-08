@@ -57,6 +57,7 @@ targets:
         BGTaskSchedulerPermittedIdentifiers:
           - app.baget.sweep
         ITSAppUsesNonExemptEncryption: false
+        ITSAppUsesNonExemptEncryption: false
         BagetSupabaseURL: $(BAGET_SUPABASE_URL)
         BagetSupabaseAnonKey: $(BAGET_SUPABASE_ANON_KEY)
     scheme:
