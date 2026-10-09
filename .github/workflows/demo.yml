@@ -1,0 +1,50 @@
+# Creates (or refreshes) the App Review demo account: email + password sign-in, a 3-agent squad and real finds.
+# The runner makes a fresh random password, hands Supabase only its bcrypt hash, and prints the password
+# encrypted with the RSA public key you pass in, so only the holder of the private key can read it (this repo is public).
+# Each run sets a new password.
+name: Demo account
+on:
+  workflow_dispatch:
+    inputs:
+      email:
+        description: "Demo account email"
+        required: true
+      public_key:
+        description: "Base64 of an RSA public key (PEM) to encrypt the new password with"
+        required: true
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      BAGET_CRON_SECRET: ${{ secrets.BAGET_CRON_SECRET }}
+      DEMO_EMAIL: ${{ inputs.email }}
+      PUBKEY_B64: ${{ inputs.public_key }}
+    steps:
+      - name: Make a password
+        run: |
+          pip install -q bcrypt
+          pw=$(python3 -c "import secrets; A='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'; r=lambda n: ''.join(secrets.choice(A) for _ in range(n)); print('Baget-'+r(6)+'-'+r(6))")
+          echo "::add-mask::$pw"
+          hash=$(PW="$pw" python3 -c "import bcrypt,os; print(bcrypt.hashpw(os.environ['PW'].encode(), bcrypt.gensalt(10)).decode())")
+          echo "::add-mask::$hash"
+          echo "DEMO_HASH=$hash" >> "$GITHUB_ENV"
+          echo "$PUBKEY_B64" | base64 -d > pub.pem
+          enc=$(printf '%s' "$pw" | openssl pkeyutl -encrypt -pubin -inkey pub.pem -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 -w0)
+          echo "::notice::encrypted password: $enc"
+      - name: Create the account, squad and finds
+        run: |
+          body=$(jq -nc --arg e "$DEMO_EMAIL" --arg h "$DEMO_HASH" '{demo: {email: $e, password_hash: $h}}')
+          r=$(curl -sS -m 160 -w ' [HTTP %{http_code}]' -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/sweep" \
+                -H "Content-Type: application/json" -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d "$body")
+          echo "::notice::demo: $(echo "$r" | cut -c1-400)"
+      - name: Check the stored password and content
+        run: |
+          q() { curl -sS -X POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query" \
+                  -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" \
+                  -d "$(jq -nc --arg q "$1" '{query: $q}')"; }
+          id=0a99e1e0-5eed-4d3e-8a00-00000000d3e0
+          echo "::notice::account: $(q "select email, encrypted_password = '$DEMO_HASH' as password_set, email_confirmed_at is not null as confirmed from auth.users where id = '$id'")"
+          echo "::notice::content: $(q "select (select count(*) from agents where user_id='$id') agents, (select count(*) from finds where user_id='$id') finds, (select count(*) from notes where user_id='$id') notes")"
+          echo "::notice::auth: $(curl -sS "https://api.supabase.com/v1/projects/${PROJECT_REF}/config/auth" -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" | jq -c '{external_email_enabled, mailer_autoconfirm, disable_signup, password_min_length}')"

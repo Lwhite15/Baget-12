@@ -59,6 +59,26 @@ final class Backend {
         try store(sessionFrom: data)
     }
 
+    /// Email and password sign-in.
+    func signInWithEmail(email: String, password: String) async throws {
+        let data = try await raw("POST", "/auth/v1/token", query: [URLQueryItem(name: "grant_type", value: "password")],
+                                 json: ["email": email, "password": password], authorized: false)
+        try store(sessionFrom: data)
+    }
+
+    /// New account with email and password. The server confirms it straight away, so this signs in too.
+    func signUpWithEmail(email: String, password: String, name: String?) async throws {
+        var body: [String: Any] = ["email": email, "password": password]
+        if let name, !name.isEmpty { body["data"] = ["full_name": name] }
+        let data = try await raw("POST", "/auth/v1/signup", json: body, authorized: false)
+        if (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["access_token"] != nil {
+            try store(sessionFrom: data)
+        } else {
+            // Confirmation turned on server-side: sign in to finish (works once the address is confirmed).
+            try await signInWithEmail(email: email, password: password)
+        }
+    }
+
     func signOut() async {
         if session != nil { _ = try? await raw("POST", "/auth/v1/logout", json: [:]) }
         session = nil

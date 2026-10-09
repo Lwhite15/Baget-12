@@ -7,6 +7,7 @@ struct WelcomeView: View {
     @State private var nonce = Backend.makeNonce()
     @State private var working = false
     @State private var error: String?
+    @State private var showEmail = false
 
     var body: some View {
         ZStack {
@@ -41,6 +42,13 @@ struct WelcomeView: View {
                     .signInWithAppleButtonStyle(.white)
                     .frame(height: 52)
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    Button { showEmail = true } label: {
+                        Label("Continue with email", systemImage: "envelope.fill")
+                            .font(.body.weight(.semibold))
+                            .frame(maxWidth: .infinity).frame(height: 52)
+                            .foregroundStyle(Theme.ink)
+                            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Theme.ink.opacity(0.35), lineWidth: 1))
+                    }
                 }
                 if let error { Text(error).font(.footnote).foregroundStyle(Theme.hot) }
                 Button("Look around with sample data first") { store.exploreSamples() }
@@ -53,6 +61,7 @@ struct WelcomeView: View {
             .padding(24)
         }
         .preferredColorScheme(.dark)
+        .sheet(isPresented: $showEmail) { EmailSignInView().presentationDetents([.large]) }
     }
 
     private func point(_ icon: String, _ text: String) -> some View {
@@ -81,6 +90,87 @@ struct WelcomeView: View {
                 await store.didSignIn(fullName: name.isEmpty ? nil : name)
             } catch {
                 self.error = (error as? LocalizedError)?.errorDescription ?? "Couldn't sign in. Try again."
+            }
+        }
+    }
+}
+
+/// Sign in or create an account with an email address and password.
+struct EmailSignInView: View {
+    @Environment(AppStore.self) private var store
+    @Environment(\.dismiss) private var dismiss
+    @State private var creating = false
+    @State private var name = ""
+    @State private var email = ""
+    @State private var password = ""
+    @State private var working = false
+    @State private var error: String?
+
+    private var valid: Bool {
+        email.contains("@") && email.contains(".") && password.count >= (creating ? 8 : 1)
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Picker("", selection: $creating) {
+                    Text("Sign in").tag(false)
+                    Text("Create account").tag(true)
+                }
+                .pickerStyle(.segmented)
+                .listRowBackground(Color.clear)
+                Section {
+                    if creating {
+                        TextField("Your name", text: $name).textContentType(.name)
+                    }
+                    TextField("Email", text: $email)
+                        .textContentType(.emailAddress).keyboardType(.emailAddress)
+                        .textInputAutocapitalization(.never).autocorrectionDisabled()
+                    SecureField(creating ? "Password (8 or more characters)" : "Password", text: $password)
+                        .textContentType(creating ? .newPassword : .password)
+                } footer: {
+                    if let error { Text(error).foregroundStyle(Theme.hot) }
+                }
+                Section {
+                    Button { Task { await submit() } } label: {
+                        HStack {
+                            Spacer()
+                            if working { ProgressView() } else { Text(creating ? "Create account" : "Sign in").bold() }
+                            Spacer()
+                        }
+                    }
+                    .disabled(!valid || working)
+                }
+            }
+            .navigationTitle(creating ? "Create account" : "Sign in with email")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
+            .onChange(of: creating) { error = nil }
+        }
+    }
+
+    @MainActor private func submit() async {
+        error = nil
+        working = true
+        defer { working = false }
+        let address = email.trimmingCharacters(in: .whitespaces).lowercased()
+        let fullName = name.trimmingCharacters(in: .whitespaces)
+        do {
+            if creating {
+                try await Backend.shared.signUpWithEmail(email: address, password: password, name: fullName)
+            } else {
+                try await Backend.shared.signInWithEmail(email: address, password: password)
+            }
+            dismiss()
+            await store.didSignIn(fullName: creating && !fullName.isEmpty ? fullName : nil)
+        } catch {
+            let m = (error as? LocalizedError)?.errorDescription ?? "Couldn't sign in. Try again."
+            if m.localizedCaseInsensitiveContains("invalid login") {
+                self.error = "That email and password don't match. Check them, or switch to Create account."
+            } else if m.localizedCaseInsensitiveContains("already registered") {
+                self.error = "There's already an account with that email. Switch to Sign in."
+            } else {
+                self.error = m
             }
         }
     }

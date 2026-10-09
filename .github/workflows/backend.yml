@@ -100,7 +100,7 @@ jobs:
           done
           if [ -s .secrets.env ]; then supabase secrets set --project-ref "$PROJECT_REF" --env-file .secrets.env; fi
           rm -f .secrets.env
-      - name: Turn on Sign in with Apple
+      - name: Turn on Sign in with Apple and email sign-in
         if: steps.ready.outputs.go == 'true'
         env:
           BUNDLE_ID: ${{ secrets.BUNDLE_ID }}
@@ -108,10 +108,10 @@ jobs:
           if [ -z "$BUNDLE_ID" ]; then echo "::warning::Add the BUNDLE_ID secret so Sign in with Apple can be turned on."; exit 0; fi
           code=$(curl -sS -o auth.json -w "%{http_code}" -X PATCH "https://api.supabase.com/v1/projects/${PROJECT_REF}/config/auth" \
             -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" \
-            -d "{\"external_apple_enabled\": true, \"external_apple_client_id\": \"${BUNDLE_ID}\"}")
+            -d "{\"external_apple_enabled\": true, \"external_apple_client_id\": \"${BUNDLE_ID}\", \"external_email_enabled\": true, \"disable_signup\": false, \"mailer_autoconfirm\": true, \"password_min_length\": 8}")
           if [ "$code" -ge 300 ]; then echo "::error::Couldn't turn on Sign in with Apple (HTTP $code): $(head -c 300 auth.json)"; rm -f auth.json; exit 1; fi
-          enabled=$(grep -o '"external_apple_enabled":[a-z]*' auth.json); rm -f auth.json
-          echo "::notice::Sign in with Apple: ${enabled}"
+          enabled=$(grep -o '"external_apple_enabled":[a-z]*' auth.json); email=$(grep -o '"external_email_enabled":[a-z]*' auth.json); rm -f auth.json
+          echo "::notice::Sign in with Apple: ${enabled}; email sign-in: ${email}"
       - name: Deploy edge functions
         if: steps.ready.outputs.go == 'true'
         run: supabase functions deploy --project-ref "$PROJECT_REF"

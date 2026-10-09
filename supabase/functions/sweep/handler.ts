@@ -5,6 +5,7 @@
 import { type Agent, CATEGORIES, GROUP_OF, type Listing, friendLine, heldForMorning, kindFor, match, missionLabel, norm } from "../_shared/match.ts";
 import { type Block, type ClaudeMessage, HttpError, claude, db, env, handle, isScheduler, json, parseJSON, requireUser, textOf } from "../_shared/platform.ts";
 import { addImages, linkIsDead, traceImage } from "../_shared/images.ts";
+import { setupDemo } from "./demo.ts";
 import { type Lead, attachOffers, ebayConfigured, ebaySearch, queriesFor, shoppingLeads, shoppingOffers } from "../_shared/sources.ts";
 
 const num = (name: string, fallback: number) => {
@@ -265,6 +266,14 @@ export const handler = handle(async (req) => {
     const [any] = l ? [l] : await db.select<{ url: string; title: string; brand: string; category: string }>("listings",
       "select=url,title,brand,category&url=not.is.null&order=last_seen_at.desc&limit=1");
     return json(any ? await traceImage(any) : { none: true });
+  }
+  const demo = (body as { demo?: { email?: string; password_hash?: string } }).demo;
+  if (isScheduler(req) && demo) {
+    return json(await setupDemo(String(demo.email ?? ""), String(demo.password_hash ?? ""), async (userId) => {
+      const cands = await db.rpc<Candidate[]>("sweep_candidates", { p_limit: 3, p_daily_cap: num("SWEEP_DAILY_CAP", 30), p_user: userId, p_agent: null });
+      const runs = await Promise.all(cands.map((a) => sweepAgent(a, "manual")));
+      return { swept: runs.length, found: runs.reduce((t, r) => t + r.finds, 0) };
+    }));
   }
   if (isScheduler(req) && body.backfill) {
     return json(await backfillImages(Math.min(30, Math.max(1, Number(body.backfill)))));
