@@ -677,4 +677,26 @@ await test("Today's Drop goes out once, at 8am local time", async () => {
   assert.equal(await daily.morningDigest(eightNY), 0, "already sent today");
 });
 
+await test("onboarding: picked interests plus photos become a tuned squad", async () => {
+  const inserted: any[] = [];
+  let sent: any;
+  reset([
+    [/auth\/v1\/user$/, () => ok({ id: jumpman.user_id })],
+    [/api\.anthropic\.com/, (_u, _i, b) => { sent = b; return ok({ content: [{ type: "text", text: JSON.stringify({ agents: [
+      { name: "Oud Hunter", category: "fragrance", makers: ["Frederic Malle"], traits: ["oud"], voice: "chill", intro: "On it." },
+    ] }) }], stop_reason: "end_turn" }); }],
+    [/rest\/v1\/agents/, (_u, _i, b) => { inserted.push(b); return ok([{ id: `a${inserted.length}` }]); }],
+  ]);
+  const res = await hunt.handler(post("hunt", { categories: ["fragrance", "sneakers", "nonsense"], text: "dark woody stuff",
+    images: [{ media_type: "image/jpeg", data: "AAAA" }, { media_type: "image/gif", data: "BBBB" }] }, { Authorization: "Bearer user-jwt" }));
+  const body = await res.json();
+  assert.equal(res.status, 200);
+  assert.equal(body.agents.length, 2, "fragrance from Claude, sneakers filled in");
+  assert.deepEqual(inserted.map((r) => r.mission_category).sort(), ["fragrance", "sneakers"]);
+  assert.equal(body.agents.find((a: any) => a.category === "sneakers").needs_size, true);
+  const content = sent.messages[0].content;
+  assert.equal(content.filter((c: any) => c.type === "image").length, 1, "only supported photo types are sent");
+  assert.match(content.at(-1).text, /fragrance, sneakers/);
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
