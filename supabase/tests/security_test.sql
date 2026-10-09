@@ -101,6 +101,11 @@ select t.ok(t.n($$select * from public.sweep_candidates(20, 12, 'aaaaaaaa-0000-0
 update public.agents set last_swept_at = now() - interval '5 hours';
 select t.ok(t.n($$select * from public.sweep_candidates(20, 2, null, null) x where x ->> 'name' = 'Jumpman Scout'$$) = 0, 'sweeps spread to fit the daily cap');
 select t.ok(t.n($$select * from public.sweep_candidates(20, 48, null, null) x where x ->> 'name' = 'Jumpman Scout'$$) = 1, 'roomy cap: due after the 3 hour default');
+-- Failed runs don't use up the daily cap.
+insert into public.sweep_runs (user_id, trigger, error) select 'aaaaaaaa-0000-0000-0000-000000000001', 'scheduled', 'out of credit' from generate_series(1, 5);
+update public.agents set last_swept_at = now() - interval '30 hours';
+select t.ok(t.n($$select * from public.sweep_candidates(20, 5, null, null) x where x ->> 'name' = 'Jumpman Scout'$$) = 1, 'failed sweeps do not count toward the cap');
+delete from public.sweep_runs where error = 'out of credit';
 update public.agents set last_swept_at = now();
 -- Listings without sizes (fragrance, furniture) arrive with JSON nulls; they must save, not error.
 select * from public.upsert_listings('aaaaaaaa-0000-0000-0000-000000000001',
