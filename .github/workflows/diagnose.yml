@@ -63,6 +63,8 @@ jobs:
           q "select count(*) as agents, min(last_swept_at) as oldest, max(last_swept_at) as newest from public.agents" | jq -c . | sed 's/^/::notice::agents /'
           q "select coalesce(settings->>'sweepMinutes','unset') as every, (select count(*) from public.sweep_runs r where r.user_id = p.id and r.created_at > now() - interval '24 hours') as runs_24h from public.profiles p" | jq -c . | sed 's/^/::notice::profiles /'
           q "select created_at, fn, status, left(message, 300) as message from public.function_errors order by created_at desc limit 4" | jq -c '.[]?' | sed 's/^/::notice::error /'
+          q "select count(*) filter (where offers_checked_at is not null) as priced, count(*) filter (where low_price is not null) as with_offers, max(offers_checked_at) as latest from public.listings" | jq -c . | sed 's/^/::notice::deal prices /'
+          q "select count(*) filter (where kind = 'digest') as digests, count(*) filter (where kind = 'drop') as drops from public.notes" | jq -c . | sed 's/^/::notice::new notes /'
           q "select count(*) as devices, string_agg(distinct environment, ',') as envs from public.device_tokens" | jq -c . | sed 's/^/::notice::devices /'
           q "select count(*) filter (where pushed_at is not null) as pushed, count(*) filter (where pushed_at is null and not held_for_morning) as unpushed, count(*) filter (where held_for_morning) as held, max(created_at) as newest from public.notes" | jq -c . | sed 's/^/::notice::notes /'
           q "select status_code, left(coalesce(content::text, error_msg, ''),220) as body, created from net._http_response order by created desc limit 5" | jq -c . | sed 's/^/::notice::http /'
