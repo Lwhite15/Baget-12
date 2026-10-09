@@ -288,7 +288,7 @@ final class AppStore {
     func learn(_ agentID: String, from item: Item, delta: Int, note: String? = nil) {
         guard let i = agentIndex(agentID) else { return }
         var gained: [String] = []
-        for k in item.traits + [item.brand] {
+        for k in item.traits + [item.brand] where Self.isTaste(k) {
             let n = TextMatch.norm(k)
             let before = state.agents[i].learned[n] ?? 0
             state.agents[i].learned[n] = max(-3, min(5, before + delta))
@@ -309,6 +309,17 @@ final class AppStore {
         } else if let note { log("\(a.name) noted: \(note)") }
         save()
         pushAgent(agentID)
+    }
+
+    /// A real taste word, not a price, sale tag, size, SKU or season code.
+    static func isTaste(_ s: String) -> Bool {
+        let t = s.trimmingCharacters(in: .whitespaces)
+        guard t.count >= 2, t.count <= 40 else { return false }
+        if t.range(of: #"[$£€¥]|\b(sale|price|off|usd|gbp|eur)\b"#, options: [.regularExpression, .caseInsensitive]) != nil { return false }
+        let digits = t.filter(\.isNumber).count
+        if digits * 2 >= t.count { return false }                      // mostly numbers: 2023, 818989, 10.5
+        if t.range(of: #"^(ss|fw|aw)\d{2}$|^size\b"#, options: [.regularExpression, .caseInsensitive]) != nil { return false }
+        return true
     }
 
     func unlearn(_ agentID: String, key: String) {
@@ -402,7 +413,8 @@ final class AppStore {
         switch reason {
         case .style: learn(aid, from: item, delta: -2, note: "you're not into \(item.traits.prefix(2).joined(separator: ", "))")
         case .price:
-            if let i = agentIndex(aid) {
+            // Only a real price can set a price preference ("under $0" is nonsense).
+            if item.priceKnown, item.price > 0, let i = agentIndex(aid) {
                 let current = state.agents[i].priceNote > 0 ? state.agents[i].priceNote : .infinity
                 state.agents[i].priceNote = (min(current, item.price * 0.85)).rounded()
                 log("\(state.agents[i].name) noted you prefer things under \(Fmt.money(state.agents[i].priceNote))")
@@ -545,6 +557,8 @@ final class AppStore {
     }
 
     func log(_ text: String) {
+        // Same line twice in a row (for example two quick passes) is one event.
+        if let last = state.log.first, last.text == text, Date.now.timeIntervalSince(last.date) < 600 { return }
         state.log.insert(LogLine(text: text), at: 0)
         if state.log.count > 60 { state.log.removeLast(state.log.count - 60) }
     }

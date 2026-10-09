@@ -26,10 +26,11 @@ struct SquadView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("SQUAD ACTIVITY").font(.caption.weight(.bold)).tracking(1).foregroundStyle(Theme.muted)
                     if store.state.log.isEmpty { Text("No activity yet.").font(.footnote).foregroundStyle(Theme.muted) }
-                    ForEach(store.state.log.prefix(20)) { l in
+                    // The newest few only; older events roll off as new ones arrive.
+                    ForEach(store.state.log.prefix(6)) { l in
                         HStack(alignment: .firstTextBaseline, spacing: 10) {
-                            Text(l.date.formatted(date: .omitted, time: .shortened)).font(.caption2.monospaced()).foregroundStyle(Theme.muted)
-                            Text(l.text).font(.footnote).foregroundStyle(Theme.ink)
+                            Text(Fmt.ago(l.date)).font(.caption2.monospaced()).foregroundStyle(Theme.muted).frame(width: 64, alignment: .leading)
+                            Text(l.text).font(.footnote).foregroundStyle(Theme.ink).lineLimit(2)
                         }
                     }
                 }
