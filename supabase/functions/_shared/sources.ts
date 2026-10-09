@@ -22,9 +22,18 @@ const EBAY_CATEGORY: Record<string, string> = {
 /** Two or three search phrases built from what the agent knows, rotating so each run looks somewhere new. */
 export function queriesFor(a: Agent, liked: string[], now: Date, max = 2): string[] {
   const mission = a.mission_category ? "" : (a.mission_custom ?? "");
+  // Short terms only: chat sometimes saves whole sentences as keywords ("wants updates on every drop").
+  const short = (t: string) => t.trim().split(/\s+/).length <= 4 && !/\b(wants?|likes?|loves?|updates?|every|prefers?|looking)\b/i.test(t);
+  const keywords = a.keywords.filter(short), traits = a.traits.filter(short);
   const pool: string[] = [];
-  for (const m of a.makers) for (const k of [...a.keywords, ...a.traits.slice(0, 3), ""]) pool.push(`${m} ${k}`.trim());
-  for (const k of a.keywords) pool.push(k);
+  for (const m of a.makers.filter(short)) {
+    for (const k of [...keywords, ...traits.slice(0, 3), ""]) {
+      // Don't repeat the maker: "Nike" + "nike dunk" -> "Nike dunk"
+      const kk = norm(k).startsWith(norm(m)) ? k.slice(m.length).trim() : k;
+      pool.push(`${m} ${kk}`.trim());
+    }
+  }
+  for (const k of keywords) pool.push(k);
   for (const c of a.creators) pool.push(c);
   for (const t of liked.slice(0, 4)) pool.push(t.split(/\s+/).slice(0, 6).join(" "));
   if (mission) pool.push(mission);

@@ -530,6 +530,11 @@ await test("search phrases come from what the agent knows and rotate between run
   assert.equal(q1.length, 2);
   assert.ok(q1.every((q: string) => q.length > 2));
   assert.notDeepEqual(q1, q2);
+  const chatty = { ...jumpman, makers: ["Nike"], keywords: ["upcoming nike releases", "wants updates on every nike snkrs drop", "dunk"], traits: [], creators: [] } as never;
+  const qs = new Set<string>();
+  for (let i = 0; i < 6; i++) for (const q of SRC.queriesFor(chatty, [], new Date(t.getTime() + i * 3 * 3600_000))) qs.add(q);
+  assert.ok(![...qs].some((q) => /wants|every/.test(q)), [...qs].join(" | "));
+  assert.ok(![...qs].some((q) => /Nike nike/i.test(q)), "no doubled maker");
 });
 await test("sizes are read from eBay titles", () => {
   assert.deepEqual(SRC.sizesFromTitle("Nike Air Jordan 1 Low Mocha Size 10.5 DS", "sneakers"), ["10.5"]);
