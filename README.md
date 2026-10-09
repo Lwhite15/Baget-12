@@ -84,6 +84,8 @@ In your private repository: Settings > Secrets and variables > Actions > New rep
 | `ASC_ISSUER_ID` | Issuer ID from 3.4 | app |
 | `ASC_KEY_P8_BASE64` | the build `.p8`, base64-encoded | app |
 | `SERPER_API_KEY` | image search key from serper.dev, for product photos (or use `BRAVE_API_KEY` from Brave Search API) | backend |
+| `EBAY_CLIENT_ID` | eBay developer App ID (Production keyset); with the secret below, agents search real eBay listings | backend |
+| `EBAY_CLIENT_SECRET` | eBay developer Cert ID (Production keyset) | backend |
 | `ANTHROPIC_MODEL` | optional; defaults to `claude-sonnet-5-5` | backend |
 | `SWEEP_DAILY_CAP` | optional; most sweeps per person per day, default 30 | backend |
 | `SWEEP_MAX_SEARCHES` | optional; web searches per sweep, default 6 | backend |
@@ -113,6 +115,19 @@ same model, generation and colorway (for cars, the same model and trim). The cho
 
 Set it up: sign up at serper.dev, copy the API key, add it as the GitHub secret `SERPER_API_KEY`, then run
 Actions > Backend > Run workflow. The last step checks photos for everything already saved.
+
+## Extra data sources
+
+Agents search the web with Claude. Two optional sources make them sharper:
+
+- **Google Shopping (Serper):** with `SERPER_API_KEY`, each run starts with a list of current products, prices and stores
+  for the agent's taste. Claude treats them as leads and confirms each on the store's own page, so Buy links stay real.
+  The same key powers product photos.
+- **eBay (Browse API):** with `EBAY_CLIENT_ID` and `EBAY_CLIENT_SECRET`, each run also pulls real fixed-price eBay listings
+  that fit the agent (exact item page, price, photo, and size when the title gives one). They're scored like any other find.
+  Free: create a developer account at developer.ebay.com, then Application Keys > create a **Production** keyset.
+
+Search phrases come from each agent's makers, keywords, traits, creators and what you liked, rotating every run.
 
 ## Costs
 

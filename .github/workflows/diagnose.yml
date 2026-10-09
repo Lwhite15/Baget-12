@@ -22,6 +22,9 @@ jobs:
           r=$(curl -sS -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/push" -H "Content-Type: application/json" \
                 -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d '{"diagnose":true}')
           echo "::notice::push key: $r"
+          s=$(curl -sS -m 60 -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/sweep" -H "Content-Type: application/json" \
+                -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d '{"check_sources":true}')
+          echo "::notice::data sources: $(echo "$s" | cut -c1-600)"
           if [ "${{ inputs.chat_test }}" = "true" ]; then
           for i in 0 1 2 3 4 5; do
             c=$(curl -sS -m 150 -w ' [HTTP %{http_code} in %{time_total}s]' -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/chat" -H "Content-Type: application/json" \

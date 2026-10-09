@@ -5,6 +5,7 @@
 import { type Agent, CATEGORIES, GROUP_OF, type Listing, friendLine, heldForMorning, kindFor, match, missionLabel, norm } from "../_shared/match.ts";
 import { type Block, type ClaudeMessage, HttpError, claude, db, env, handle, isScheduler, json, parseJSON, requireUser, textOf } from "../_shared/platform.ts";
 import { addImages, linkIsDead, traceImage } from "../_shared/images.ts";
+import { type Lead, ebayConfigured, ebaySearch, queriesFor, shoppingLeads } from "../_shared/sources.ts";
 
 const num = (name: string, fallback: number) => {
   const v = Number(env(name));
@@ -52,7 +53,7 @@ export function anglesFor(agentId: string, now: Date): string[] {
   return [ANGLES[first], ANGLES[(first + 3) % ANGLES.length]];
 }
 
-export function sweepPrompt(a: Agent, today: string, r: Reactions = { liked: [], bought: [], passed: [] }, angles: string[] = [ANGLES[0], ANGLES[4]]): string {
+export function sweepPrompt(a: Agent, today: string, r: Reactions = { liked: [], bought: [], passed: [] }, angles: string[] = [ANGLES[0], ANGLES[4]], leads: Lead[] = []): string {
   const leaning = Object.entries(a.learned ?? {}).filter(([, w]) => w >= 2).sort((x, y) => y[1] - x[1]).map(([k]) => k).slice(0, 10);
   const parts = [
     `Mission: ${missionLabel(a)}`,
@@ -84,7 +85,9 @@ How to hunt:
 - Their likes and buys are the strongest signal: find more in that spirit (same makers, materials, notes, silhouettes, eras), but not the same items again.` : ""}${r.passed.length ? `
 - Steer away from what they passed on as not their style.` : ""}${r.seen?.length ? `
 - Already shown to them (find different things): ${r.seen.slice(0, 30).join("; ")}` : ""}
-- For each product, write "pitch": one short sentence, in your own voice, on why it's for them.
+- For each product, write "pitch": one short sentence, in your own voice, on why it's for them.${leads.length ? `
+- Leads from Google Shopping right now (unverified; check any that fit on the store's own product page and use that page's URL):
+${leads.map((l) => `  • ${l.title} | ${l.store}${l.price ? ` | ${l.price}` : ""}`).join("\n")}` : ""}
 
 Rules:
 - Only include products you actually found on a page during this search, with that page's URL. Never invent a product, price, date or URL.
@@ -119,7 +122,7 @@ export function cleanListings(raw: unknown, fallbackCategory: string): (Listing 
   const arr = (raw as { listings?: unknown[] })?.listings;
   if (!Array.isArray(arr)) return [];
   const out = [];
-  for (const r of arr.slice(0, 10) as Record<string, unknown>[]) {
+  for (const r of arr.slice(0, 12) as Record<string, unknown>[]) {
     const title = typeof r.title === "string" ? r.title.trim().slice(0, 200) : "";
     const url = typeof r.url === "string" ? r.url.trim() : "";
     let host = "";
@@ -161,7 +164,13 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
   const run = { user_id: a.user_id, agent_id: a.id, trigger, searches: 0, listings: 0, finds: 0, input_tokens: 0, output_tokens: 0, error: null as string | null };
   try {
     const reactions = await reactionsFor(a.id).catch(() => undefined);
-    const messages: ClaudeMessage[] = [{ role: "user", content: sweepPrompt(a, now.toISOString().slice(0, 10), reactions, anglesFor(a.id, now)) }];
+    // Extra sources (each only when its key is set): Google Shopping leads for Claude, and real eBay listings.
+    const queries = queriesFor(a, reactions?.liked ?? [], now);
+    const [leads, ebayRaw] = await Promise.all([
+      shoppingLeads(queries).catch(() => [] as Lead[]),
+      ebaySearch(a, queries).catch(() => [] as Record<string, unknown>[]),
+    ]);
+    const messages: ClaudeMessage[] = [{ role: "user", content: sweepPrompt(a, now.toISOString().slice(0, 10), reactions, anglesFor(a.id, now), leads) }];
     const tools = [{ type: "web_search_20250305", name: "web_search", max_uses: num("SWEEP_MAX_SEARCHES", 6), user_location: { type: "approximate", country: "US" } }];
     let final: Block[] = [];
     for (let turn = 0; turn < 3; turn++) {
@@ -174,14 +183,16 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
       messages.push({ role: "assistant", content: res.content });   // continue a long search turn
     }
     let listings = cleanListings(parseJSON(textOf(final)), a.mission_category ?? "other");
-    run.listings = listings.length;
-    if (!listings.length) return run;
     // Made-up links (404) go; then each real one gets a verified product photo.
     const dead = await Promise.all(listings.map((l) => linkIsDead(l.url)));
     listings = listings.filter((_, i) => !dead[i]);
+    if (listings.length) await addImages(listings);
+    // eBay listings come straight from eBay with their own item page and photo, so they skip both checks.
+    const ebay = cleanListings({ listings: ebayRaw }, a.mission_category ?? "other");
+    const seen = new Set(listings.map((l) => l.fingerprint));
+    for (const l of ebay) if (!seen.has(l.fingerprint)) { listings.push(l); seen.add(l.fingerprint); }
     run.listings = listings.length;
     if (!listings.length) return run;
-    await addImages(listings);
 
     const saved = await db.rpc<{ fingerprint: string; id: string; already_found: boolean }[]>("upsert_listings", { p_user: a.user_id, p_listings: listings });
     const ids = new Map(saved.map((s) => [s.fingerprint, s]));
@@ -236,6 +247,15 @@ export async function backfillImages(limit: number) {
 
 export const handler = handle(async (req) => {
   const body = await req.json().catch(() => ({})) as { agent_id?: string; backfill?: number; trace_image?: boolean };
+  if (isScheduler(req) && (body as { check_sources?: boolean }).check_sources) {
+    // Diagnose: are the extra data sources working? Counts only.
+    const [a] = await db.select<Agent>("agents", "select=*&mission_category=not.is.null&order=created_at.desc&limit=1");
+    if (!a) return json({ none: true });
+    const qs = queriesFor(a, [], new Date());
+    const [ebayRows, leads] = await Promise.all([ebaySearch(a, qs), shoppingLeads(qs)]);
+    return json({ agent: a.name, queries: qs, ebay: { configured: ebayConfigured(), listings: ebayRows.length, sample: ebayRows[0]?.title ?? null },
+                  shopping: { configured: !!env("SERPER_API_KEY"), leads: leads.length, sample: leads[0]?.title ?? null } });
+  }
   if (isScheduler(req) && body.trace_image) {
     const [l] = await db.select<{ url: string; title: string; brand: string; category: string }>("listings",
       "select=url,title,brand,category&url=not.is.null&url=like.*carhartt*&order=last_seen_at.desc&limit=1");

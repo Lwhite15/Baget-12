@@ -521,4 +521,64 @@ await test("a rejected thinking block is dropped and the step retried", async ()
   assert.ok(!JSON.stringify(retried.messages).includes('"thinking"'), "thinking blocks removed on retry");
 });
 
+// ── extra data sources ──
+const SRC = await import("../functions/_shared/sources.ts");
+await test("search phrases come from what the agent knows and rotate between runs", () => {
+  const a = { ...jumpman, makers: ["Jordan", "Nike"], keywords: ["aj1"], traits: ["suede"], creators: ["Travis Scott"] } as never;
+  const t = new Date("2026-10-09T12:00:00Z");
+  const q1 = SRC.queriesFor(a, ["Air Jordan 1 Low OG Mocha"], t), q2 = SRC.queriesFor(a, [], new Date(t.getTime() + 3 * 3600_000));
+  assert.equal(q1.length, 2);
+  assert.ok(q1.every((q: string) => q.length > 2));
+  assert.notDeepEqual(q1, q2);
+});
+await test("sizes are read from eBay titles", () => {
+  assert.deepEqual(SRC.sizesFromTitle("Nike Air Jordan 1 Low Mocha Size 10.5 DS", "sneakers"), ["10.5"]);
+  assert.deepEqual(SRC.sizesFromTitle("Supreme Box Logo Hoodie Black Sz L FW25", "apparel"), ["L"]);
+  assert.equal(SRC.sizesFromTitle("Porsche 911 GT3 2024", "cars"), null);
+});
+await test("eBay listings join a sweep with their own item page and photo", async () => {
+  process.env.EBAY_CLIENT_ID = "id"; process.env.EBAY_CLIENT_SECRET = "secret";
+  try {
+    let saved: any[] = [], searched: URL | undefined;
+    reset([
+      [/identity\/v1\/oauth2\/token/, (_u, init) => { assert.match(String((init.headers as any).Authorization), /^Basic /); return ok({ access_token: "tok", expires_in: 7200 }); }],
+      [/buy\/browse\/v1\/item_summary\/search/, (u) => { searched = u; return ok({ itemSummaries: [
+        { itemId: "v1|1", title: "Air Jordan 1 Low OG Mocha Size 10.5 DS", itemWebUrl: "https://www.ebay.com/itm/388812345678?hash=x", price: { value: "189.99", currency: "USD" },
+          image: { imageUrl: "https://i.ebayimg.com/images/g/abc/s-l1600.jpg" }, condition: "New with box" },
+        { itemId: "v1|2", title: "Jordan 1 Low Size 8", itemWebUrl: "https://www.ebay.com/itm/388800000000", price: { value: "120", currency: "USD" } },
+      ] }); }],
+      [/api\.anthropic\.com/, () => ok({ content: [{ type: "text", text: '```json\n{"listings":[]}\n```' }], stop_reason: "end_turn", usage: {} })],
+      [/rest\/v1\/finds/, () => ok([])],
+      [/rpc\/upsert_listings/, (_u, _i, b) => { saved = b.p_listings; return ok(saved.map((l: any, i: number) => ({ fingerprint: l.fingerprint, id: `l${i}`, already_found: false }))); }],
+      [/taste_photos/, () => ok([])],
+      [/rpc\/record_finds/, (_u, _i, b) => ok(b.p_finds.length)],
+      [/sweep_runs/, () => ok({})],
+    ]);
+    await sweep.sweepAgent({ ...jumpman, settings: {}, tz: "America/New_York" } as never, "scheduled", new Date("2026-10-09T15:00:00Z"));
+    assert.equal(searched!.searchParams.get("category_ids"), "15709");
+    assert.match(searched!.searchParams.get("filter")!, /FIXED_PRICE/);
+    const mocha = saved.find((l) => l.title.includes("Mocha"));
+    assert.equal(mocha.url, "https://www.ebay.com/itm/388812345678");
+    assert.equal(mocha.image_url, "https://i.ebayimg.com/images/g/abc/s-l1600.jpg");
+    assert.equal(mocha.price, 189.99);
+    assert.deepEqual(mocha.sizes_in_stock, ["10.5"]);
+    assert.equal(mocha.source, "eBay");
+    assert.ok(!calls.some((c) => c.url.includes("i.ebayimg.com")), "eBay photos aren't re-checked");
+  } finally { delete process.env.EBAY_CLIENT_ID; delete process.env.EBAY_CLIENT_SECRET; }
+});
+await test("Google Shopping leads go into the agent's brief, to be verified", async () => {
+  process.env.SERPER_API_KEY = "serper-test";
+  try {
+    reset([[/google\.serper\.dev\/shopping/, () => ok({ shopping: [
+      { title: "Amouage Material Eau de Parfum 100ml", source: "Neiman Marcus", price: "$385.00", link: "https://www.google.com/shopping/product/1" },
+      { title: "Amouage Material EDP 100 ml", source: "Saks", price: "$385.00" },
+    ] })]]);
+    const leads = await SRC.shoppingLeads(["Amouage oud"]);
+    assert.equal(leads.length, 2);
+    const prompt = sweep.sweepPrompt(jumpman as never, "2026-10-09", undefined, undefined, leads);
+    assert.match(prompt, /Leads from Google Shopping right now \(unverified/);
+    assert.match(prompt, /Amouage Material Eau de Parfum 100ml \| Neiman Marcus \| \$385\.00/);
+  } finally { delete process.env.SERPER_API_KEY; }
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
