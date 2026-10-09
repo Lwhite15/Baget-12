@@ -478,4 +478,47 @@ await test("Claude hiccups are retried, and people see a plain message if it kee
   assert.equal(logged.fn, "chat");
 });
 
+await test("chat keeps the same instructions for every step of a reply, even after learning something", async () => {
+  const systems: string[] = [];
+  let step = 0;
+  reset([
+    [/auth\/v1\/user$/, () => ok({ id: jumpman.user_id })],
+    [/rest\/v1\/agents/, (_u, init) => (init.method === "PATCH" ? ok([]) : ok([jumpman]))],
+    [/rest\/v1\/finds/, () => ok([])],
+    [/rest\/v1\/taste_photos/, () => ok([])],
+    [/api\.anthropic\.com/, (_u, _i, b) => {
+      systems.push(b.system);
+      step++;
+      if (step === 1) return ok({ content: [{ type: "thinking", thinking: "...", signature: "sig" },
+        { type: "tool_use", id: "t1", name: "update_profile", input: { add_traits: ["mocha suede"] } }], stop_reason: "tool_use" });
+      return ok({ content: [{ type: "text", text: "Noted: mocha suede." }], stop_reason: "end_turn" });
+    }],
+  ]);
+  const res = await chat.handler(post("chat", { agent_id: jumpman.id, messages: [{ role: "user", content: "I love mocha suede" }] }, { Authorization: "Bearer user-jwt" }));
+  assert.equal(res.status, 200);
+  assert.equal(systems.length, 2);
+  assert.equal(systems[0], systems[1], "instructions unchanged after update_profile");
+});
+await test("a rejected thinking block is dropped and the step retried", async () => {
+  let step = 0, retried: any;
+  reset([
+    [/auth\/v1\/user$/, () => ok({ id: jumpman.user_id })],
+    [/rest\/v1\/agents/, (_u, init) => (init.method === "PATCH" ? ok([]) : ok([jumpman]))],
+    [/rest\/v1\/finds/, () => ok([])],
+    [/rest\/v1\/taste_photos/, () => ok([])],
+    [/api\.anthropic\.com/, (_u, _i, b) => {
+      step++;
+      if (step === 1) return ok({ content: [{ type: "thinking", thinking: "...", signature: "sig" },
+        { type: "tool_use", id: "t1", name: "update_profile", input: { size: "10.5" } }], stop_reason: "tool_use" });
+      if (step === 2) return new Response('{"error":{"message":"messages.1.content.0: Invalid `signature` in `thinking` block"}}', { status: 400 });
+      retried = b;
+      return ok({ content: [{ type: "text", text: "Got your size." }], stop_reason: "end_turn" });
+    }],
+  ]);
+  const res = await chat.handler(post("chat", { agent_id: jumpman.id, messages: [{ role: "user", content: "I'm a 10.5" }] }, { Authorization: "Bearer user-jwt" }));
+  assert.equal(res.status, 200);
+  assert.equal((await res.json()).reply, "Got your size.");
+  assert.ok(!JSON.stringify(retried.messages).includes('"thinking"'), "thinking blocks removed on retry");
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

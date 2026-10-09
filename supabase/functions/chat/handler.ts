@@ -64,7 +64,7 @@ ${a.mission_category === "sneakers" || a.mission_category === "apparel" ? (a.siz
 }
 
 export const handler = handle(async (req) => {
-  let body = await req.json().catch(() => ({})) as { agent_id?: string; messages?: Turn[]; trace?: boolean; agent_index?: number; follow_up?: boolean };
+  let body = await req.json().catch(() => ({})) as { agent_id?: string; messages?: Turn[]; trace?: boolean; agent_index?: number; follow_up?: boolean; say?: string };
   let user: { id: string };
   if (isScheduler(req) && body.trace) {
     // Diagnose: chat as the newest agent's owner, exactly as the app would.
@@ -72,7 +72,7 @@ export const handler = handle(async (req) => {
     const ag = ags[Math.min(ags.length - 1, Math.max(0, Number(body.agent_index ?? 0)))];
     if (!ag) return json({ none: true });
     user = { id: ag.user_id };
-    const msgs: Turn[] = [{ role: "user", content: "What have you learned about me?" }];
+    const msgs: Turn[] = [{ role: "user", content: typeof body.say === "string" && body.say ? body.say.slice(0, 300) : "What have you learned about me?" }];
     if (body.follow_up) msgs.push({ role: "assistant", content: "I know a few things about your taste so far." }, { role: "user", content: "Find me something new I'd like" });
     body = { agent_id: ag.id, messages: msgs };
     console.log("trace chat", ag.name);
@@ -178,10 +178,28 @@ export const handler = handle(async (req) => {
   }
 
   const messages: ClaudeMessage[] = [...turns];
+  // The instructions must stay identical for the whole reply: Claude's thinking blocks are bound to the exact
+  // conversation prefix, so rebuilding them after update_profile made the next step fail ("bound to a different
+  // conversation"). Profile changes reach the agent through the update_profile tool result instead.
+  const system = rules(a, profile());
+  const ask = async (): Promise<Awaited<ReturnType<typeof claude>>> => {
+    try {
+      return await claude({ max_tokens: 8000, system, messages, tools: TOOLS });
+    } catch (e) {
+      // Safety net: if Claude rejects an earlier thinking block, drop those blocks and try once more.
+      if (!(e instanceof HttpError) || !/signature|thinking/i.test(e.detail ?? "")) throw e;
+      for (const m of messages) {
+        if (m.role === "assistant" && Array.isArray(m.content)) {
+          m.content = m.content.filter((b) => b.type !== "thinking" && b.type !== "redacted_thinking");
+        }
+      }
+      return await claude({ max_tokens: 8000, system, messages, tools: TOOLS });
+    }
+  };
   const narration: string[] = [];
   let reply = "";
   for (let round = 0; round < 6; round++) {
-    const res = await claude({ max_tokens: 8000, system: rules(a, profile()), messages, tools: TOOLS });
+    const res = await ask();
     const text = textOf(res.content);
     if (res.stop_reason === "pause_turn") { messages.push({ role: "assistant", content: res.content }); continue; }
     // Ran out of room mid-step: don't send a half-finished tool call back; answer with what we have.
