@@ -25,8 +25,8 @@ jobs:
           if [ "${{ inputs.chat_test }}" = "true" ]; then
           for i in 0 1 2 3 4 5; do
             c=$(curl -sS -m 150 -w ' [HTTP %{http_code} in %{time_total}s]' -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/chat" -H "Content-Type: application/json" \
-                  -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d "{\"trace\":true,\"agent_index\":$i,\"follow_up\":true}")
-            echo "::notice::chat agent $i: $(echo "$c" | tail -c 300)"
+                  -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d "{\"trace\":true,\"agent_index\":$i,\"say\":\"Remember that I really love earthy tones and natural materials. Then find me one new thing.\"}")
+            echo "::notice::chat agent $i: $(echo "$c" | jq -c '{error, actions: [.actions[]?.type]}' 2>/dev/null) $(echo "$c" | tail -c 120)"
           done
           fi
           t=$(curl -sS -m 140 -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/sweep" -H "Content-Type: application/json" \
