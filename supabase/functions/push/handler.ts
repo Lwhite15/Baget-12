@@ -3,6 +3,7 @@
 //  * {release: true}: called hourly by the scheduler to send notes held overnight by quiet hours.
 import { apnsConfigured, lastApns, pemToDer, sendPush, signJWT } from "../_shared/apns.ts";
 import { HttpError, db, env, handle, isScheduler, json } from "../_shared/platform.ts";
+import { morningDigest, watchCheck } from "../_shared/daily.ts";
 
 interface Note { id: string; user_id: string; body: string; sender_name: string; kind: string; find_id: string | null; held_for_morning: boolean; pushed_at: string | null }
 
@@ -70,7 +71,10 @@ export const handler = handle(async (req) => {
     const stuck = await db.select<{ id: string }>("notes",
       `select=id&pushed_at=is.null&held_for_morning=eq.false&kind=neq.learned&created_at=gt.${since}&order=created_at.desc&limit=5`);
     for (const n of stuck) await tryDeliver(n.id);
-    return json({ released: ids?.length ?? 0, retried: stuck.length, sent, failed });
+    // Hourly extras: the 8am "Today's Drop" text, and price checks on watched finds (each saves a note that pushes itself).
+    const digests = await morningDigest().catch((e) => { console.error("digest", e); return 0; });
+    const watch = await watchCheck().catch((e) => { console.error("watch", e); return { checked: 0, drops: 0 }; });
+    return json({ released: ids?.length ?? 0, retried: stuck.length, sent, failed, digests, watch });
   }
   if (!body.note_id || !/^[0-9a-f-]{36}$/i.test(body.note_id)) throw new HttpError(400, "note_id required");
   return json({ sent: await deliver(body.note_id) });

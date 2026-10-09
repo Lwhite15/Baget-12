@@ -36,6 +36,8 @@ const chat = await import("../functions/chat/handler.ts");
 const photo = await import("../functions/read-photo/handler.ts");
 const push = await import("../functions/push/handler.ts");
 const del = await import("../functions/delete-account/handler.ts");
+const hunt = await import("../functions/hunt/handler.ts");
+const daily = await import("../functions/_shared/daily.ts");
 
 const jumpman = {
   id: "11111111-1111-1111-1111-111111111111", user_id: "aaaaaaaa-0000-0000-0000-000000000001", name: "Jumpman Scout",
@@ -584,6 +586,95 @@ await test("Google Shopping leads go into the agent's brief, to be verified", as
     assert.match(prompt, /Leads from Google Shopping right now \(unverified/);
     assert.match(prompt, /Amouage Material Eau de Parfum 100ml \| Neiman Marcus \| \$385\.00/);
   } finally { delete process.env.SERPER_API_KEY; }
+});
+
+// ── UX overhaul: hunt box, deal prices, watches, morning digest ──
+await test("one sentence becomes an agent", async () => {
+  let inserted: any;
+  reset([
+    [/auth\/v1\/user$/, () => ok({ id: jumpman.user_id })],
+    [/api\.anthropic\.com/, () => ok({ content: [{ type: "text", text: '{"name":"Oud Hunter","category":"fragrance","custom":null,"keywords":["oud"],"makers":["Frederic Malle","Amouage"],"traits":["oud","saffron","a very very long trait that should be dropped because it is way too long"],"creators":["Dominique Ropion"],"size":"","voice":"chill","intro":"On it: oud in the Frederic Malle lane."}' }], stop_reason: "end_turn" })],
+    [/POST .*rest\/v1\/agents/, (_u, _i, b) => { inserted = b; return ok([{ id: "new-agent" }]); }],
+  ]);
+  const res = await hunt.handler(post("hunt", { text: "oud fragrances like Frederic Malle" }, { Authorization: "Bearer user-jwt" }));
+  const out = await res.json();
+  assert.equal(res.status, 200);
+  assert.equal(out.agent_id, "new-agent");
+  assert.equal(out.intro, "On it: oud in the Frederic Malle lane.");
+  assert.equal(inserted.user_id, jumpman.user_id);
+  assert.equal(inserted.mission_category, "fragrance");
+  assert.deepEqual(inserted.makers, ["Frederic Malle", "Amouage"]);
+  assert.deepEqual(inserted.traits, ["oud", "saffron"]);
+  assert.equal(out.needs_size, false);
+});
+await test("a hunt that fits no category becomes a custom mission; sneakers without a size ask for one", () => {
+  const custom = hunt.cleanPlan({ name: "Nest Finder", category: null, custom: "high-rise apartments in McLean" }, "apartments");
+  assert.equal(custom.category, null);
+  assert.equal(custom.custom, "high-rise apartments in McLean");
+  const bad = hunt.cleanPlan({ category: "spaceships" }, "a rocket");
+  assert.equal(bad.category, null);
+  assert.equal(bad.custom, "a rocket");
+  assert.equal(hunt.cleanPlan({ category: "sneakers" }, "jordans", "US M 10.5").size, "US M 10.5");
+});
+await test("other stores' prices: same product only, cheapest first", async () => {
+  process.env.SERPER_API_KEY = "serper-test";
+  try {
+    const fake = async () => ok({ shopping: [
+      { title: "Amouage Material Eau de Parfum 100ml", source: "Saks", price: "$385.00" },
+      { title: "Amouage Material EDP 100 ml Eau de Parfum", source: "FragranceNet", price: "$1,299.99" },
+      { title: "Amouage Material Eau de Parfum 100ml", source: "Jomashop", price: "$299.00" },
+      { title: "Totally different candle", source: "Target", price: "$12.00" },
+      { title: "Amouage Material Eau de Parfum 100ml", source: "Saks", price: "$390.00" },
+    ] });
+    const offers = await SRC.shoppingOffers("Amouage Material Eau de Parfum 100ml", fake as never);
+    assert.deepEqual(offers.map((o: any) => o.store), ["Jomashop", "Saks", "FragranceNet"]);
+    assert.equal(offers[0].price, 299);
+    assert.equal(offers[2].price, 1299.99);
+  } finally { delete process.env.SERPER_API_KEY; }
+});
+await test("watched finds text you when the price drops 5% or more", async () => {
+  process.env.SERPER_API_KEY = "serper-test";
+  try {
+    let note: any, newWatch: any;
+    reset([
+      [/GET .*rest\/v1\/finds/, () => ok([
+        { id: "f1", user_id: "u1", agent_id: "a1", watch_price: 400, agent: { name: "Mr smellgoods" },
+          listing: { id: "l1", title: "Amouage Material Eau de Parfum 100ml", price: 400, low_price: 400, offers_checked_at: null } },
+        { id: "f2", user_id: "u1", agent_id: "a1", watch_price: null, agent: { name: "Mr smellgoods" },
+          listing: { id: "l2", title: "Fresh one", price: 100, low_price: null, offers_checked_at: new Date().toISOString() } },
+      ])],
+      [/google\.serper\.dev\/shopping/, () => ok({ shopping: [{ title: "Amouage Material Eau de Parfum 100ml", source: "Jomashop", price: "$299.00" }] })],
+      [/PATCH .*rest\/v1\/listings/, () => ok([])],
+      [/PATCH .*rest\/v1\/finds/, (_u, _i, b) => { newWatch = b; return ok([]); }],
+      [/POST .*rest\/v1\/notes/, (_u, _i, b) => { note = b; return ok([]); }],
+    ]);
+    const r = await daily.watchCheck(6, new Date(), fetch as never);
+    assert.deepEqual(r, { checked: 1, drops: 1 }, "the item checked an hour ago waits");
+    assert.equal(note.kind, "drop");
+    assert.equal(note.find_id, "f1");
+    assert.match(note.body, /now \$299 at Jomashop \(was \$400\)/);
+    assert.equal(newWatch.watch_price, 299);
+  } finally { delete process.env.SERPER_API_KEY; }
+});
+await test("Today's Drop goes out once, at 8am local time", async () => {
+  let notes: any[] = [], marked: any;
+  const route = (people: any[]) => reset([
+    [/GET .*rest\/v1\/profiles/, () => ok(people)],
+    [/GET .*rest\/v1\/finds/, () => ok([{ id: "f9", score: 91, listing: { title: "2023 Porsche 911 Carrera T" }, agent: { name: "Porsche Boy" } },
+                                         { id: "f8", score: 80, listing: { title: "Lumen 2BR" }, agent: { name: "HomWrecka" } }])],
+    [/PATCH .*rest\/v1\/profiles/, (_u, _i, b) => { marked = b; return ok([]); }],
+    [/POST .*rest\/v1\/notes/, (_u, _i, b) => { notes.push(b); return ok([]); }],
+  ]);
+  const eightNY = new Date("2026-10-09T12:15:00Z");   // 8:15am in New York
+  route([{ id: "u1", tz: "America/New_York", last_digest_on: null }, { id: "u2", tz: "America/Los_Angeles", last_digest_on: null }]);
+  assert.equal(await daily.morningDigest(eightNY), 1);
+  assert.equal(notes[0].kind, "digest");
+  assert.equal(notes[0].user_id, "u1");
+  assert.match(notes[0].body, /2 picks for you today\. Top one: 2023 Porsche 911 Carrera T from Porsche Boy, plus 1 more/);
+  assert.equal(marked.last_digest_on, "2026-10-09");
+  notes = [];
+  route([{ id: "u1", tz: "America/New_York", last_digest_on: "2026-10-09" }]);
+  assert.equal(await daily.morningDigest(eightNY), 0, "already sent today");
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

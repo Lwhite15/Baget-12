@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.delete-account]
 verify_jwt = false
+
+[functions.hunt]
+verify_jwt = false

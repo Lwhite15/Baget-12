@@ -5,7 +5,7 @@
 import { type Agent, CATEGORIES, GROUP_OF, type Listing, friendLine, heldForMorning, kindFor, match, missionLabel, norm } from "../_shared/match.ts";
 import { type Block, type ClaudeMessage, HttpError, claude, db, env, handle, isScheduler, json, parseJSON, requireUser, textOf } from "../_shared/platform.ts";
 import { addImages, linkIsDead, traceImage } from "../_shared/images.ts";
-import { type Lead, ebayConfigured, ebaySearch, queriesFor, shoppingLeads } from "../_shared/sources.ts";
+import { type Lead, attachOffers, ebayConfigured, ebaySearch, queriesFor, shoppingLeads, shoppingOffers } from "../_shared/sources.ts";
 
 const num = (name: string, fallback: number) => {
   const v = Number(env(name));
@@ -196,6 +196,9 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
 
     const saved = await db.rpc<{ fingerprint: string; id: string; already_found: boolean }[]>("upsert_listings", { p_user: a.user_id, p_listings: listings });
     const ids = new Map(saved.map((s) => [s.fingerprint, s]));
+    // Other stores' prices for new listings, for the deal verdict.
+    await attachOffers(saved.filter((s) => !s.already_found).map((s) => ({ id: s.id, title: listings.find((l) => l.fingerprint === s.fingerprint)?.title ?? "" }))
+      .filter((r) => r.title), (id, patch) => db.update("listings", `id=eq.${id}`, patch)).catch(() => 0);
     const photos = await db.select<{ tags: string[] }>("taste_photos", `select=tags&agent_id=eq.${a.id}`);
     const photoTags = photos.flatMap((p) => p.tags);
     const settings = a.settings ?? {};

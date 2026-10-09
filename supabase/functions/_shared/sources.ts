@@ -152,3 +152,58 @@ export async function shoppingLeads(queries: string[], fetchFn: FetchFn = fetch)
   const seen = new Set<string>();
   return out.filter((l) => { const k = norm(l.title); if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 10);
 }
+
+// ── Prices elsewhere (for deal verdicts and price-drop watches) ──
+
+export interface Offer { store: string; price: number }
+
+const money = (s: string | undefined) => {
+  const m = (s ?? "").replace(/,/g, "").match(/\$\s*(\d+(?:\.\d{1,2})?)/);
+  return m ? Number(m[1]) : null;
+};
+
+/** What other stores charge for this product right now (Google Shopping), cheapest first. */
+export async function shoppingOffers(title: string, fetchFn: FetchFn = fetch): Promise<Offer[]> {
+  const key = env("SERPER_API_KEY");
+  if (!key || title.trim().length < 3) return [];
+  try {
+    const r = await fetchFn("https://google.serper.dev/shopping", {
+      method: "POST", signal: AbortSignal.timeout(8000),
+      headers: { "X-API-KEY": key, "Content-Type": "application/json" },
+      body: JSON.stringify({ q: title.slice(0, 120), gl: "us", hl: "en", num: 10 }),
+    });
+    if (!r.ok) return [];
+    const j = await r.json() as { shopping?: { title?: string; source?: string; price?: string }[] };
+    const want = new Set(norm(title).split(/\s+/).filter((w) => w.length > 2));
+    const out: Offer[] = [];
+    for (const s of j.shopping ?? []) {
+      const p = money(s.price);
+      if (!s.source || p === null || p <= 0) continue;
+      // Only the same product: most of the title's words must appear.
+      const words = norm(s.title ?? "").split(/\s+/);
+      const overlap = words.filter((w) => want.has(w)).length / Math.max(1, Math.min(want.size, 8));
+      if (overlap < 0.6) continue;
+      out.push({ store: s.source.slice(0, 60), price: p });
+    }
+    out.sort((a, b) => a.price - b.price);
+    const seen = new Set<string>();
+    return out.filter((o) => { const k = norm(o.store); if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 5);
+  } catch {
+    return [];
+  }
+}
+
+/** Looks up other stores' prices for saved listings and stores them (best effort). */
+export async function attachOffers(rows: { id: string; title: string }[], update: (id: string, patch: Record<string, unknown>) => Promise<void>,
+                                   fetchFn: FetchFn = fetch): Promise<number> {
+  if (!env("SERPER_API_KEY")) return 0;
+  let n = 0;
+  await Promise.all(rows.slice(0, 10).map(async (r) => {
+    const offers = await shoppingOffers(r.title, fetchFn);
+    await update(r.id, {
+      offers, low_price: offers[0]?.price ?? null, low_store: offers[0]?.store ?? null, offers_checked_at: new Date().toISOString(),
+    }).catch(() => {});
+    if (offers.length) n++;
+  }));
+  return n;
+}
