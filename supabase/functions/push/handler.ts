@@ -21,13 +21,15 @@ export async function deliver(noteId: string): Promise<number> {
     noteID: n.id,
     findID: n.find_id,
   };
-  let sent = 0;
+  let sent = 0, failed = 0;
   for (const t of tokens) {
     const r = await sendPush(t.token, t.environment, payload, n.id);
     if (r === "sent") sent++;
+    if (r === "failed") failed++;
     if (r === "drop-token") await db.remove("device_tokens", `token=eq.${t.token}`);
   }
-  await db.update("notes", `id=eq.${n.id}`, { pushed_at: new Date().toISOString() });
+  // Only mark it done if it reached a phone (or there's nothing left to try); otherwise the hourly job retries it.
+  if (sent > 0 || failed === 0) await db.update("notes", `id=eq.${n.id}`, { pushed_at: new Date().toISOString() });
   return sent;
 }
 
