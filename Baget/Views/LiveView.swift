@@ -1,6 +1,7 @@
 import SwiftUI
 
-struct LiveView: View {
+/// The stories feed on its own (section bar, lead story, rows, trending), embedded in Today.
+struct LiveFeed: View {
     @Environment(AppStore.self) private var store
     @Environment(Router.self) private var router
     @State private var selected: String = "foryou"
@@ -12,7 +13,6 @@ struct LiveView: View {
         let list = tab.map { store.stories(for: $0) } ?? []
         let forYouCount = store.stories().filter(\.forYou).count
 
-        ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 sectionBar(tabs: tabs, current: tab, forYouCount: forYouCount)
                 if let r = store.state.awayReport { AwayCard(report: r) }
@@ -40,21 +40,6 @@ struct LiveView: View {
                         .font(.caption).foregroundStyle(Theme.muted)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 24)
-        }
-        .scrollIndicators(.hidden)
-        .refreshable {
-            if store.isCloud {
-                await store.pull()
-            } else {
-                await MainActor.run {
-                    let res = store.sweep()
-                    Analytics.track(.sweepRun, ["found": res.found, "manual": true])
-                    router.say(res.found > 0 ? "\(res.found) new find\(res.found == 1 ? "" : "s")" : "Nothing new fits you right now")
-                }
-            }
-        }
         .onAppear { if !tabs.contains(where: { $0.id == selected }) { selected = tabs.first?.id ?? "" } }
     }
 

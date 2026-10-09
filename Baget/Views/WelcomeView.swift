@@ -92,7 +92,15 @@ struct ChatView: View {
     @Environment(Router.self) private var router
     @Environment(\.dismiss) private var dismiss
     let agentID: String
+    /// Set when opened from "Ask about this" on a find: the chat is about that item.
+    var aboutFindID: String? = nil
     @State private var draft = ""
+    @State private var sentContext = false
+
+    private var aboutItem: Item? {
+        guard let id = aboutFindID, let f = store.state.finds.first(where: { $0.id == id }) else { return nil }
+        return Catalog.item(f.itemID)
+    }
 
     var body: some View {
         let a = store.agent(agentID)
@@ -103,7 +111,18 @@ struct ChatView: View {
                 ScrollViewReader { proxy in
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 10) {
-                            bubble(text: greeting(a), mine: false)
+                            if let item = aboutItem {
+                                HStack(spacing: 10) {
+                                    ProductThumb(item: item, size: 48)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Asking about").font(.caption2.weight(.bold)).foregroundStyle(Theme.muted)
+                                        Text(item.title).font(.footnote.weight(.semibold)).foregroundStyle(Theme.ink).lineLimit(2)
+                                    }
+                                }
+                                .padding(10)
+                                .background(Theme.glass, in: RoundedRectangle(cornerRadius: 14))
+                            }
+                            bubble(text: aboutItem != nil ? "What do you want to know about it?" : greeting(a), mine: false)
                             ForEach(turns) { t in
                                 bubble(text: t.text, mine: t.role == "user")
                                 ForEach(Array(t.actions.enumerated()), id: \.offset) { _, act in actionChip(act) }
@@ -119,10 +138,11 @@ struct ChatView: View {
                     .onChange(of: turns.count) { _, _ in withAnimation { proxy.scrollTo("end") } }
                     .onChange(of: busy) { _, _ in withAnimation { proxy.scrollTo("end") } }
                 }
-                if turns.isEmpty {
+                if turns.isEmpty || (aboutItem != nil && !sentContext) {
                     ScrollView(.horizontal) {
                         HStack {
-                            ForEach(["Find me something new", "What have you learned about me?", "Anything worth buying this week?"], id: \.self) { s in
+                            ForEach(aboutItem != nil ? ["Is this a good price?", "Find it cheaper", "Will it restock in my size?", "Show me similar"]
+                                                     : ["Find me something new", "What have you learned about me?", "Anything worth buying this week?"], id: \.self) { s in
                                 Button { send(s) } label: { Pill(text: s) }.buttonStyle(.plain)
                             }
                         }.padding(.horizontal, 16)
@@ -157,10 +177,18 @@ struct ChatView: View {
     }
 
     private func send(_ text: String) {
-        let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        var t = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !t.isEmpty, store.chatBusy == nil else { return }
         draft = ""
-        Task { await store.sendChat(agentID: agentID, text: t) }
+        if let item = aboutItem, !sentContext {
+            // The first question carries the item, so the agent knows exactly what we're talking about.
+            let price = item.priceKnown && item.price > 0 ? Fmt.money(item.price) : "price not listed"
+            t = "About the \(item.title) (\(price) at \(item.source)\(item.url.map { ", \($0)" } ?? "")): \(t)"
+            sentContext = true
+            Analytics.track(.askAbout, ["category": item.category.rawValue])
+        }
+        let message = t
+        Task { await store.sendChat(agentID: agentID, text: message) }
     }
 
     private func bubble(text: String, mine: Bool) -> some View {

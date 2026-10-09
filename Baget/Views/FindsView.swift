@@ -304,8 +304,12 @@ struct FindCard: View {
                 Text(item.title)
                     .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
                     .lineLimit(2).multilineTextAlignment(.leading)
-                Text([item.source, known ? Fmt.money(item.price) : nil].compactMap { $0 }.joined(separator: " · "))
-                    .font(.caption).foregroundStyle(Theme.muted).lineLimit(1)
+                HStack(spacing: 6) {
+                    if let v = DealVerdict.of(item) { VerdictChip(verdict: v) }
+                    Text([item.source, known ? Fmt.money(item.price) : nil].compactMap { $0 }.joined(separator: " · "))
+                        .font(.caption).foregroundStyle(Theme.muted).lineLimit(1)
+                    if find.watching { Image(systemName: "eye.fill").font(.caption2).foregroundStyle(Theme.warn).accessibilityLabel("Watching") }
+                }
                 if let reason = find.why.first, !reason.isEmpty {
                     Text(reason).font(.caption).foregroundStyle(Theme.green.opacity(0.9)).lineLimit(expanded ? 4 : 1)
                 }
@@ -331,6 +335,25 @@ struct FindCard: View {
         let diff = known && item.market > 0 ? item.market - item.price : 0
         let pct = known && item.market > 0 ? Int(safe: (diff / item.price * 100).rounded()) : 0
         VStack(alignment: .leading, spacing: 10) {
+            if let v = DealVerdict.of(item) {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text(v.emoji)
+                    Text(v.title).font(.subheadline.weight(.bold)).foregroundStyle(v.tint)
+                    Text(v.detail).font(.footnote).foregroundStyle(Theme.ink)
+                }
+            }
+            if let offers = item.offers, !offers.isEmpty {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("OTHER STORES").font(.system(size: 9, weight: .semibold)).tracking(1).foregroundStyle(Theme.muted)
+                    ForEach(offers.prefix(4), id: \.self) { o in
+                        HStack {
+                            Text(o.store).font(.footnote).foregroundStyle(Theme.ink).lineLimit(1)
+                            Spacer()
+                            Text(Fmt.money(o.price)).font(.footnote.monospaced()).foregroundStyle(known && o.price < item.price ? Theme.green : Theme.muted)
+                        }
+                    }
+                }
+            }
             HStack {
                 priceCell("PRICE", known ? Fmt.money(item.price) : "See store", nil)
                 priceCell("MARKET", known && item.market > 0 ? Fmt.money(item.market) : "—", nil)
@@ -364,8 +387,15 @@ struct FindCard: View {
                         .background((take.caution ? Theme.warn : Theme.accent).opacity(0.10), in: RoundedRectangle(cornerRadius: 12))
                 }
             }
-            if find.watching && (store.isSoldOut(item) || !store.isLive(item)) {
-                Text(store.isSoldOut(item) ? "\(agent?.name ?? "Your agent") will text you if it restocks." : "\(agent?.name ?? "Your agent") will text you at release.")
+            HStack(spacing: 8) {
+                chip(find.watching ? "eye.fill" : "eye", find.watching ? "Watching" : "Watch it for me", tint: find.watching ? Theme.warn : nil) {
+                    store.toggleWatch(find.id)
+                    if !find.watching { router.say("\(agent?.name ?? "Your agent") will text you on a price drop, restock or release") }
+                }
+                chip("bubble.left.and.text.bubble.right", "Ask about this") { router.sheet = .ask(find.id) }
+            }
+            if find.watching {
+                Text("\(agent?.name ?? "Your agent") checks the price twice a day and texts you if it drops\(store.isSoldOut(item) ? ", or the moment it restocks" : !store.isLive(item) ? ", and at release" : "").")
                     .font(.caption).foregroundStyle(Theme.muted)
             }
         }

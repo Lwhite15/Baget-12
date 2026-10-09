@@ -125,6 +125,15 @@ struct Item: Identifiable, Hashable, Codable {
     var firstSeen: Date? = nil
     var priceKnown: Bool = true
     var isSample: Bool = true
+    /// What other stores charge for the same product (Google Shopping), cheapest first.
+    var offers: [Offer]? = nil
+    var lowPrice: Double? = nil
+    var lowStore: String? = nil
+}
+
+struct Offer: Codable, Hashable {
+    let store: String
+    let price: Double
 }
 
 // MARK: - Agents
@@ -254,6 +263,8 @@ struct Purchase: Codable, Identifiable, Hashable {
 
 enum NoteKind: String, Codable {
     case release, available, steal, watch, restock, bought, budget, learned, friend
+    /// The 8am "Today's Drop" text, and a price drop on something you're watching.
+    case digest, drop
 }
 
 enum NoteGroup: String, Codable, CaseIterable, Identifiable {
@@ -275,7 +286,8 @@ extension NoteKind {
         switch self {
         case .release, .available: return .finds
         case .watch, .restock: return .restocks
-        case .steal: return .steals
+        case .steal, .drop: return .steals
+        case .digest: return .finds
         case .bought, .budget: return .money
         case .learned: return .learning
         case .friend: return nil

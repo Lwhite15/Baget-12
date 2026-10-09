@@ -73,13 +73,14 @@ struct InboxView: View {
         store.markRead([n.id])
         Analytics.track(.notificationOpened, ["kind": n.kind.rawValue, "inApp": true])
         if n.friendID != nil { router.tab = .friends; dismiss(); return }
-        if let fid = n.findID, let f = store.state.finds.first(where: { $0.id == fid }), f.status == .open,
-           [.release, .available, .steal, .restock].contains(n.kind) {
-            router.sheet = .checkout(fid)
+        if n.kind == .digest { router.tab = .live; dismiss(); return }   // Today's Drop
+        if let fid = n.findID, store.state.finds.contains(where: { $0.id == fid }) {
+            router.focusFind = fid
+            router.tab = .finds
         } else {
             router.tab = n.kind == .learned ? .squad : .finds
-            dismiss()
         }
+        dismiss()
     }
 }
 

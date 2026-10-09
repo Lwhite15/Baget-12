@@ -7,16 +7,19 @@ struct SquadView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                HStack {
-                    SectionTitle(text: "Your squad")
+                SectionTitle(text: "Your squad")
+                HuntBox()
+                HStack(spacing: 8) {
+                    Button { router.sheet = .taste } label: { IconText(icon: "brain.head.profile", text: "What Baget knows") }
+                        .buttonStyle(GhostButton())
                     Button {
                         router.deployPrefill = nil
                         router.sheet = .deploy
-                    } label: { Label("Deploy", systemImage: "plus") }
-                        .buttonStyle(PrimaryButton()).frame(width: 120)
+                    } label: { IconText(icon: "slider.horizontal.3", text: "Detailed setup") }
+                        .buttonStyle(GhostButton())
                 }
                 if store.state.agents.isEmpty {
-                    EmptyCard(text: "No agents yet. Deploy one to start hunting.")
+                    EmptyCard(text: "No agents yet. Tell Baget what you're hunting above.")
                 }
                 ForEach(store.state.agents) { a in AgentCard(agent: a) }
 

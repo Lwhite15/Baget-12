@@ -242,6 +242,9 @@ struct ProfileView: View {
 
     private var settingsSection: some View {
         Section("Settings") {
+            Button { router.sheet = .taste } label: {
+                Label("What Baget knows about you", systemImage: "brain.head.profile")
+            }
             NavigationLink {
                 AlertSettingsForm()
                     .background(LitBackground())

@@ -4,11 +4,12 @@ struct RootView: View {
     @Environment(AppStore.self) private var store
     @Environment(Router.self) private var router
     @Environment(\.scenePhase) private var scenePhase
+    @AppStorage("baget.onboarded") private var onboarded = false
 
     var body: some View {
         @Bindable var router = router
         TabView(selection: $router.tab) {
-            screen(LiveView()).tabItem { Label("Live", systemImage: "dot.radiowaves.left.and.right") }.tag(AppTab.live)
+            screen(TodayView()).tabItem { Label("Today", systemImage: "sun.max.fill") }.tag(AppTab.live)
             screen(FindsView()).tabItem { Label("Finds", systemImage: "sparkles") }.tag(AppTab.finds)
                 .badge(store.state.finds.filter { $0.status == .open }.count)
             screen(SquadView()).tabItem { Label("Squad", systemImage: "person.3.fill") }.tag(AppTab.squad)
@@ -31,6 +32,10 @@ struct RootView: View {
                 case .tastePhoto(let aid): TastePhotoView(agentID: aid)
                 case .chat(let aid): ChatView(agentID: aid)
                 case .agentIcon(let aid): AgentIconView(agentID: aid)
+                case .swipe: SwipeDeckView()
+                case .taste: TasteView()
+                case .ask(let fid):
+                    if let f = store.state.finds.first(where: { $0.id == fid }) { ChatView(agentID: f.agentID, aboutFindID: fid) }
                 }
             }
             .environment(store)
@@ -73,6 +78,11 @@ struct RootView: View {
             Button("Not yet", role: .cancel) { router.askBought = nil }
         } message: {
             Text("Your agent learns the most from what you actually buy.")
+        }
+        // First run after signing in with no agents yet: the 30-second setup.
+        .fullScreenCover(isPresented: Binding(get: { !store.needsWelcome && store.isCloud && store.state.agents.isEmpty && !onboarded && store.state.lastSynced != nil },
+                                              set: { if !$0 { onboarded = true } })) {
+            OnboardingView().environment(store)
         }
         .fullScreenCover(isPresented: Binding(get: { store.needsWelcome }, set: { _ in })) {
             WelcomeView().environment(store)
@@ -172,8 +182,10 @@ struct RootView: View {
         store.markRead([noteID])
         Analytics.track(.notificationOpened, ["kind": n.kind.rawValue])
         if n.friendID != nil { router.tab = .friends; return }
-        if let fid = n.findID, let f = store.state.finds.first(where: { $0.id == fid }), f.status == .open {
-            router.sheet = .checkout(fid)
+        if n.kind == .digest { router.tab = .live; return }   // Today's Drop
+        if let fid = n.findID, store.state.finds.contains(where: { $0.id == fid }) {
+            router.focusFind = fid
+            router.tab = .finds
         } else {
             router.tab = n.kind == .learned ? .squad : .finds
         }

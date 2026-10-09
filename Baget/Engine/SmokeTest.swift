@@ -29,6 +29,15 @@ enum SmokeTest {
         // Like, unlike and like again, plus a sample find passed for style: the learning paths.
         store.like("smoke-find"); store.unlike("smoke-find"); store.like("smoke-find")
         if let other = store.state.finds.first(where: { $0.id != "smoke-find" && $0.status == .open }) { store.pass(other.id, reason: .style) }
+        // New screens and actions: watch, remove a taste, a deal verdict on an item with other stores' prices.
+        store.toggleWatch("smoke-find")
+        if let a = store.state.agents.first, let t = a.style.traits.first { store.removeTaste(a.id, t) }
+        let priced = Item(id: "smoke-priced", title: "Smoke Test Sneaker", brand: "Smoke Lab", category: .sneakers, sku: "", price: 200, market: 260,
+                      source: "Smoke Store", dropOffset: 0, soldOutAtStart: false, creator: nil, traits: [], tags: [], shoeSizes: nil, topSizes: nil,
+                      url: "https://example.com/s", priceKnown: true, isSample: false,
+                      offers: [Offer(store: "Other Store", price: 180)], lowPrice: 180, lowStore: "Other Store")
+        Catalog.cloud[priced.id] = priced
+        _ = DealVerdict.of(priced)
         let pause: UInt64 = 1_500_000_000
         // Tap a Live item: it opens in Finds.
         if let story = store.stories().first { router.openInFinds(story, store: store); try? await Task.sleep(nanoseconds: 1_500_000_000) }
@@ -37,7 +46,7 @@ enum SmokeTest {
             try? await Task.sleep(nanoseconds: pause)
         }
         let firstAgent = store.state.agents.first?.id ?? "a1"
-        for sheet in [ActiveSheet.agentIcon(firstAgent), .profile, .inbox, .checkout("smoke-find"), .customizeBar, .deploy] {
+        for sheet in [ActiveSheet.swipe, .taste, .ask("smoke-find"), .agentIcon(firstAgent), .profile, .inbox, .checkout("smoke-find"), .customizeBar, .deploy] {
             router.sheet = sheet
             try? await Task.sleep(nanoseconds: pause)
             router.sheet = nil

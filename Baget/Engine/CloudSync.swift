@@ -22,6 +22,9 @@ struct ListingRow: Decodable {
     let tags: [String]
     let sizesInStock: [String]?
     let firstSeenAt: Date?
+    let offers: [Offer]?
+    let lowPrice: Double?
+    let lowStore: String?
 
     var item: Item {
         let cat = Category(rawValue: category) ?? .other
@@ -30,7 +33,8 @@ struct ListingRow: Decodable {
                     source: source, dropOffset: 0, soldOutAtStart: soldOut, creator: creator, traits: traits, tags: tags,
                     shoeSizes: cat == .sneakers && !sizes.isEmpty ? sizes.compactMap(Sizes.shoeUS) : nil,
                     topSizes: cat == .apparel && !sizes.isEmpty ? sizes.compactMap(Sizes.topSize) : nil,
-                    url: url, imageURL: imageUrl, dropAt: dropAt, firstSeen: firstSeenAt, priceKnown: price != nil, isSample: false)
+                    url: url, imageURL: imageUrl, dropAt: dropAt, firstSeen: firstSeenAt, priceKnown: price != nil, isSample: false,
+                    offers: offers, lowPrice: lowPrice, lowStore: lowStore)
     }
 }
 
