@@ -30,13 +30,7 @@ struct TodayView: View {
     private var greeting: some View {
         let h = Calendar.current.component(.hour, from: .now)
         let hello = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening"
-        // First name from the profile, skipping titles and articles ("The", "Mr", "Dr"). No name rather than a wrong one.
-        let skip: Set<String> = ["the", "a", "an", "mr", "mrs", "ms", "miss", "dr", "sir", "lil", "big", "its", "it's", "im", "i'm"]
-        let name = (store.state.profile?.displayName ?? "")
-            .split(whereSeparator: { $0 == " " || $0 == "." || $0 == "_" })
-            .map(String.init)
-            .first { w in w.count >= 2 && !skip.contains(w.lowercased()) && w.allSatisfy { $0.isLetter || $0 == "'" || $0 == "-" } }
-            .map { $0.prefix(1).uppercased() + $0.dropFirst() }
+        let name = store.state.profile?.displayName.split(separator: " ").first.map(String.init)
         return VStack(alignment: .leading, spacing: 3) {
             Text(name.map { "\(hello), \($0)" } ?? hello)
                 .font(.system(size: 28, weight: .heavy)).tracking(-0.6).foregroundStyle(Theme.ink)
