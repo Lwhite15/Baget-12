@@ -378,6 +378,27 @@ struct Settings: Codable, Hashable {
     var groups: Set<NoteGroup> = Set(NoteGroup.allCases)
     var shareTasteWithFriends: Bool = true
     var sharePurchasesWithFriends: Bool = false
+    /// How often Baget texts you. Nil means the default, `.best`.
+    var pushLevel: PushLevel? = nil
+}
+
+enum PushLevel: String, Codable, CaseIterable, Identifiable {
+    case best, all, daily
+    var id: String { rawValue }
+    var label: String {
+        switch self {
+        case .best: return "Only the best"
+        case .all: return "Everything"
+        case .daily: return "Daily only"
+        }
+    }
+    var blurb: String {
+        switch self {
+        case .best: return "Texts for strong matches (85%+) only, at most 6 a day, plus price drops, restocks, Today's Drop and friends."
+        case .all: return "Every find, as it happens."
+        case .daily: return "Just the 8am Today's Drop, plus price drops and restocks on things you're watching."
+        }
+    }
 }
 
 // MARK: - Root state (saved as JSON)

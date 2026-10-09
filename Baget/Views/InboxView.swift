@@ -116,6 +116,17 @@ struct AlertSettingsForm: View {
                      : "In the sample tour, sweeps are simulated each time you come back to the app.")
             }
             Section {
+                Picker("How often Baget texts you", selection: Binding(
+                    get: { store.state.settings.pushLevel ?? .best },
+                    set: { store.state.settings.pushLevel = $0 })) {
+                    ForEach(PushLevel.allCases) { l in Text(l.label).tag(l) }
+                }
+                .pickerStyle(.inline)
+                .labelsHidden()
+            } header: { Text("How often Baget texts you") } footer: {
+                Text((store.state.settings.pushLevel ?? .best).blurb + " Everything else still shows up in your inbox.")
+            }
+            Section {
                 Toggle(isOn: $store.state.settings.quietHours) {
                     VStack(alignment: .leading) {
                         Text("Quiet hours, 10pm to 8am")

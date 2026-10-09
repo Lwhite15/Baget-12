@@ -7,11 +7,38 @@ import { morningDigest, watchCheck } from "../_shared/daily.ts";
 
 interface Note { id: string; user_id: string; body: string; sender_name: string; kind: string; find_id: string | null; held_for_morning: boolean; pushed_at: string | null }
 
+/** Kinds that always text: things you asked for or that can't wait. */
+const ALWAYS = new Set(["friend", "digest", "drop", "restock", "bought"]);
+export const BEST_MIN_SCORE = 85;
+export const BEST_DAILY_CAP = 6;
+
+/** Whether a note should buzz the phone, by the person's "How often Baget texts you" setting. */
+export async function shouldText(n: Note): Promise<boolean> {
+  if (ALWAYS.has(n.kind)) return true;
+  const [p] = await db.select<{ settings: Record<string, unknown> | null }>("profiles", `select=settings&id=eq.${n.user_id}`);
+  const level = typeof p?.settings?.pushLevel === "string" ? p.settings.pushLevel as string : "best";
+  if (level === "all") return true;
+  if (level === "daily") return false;
+  // "best": strong matches only, and only a few a day.
+  if (!n.find_id) return false;
+  const [f] = await db.select<{ score: number }>("finds", `select=score&id=eq.${n.find_id}`);
+  if (!f || f.score < BEST_MIN_SCORE) return false;
+  const since = new Date(Date.now() - 24 * 3600_000).toISOString();
+  const today = await db.select<{ id: string }>("notes",
+    `select=id&user_id=eq.${n.user_id}&pushed_at=gt.${since}&push_skipped=eq.false&kind=in.(release,available,steal,watch)&limit=${BEST_DAILY_CAP + 1}`);
+  return today.length < BEST_DAILY_CAP;
+}
+
 export async function deliver(noteId: string): Promise<number> {
   const [n] = await db.select<Note>("notes", `select=*&id=eq.${noteId}`);
   if (!n || n.held_for_morning || n.pushed_at) return 0;
   if (n.kind === "learned") {   // the app already showed it; just mark it handled
     await db.update("notes", `id=eq.${n.id}`, { pushed_at: new Date().toISOString() });
+    return 0;
+  }
+  if (!(await shouldText(n))) {
+    // Stays in the inbox; just doesn't buzz the phone.
+    await db.update("notes", `id=eq.${n.id}`, { pushed_at: new Date().toISOString(), push_skipped: true });
     return 0;
   }
   const tokens = await db.select<{ token: string; environment: string }>("device_tokens", `select=token,environment&user_id=eq.${n.user_id}`);

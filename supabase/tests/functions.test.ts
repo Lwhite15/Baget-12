@@ -250,6 +250,7 @@ await test("push: delivers to each phone and drops dead tokens", async () => {
   const good = "a".repeat(64), dead = "b".repeat(64);
   reset([
     [/GET .*rest\/v1\/notes\?select=\*/, () => ok([{ id: "44444444-0000-0000-0000-000000000000", user_id: jumpman.user_id, body: "Yo! It drops tomorrow.", sender_name: "Jumpman Scout", kind: "release", find_id: null, held_for_morning: false, pushed_at: null }])],
+    [/rest\/v1\/profiles\?select=settings/, () => ok([{ settings: { pushLevel: "all" } }])],
     [/rest\/v1\/device_tokens\?select/, () => ok([{ token: good, environment: "production" }, { token: dead, environment: "sandbox" }])],
     [/GET .*rest\/v1\/notes\?select=id/, () => ok([{ id: "x" }, { id: "y" }])],
     [/api\.push\.apple\.com/, (_u, init) => { const h = init.headers as any; assert.match(h.authorization, /^bearer ey/); assert.equal(h["apns-topic"], "com.larry.baget"); return new Response(null, { status: 200 }); }],
@@ -697,6 +698,22 @@ await test("onboarding: picked interests plus photos become a tuned squad", asyn
   const content = sent.messages[0].content;
   assert.equal(content.filter((c: any) => c.type === "image").length, 1, "only supported photo types are sent");
   assert.match(content.at(-1).text, /fragrance, sneakers/);
+});
+
+await test("how often Baget texts you: best, all and daily", async () => {
+  const note = (kind: string, find_id: string | null = "f1") => ({ id: "n1", user_id: jumpman.user_id, body: "x", sender_name: "A", kind, find_id, held_for_morning: false, pushed_at: null });
+  const setup = (level: string | null, score: number, sentToday: number) => reset([
+    [/rest\/v1\/profiles/, () => ok([{ settings: level ? { pushLevel: level } : {} }])],
+    [/rest\/v1\/finds/, () => ok([{ score }])],
+    [/rest\/v1\/notes/, () => ok(Array.from({ length: sentToday }, (_, i) => ({ id: `p${i}` })))],
+  ]);
+  setup(null, 90, 0); assert.equal(await push.shouldText(note("available") as never), true, "default is best; strong match texts");
+  setup(null, 70, 0); assert.equal(await push.shouldText(note("available") as never), false, "weak match stays in the inbox");
+  setup("best", 95, 6); assert.equal(await push.shouldText(note("available") as never), false, "best caps at 6 a day");
+  setup("all", 40, 50); assert.equal(await push.shouldText(note("available") as never), true);
+  setup("daily", 99, 0); assert.equal(await push.shouldText(note("release") as never), false);
+  setup("daily", 0, 0);
+  for (const k of ["digest", "drop", "restock", "friend", "bought"]) assert.equal(await push.shouldText(note(k, null) as never), true, k);
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
