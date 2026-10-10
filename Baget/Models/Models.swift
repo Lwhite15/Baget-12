@@ -221,6 +221,53 @@ struct Agent: Codable, Identifiable, Hashable {
     var tasteBoard: [TastePhoto] = []
     /// The agent's icon. Nil shows its initials on the house gradient.
     var icon: Avatar? = nil
+    /// Turned off: no searching and no texts. Nil (older saves) means on.
+    var paused: Bool? = nil
+    /// How much this agent texts you. Nil means normal.
+    var alerts: AgentAlerts? = nil
+
+    var isOff: Bool {
+        get { paused ?? false }
+        set { paused = newValue }
+    }
+    var alertLevel: AgentAlerts {
+        get { alerts ?? .normal }
+        set { alerts = newValue }
+    }
+}
+
+/// Per-agent texting, on top of the account's "How often Baget texts you".
+enum AgentAlerts: String, Codable, CaseIterable, Identifiable {
+    case normal, quiet, off
+    var id: String { rawValue }
+    var label: String {
+        switch self {
+        case .normal: return "Normal texts"
+        case .quiet: return "Only the very best"
+        case .off: return "No texts"
+        }
+    }
+    var short: String {
+        switch self {
+        case .normal: return "Texts"
+        case .quiet: return "Quiet"
+        case .off: return "Muted"
+        }
+    }
+    var icon: String {
+        switch self {
+        case .normal: return "bell.fill"
+        case .quiet: return "bell.badge"
+        case .off: return "bell.slash.fill"
+        }
+    }
+    var blurb: String {
+        switch self {
+        case .normal: return "Follows your texting setting"
+        case .quiet: return "Only standout finds buzz your phone"
+        case .off: return "Finds still show up in the app, silently"
+        }
+    }
 }
 
 struct TastePhoto: Codable, Identifiable, Hashable {

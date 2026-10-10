@@ -66,7 +66,23 @@ struct AgentCard: View {
                     Text("\(agent.mission.label) · \(finds) find\(finds == 1 ? "" : "s")").font(.caption.monospaced()).foregroundStyle(Theme.muted)
                 }
                 Spacer()
-                Tag(text: agent.mode.short, tint: agent.mode == .auto ? Theme.warn : agent.mode == .ask ? Theme.accent : Theme.muted)
+                VStack(alignment: .trailing, spacing: 2) {
+                    Toggle("", isOn: Binding(get: { !agent.isOff }, set: { on in
+                        store.setOff(agent.id, !on)
+                        Analytics.track(.agentSettingChanged, ["setting": "on"])
+                        router.say(on ? "\(agent.name) is back on the hunt" : "\(agent.name) is off. No searching, no texts.")
+                    }))
+                    .labelsHidden().tint(Theme.green)
+                    .accessibilityLabel(agent.isOff ? "Turn \(agent.name) on" : "Turn \(agent.name) off")
+                    Text(agent.isOff ? "OFF" : "ON").font(.system(size: 9, weight: .bold)).tracking(1)
+                        .foregroundStyle(agent.isOff ? Theme.muted : Theme.green)
+                }
+            }
+            if agent.isOff {
+                Label("Off. Not searching or texting until you switch it back on.", systemImage: "moon.zzz.fill")
+                    .font(.footnote).foregroundStyle(Theme.muted)
+                    .padding(10).frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Theme.glass, in: RoundedRectangle(cornerRadius: 12))
             }
 
             if !agent.keywords.isEmpty {
@@ -124,19 +140,32 @@ struct AgentCard: View {
                         ForEach(BuyMode.allCases) { m in Text(m.label).tag(m) }
                     }
                 } label: { menuLabel(agent.mode.short, icon: "cart.fill") }
-                Button(role: .destructive) { confirmRetire = true } label: {
-                    Image(systemName: "trash")
-                }.buttonStyle(GhostButton()).frame(width: 54).accessibilityLabel("Retire \(agent.name)")
+                Menu {
+                    Picker("Texts from \(agent.name)", selection: binding(\.alertLevel, name: "alerts")) {
+                        ForEach(AgentAlerts.allCases) { l in
+                            Label { Text(l.label); Text(l.blurb) } icon: { Image(systemName: l.icon) }.tag(l)
+                        }
+                    }
+                } label: { menuLabel(agent.alertLevel.short, icon: agent.alertLevel.icon) }
             }
+            Button(role: .destructive) { confirmRetire = true } label: {
+                Label("Delete \(agent.name)", systemImage: "trash").font(.footnote.weight(.semibold))
+                    .foregroundStyle(Theme.hot).frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.plain).padding(.top, 2)
         }
         .glassCard()
-        .confirmationDialog("Retire \(agent.name)?", isPresented: $confirmRetire, titleVisibility: .visible) {
-            Button("Retire", role: .destructive) {
+        .opacity(agent.isOff ? 0.75 : 1)
+        .confirmationDialog("Delete \(agent.name)?", isPresented: $confirmRetire, titleVisibility: .visible) {
+            Button("Delete", role: .destructive) {
                 store.retire(agent.id)
                 Analytics.track(.agentRetired, ["mission": agent.mission.label])
-                router.say("\(agent.name) retired")
+                router.say("\(agent.name) deleted")
             }
-        } message: { Text("Its finds stay in your Finds. Purchases stay in your spending history.") }
+            if !agent.isOff {
+                Button("Just turn it off") { store.setOff(agent.id, true); router.say("\(agent.name) is off") }
+            }
+        } message: { Text("It stops hunting for good and what it learned is lost. Its finds stay in your Finds.") }
     }
 
     private func binding<T>(_ kp: WritableKeyPath<Agent, T>, name: String) -> Binding<T> {

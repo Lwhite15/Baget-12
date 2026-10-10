@@ -32,6 +32,15 @@ enum SmokeTest {
         // New screens and actions: watch, remove a taste, a deal verdict on an item with other stores' prices.
         store.toggleWatch("smoke-find")
         if let a = store.state.agents.first, let t = a.style.traits.first { store.removeTaste(a.id, t) }
+        // Agent switches: off, quiet texts, back on.
+        if var a = store.state.agents.first {
+            store.setOff(a.id, true)
+            a = store.agent(a.id) ?? a
+            a.alertLevel = .quiet
+            store.update(a)
+            _ = store.sweep(quiet: true)
+            store.setOff(a.id, false)
+        }
         let priced = Item(id: "smoke-priced", title: "Smoke Test Sneaker", brand: "Smoke Lab", category: .sneakers, sku: "", price: 200, market: 260,
                       source: "Smoke Store", dropOffset: 0, soldOutAtStart: false, creator: nil, traits: [], tags: [], shoeSizes: nil, topSizes: nil,
                       url: "https://example.com/s", priceKnown: true, isSample: false,

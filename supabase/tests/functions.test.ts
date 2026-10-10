@@ -716,4 +716,20 @@ await test("how often Baget texts you: best, all and daily", async () => {
   for (const k of ["digest", "drop", "restock", "friend", "bought"]) assert.equal(await push.shouldText(note(k, null) as never), true, k);
 });
 
+await test("per-agent switches: off and paused never text, quiet only top finds", async () => {
+  const note = { id: "n1", user_id: jumpman.user_id, agent_id: "a1", body: "x", sender_name: "A", kind: "available", find_id: "f1", held_for_morning: false, pushed_at: null };
+  const setup = (alerts: string, paused: boolean, score: number) => reset([
+    [/rest\/v1\/agents/, () => ok([{ alerts, paused }])],
+    [/rest\/v1\/profiles/, () => ok([{ settings: { pushLevel: "all" } }])],
+    [/rest\/v1\/finds/, () => ok([{ score }])],
+    [/rest\/v1\/notes/, () => ok([])],
+  ]);
+  setup("off", false, 99); assert.equal(await push.shouldText(note as never), false, "off");
+  setup("normal", true, 99); assert.equal(await push.shouldText(note as never), false, "paused");
+  setup("quiet", false, 88); assert.equal(await push.shouldText(note as never), false, "quiet skips good-not-great");
+  setup("quiet", false, 92); assert.equal(await push.shouldText(note as never), true, "quiet texts top finds");
+  setup("normal", false, 40); assert.equal(await push.shouldText(note as never), true, "normal follows the account (all)");
+  setup("off", false, 99); assert.equal(await push.shouldText({ ...note, kind: "drop" } as never), true, "price drops you watch still text");
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

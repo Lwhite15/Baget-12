@@ -53,6 +53,8 @@ struct AgentRow: Decodable {
     let learned: [String: Int]
     let priceNote: Double
     let icon: IconRow?
+    let paused: Bool?
+    let alerts: String?
 }
 
 /// An icon as stored in jsonb. Empty ({}) means the default.
@@ -284,7 +286,8 @@ extension AppStore {
                       mode: BuyMode(rawValue: r.mode) ?? .ask, voice: Voice(rawValue: r.voice) ?? .chill,
                       learned: r.learned, priceNote: r.priceNote,
                       tasteBoard: (board[r.id] ?? []).map { TastePhoto(id: $0.id, addedAt: $0.createdAt, tags: $0.tags, summary: $0.summary, storagePath: $0.storagePath) },
-                      icon: r.icon?.avatar)
+                      icon: r.icon?.avatar,
+                      paused: r.paused ?? false, alerts: r.alerts.flatMap(AgentAlerts.init(rawValue:)) ?? .normal)
             }
             state.finds = finds.map { f in
                 Find(id: f.id, itemID: f.listingId, agentID: f.agentId ?? "", score: f.score, why: f.why,
@@ -379,7 +382,8 @@ extension AppStore {
     func agentFields(_ a: Agent) -> [String: Any] {
         ["name": a.name, "keywords": a.keywords, "traits": a.style.traits, "makers": a.style.makers, "creators": a.style.creators,
          "size": a.size, "mode": a.mode.rawValue,
-         "voice": a.voice.rawValue, "learned": a.learned, "price_note": a.priceNote, "icon": Self.iconJSON(a.icon)]
+         "voice": a.voice.rawValue, "learned": a.learned, "price_note": a.priceNote, "icon": Self.iconJSON(a.icon),
+         "paused": a.isOff, "alerts": a.alertLevel.rawValue]
     }
 
     static func iconJSON(_ icon: Avatar?) -> [String: Any] {

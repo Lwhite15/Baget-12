@@ -5,16 +5,30 @@ import { apnsConfigured, lastApns, pemToDer, sendPush, signJWT } from "../_share
 import { HttpError, db, env, handle, isScheduler, json } from "../_shared/platform.ts";
 import { morningDigest, watchCheck } from "../_shared/daily.ts";
 
-interface Note { id: string; user_id: string; body: string; sender_name: string; kind: string; find_id: string | null; held_for_morning: boolean; pushed_at: string | null }
+interface Note { id: string; user_id: string; body: string; sender_name: string; kind: string; agent_id?: string | null; find_id: string | null; held_for_morning: boolean; pushed_at: string | null }
 
 /** Kinds that always text: things you asked for or that can't wait. */
 const ALWAYS = new Set(["friend", "digest", "drop", "restock", "bought"]);
 export const BEST_MIN_SCORE = 85;
 export const BEST_DAILY_CAP = 6;
+/** An agent set to "Quiet" texts only finds this strong. */
+export const QUIET_MIN_SCORE = 90;
 
 /** Whether a note should buzz the phone, by the person's "How often Baget texts you" setting. */
 export async function shouldText(n: Note): Promise<boolean> {
   if (ALWAYS.has(n.kind)) return true;
+  // The agent's own setting comes first: off never texts, quiet only for top finds.
+  let agentAlerts = "normal";
+  if (n.agent_id) {
+    const [a] = await db.select<{ alerts: string; paused: boolean }>("agents", `select=alerts,paused&id=eq.${n.agent_id}`);
+    if (a?.paused || a?.alerts === "off") return false;
+    agentAlerts = a?.alerts ?? "normal";
+  }
+  if (agentAlerts === "quiet") {
+    if (!n.find_id) return false;
+    const [f] = await db.select<{ score: number }>("finds", `select=score&id=eq.${n.find_id}`);
+    return !!f && f.score >= QUIET_MIN_SCORE;
+  }
   const [p] = await db.select<{ settings: Record<string, unknown> | null }>("profiles", `select=settings&id=eq.${n.user_id}`);
   const level = typeof p?.settings?.pushLevel === "string" ? p.settings.pushLevel as string : "best";
   if (level === "all") return true;

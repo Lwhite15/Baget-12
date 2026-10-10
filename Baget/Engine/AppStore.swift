@@ -107,7 +107,7 @@ final class AppStore {
 
     func best(for item: Item) -> (agent: Agent, match: Match)? {
         var best: (agent: Agent, match: Match)?
-        for a in state.agents {
+        for a in state.agents where !a.isOff {
             if let m = Matcher.match(a, item), m.score > (best?.match.score ?? -1) { best = (agent: a, match: m) }
         }
         return best
@@ -472,10 +472,18 @@ final class AppStore {
         if isCloud { save() } else { sweep(quiet: false) }
     }
 
+    /// Turns an agent off (no searching, no texts) or back on.
+    func setOff(_ id: String, _ off: Bool) {
+        guard var a = agent(id) else { return }
+        a.paused = off
+        update(a)
+        log(off ? "\(a.name) turned off" : "\(a.name) is back on the hunt")
+    }
+
     func retire(_ id: String) {
         guard let a = agent(id) else { return }
         state.agents.removeAll { $0.id == id }
-        log("\(a.name) retired")
+        log("\(a.name) deleted")
         push { api in try await api.delete("agents", "id=eq.\(id)") }
         save()
     }

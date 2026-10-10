@@ -40,6 +40,9 @@ select t.err($$insert into public.agents (user_id, name, mission_category) value
              'cannot create an agent for someone else');
 select t.err($$insert into public.agents (name, mission_category, mission_custom) values ('x', 'cars', 'vinyl')$$, 'one mission only');
 select t.err($$update public.agents set last_swept_at = now()$$, 'cannot fake sweep timestamps');
+update public.agents set paused = true, alerts = 'quiet' where name = 'Jumpman Scout';
+select t.ok(t.n($$select * from public.agents where paused and alerts = 'quiet'$$) = 1, 'owner can turn an agent off and quiet it');
+select t.err($$update public.agents set alerts = 'loud'$$, 'alerts must be normal, quiet or off');
 select t.err($$select * from public.device_tokens$$, 'device tokens not readable directly');
 select public.register_device(repeat('ab', 32), 'sandbox');
 update public.profiles set handle = 'larry.w', settings = '{"sweepMinutes":180}' where id = auth.uid();
@@ -87,6 +90,8 @@ select t.ok(t.n($$select * from public.my_friends() where status = 'accepted' an
 -- ── server: a sweep finds listings for Larry ──
 reset role;
 set role service_role;
+select t.ok(t.n($$select * from public.sweep_candidates(20, 12, null, null)$$) = 1, 'an agent that is off is never swept');
+update public.agents set paused = false, alerts = 'normal';
 select t.ok(t.n($$select * from public.sweep_candidates(20, 12, null, null)$$) = 2, 'both new agents are due');
 select * from public.upsert_listings('aaaaaaaa-0000-0000-0000-000000000001',
   '[{"fingerprint":"nike-snkrs|travis scott jordan 1 low","title":"Travis Scott x Jordan 1 Low OG","brand":"Jordan","category":"sneakers","price":150,"market":610,"source":"Nike SNKRS","url":"https://www.nike.com/launch","traits":["suede","low top"],"sizes_in_stock":["10.5","11"]},
