@@ -57,8 +57,13 @@ jobs:
           xcrun simctl install "$UDID" "$APP"
           mkdir -p crashes && touch crashes/.start
           xcrun simctl launch "$UDID" "$BUNDLE" -BagetSmokeTest
-          sleep 30
           DATA=$(xcrun simctl get_app_container "$UDID" "$BUNDLE" data)
+          # Wait for the tour to finish (or crash), up to 2 minutes.
+          for i in $(seq 1 60); do
+            sleep 2
+            [ -f "$DATA/Documents/smoke-ok" ] && break
+            [ -n "$(find "$HOME/Library/Logs/DiagnosticReports" -name "Baget*.ips" -newer crashes/.start 2>/dev/null | head -1)" ] && break
+          done
           IPS=$(find "$HOME/Library/Logs/DiagnosticReports" -name "Baget*.ips" -newer crashes/.start 2>/dev/null | head -1)
           if [ -n "$IPS" ]; then
             echo "::error::Baget crashed on launch in the simulator"
