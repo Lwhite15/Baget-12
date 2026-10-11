@@ -428,6 +428,31 @@ final class AppStore {
         save()
     }
 
+    /// Takes finds off the Finds screen. Unlike Pass, this teaches the agent nothing; it just won't show them again.
+    func removeFinds(_ ids: [String]) {
+        let set = Set(ids)
+        guard !set.isEmpty else { return }
+        for i in state.finds.indices where set.contains(state.finds[i].id) {
+            state.finds[i].status = .removed
+            state.finds[i].watching = false
+        }
+        log(set.count == 1 ? "Removed a find" : "Cleared \(set.count) finds")
+        let chunks = stride(from: 0, to: ids.count, by: 80).map { Array(ids[$0..<min($0 + 80, ids.count)]) }
+        for chunk in chunks {
+            let filter = "id=in.(\(chunk.joined(separator: ",")))"
+            push { api in try await api.update("finds", filter, ["status": "removed", "watching": false]) }
+        }
+        save()
+    }
+
+    /// Brings a removed find back (for example when you tap that item again in Today).
+    func restoreFind(_ findID: String) {
+        guard let fi = state.finds.firstIndex(where: { $0.id == findID }), state.finds[fi].status == .removed else { return }
+        state.finds[fi].status = .open
+        push { api in try await api.update("finds", "id=eq.\(findID)", ["status": "open"]) }
+        save()
+    }
+
     func undoPass(_ findID: String) {
         guard let fi = state.finds.firstIndex(where: { $0.id == findID }) else { return }
         state.finds[fi].status = .open

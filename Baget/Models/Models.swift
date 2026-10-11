@@ -282,7 +282,11 @@ struct TastePhoto: Codable, Identifiable, Hashable {
 
 // MARK: - Finds, purchases, notifications
 
-enum FindStatus: String, Codable { case open, liked, passed, acquired }
+enum FindStatus: String, Codable {
+    case open, liked, passed, acquired
+    /// Cleared from Finds without a pass: no learning, and the agent won't show it again.
+    case removed
+}
 
 struct Find: Codable, Identifiable, Hashable {
     var id: String

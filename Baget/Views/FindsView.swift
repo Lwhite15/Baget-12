@@ -23,6 +23,7 @@ struct FindsView: View {
     @State private var expanded: String?
     @State private var highlighted: String?
     @State private var sweeping = false
+    @State private var confirmClear = false
 
     /// Passed and bought finds leave the screen; the agents still learn from them and never show them again.
     private var visible: [Find] {
@@ -91,6 +92,16 @@ struct FindsView: View {
                     }
                     .pickerStyle(.segmented)
 
+                    if !visible.isEmpty {
+                        HStack {
+                            Text("Long-press a find, or tap its trash, to remove one").font(.caption2).foregroundStyle(Theme.muted)
+                            Spacer()
+                            Button { confirmClear = true } label: {
+                                Label(clearLabel, systemImage: "trash").font(.footnote.weight(.semibold)).foregroundStyle(Theme.hot)
+                            }
+                        }
+                    }
+
                     if groups.isEmpty {
                         EmptyCard(text: emptyText)
                     }
@@ -108,6 +119,15 @@ struct FindsView: View {
                 .padding(.bottom, 24)
             }
             .scrollIndicators(.hidden)
+            .confirmationDialog(clearLabel + "?", isPresented: $confirmClear, titleVisibility: .visible) {
+                Button("\(clearLabel) (\(visible.count))", role: .destructive) {
+                    let n = visible.count
+                    store.removeFinds(visible.map(\.id))
+                    router.say(n == 1 ? "Cleared 1 find" : "Cleared \(n) finds")
+                }
+            } message: {
+                Text("They leave Finds and your agents won't show them again. What your agents learned about your taste stays.")
+            }
             .onChange(of: router.focusFind, initial: true) { _, id in
                 guard let id else { return }
                 // Make sure it's visible: show everything, open its section and the card, then scroll to it.
@@ -123,6 +143,14 @@ struct FindsView: View {
                     withAnimation(.easeOut(duration: 0.6)) { if highlighted == id { highlighted = nil } }
                 }
             }
+        }
+    }
+
+    private var clearLabel: String {
+        switch show {
+        case .all: return "Clear all"
+        case .new: return "Clear new"
+        case .liked: return "Clear liked"
         }
     }
 
@@ -271,6 +299,10 @@ struct FindCard: View {
             .padding(12)
             .background(highlighted ? Theme.accent.opacity(0.12) : Theme.glass, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(highlighted ? Theme.accent.opacity(0.6) : Theme.line))
+            .contentShape(.contextMenuPreview, RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .contextMenu {
+                Button(role: .destructive) { remove() } label: { Label("Remove", systemImage: "trash") }
+            }
             .confirmationDialog("What was off? \(agent?.name ?? "Your agent") will learn from it.", isPresented: $askingWhy, titleVisibility: .visible) {
                 ForEach(AppStore.PassReason.allCases) { r in
                     Button(r.rawValue) {
@@ -281,6 +313,11 @@ struct FindCard: View {
                 }
             }
         }
+    }
+
+    private func remove() {
+        withAnimation(.snappy) { store.removeFinds([find.id]) }
+        router.say("Removed")
     }
 
     // MARK: Collapsed row
@@ -434,6 +471,12 @@ struct FindCard: View {
                 .accessibilityLabel("Buy at \(item.source)")
             }
             Spacer(minLength: 0)
+            Button(action: remove) {
+                Image(systemName: "trash").font(.footnote.weight(.semibold)).foregroundStyle(Theme.muted)
+                    .frame(width: 34, height: 34)
+                    .background(Theme.glass, in: Circle())
+            }
+            .accessibilityLabel("Remove from Finds")
             Button { router.sheet = .share(itemID: item.id, friendID: nil, suggestion: false) } label: {
                 Image(systemName: "square.and.arrow.up").font(.footnote.weight(.semibold)).foregroundStyle(Theme.ink)
                     .frame(width: 34, height: 34)

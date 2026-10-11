@@ -127,6 +127,7 @@ final class Router {
         }
         switch f.status {
         case .passed: store.undoPass(f.id)            // you went looking for it, so bring it back
+        case .removed: store.restoreFind(f.id)
         case .acquired: say("You bought this one"); return
         default: break
         }

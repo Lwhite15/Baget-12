@@ -28,6 +28,11 @@ enum SmokeTest {
         }
         // Like, unlike and like again, plus a sample find passed for style: the learning paths.
         store.like("smoke-find"); store.unlike("smoke-find"); store.like("smoke-find")
+        // Remove one find and bring it back; clear a batch.
+        if let one = store.state.finds.first(where: { $0.id != "smoke-find" && $0.status == .open }) {
+            store.removeFinds([one.id]); store.restoreFind(one.id)
+        }
+        store.removeFinds(Array(store.state.finds.filter { $0.id != "smoke-find" && $0.status == .open }.suffix(2).map(\.id)))
         if let other = store.state.finds.first(where: { $0.id != "smoke-find" && $0.status == .open }) { store.pass(other.id, reason: .style) }
         // New screens and actions: watch, remove a taste, a deal verdict on an item with other stores' prices.
         store.toggleWatch("smoke-find")
