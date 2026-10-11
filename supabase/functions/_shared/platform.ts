@@ -151,13 +151,17 @@ export interface ClaudeMessage { role: "user" | "assistant"; content: string | B
 export interface ClaudeResponse {
   content: Block[];
   stop_reason: string;
-  usage?: { input_tokens?: number; output_tokens?: number; server_tool_use?: { web_search_requests?: number } };
+  usage?: { input_tokens?: number; output_tokens?: number; cache_creation_input_tokens?: number; cache_read_input_tokens?: number; server_tool_use?: { web_search_requests?: number } };
 }
 
 export async function claude(body: Record<string, unknown>): Promise<ClaudeResponse> {
   const key = env("ANTHROPIC_API_KEY");
   if (!key) throw new HttpError(503, "The agents aren't connected to Claude yet (no API key on the server).");
-  const payload = JSON.stringify({ model: MODEL(), ...body });
+  // Prompt caching (automatic), for calls that resend the same prefix within minutes (chat turns, a sweep's search
+  // loop): the API caches everything up to the last block and moves that point forward as the conversation grows.
+  // Cache writes cost 1.25x input and reads a small fraction, so one-shot calls leave it off.
+  const { cache, ...rest } = body;
+  const payload = JSON.stringify({ model: MODEL(), ...(cache ? { cache_control: { type: "ephemeral" } } : {}), ...rest });
   // Claude is occasionally busy or briefly unavailable: retry twice with a short wait before giving up.
   let last = "";
   for (let attempt = 0; attempt < 3; attempt++) {

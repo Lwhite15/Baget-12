@@ -148,6 +148,8 @@ await test("scheduled sweep: web search, continue a paused turn, score, notify",
   assert.equal(claudeReq[0].headers["x-api-key"], "sk-test");
   assert.equal(claudeReq[0].body.tools[0].type, "web_search_20250305");
   assert.equal(claudeReq[1].body.messages.length, 2, "paused turn continued");
+  assert.deepEqual(claudeReq[0].body.cache_control, { type: "ephemeral" }, "sweeps use prompt caching");
+  assert.equal(claudeReq[0].body.cache, undefined, "the internal flag never reaches the API");
   const rec = calls.find((c) => c.url.includes("record_finds"))!.body;
   assert.equal(rec.p_finds.length, 1, "the AJ4 isn't in his size, so only one find");
   assert.match(rec.p_finds[0].note.body, /^Yo! The Travis Scott x Air Jordan 1 Low OG drops/);
@@ -233,6 +235,7 @@ await test("read-photo: sends the image, returns cleaned tags", async () => {
     [/api\.anthropic\.com/, (_u, _i, b) => {
       assert.equal(b.messages[0].content[0].type, "image");
       assert.equal(b.messages[0].content[0].source.media_type, "image/jpeg");
+      assert.equal(b.cache_control, undefined, "one-shot calls skip caching");
       return ok({ stop_reason: "end_turn", content: [{ type: "text", text: '{"summary":"Earthy suede low-tops.","traits":["Suede","Earth Tones","low top"],"makers":["Jordan"],"creators":[]}' }] });
     }],
   ]);
@@ -491,6 +494,7 @@ await test("chat keeps the same instructions for every step of a reply, even aft
     [/rest\/v1\/taste_photos/, () => ok([])],
     [/api\.anthropic\.com/, (_u, _i, b) => {
       systems.push(b.system);
+      assert.deepEqual(b.cache_control, { type: "ephemeral" }, "chat turns use prompt caching");
       step++;
       if (step === 1) return ok({ content: [{ type: "thinking", thinking: "...", signature: "sig" },
         { type: "tool_use", id: "t1", name: "update_profile", input: { add_traits: ["mocha suede"] } }], stop_reason: "tool_use" });
@@ -500,7 +504,7 @@ await test("chat keeps the same instructions for every step of a reply, even aft
   const res = await chat.handler(post("chat", { agent_id: jumpman.id, messages: [{ role: "user", content: "I love mocha suede" }] }, { Authorization: "Bearer user-jwt" }));
   assert.equal(res.status, 200);
   assert.equal(systems.length, 2);
-  assert.equal(systems[0], systems[1], "instructions unchanged after update_profile");
+  assert.equal(systems[0], systems[1], "instructions unchanged after update_profile (so the cached prefix is reused)");
 });
 await test("a rejected thinking block is dropped and the step retried", async () => {
   let step = 0, retried: any;

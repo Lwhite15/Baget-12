@@ -162,7 +162,7 @@ export function cleanListings(raw: unknown, fallbackCategory: string): (Listing 
 }
 
 export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", now = new Date()) {
-  const run = { user_id: a.user_id, agent_id: a.id, trigger, searches: 0, listings: 0, finds: 0, input_tokens: 0, output_tokens: 0, error: null as string | null };
+  const run = { user_id: a.user_id, agent_id: a.id, trigger, searches: 0, listings: 0, finds: 0, input_tokens: 0, output_tokens: 0, cache_write_tokens: 0, cache_read_tokens: 0, error: null as string | null };
   try {
     const reactions = await reactionsFor(a.id).catch(() => undefined);
     // Extra sources (each only when its key is set): Google Shopping leads for Claude, and real eBay listings.
@@ -175,9 +175,11 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
     const tools = [{ type: "web_search_20250305", name: "web_search", max_uses: num("SWEEP_MAX_SEARCHES", 6), user_location: { type: "approximate", country: "US" } }];
     let final: Block[] = [];
     for (let turn = 0; turn < 3; turn++) {
-      const res = await claude({ max_tokens: 12000, messages, tools });
+      const res = await claude({ max_tokens: 12000, messages, tools, cache: true });
       run.input_tokens += res.usage?.input_tokens ?? 0;
       run.output_tokens += res.usage?.output_tokens ?? 0;
+      run.cache_write_tokens += res.usage?.cache_creation_input_tokens ?? 0;
+      run.cache_read_tokens += res.usage?.cache_read_input_tokens ?? 0;
       run.searches += res.usage?.server_tool_use?.web_search_requests ?? 0;
       final = res.content;
       if (res.stop_reason !== "pause_turn") break;

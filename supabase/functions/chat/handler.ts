@@ -184,7 +184,7 @@ export const handler = handle(async (req) => {
   const system = rules(a, profile());
   const ask = async (): Promise<Awaited<ReturnType<typeof claude>>> => {
     try {
-      return await claude({ max_tokens: 8000, system, messages, tools: TOOLS });
+      return await claude({ max_tokens: 8000, system, messages, tools: TOOLS, cache: true });
     } catch (e) {
       // Safety net: if Claude rejects an earlier thinking block, drop those blocks and try once more.
       if (!(e instanceof HttpError) || !/signature|thinking/i.test(e.detail ?? "")) throw e;
@@ -193,7 +193,7 @@ export const handler = handle(async (req) => {
           m.content = m.content.filter((b) => b.type !== "thinking" && b.type !== "redacted_thinking");
         }
       }
-      return await claude({ max_tokens: 8000, system, messages, tools: TOOLS });
+      return await claude({ max_tokens: 8000, system, messages, tools: TOOLS, cache: true });
     }
   };
   const narration: string[] = [];
