@@ -221,6 +221,7 @@ extension AppStore {
             try? await api.rpcVoid("unregister_device", ["p_token": token])
         }
         await api.signOut()
+        isAdmin = false
         resetToWelcome()
     }
 
@@ -252,6 +253,7 @@ extension AppStore {
         guard isCloud, let uid = api.userID, !pulling else { return }
         pulling = true
         defer { pulling = false }
+        Task { @MainActor in self.isAdmin = (try? await self.api.rpc("am_i_admin", as: Bool.self)) ?? false }
         do {
             async let agentsQ: [AgentRow] = api.select("agents", "select=*&order=created_at.asc")
             async let photosQ: [TastePhotoRow] = api.select("taste_photos", "select=*&order=created_at.desc")

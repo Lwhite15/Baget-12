@@ -123,7 +123,9 @@ await test("APNs JWT is a valid ES256 signature", async () => {
 });
 
 // ── sweep ──
-const listingJSON = '```json\n{"listings":[{"title":"Travis Scott x Air Jordan 1 Low OG","brand":"Jordan","category":"sneakers","price":150,"market":610,"source":"Nike SNKRS","url":"https://www.nike.com/launch/t/ts-aj1","drop_at":"2026-10-11T14:00:00Z","sold_out":false,"creator":"Travis Scott","traits":["suede","low top"],"sizes_in_stock":["10.5","11"],"sku":"DM7866-140"},{"title":"Jordan 4 Bred","brand":"Jordan","category":"sneakers","price":215,"source":"Kith","url":"https://kith.com/aj4","traits":["leather"],"sizes_in_stock":["8","9"]}]}\n```';
+// The drop is always a couple of days out, so the test doesn't age into a "steal".
+const soon = new Date(Date.now() + 2 * 86400_000).toISOString().slice(0, 10) + "T14:00:00Z";
+const listingJSON = '```json\n{"listings":[{"title":"Travis Scott x Air Jordan 1 Low OG","brand":"Jordan","category":"sneakers","price":150,"market":610,"source":"Nike SNKRS","url":"https://www.nike.com/launch/t/ts-aj1","drop_at":"' + soon + '","sold_out":false,"creator":"Travis Scott","traits":["suede","low top"],"sizes_in_stock":["10.5","11"],"sku":"DM7866-140"},{"title":"Jordan 4 Bred","brand":"Jordan","category":"sneakers","price":215,"source":"Kith","url":"https://kith.com/aj4","traits":["leather"],"sizes_in_stock":["8","9"]}]}\n```';
 
 await test("scheduled sweep: web search, continue a paused turn, score, notify", async () => {
   let claudeCalls = 0;
@@ -150,6 +152,11 @@ await test("scheduled sweep: web search, continue a paused turn, score, notify",
   assert.equal(claudeReq[1].body.messages.length, 2, "paused turn continued");
   assert.deepEqual(claudeReq[0].body.cache_control, { type: "ephemeral" }, "sweeps use prompt caching");
   assert.equal(claudeReq[0].body.cache, undefined, "the internal flag never reaches the API");
+  assert.equal(claudeReq[0].body.purpose, undefined, "nor does the stats label");
+  const usage = calls.filter((c) => c.url.includes("claude_usage")).map((c) => c.body);
+  assert.equal(usage.length, 2, "each Claude call is logged for the stats screen");
+  assert.equal(usage[0].fn, "sweep");
+  assert.equal(usage[0].searches, 2);
   const rec = calls.find((c) => c.url.includes("record_finds"))!.body;
   assert.equal(rec.p_finds.length, 1, "the AJ4 isn't in his size, so only one find");
   assert.match(rec.p_finds[0].note.body, /^Yo! The Travis Scott x Air Jordan 1 Low OG drops/);

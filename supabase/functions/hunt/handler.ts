@@ -79,7 +79,7 @@ ${images.length ? `The ${images.length === 1 ? "photo shows" : `${images.length}
 Make one agent brief per picked interest${text && !cats.length ? " (or one for what they said)" : ""}${text && cats.length ? ", plus one more if what they said is a separate hunt" : ""}.
 Reply with only JSON: {"agents": [${BRIEF_FIELDS}, ...]}
 Use only what they said, picked or showed. Keep every list item short (1-4 words).` });
-  const res = await claude({ max_tokens: 6000, messages: [{ role: "user", content }] });
+  const res = await claude({ purpose: "onboarding", max_tokens: 6000, messages: [{ role: "user", content }] });
   const raw = (parseJSON<{ agents?: unknown[] }>(textOf(res.content))?.agents ?? []).slice(0, 7);
   const plans = raw.map((r) => cleanPlan(r, text || "Anything I'd love", size));
   // Make sure every picked category got an agent, even if Claude skipped one.
@@ -104,6 +104,7 @@ export const handler = handle(async (req) => {
   if (text.length < 2) throw new HttpError(400, "Tell me what to hunt for");
 
   const res = await claude({
+    purpose: "hunt",
     max_tokens: 4000,
     messages: [{ role: "user", content: `Someone told their shopping scout app what they want: "${text}"
 

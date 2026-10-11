@@ -264,6 +264,11 @@ struct ProfileView: View {
             Button { router.sheet = .customizeBar } label: {
                 Label("Customize the Live bar", systemImage: "slider.horizontal.3")
             }
+            if store.isAdmin {
+                NavigationLink { StatsView() } label: {
+                    Label("Stats", systemImage: "chart.bar.xaxis")
+                }
+            }
         }
         .foregroundStyle(Theme.ink)
     }

@@ -33,6 +33,8 @@ final class AppStore {
     var syncProblem: String?
     /// The agent whose chat is waiting on a reply.
     var chatBusy: String?
+    /// Owner accounts see the Stats screen (the server decides; the screen's data is admin-only too).
+    var isAdmin = false
     /// Bumped when a taste photo finishes downloading, so boards redraw.
     var photoVersion = 0
     /// Bumped when your icon photo changes or finishes downloading.

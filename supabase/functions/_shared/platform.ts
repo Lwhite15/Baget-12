@@ -160,8 +160,9 @@ export async function claude(body: Record<string, unknown>): Promise<ClaudeRespo
   // Prompt caching (automatic), for calls that resend the same prefix within minutes (chat turns, a sweep's search
   // loop): the API caches everything up to the last block and moves that point forward as the conversation grows.
   // Cache writes cost 1.25x input and reads a small fraction, so one-shot calls leave it off.
-  const { cache, ...rest } = body;
-  const payload = JSON.stringify({ model: MODEL(), ...(cache ? { cache_control: { type: "ephemeral" } } : {}), ...rest });
+  const { cache, purpose, ...rest } = body;
+  const request = { model: MODEL(), ...(cache ? { cache_control: { type: "ephemeral" } } : {}), ...rest };
+  const payload = JSON.stringify(request);
   // Claude is occasionally busy or briefly unavailable: retry twice with a short wait before giving up.
   let last = "";
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -177,7 +178,11 @@ export async function claude(body: Record<string, unknown>): Promise<ClaudeRespo
       last = `network: ${(e as Error).message}`;
       continue;
     }
-    if (r.ok) return await r.json() as ClaudeResponse;
+    if (r.ok) {
+      const res = await r.json() as ClaudeResponse;
+      await logUsage(String(purpose ?? "other"), String(request.model), res.usage);
+      return res;
+    }
     last = `${r.status} ${(await r.text()).slice(0, 600)}`;
     if (![408, 429, 500, 502, 503, 504, 529].includes(r.status)) break;   // a real request problem: retrying won't help
   }
@@ -185,6 +190,22 @@ export async function claude(body: Record<string, unknown>): Promise<ClaudeRespo
   if (/API key|authentication|401/.test(last)) throw new HttpError(503, "The agents can't reach Claude (API key problem).", `Claude ${last}`);
   if (/credit|billing|balance/i.test(last)) throw new HttpError(503, "The agents are out of Claude credit. Add credit at console.anthropic.com.", `Claude ${last}`);
   throw new HttpError(502, "Your agent couldn't reach Claude just now. Try again in a moment.", `Claude ${last}`);
+}
+
+/** One row per Claude call, for the owner's stats screen (spend per day and per feature). Never breaks a call. */
+async function logUsage(fn: string, model: string, u: ClaudeResponse["usage"]) {
+  if (!u) return;
+  try {
+    await fetch(`${SUPABASE_URL()}/rest/v1/claude_usage`, {
+      method: "POST", headers: serverHeaders({ Prefer: "return=minimal" }),
+      body: JSON.stringify({
+        fn: fn.slice(0, 40), model: model.slice(0, 60),
+        input_tokens: u.input_tokens ?? 0, output_tokens: u.output_tokens ?? 0,
+        cache_write_tokens: u.cache_creation_input_tokens ?? 0, cache_read_tokens: u.cache_read_input_tokens ?? 0,
+        searches: u.server_tool_use?.web_search_requests ?? 0,
+      }),
+    });
+  } catch { /* stats are best-effort */ }
 }
 
 export function textOf(content: Block[]): string {

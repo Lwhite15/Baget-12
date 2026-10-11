@@ -195,6 +195,26 @@ select t.err($$select * from public.sweep_candidates()$$, 'users cannot call ser
 select t.err($$select public.configure_scheduler('https://x', 'y')$$, 'users cannot reconfigure the scheduler');
 reset role;
 
+-- owner stats: only admins
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-0000-0000-000000000002', false);
+select t.ok(not public.am_i_admin(), 'a regular user is not an admin');
+select t.err($$select public.admin_stats()$$, 'a regular user cannot read the stats');
+select t.err($$select * from public.claude_usage$$, 'Claude usage is not readable');
+select t.err($$insert into public.app_admins (user_id) values ('bbbbbbbb-0000-0000-0000-000000000002')$$, 'nobody can make themselves an admin');
+reset role;
+insert into public.app_admins (user_id) values ('aaaaaaaa-0000-0000-0000-000000000001');
+insert into public.claude_usage (fn, model, input_tokens, output_tokens, cache_write_tokens, cache_read_tokens, searches)
+  values ('chat', 'claude-sonnet-5-5', 1000, 500, 2000, 50000, 0), ('sweep', 'claude-sonnet-5-5', 0, 0, 0, 0, 6);
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
+select t.ok(public.am_i_admin(), 'the owner is an admin');
+select t.ok((public.admin_stats() -> 'users' ->> 'total')::int >= 2, 'the owner sees user counts');
+select t.ok((public.admin_stats() -> 'claude' ->> 'today')::numeric > 0.06, 'spend includes tokens and searches');
+select t.ok((public.admin_stats() -> 'claude' ->> 'cache_saved_week')::numeric > 0, 'cache savings are counted');
+select t.ok(jsonb_array_length(public.admin_stats() -> 'daily') = 14, 'two weeks of daily numbers');
+reset role;
+
 -- morning release and account deletion
 set role service_role;
 select t.ok(t.n('select * from public.release_held_notes()') >= 0, 'release runs');
