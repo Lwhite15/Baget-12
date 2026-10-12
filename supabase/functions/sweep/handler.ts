@@ -2,10 +2,11 @@
 //  * Scheduled (every 15 minutes by pg_cron, with the shared secret): agents whose owner's interval has passed.
 //  * Manual (the app, with the user's session): that user's agents, at most once per agent every 10 minutes.
 // Cost guards: agents per run, searches per agent, and sweeps per user per day are all capped (see env below).
-import { type Agent, CATEGORIES, GROUP_OF, type Listing, friendLine, heldForMorning, kindFor, match, missionLabel, norm } from "../_shared/match.ts";
+import { type Agent, CATEGORIES, GROUP_OF, type Listing, firstName, friendLine, heldForMorning, kindFor, match, missionLabel, norm } from "../_shared/match.ts";
 import { type Block, type ClaudeMessage, HttpError, claude, db, env, handle, isScheduler, json, parseJSON, requireUser, textOf } from "../_shared/platform.ts";
 import { addImages, linkIsDead, traceImage } from "../_shared/images.ts";
 import { setupDemo } from "./demo.ts";
+export { firstName };
 import { type Lead, attachOffers, ebayConfigured, ebaySearch, queriesFor, shoppingLeads, shoppingOffers } from "../_shared/sources.ts";
 
 const num = (name: string, fallback: number) => {
@@ -13,7 +14,20 @@ const num = (name: string, fallback: number) => {
   return Number.isFinite(v) && v > 0 ? v : fallback;
 };
 
-interface Candidate extends Agent { tz: string; settings: Record<string, unknown>; last_swept_at: string | null }
+interface Candidate extends Agent { tz: string; settings: Record<string, unknown>; last_swept_at: string | null; display_name?: string }
+
+const VOICE: Record<string, string> = {
+  hype: "excited and hyped, casual slang is fine, like a friend who can't wait to show them",
+  chill: "easygoing and warm, like a friend casually putting them on to something",
+  straight: "brief and factual, no hype, no emoji",
+};
+
+/** The text the agent wrote for its push notification, if it's usable. */
+export function cleanText(v: unknown): string {
+  if (typeof v !== "string") return "";
+  const t = v.trim().replace(/^["“']+|["”']+$/g, "").replace(/\s+/g, " ");
+  return t.length >= 20 && t.length <= 240 ? t : "";
+}
 
 /** What the person did with earlier finds: the clearest signal of taste there is. */
 export interface Reactions { liked: string[]; bought: string[]; passed: string[]; seen?: string[] }
@@ -54,7 +68,7 @@ export function anglesFor(agentId: string, now: Date): string[] {
   return [ANGLES[first], ANGLES[(first + 3) % ANGLES.length]];
 }
 
-export function sweepPrompt(a: Agent, today: string, r: Reactions = { liked: [], bought: [], passed: [] }, angles: string[] = [ANGLES[0], ANGLES[4]], leads: Lead[] = []): string {
+export function sweepPrompt(a: Agent, today: string, r: Reactions = { liked: [], bought: [], passed: [] }, angles: string[] = [ANGLES[0], ANGLES[4]], leads: Lead[] = [], name = ""): string {
   const leaning = Object.entries(a.learned ?? {}).filter(([, w]) => w >= 2).sort((x, y) => y[1] - x[1]).map(([k]) => k).slice(0, 10);
   const parts = [
     `Mission: ${missionLabel(a)}`,
@@ -86,7 +100,12 @@ How to hunt:
 - Their likes and buys are the strongest signal: find more in that spirit (same makers, materials, notes, silhouettes, eras), but not the same items again.` : ""}${r.passed.length ? `
 - Steer away from what they passed on as not their style.` : ""}${r.seen?.length ? `
 - Already shown to them (find different things): ${r.seen.slice(0, 30).join("; ")}` : ""}
-- For each product, write "pitch": one short sentence, in your own voice, on why it's for them.${leads.length ? `
+- For each product, write "pitch": one short sentence, in your own voice, on why it's for them.
+- For each product, also write "text": the notification you'd text them about it, max 170 characters. Make it feel personal, like
+  a friend who knows their taste texting them: say what you found in a few natural words (not the full product title), the key fact
+  (price and store, the drop date, or that it's back in stock), and one specific reason it's for THEM, tied to something above
+  (a brand they love, a material or note they're into, or something they liked or bought: "since you liked the ..."). ${name ? `Use their name, ${name}, in some texts, not all.` : "You don't know their name, so don't use one."}
+  Vary how texts start. Voice: ${VOICE[a.voice] ?? VOICE.chill}. ${a.voice === "straight" ? "" : "At most one emoji. "}No hashtags. Only facts from the page.${leads.length ? `
 - Leads from Google Shopping right now (unverified; check any that fit on the store's own product page and use that page's URL):
 ${leads.map((l) => `  • ${l.title} | ${l.store}${l.price ? ` | ${l.price}` : ""}`).join("\n")}` : ""}
 
@@ -103,7 +122,7 @@ Rules:
 - Up to 8 products. Aim for 5 or more strong ones; never pad with weak ones.
 
 End your reply with only this JSON in a \`\`\`json block:
-{"listings":[{"title":"","brand":"","category":"${a.mission_category ?? "other"}","price":null,"market":null,"source":"store name","url":"https://...","image_url":null,"drop_at":null,"sold_out":false,"creator":null,"traits":[],"sizes_in_stock":null,"sku":"","discovery":false,"pitch":""}]}`;
+{"listings":[{"title":"","brand":"","category":"${a.mission_category ?? "other"}","price":null,"market":null,"source":"store name","url":"https://...","image_url":null,"drop_at":null,"sold_out":false,"creator":null,"traits":[],"sizes_in_stock":null,"sku":"","discovery":false,"pitch":"","text":""}]}`;
 }
 
 /** Cleans what Claude returned. Anything without a real web address is dropped. */
@@ -119,7 +138,7 @@ export function isSearchPage(url: string): boolean {
   return false;
 }
 
-export function cleanListings(raw: unknown, fallbackCategory: string): (Listing & { fingerprint: string; url: string; sku: string; image_url: string | null; discovery: boolean; pitch: string })[] {
+export function cleanListings(raw: unknown, fallbackCategory: string): (Listing & { fingerprint: string; url: string; sku: string; image_url: string | null; discovery: boolean; pitch: string; text: string })[] {
   const arr = (raw as { listings?: unknown[] })?.listings;
   if (!Array.isArray(arr)) return [];
   const out = [];
@@ -156,6 +175,7 @@ export function cleanListings(raw: unknown, fallbackCategory: string): (Listing 
       sku: typeof r.sku === "string" ? r.sku.trim().slice(0, 60) : "",
       discovery: r.discovery === true,
       pitch: typeof r.pitch === "string" ? r.pitch.trim().slice(0, 160) : "",
+      text: cleanText(r.text),
     });
   }
   return out;
@@ -171,7 +191,7 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
       shoppingLeads(queries).catch(() => [] as Lead[]),
       ebaySearch(a, queries).catch(() => [] as Record<string, unknown>[]),
     ]);
-    const messages: ClaudeMessage[] = [{ role: "user", content: sweepPrompt(a, now.toISOString().slice(0, 10), reactions, anglesFor(a.id, now), leads) }];
+    const messages: ClaudeMessage[] = [{ role: "user", content: sweepPrompt(a, now.toISOString().slice(0, 10), reactions, anglesFor(a.id, now), leads, firstName(a.display_name)) }];
     const tools = [{ type: "web_search_20250305", name: "web_search", max_uses: num("SWEEP_MAX_SEARCHES", 6), user_location: { type: "approximate", country: "US" } }];
     let final: Block[] = [];
     for (let turn = 0; turn < 3; turn++) {
@@ -218,7 +238,8 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
       const kind = kindFor(l, now.getTime());
       const wantNote = !groups || groups.includes(GROUP_OF[kind]);
       const why = [...(l.pitch ? [l.pitch] : []), ...(l.discovery ? ["Discovery: something new it found for you"] : []), ...m.why].slice(0, 6);
-      const body = l.discovery && l.pitch
+      // The agent's own personal text first; the templates are the fallback.
+      const body = l.text ? l.text : l.discovery && l.pitch
         ? `Found something you didn't ask for but I think you'll love: ${l.title}${l.price ? ` ($${Math.round(l.price)})` : ""} at ${l.source}. ${l.pitch}`
         : friendLine(a, kind, l, m.score, now.getTime());
       finds.push({

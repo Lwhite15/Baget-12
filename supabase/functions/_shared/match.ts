@@ -185,6 +185,12 @@ export function hookFor(a: Agent, l: Listing): string {
   if (a.makers.some((m) => loose(m, l.brand))) return l.brand;
   return l.traits[0] ?? l.brand;
 }
+/** First name only, and only when it looks like a name (no handles, emails or "The ..."). */
+export function firstName(display?: string | null): string {
+  const w = (display ?? "").trim().split(/\s+/).find((x) => !/^(the|mr|mrs|ms|dr)\.?$/i.test(x)) ?? "";
+  return /^[A-Za-zÀ-ÿ'’-]{2,20}$/.test(w) ? w[0].toUpperCase() + w.slice(1) : "";
+}
+
 export function friendLine(a: Agent, kind: Kind, l: Listing, score = 0, now = Date.now()): string {
   const t = l.title, src = l.source, price = money(l.price), hook = hookFor(a, l), when = whenText(l, now);
   const pct = l.price && l.market ? Math.round((1 - l.price / l.market) * 100) : 0;

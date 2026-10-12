@@ -664,7 +664,7 @@ await test("watched finds text you when the price drops 5% or more", async () =>
     assert.deepEqual(r, { checked: 1, drops: 1 }, "the item checked an hour ago waits");
     assert.equal(note.kind, "drop");
     assert.equal(note.find_id, "f1");
-    assert.match(note.body, /now \$299 at Jomashop \(was \$400\)/);
+    assert.match(note.body, /just dropped to \$299 at Jomashop\. That's \$101 off/);
     assert.equal(newWatch.watch_price, 299);
   } finally { delete process.env.SERPER_API_KEY; }
 });
@@ -682,7 +682,7 @@ await test("Today's Drop goes out once, at 8am local time", async () => {
   assert.equal(await daily.morningDigest(eightNY), 1);
   assert.equal(notes[0].kind, "digest");
   assert.equal(notes[0].user_id, "u1");
-  assert.match(notes[0].body, /2 picks for you today\. Top one: 2023 Porsche 911 Carrera T from Porsche Boy, plus 1 more/);
+  assert.match(notes[0].body, /Your squad found 2 things for you: 2023 Porsche 911 Carrera T and Lumen 2BR\./);
   assert.equal(marked.last_digest_on, "2026-10-09");
   notes = [];
   route([{ id: "u1", tz: "America/New_York", last_digest_on: "2026-10-09" }]);
@@ -741,6 +741,31 @@ await test("per-agent switches: off and paused never text, quiet only top finds"
   setup("quiet", false, 92); assert.equal(await push.shouldText(note as never), true, "quiet texts top finds");
   setup("normal", false, 40); assert.equal(await push.shouldText(note as never), true, "normal follows the account (all)");
   setup("off", false, 99); assert.equal(await push.shouldText({ ...note, kind: "drop" } as never), true, "price drops you watch still text");
+});
+
+await test("personal texts: the agent writes them, with your name and taste; templates are the fallback", async () => {
+  const daily = await import("../functions/_shared/daily.ts");
+  assert.equal(sweep.firstName("Larry White"), "Larry");
+  assert.equal(sweep.firstName("The Larry"), "Larry");
+  assert.equal(sweep.firstName("lw_1567"), "", "handles aren't names");
+  assert.equal(sweep.firstName(""), "");
+  const prompt = sweep.sweepPrompt({ ...jumpman, voice: "hype" } as never, "2026-10-12", undefined, undefined, [], "Larry");
+  assert.match(prompt, /"text"/);
+  assert.match(prompt, /Use their name, Larry/);
+  assert.match(prompt, /since you liked/);
+  assert.doesNotMatch(sweep.sweepPrompt(jumpman as never, "2026-10-12"), /Use their name/);
+  const raw = { listings: [{ title: "Air Jordan 1 Low Mocha", url: "https://www.nike.com/t/aj1-mocha", price: 140, source: "Nike",
+    text: "“Larry, Nike just put the Mocha 1 Lows back up for $140. Same suede you loved on the Travis pair.”" }] };
+  const [l] = sweep.cleanListings(raw, "sneakers");
+  assert.equal(l.text, "Larry, Nike just put the Mocha 1 Lows back up for $140. Same suede you loved on the Travis pair.", "quotes trimmed");
+  assert.equal(sweep.cleanText("ok"), "", "too short to be a real text");
+  assert.equal(sweep.cleanText(42), "");
+  assert.equal(daily.digestText("Larry", ["A", "B", "C"]), "Morning Larry! Your squad found 3 things for you: A, B and 1 more. Take a look when you have a sec.");
+  assert.match(daily.digestText("", ["Seiko SPB143"], "Watch Desk"), /^Morning! Watch Desk found something for you: Seiko SPB143\./);
+  reset([[/rest\/v1\/finds/, () => ok([{ listing: { title: "Travis Scott x Air Jordan 1 Low OG Reverse Mocha Sail Ridgerock", price: 1500, source: "StockX" } }])]]);
+  assert.equal(await push.findSubtitle("f1"), "Travis Scott x Air Jordan 1 Low OG Reverse… · $1,500 · StockX");
+  reset([]);
+  assert.equal(await push.findSubtitle("f1"), "", "no subtitle if the lookup fails");
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

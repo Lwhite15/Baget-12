@@ -1,5 +1,6 @@
 // Hourly jobs: price drops on watched finds, and the morning "Today's Drop" digest.
 import { db } from "./platform.ts";
+import { firstName } from "./match.ts";
 import { shoppingOffers } from "./sources.ts";
 
 type FetchFn = (input: string, init?: RequestInit) => Promise<Response>;
@@ -16,6 +17,7 @@ export async function watchCheck(limit = 6, now = new Date(), fetchFn: FetchFn =
   const rows = await db.select<Watched>("finds",
     "select=id,user_id,agent_id,watch_price,listing:listings(id,title,price,low_price,offers_checked_at),agent:agents(name)" +
     "&watching=eq.true&status=in.(open,liked)&order=created_at.desc&limit=60");
+  const names = new Map<string, string>();
   const due = rows.filter((r) => r.listing && (!r.listing.offers_checked_at || now.getTime() - Date.parse(r.listing.offers_checked_at) > 12 * 3600_000)).slice(0, limit);
   let drops = 0;
   for (const r of due) {
@@ -28,9 +30,15 @@ export async function watchCheck(limit = 6, now = new Date(), fetchFn: FetchFn =
     const best = offers[0];
     if (base && best && best.price <= base * 0.95) {
       drops++;
+      if (!names.has(r.user_id)) {
+        const [p] = await db.select<{ display_name: string }>("profiles", `select=display_name&id=eq.${r.user_id}`).catch(() => []);
+        names.set(r.user_id, firstName(p?.display_name));
+      }
+      const name = names.get(r.user_id);
+      const off = Math.round(base - best.price);
       await db.insert("notes", {
         user_id: r.user_id, agent_id: r.agent_id, sender_name: r.agent?.name ?? "Baget", kind: "drop", find_id: r.id,
-        body: `Price drop: ${l.title} is now ${money(best.price)} at ${best.store} (was ${money(base)}).`.slice(0, 480),
+        body: `${name ? `${name}, the` : "The"} ${l.title} you're watching just dropped to ${money(best.price)} at ${best.store}. That's ${money(off)} off what it was.`.slice(0, 480),
       }, false);
       await db.update("finds", `id=eq.${r.id}`, { watch_price: best.price }).catch(() => {});
     } else if (!r.watch_price && base) {
@@ -54,9 +62,22 @@ export function localNow(tz: string, now = new Date()): { date: string; hour: nu
 
 interface Pick { id: string; score: number; listing: { title: string } | null; agent: { name: string } | null }
 
+const short = (t: string) => t.length > 38 ? t.slice(0, 37).trimEnd() + "…" : t;
+
+/** "Morning Larry! Your squad found 3 things for you: the Jordan 1 Low Mocha, Le Labo Santal 33 and one more. Swipe through them." */
+export function digestText(name: string, titles: string[], topAgent?: string): string {
+  const n = titles.length;
+  const named = titles.slice(0, 2).map(short);
+  const rest = n - named.length;
+  const list = rest > 0 ? `${named.join(", ")} and ${rest} more` : named.length === 2 ? `${named[0]} and ${named[1]}` : named[0];
+  const hi = name ? `Morning ${name}!` : "Morning!";
+  const lead = n === 1 ? `${topAgent ?? "Your squad"} found something for you: ${list}.` : `Your squad found ${n} things for you: ${list}.`;
+  return `${hi} ${lead} Take a look when you have a sec.`.slice(0, 480);
+}
+
 /** At 8am local time, one text with the day's best picks. */
 export async function morningDigest(now = new Date()): Promise<number> {
-  const people = await db.select<{ id: string; tz: string; last_digest_on: string | null }>("profiles", "select=id,tz,last_digest_on&limit=500");
+  const people = await db.select<{ id: string; tz: string; last_digest_on: string | null; display_name?: string }>("profiles", "select=id,tz,last_digest_on,display_name&limit=500");
   let sent = 0;
   for (const p of people) {
     const { date, hour } = localNow(p.tz || "America/New_York", now);
@@ -67,10 +88,9 @@ export async function morningDigest(now = new Date()): Promise<number> {
     await db.update("profiles", `id=eq.${p.id}`, { last_digest_on: date }).catch(() => {});
     if (!picks.length || !picks[0].listing) continue;
     const top = picks[0];
-    const more = picks.length - 1;
     await db.insert("notes", {
       user_id: p.id, agent_id: null, sender_name: "Today's Drop", kind: "digest", find_id: top.id,
-      body: `${picks.length} pick${picks.length === 1 ? "" : "s"} for you today. Top one: ${top.listing!.title}${top.agent ? ` from ${top.agent.name}` : ""}${more ? `, plus ${more} more` : ""}.`.slice(0, 480),
+      body: digestText(firstName(p.display_name), picks.map((x) => x.listing?.title ?? "").filter(Boolean), top.agent?.name),
     }, false);
     sent++;
   }
