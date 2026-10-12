@@ -11,7 +11,7 @@ on:
   # Mac minutes cost about 10x Linux minutes, so only app changes trigger a build.
   push:
     branches: [main]
-    paths: ["Baget/**", "project.yml"]
+    paths: ["Baget/**", "BagetNotify/**", "project.yml"]
   workflow_dispatch:
     inputs:
       upload:
@@ -148,7 +148,7 @@ jobs:
             -archivePath "$RUNNER_TEMP/Baget.xcarchive" \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
             DEVELOPMENT_TEAM="$TEAM_ID" \
-            PRODUCT_BUNDLE_IDENTIFIER="$BUNDLE_ID" \
+            BAGET_BUNDLE_ID="$BUNDLE_ID" \
             CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
             BAGET_SUPABASE_URL="$SUPABASE_URL" \
             BAGET_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" > archive.log 2>&1 || {
@@ -162,6 +162,9 @@ jobs:
           # The export then signs for distribution and keeps Sign in with Apple and push.
           APP="$RUNNER_TEMP/Baget.xcarchive/Products/Applications/Baget.app"
           sed 's#<string>development</string>#<string>production</string>#' Baget/Baget.entitlements > "$RUNNER_TEMP/dist.entitlements"
+          # Sign inside out: the notification extension first, then the app around it.
+          for EXT in "$APP"/PlugIns/*.appex; do [ -d "$EXT" ] && codesign --force --sign - --timestamp=none "$EXT"; done
+          echo "::notice::Extensions: $(ls "$APP/PlugIns" 2>/dev/null | tr '\n' ' ')"
           codesign --force --sign - --entitlements "$RUNNER_TEMP/dist.entitlements" --timestamp=none "$APP"
           echo "::notice::Archive entitlements: $(codesign -d --entitlements - --xml "$APP" 2>/dev/null | grep -o '<key>[^<]*</key>' | sed 's/<[^>]*>//g' | tr '\n' ' ')"
       - name: Sign for distribution
@@ -202,6 +205,8 @@ jobs:
           grep -q "com.apple.developer.applesignin" ents.plist || { echo "::error::Signed build is missing Sign in with Apple. Is it ticked on the App ID?"; exit 1; }
           grep -q "aps-environment" ents.plist || { echo "::error::Signed build is missing push notifications. Is it ticked on the App ID?"; exit 1; }
           grep -A1 "aps-environment" ents.plist | grep -q production || echo "::warning::Push environment isn't production."
+          ls -d ipa/Payload/*.app/PlugIns/BagetNotify.appex >/dev/null 2>&1 || { echo "::error::The notification photo extension is missing from the signed build."; exit 1; }
+          codesign -dv ipa/Payload/*.app/PlugIns/BagetNotify.appex 2>&1 | grep -E "^Identifier" | sed 's/^/::notice::Extension /' 
       - name: Upload to TestFlight
         run: |
           mkdir -p "$RUNNER_TEMP/private_keys"

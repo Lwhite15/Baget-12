@@ -43,15 +43,19 @@ export async function shouldText(n: Note): Promise<boolean> {
   return today.length < BEST_DAILY_CAP;
 }
 
-/** The line under the agent's name: what it found, the price and where. "Air Jordan 1 Low OG · $150 · Nike" */
-export async function findSubtitle(findId: string): Promise<string> {
-  const [f] = await db.select<{ listing: { title: string; price: number | null; source: string } | null }>(
-    "finds", `select=listing:listings(title,price,source)&id=eq.${findId}`).catch(() => []);
+/** For a find's notification: the line under the agent's name ("Air Jordan 1 Low OG · $150 · Nike")
+ *  and the product photo, which the app's notification extension downloads and attaches. */
+export async function findInfo(findId: string): Promise<{ subtitle: string; image: string }> {
+  const [f] = await db.select<{ listing: { title: string; price: number | null; source: string; image_url: string | null } | null }>(
+    "finds", `select=listing:listings(title,price,source,image_url)&id=eq.${findId}`).catch(() => []);
   const l = f?.listing;
-  if (!l?.title) return "";
+  if (!l?.title) return { subtitle: "", image: "" };
   const title = l.title.length > 44 ? l.title.slice(0, 43).trimEnd() + "…" : l.title;
-  return [title, l.price ? `$${Math.round(l.price).toLocaleString("en-US")}` : "", l.source].filter(Boolean).join(" · ").slice(0, 90);
+  const subtitle = [title, l.price ? `$${Math.round(l.price).toLocaleString("en-US")}` : "", l.source].filter(Boolean).join(" · ").slice(0, 90);
+  const image = l.image_url && /^https:\/\//.test(l.image_url) && l.image_url.length < 1000 ? l.image_url : "";
+  return { subtitle, image };
 }
+export const findSubtitle = async (findId: string) => (await findInfo(findId)).subtitle;
 
 export async function deliver(noteId: string): Promise<number> {
   const [n] = await db.select<Note>("notes", `select=*&id=eq.${noteId}`);
@@ -68,9 +72,12 @@ export async function deliver(noteId: string): Promise<number> {
   const tokens = await db.select<{ token: string; environment: string }>("device_tokens", `select=token,environment&user_id=eq.${n.user_id}`);
   if (!tokens.length) return 0;
   const unread = await db.select<{ id: string }>("notes", `select=id&user_id=eq.${n.user_id}&read=eq.false&limit=99`);
-  const subtitle = n.find_id && n.kind !== "digest" ? await findSubtitle(n.find_id) : "";
+  const info = n.find_id ? await findInfo(n.find_id) : { subtitle: "", image: "" };
+  const subtitle = n.kind === "digest" ? "" : info.subtitle;
   const payload = {
-    aps: { alert: { title: n.sender_name || "Baget", ...(subtitle ? { subtitle } : {}), body: n.body }, sound: "default", badge: unread.length, "thread-id": n.kind === "friend" ? "friends" : "finds" },
+    ...(info.image ? { image: info.image } : {}),
+    aps: { alert: { title: n.sender_name || "Baget", ...(subtitle ? { subtitle } : {}), body: n.body },
+           ...(info.image ? { "mutable-content": 1 } : {}), sound: "default", badge: unread.length, "thread-id": n.kind === "friend" ? "friends" : "finds" },
     noteID: n.id,
     findID: n.find_id,
   };

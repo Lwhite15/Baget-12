@@ -18,6 +18,8 @@ settings:
     # with sample data only. The cloud build fills these in from secrets.
     BAGET_SUPABASE_URL: ""
     BAGET_SUPABASE_ANON_KEY: ""
+    # The app's bundle ID. The notification extension is this plus ".notify". The cloud build fills it in.
+    BAGET_BUNDLE_ID: app.baget.ios
 
 targets:
   Baget:
@@ -25,9 +27,11 @@ targets:
     platform: iOS
     sources:
       - path: Baget
+    dependencies:
+      - target: BagetNotify
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.baget.ios
+        PRODUCT_BUNDLE_IDENTIFIER: $(BAGET_BUNDLE_ID)
         PRODUCT_NAME: Baget
         TARGETED_DEVICE_FAMILY: "1"
         CODE_SIGN_STYLE: Automatic
@@ -57,8 +61,29 @@ targets:
         BGTaskSchedulerPermittedIdentifiers:
           - app.baget.sweep
         ITSAppUsesNonExemptEncryption: false
-        ITSAppUsesNonExemptEncryption: false
         BagetSupabaseURL: $(BAGET_SUPABASE_URL)
         BagetSupabaseAnonKey: $(BAGET_SUPABASE_ANON_KEY)
     scheme:
       gatherCoverageData: false
+
+  # Adds the product photo to find notifications.
+  BagetNotify:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: BagetNotify
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(BAGET_BUNDLE_ID).notify
+        PRODUCT_NAME: BagetNotify
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+    info:
+      path: BagetNotify/Info.plist
+      properties:
+        CFBundleDisplayName: Baget
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.usernotifications.service
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).NotificationService

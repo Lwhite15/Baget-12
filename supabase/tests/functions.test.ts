@@ -762,8 +762,9 @@ await test("personal texts: the agent writes them, with your name and taste; tem
   assert.equal(sweep.cleanText(42), "");
   assert.equal(daily.digestText("Larry", ["A", "B", "C"]), "Morning Larry! Your squad found 3 things for you: A, B and 1 more. Take a look when you have a sec.");
   assert.match(daily.digestText("", ["Seiko SPB143"], "Watch Desk"), /^Morning! Watch Desk found something for you: Seiko SPB143\./);
-  reset([[/rest\/v1\/finds/, () => ok([{ listing: { title: "Travis Scott x Air Jordan 1 Low OG Reverse Mocha Sail Ridgerock", price: 1500, source: "StockX" } }])]]);
+  reset([[/rest\/v1\/finds/, () => ok([{ listing: { title: "Travis Scott x Air Jordan 1 Low OG Reverse Mocha Sail Ridgerock", price: 1500, source: "StockX", image_url: "https://proj.supabase.co/storage/v1/object/public/product-photos/x.jpg" } }])]]);
   assert.equal(await push.findSubtitle("f1"), "Travis Scott x Air Jordan 1 Low OG Reverse… · $1,500 · StockX");
+  assert.equal((await push.findInfo("f1")).image, "https://proj.supabase.co/storage/v1/object/public/product-photos/x.jpg", "the photo rides along for the notification extension");
   reset([]);
   assert.equal(await push.findSubtitle("f1"), "", "no subtitle if the lookup fails");
 });
