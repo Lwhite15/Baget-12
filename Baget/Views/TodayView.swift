@@ -11,11 +11,12 @@ struct TodayView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 greeting
-                HuntBox()
                 if queue > 0 { swipeCard(queue) }
                 if !picks.isEmpty { todaysDrop(picks) }
+                ForYouSection()
+                HuntBox()
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("MORE FOR YOU").font(.caption.weight(.bold)).tracking(1).foregroundStyle(Theme.muted)
+                    Text("LIVE FROM YOUR SQUAD").font(.caption.weight(.bold)).tracking(1).foregroundStyle(Theme.muted)
                     LiveFeed()
                 }
             }
@@ -110,6 +111,149 @@ struct TodayView: View {
     }
 }
 
+/// "For You": always-on personal picks. Ranked by what you like, refreshed daily, sharpened by every heart and X.
+struct ForYouSection: View {
+    @Environment(AppStore.self) private var store
+    @Environment(Router.self) private var router
+    @Environment(\.openURL) private var openURL
+    @State private var limit = 24
+
+    var body: some View {
+        let picks = store.forYou.filter { Catalog.item($0.id) != nil }
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("For You").font(.title3.weight(.heavy)).foregroundStyle(Theme.ink)
+                Spacer()
+                if store.forYouLoading { ProgressView().controlSize(.small).tint(Theme.cyan) }
+            }
+            Text("Picked from everything Baget's agents have found, ranked by your taste. Every ♥ and ✕ sharpens it.")
+                .font(.caption).foregroundStyle(Theme.muted)
+            if !store.tasteTop.isEmpty { tasteStrip }
+
+            if picks.isEmpty {
+                if store.forYouLoading || store.forYouLoadedAt == nil {
+                    LazyVGrid(columns: columns, spacing: 12) {
+                        ForEach(0..<4, id: \.self) { _ in
+                            RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Theme.glass).frame(height: 230)
+                        }
+                    }
+                } else {
+                    starter
+                }
+            } else {
+                LazyVGrid(columns: columns, spacing: 12) {
+                    ForEach(picks) { p in
+                        if let item = Catalog.item(p.id) { card(p, item) }
+                    }
+                }
+                if picks.count >= limit - 2 && limit < 60 {
+                    Button {
+                        limit = min(60, limit + 24)
+                        Task { await store.loadForYou(limit: limit) }
+                    } label: { Text("Show more").frame(maxWidth: .infinity) }
+                    .buttonStyle(GhostButton())
+                }
+            }
+        }
+        .task {
+            if store.forYouLoadedAt == nil || store.forYouLoadedAt! < .now.addingTimeInterval(-600) || store.forYou.isEmpty {
+                await store.loadForYou(limit: limit)
+            }
+        }
+        .onChange(of: store.state.accountID) { Task { await store.loadForYou(limit: limit) } }
+    }
+
+    private var columns: [GridItem] { [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)] }
+
+    /// What the ranking has learned, strongest first. Tap to see and edit everything Baget knows.
+    private var tasteStrip: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                ForEach(store.tasteTop) { t in
+                    Button { router.sheet = .taste } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: t.likes ? "heart.fill" : "xmark").font(.system(size: 9, weight: .bold))
+                            Text(t.label).font(.caption.weight(.medium)).lineLimit(1)
+                        }
+                        .foregroundStyle(t.likes ? Theme.green : Theme.hot)
+                        .padding(.horizontal, 9).padding(.vertical, 5)
+                        .background(Capsule().fill((t.likes ? Theme.green : Theme.hot).opacity(0.13)))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .accessibilityLabel("What Baget has learned about your taste")
+    }
+
+    private func card(_ p: ForYouItem, _ item: Item) -> some View {
+        let known = item.priceKnown && item.price > 0
+        return VStack(alignment: .leading, spacing: 6) {
+            Button { open(p, item) } label: {
+                Plate(item: item, label: item.brand.isEmpty ? item.category.info.label : item.brand, height: 150)
+            }
+            .buttonStyle(.plain)
+            Text(item.title).font(.footnote.weight(.semibold)).foregroundStyle(Theme.ink)
+                .lineLimit(2).multilineTextAlignment(.leading).frame(maxWidth: .infinity, minHeight: 34, alignment: .topLeading)
+            Text([known ? Fmt.money(item.price) : nil, item.source].compactMap { $0 }.joined(separator: " · "))
+                .font(.caption2).foregroundStyle(Theme.muted).lineLimit(1)
+            HStack(spacing: 4) {
+                Image(systemName: p.kind == "explore" ? "sparkles" : p.kind == "yours" ? "tray.full" : "wand.and.stars")
+                    .font(.system(size: 9, weight: .bold))
+                Text(p.reason).lineLimit(1)
+            }
+            .font(.caption2.weight(.medium))
+            .foregroundStyle(p.kind == "explore" ? Theme.cyan : Theme.green)
+            HStack(spacing: 8) {
+                Button { withAnimation(.snappy) { store.reactForYou(p, .dismiss) }; router.say("Got it, fewer like this") } label: {
+                    Image(systemName: "xmark").font(.footnote.weight(.bold)).foregroundStyle(Theme.muted)
+                        .frame(maxWidth: .infinity).frame(height: 34)
+                        .background(Theme.glass, in: Capsule())
+                        .overlay(Capsule().strokeBorder(Theme.line))
+                }
+                .accessibilityLabel("Not for me")
+                Button {
+                    withAnimation(.snappy) { store.reactForYou(p, .like) }
+                    router.say(store.state.agents.isEmpty ? "Liked. Baget will show more like this" : "Saved to Finds. More like this coming")
+                } label: {
+                    Image(systemName: "heart.fill").font(.footnote.weight(.bold)).foregroundStyle(Theme.accentInk)
+                        .frame(maxWidth: .infinity).frame(height: 34)
+                        .background(Theme.gradient, in: Capsule())
+                }
+                .accessibilityLabel("Like")
+            }
+            .buttonStyle(.plain)
+        }
+        .contextMenu {
+            Button { store.reactForYou(p, .like) } label: { Label("Like", systemImage: "heart") }
+            if BuyLink.url(item) != nil { Button { open(p, item) } label: { Label("Open at \(item.source)", systemImage: "arrow.up.right") } }
+            Button(role: .destructive) { store.reactForYou(p, .dismiss) } label: { Label("Not for me", systemImage: "xmark") }
+        }
+    }
+
+    private func open(_ p: ForYouItem, _ item: Item) {
+        if let fid = p.findID { router.focusFind = fid; router.tab = .finds; return }
+        guard let url = BuyLink.url(item) else { router.say("No store page for this one yet"); return }
+        store.reactForYou(p, .open)
+        openURL(url)
+    }
+
+    /// Only when Baget has nothing at all to show yet (a brand-new account before any agent has searched).
+    private var starter: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Tell Baget what you're into and this fills up with picks for you.")
+                .font(.subheadline).foregroundStyle(Theme.ink)
+            FlowRow {
+                ForEach([Category.sneakers, .fragrance, .watches, .apparel, .furniture, .cars], id: \.self) { c in
+                    Button { router.deployPrefill = .category(c); router.sheet = .deploy } label: { Tag(text: c.info.label, tint: Theme.accent) }
+                        .buttonStyle(.plain)
+                }
+            }
+        }
+        .glassCard()
+    }
+}
+
 /// "What are you hunting?" Type or dictate one sentence; an agent is created and starts searching.
 struct HuntBox: View {
     @Environment(AppStore.self) private var store
@@ -189,6 +333,7 @@ struct HuntBox: View {
 extension AppStore {
     /// Pull to refresh: re-sync (signed in) or run a sample sweep.
     func refreshNow(router: Router) async {
+        defer { Task { await loadForYou() } }
         if isCloud {
             await pull()
         } else {

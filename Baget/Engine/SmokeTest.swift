@@ -46,6 +46,11 @@ enum SmokeTest {
             _ = store.sweep(quiet: true)
             store.setOff(a.id, false)
         }
+        // For You: load, like one, dismiss one, fall back to your own finds.
+        await store.loadForYou()
+        if let p = store.forYou.first { store.reactForYou(p, .like) }
+        if let p = store.forYou.first { store.reactForYou(p, .dismiss) }
+        _ = store.ownFindsFeed(limit: 4)
         let priced = Item(id: "smoke-priced", title: "Smoke Test Sneaker", brand: "Smoke Lab", category: .sneakers, sku: "", price: 200, market: 260,
                       source: "Smoke Store", dropOffset: 0, soldOutAtStart: false, creator: nil, traits: [], tags: [], shoeSizes: nil, topSizes: nil,
                       url: "https://example.com/s", priceKnown: true, isSample: false,

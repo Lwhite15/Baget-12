@@ -39,9 +39,13 @@ jobs:
           set -o pipefail
           psql -q -v ON_ERROR_STOP=1 -f supabase/tests/supabase_stub.sql
           for f in $(ls supabase/migrations/*.sql | sort); do psql -q -v ON_ERROR_STOP=1 -f "$f"; done
-          psql -q -t -v ON_ERROR_STOP=1 -f supabase/tests/security_test.sql 2>&1 | tee db-tests.txt | grep -E "PASS|FAIL" || true
-          if grep -q "FAIL" db-tests.txt; then echo "Database tests failed"; exit 1; fi
-          echo "$(grep -c PASS db-tests.txt) database checks passed"
+          status=0
+          psql -q -t -v ON_ERROR_STOP=1 -f supabase/tests/security_test.sql > db-tests.txt 2>&1 || status=$?
+          grep -E "PASS|FAIL" db-tests.txt || true
+          # A SQL error stops the file early: report it, don't pass quietly.
+          if [ "$status" -ne 0 ]; then grep -E "ERROR" db-tests.txt | head -5 | sed 's/^/::error::/'; echo "::error::Database tests stopped early (psql exit $status)"; exit 1; fi
+          if grep -q "FAIL" db-tests.txt; then grep "FAIL" db-tests.txt | head -10 | sed 's/^.*FAIL/::error::FAIL/'; exit 1; fi
+          echo "::notice::$(grep -c PASS db-tests.txt) database checks passed"
       - name: Edge function tests
         run: node --experimental-strip-types --no-warnings supabase/tests/functions.test.ts
 

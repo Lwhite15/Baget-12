@@ -33,6 +33,13 @@ final class AppStore {
     var syncProblem: String?
     /// The agent whose chat is waiting on a reply.
     var chatBusy: String?
+    /// The Today screen's personal feed, best first, and the strongest taste signals behind it.
+    var forYou: [ForYouItem] = []
+    var tasteTop: [TasteFeature] = []
+    var forYouLoading = false
+    var forYouLoadedAt: Date?
+    /// Sample-mode "not for me" picks (signed in, the server remembers them).
+    var forYouDismissed: Set<String> = []
     /// Owner accounts see the Stats screen (the server decides; the screen's data is admin-only too).
     var isAdmin = false
     /// Bumped when a taste photo finishes downloading, so boards redraw.
