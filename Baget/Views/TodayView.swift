@@ -1,40 +1,57 @@
 import SwiftUI
 
-/// The home screen: say what you want, see today's best picks, swipe the rest, then browse the feed.
+/// The home screen. It always has something for you: picks ranked by a taste model that learns from every
+/// like, pass, buy, watch and tap, whether or not your squad has new finds right now.
 struct TodayView: View {
     @Environment(AppStore.self) private var store
     @Environment(Router.self) private var router
 
     var body: some View {
-        let picks = store.todaysPicks()
+        let feed = store.forYouFeed()
         let queue = store.swipeQueue.count
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                greeting
-                HuntBox()
+            VStack(alignment: .leading, spacing: 22) {
+                greeting(feed)
+                if let hero = feed.hero { HeroPick(pick: hero) }
                 if queue > 0 { swipeCard(queue) }
-                if !picks.isEmpty { todaysDrop(picks) }
+                if !feed.picks.isEmpty { pickedForYou(feed.picks) }
+                if feed.learning { learningCard(feed.signals) }
+                ForEach(feed.shelves) { shelf in
+                    PickShelf(title: shelf.title, picks: shelf.picks)
+                }
+                if !feed.radar.isEmpty { PickShelf(title: "On your radar", picks: feed.radar) }
+                HuntBox()
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("MORE FOR YOU").font(.caption.weight(.bold)).tracking(1).foregroundStyle(Theme.muted)
+                    Text("MORE FROM THE WEB").font(.caption.weight(.bold)).tracking(1).foregroundStyle(Theme.muted)
                     LiveFeed()
                 }
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 24)
+            .animation(.snappy, value: feed.hero?.id)
+            .animation(.snappy, value: feed.picks.map(\.id))
         }
         .scrollIndicators(.hidden)
         .refreshable { await store.refreshNow(router: router) }
-        .onAppear { Analytics.track(.todayViewed, ["picks": picks.count, "toSwipe": queue]) }
+        .onAppear {
+            store.bootstrapTasteIfNeeded()
+            let f = store.forYouFeed()
+            let ids = ([f.hero].compactMap { $0 } + f.picks + f.shelves.flatMap(\.picks)).map(\.id)
+            store.noteTodayShown(ids)
+            Analytics.track(.todayViewed, ["picks": ids.count, "toSwipe": queue, "signals": f.signals, "learning": f.learning])
+        }
     }
 
-    private var greeting: some View {
+    private func greeting(_ feed: ForYouFeed) -> some View {
         let h = Calendar.current.component(.hour, from: .now)
         let hello = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening"
         let name = store.state.profile?.displayName.split(separator: " ").first.map(String.init)
+        let agents = store.state.agents.count
+        let sub = agents == 0 ? "Picked for your taste" : "\(agents) agent\(agents == 1 ? "" : "s") hunting for you"
         return VStack(alignment: .leading, spacing: 3) {
             Text(name.map { "\(hello), \($0)" } ?? hello)
                 .font(.system(size: 28, weight: .heavy)).tracking(-0.6).foregroundStyle(Theme.ink)
-            Text("\(store.state.agents.count) agent\(store.state.agents.count == 1 ? "" : "s") hunting for you · \(Date.now.formatted(.dateTime.weekday(.wide).month().day()))")
+            Text("\(sub) · \(Date.now.formatted(.dateTime.weekday(.wide).month().day()))")
                 .font(.footnote).foregroundStyle(Theme.muted)
         }
         .padding(.top, 4)
@@ -57,7 +74,7 @@ struct TodayView: View {
                 .frame(width: 50)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Swipe through \(n) new find\(n == 1 ? "" : "s")").font(.headline).foregroundStyle(Theme.ink)
-                    Text("Right to like, left to pass, up to buy. Every swipe teaches your squad.")
+                    Text("Right to like, left to pass, up to buy. Every swipe sharpens Today.")
                         .font(.caption).foregroundStyle(Theme.muted).multilineTextAlignment(.leading)
                 }
                 Spacer(minLength: 0)
@@ -70,43 +87,208 @@ struct TodayView: View {
         .buttonStyle(.plain)
     }
 
-    private func todaysDrop(_ picks: [Find]) -> some View {
+    private func pickedForYou(_ picks: [ForYouPick]) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
-                Text("Today's Drop").font(.title3.weight(.heavy)).foregroundStyle(Theme.ink)
+                Text("Picked for you").font(.title3.weight(.heavy)).foregroundStyle(Theme.ink)
                 Spacer()
-                Button("See all") { router.tab = .finds }.font(.footnote.weight(.semibold)).foregroundStyle(Theme.accent)
+                Button("All finds") { router.tab = .finds }.font(.footnote.weight(.semibold)).foregroundStyle(Theme.accent)
             }
-            Text("Your squad's best \(picks.count) right now.").font(.caption).foregroundStyle(Theme.muted)
+            Text("Ranked by what you like. Changes as you do.").font(.caption).foregroundStyle(Theme.muted)
             VStack(spacing: 8) {
-                ForEach(Array(picks.enumerated()), id: \.element.id) { i, f in
-                    if let item = Catalog.item(f.itemID) { pickRow(i + 1, f, item) }
-                }
+                ForEach(picks) { PickRow(pick: $0) }
             }
         }
     }
 
-    private func pickRow(_ rank: Int, _ f: Find, _ item: Item) -> some View {
-        Button { router.focusFind = f.id; router.tab = .finds } label: {
-            HStack(alignment: .top, spacing: 12) {
-                Text("\(rank)").font(.system(size: 20, weight: .heavy)).gradientText().frame(width: 18)
-                ProductThumb(item: item, size: 60)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(item.title).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink).lineLimit(2).multilineTextAlignment(.leading)
-                    HStack(spacing: 6) {
-                        if let v = DealVerdict.of(item) { VerdictChip(verdict: v) }
-                        Text([item.source, item.priceKnown && item.price > 0 ? Fmt.money(item.price) : nil].compactMap { $0 }.joined(separator: " · "))
-                            .font(.caption).foregroundStyle(Theme.muted).lineLimit(1)
-                    }
-                    if let why = f.why.first { Text(why).font(.caption).foregroundStyle(Theme.green.opacity(0.9)).lineLimit(1) }
-                }
-                Spacer(minLength: 0)
+    private func learningCard(_ signals: Int) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "brain.head.profile").font(.title3).foregroundStyle(Theme.cyan)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Still learning your taste").font(.subheadline.weight(.bold)).foregroundStyle(Theme.ink)
+                Text("Tap ♥ or ✕ on a few picks. Each one teaches Baget what to put here tomorrow.")
+                    .font(.caption).foregroundStyle(Theme.muted)
+                ProgressView(value: Double(min(signals, 6)), total: 6).tint(Theme.cyan)
             }
-            .padding(10)
-            .background(Theme.glass, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.line))
+        }
+        .glassCard()
+    }
+}
+
+// MARK: - Pick views
+
+/// Like and pass buttons for a pick. Pass asks why, like everywhere else in the app.
+struct PickActions: View {
+    @Environment(AppStore.self) private var store
+    @Environment(Router.self) private var router
+    let pick: ForYouPick
+    var compact = false
+    @State private var askingWhy = false
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Button { askingWhy = true } label: {
+                Image(systemName: "xmark").font(.subheadline.weight(.bold)).foregroundStyle(Theme.muted)
+                    .frame(width: compact ? 30 : 38, height: compact ? 30 : 38)
+                    .background(Theme.glass, in: Circle()).overlay(Circle().strokeBorder(Theme.line))
+            }
+            .accessibilityLabel("Pass")
+            Button {
+                withAnimation(.snappy) { store.forYouLike(pick.item) }
+                router.say("Liked. Today will lean into that")
+            } label: {
+                Image(systemName: "heart.fill").font(.subheadline.weight(.bold)).foregroundStyle(Theme.accentInk)
+                    .frame(width: compact ? 30 : 38, height: compact ? 30 : 38)
+                    .background(Theme.gradient, in: Circle())
+            }
+            .accessibilityLabel("Like")
         }
         .buttonStyle(.plain)
+        .confirmationDialog("What was off? Baget will learn from it.", isPresented: $askingWhy, titleVisibility: .visible) {
+            ForEach(AppStore.PassReason.allCases) { r in
+                Button(r.rawValue) {
+                    withAnimation(.snappy) { store.forYouPass(pick.item, reason: r) }
+                    router.say(r == .later ? "Passed" : "Passed. Learning from that")
+                }
+            }
+        }
+    }
+}
+
+private struct PickMeta: View {
+    let pick: ForYouPick
+
+    /// Store and price. An example's price is illustrative, so it isn't shown.
+    private var line: String {
+        let item = pick.item
+        var parts = [item.source]
+        if !pick.isExample && item.priceKnown && item.price > 0 { parts.append(Fmt.money(item.price)) }
+        return parts.joined(separator: " · ")
+    }
+
+    var body: some View {
+        let item = pick.item
+        HStack(spacing: 6) {
+            if pick.isExample {
+                Text("EXAMPLE").font(.system(size: 9, weight: .heavy)).tracking(0.6).foregroundStyle(Theme.warn)
+                    .padding(.horizontal, 6).padding(.vertical, 2).background(Theme.warn.opacity(0.14), in: Capsule())
+            } else if let v = DealVerdict.of(item) {
+                VerdictChip(verdict: v)
+            }
+            Text(line).font(.caption).foregroundStyle(Theme.muted).lineLimit(1)
+        }
+    }
+}
+
+private struct ReasonLine: View {
+    let pick: ForYouPick
+    var body: some View {
+        Label(pick.reason, systemImage: pick.isExplore ? "safari" : "sparkles")
+            .font(.caption).foregroundStyle(pick.isExplore ? Theme.cyan : Theme.green.opacity(0.9)).lineLimit(1)
+    }
+}
+
+/// The top pick, big.
+struct HeroPick: View {
+    @Environment(AppStore.self) private var store
+    @Environment(Router.self) private var router
+    let pick: ForYouPick
+
+    private var availability: String {
+        if store.isSoldOut(pick.item) { return "Sold out · restocks get watched" }
+        if store.dropDate(pick.item) > .now { return "Drops \(store.whenText(pick.item))" }
+        return "Available now"
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("YOUR TOP PICK TODAY").font(.caption.weight(.heavy)).tracking(1).gradientText()
+                Spacer()
+                Text(pick.item.category.info.label).font(.caption2.weight(.semibold)).foregroundStyle(Theme.muted)
+            }
+            Button { store.forYouOpen(pick.item, router: router) } label: {
+                HStack(alignment: .top, spacing: 14) {
+                    ProductThumb(item: pick.item, size: 128)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(pick.item.title).font(.headline).foregroundStyle(Theme.ink).lineLimit(3).multilineTextAlignment(.leading)
+                        Text(pick.item.brand).font(.subheadline).foregroundStyle(Theme.muted).lineLimit(1)
+                        PickMeta(pick: pick)
+                        Text(availability).font(.caption2).foregroundStyle(Theme.muted).lineLimit(1)
+                    }
+                    Spacer(minLength: 0)
+                }
+            }
+            .buttonStyle(.plain)
+            HStack {
+                ReasonLine(pick: pick)
+                Spacer(minLength: 8)
+                PickActions(pick: pick)
+            }
+        }
+        .glassCard(highlighted: true)
+        .transition(.asymmetric(insertion: .opacity, removal: .opacity.combined(with: .scale(scale: 0.96))))
+    }
+}
+
+struct PickRow: View {
+    @Environment(AppStore.self) private var store
+    @Environment(Router.self) private var router
+    let pick: ForYouPick
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            Button { store.forYouOpen(pick.item, router: router) } label: {
+                HStack(alignment: .top, spacing: 12) {
+                    ProductThumb(item: pick.item, size: 64)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(pick.item.title).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
+                            .lineLimit(2).multilineTextAlignment(.leading)
+                        PickMeta(pick: pick)
+                        ReasonLine(pick: pick)
+                    }
+                    Spacer(minLength: 0)
+                }
+            }
+            .buttonStyle(.plain)
+            PickActions(pick: pick, compact: true)
+        }
+        .padding(10)
+        .background(Theme.glass, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.line))
+        .transition(.opacity.combined(with: .move(edge: .leading)))
+    }
+}
+
+/// A horizontal row of picks under one heading ("Because you like suede", "On your radar").
+struct PickShelf: View {
+    @Environment(AppStore.self) private var store
+    @Environment(Router.self) private var router
+    let title: String
+    let picks: [ForYouPick]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title).font(.title3.weight(.heavy)).foregroundStyle(Theme.ink).lineLimit(1)
+            ScrollView(.horizontal) {
+                HStack(alignment: .top, spacing: 12) {
+                    ForEach(picks) { p in
+                        Button { store.forYouOpen(p.item, router: router) } label: {
+                            VStack(alignment: .leading, spacing: 6) {
+                                ProductThumb(item: p.item, size: 132)
+                                Text(p.item.title).font(.caption.weight(.semibold)).foregroundStyle(Theme.ink)
+                                    .lineLimit(2).multilineTextAlignment(.leading)
+                                    .frame(width: 132, alignment: .leading)
+                                Text(p.isExample ? "Example" : p.reason).font(.caption2).foregroundStyle(Theme.muted)
+                                    .lineLimit(1).frame(width: 132, alignment: .leading)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .scrollIndicators(.hidden)
+        }
     }
 }
 

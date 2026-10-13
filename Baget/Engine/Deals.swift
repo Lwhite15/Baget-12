@@ -139,6 +139,7 @@ extension AppStore {
         if item.priceKnown && item.price > 0 { patch["watch_price"] = item.price }
         push { api in try await api.update("finds", "id=eq.\(findID)", patch) }
         learn(state.finds[fi].agentID, from: item, delta: 1)
+        state.taste.observe(item, .watch)
         Analytics.track(.findWatched, ["category": item.category.rawValue])
         save()
     }

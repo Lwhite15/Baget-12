@@ -479,6 +479,8 @@ struct AppState: Codable {
     /// The person chose to look around with sample data instead of signing in.
     var exploringSamples = false
     var avatar = Avatar()
+    /// What you like across the whole squad; ranks the Today screen.
+    var taste = TasteModel()
 
     init() {}
 
@@ -508,6 +510,7 @@ struct AppState: Codable {
         lastSynced = try? c.decode(Date.self, forKey: .lastSynced)
         exploringSamples = (try? c.decode(Bool.self, forKey: .exploringSamples)) ?? false
         avatar = (try? c.decode(Avatar.self, forKey: .avatar)) ?? Avatar()
+        taste = (try? c.decode(TasteModel.self, forKey: .taste)) ?? TasteModel()
     }
 }
 

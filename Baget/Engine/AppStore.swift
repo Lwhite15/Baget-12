@@ -360,6 +360,7 @@ final class AppStore {
             try await api.insert("purchases", row)
         }
         learn(a.id, from: item, delta: 2)
+        state.taste.observe(item, .buy)
         save()
     }
 
@@ -369,6 +370,7 @@ final class AppStore {
         push { api in try await api.update("finds", "id=eq.\(findID)", ["watching": true]) }
         log("\(agent(state.finds[fi].agentID)?.name ?? "Agent") is watching \(item.title)")
         learn(state.finds[fi].agentID, from: item, delta: 1)
+        state.taste.observe(item, .watch)
         save()
     }
 
@@ -385,6 +387,7 @@ final class AppStore {
         push { api in try await api.update("finds", "id=eq.\(findID)", patch) }
         log("You liked \(item.title)")
         learn(state.finds[fi].agentID, from: item, delta: 2)
+        state.taste.observe(item, .like)
         Analytics.track(.findLiked, ["category": item.category.rawValue, "score": state.finds[fi].score, "watching": watchIt])
         save()
     }
@@ -395,6 +398,7 @@ final class AppStore {
         state.finds[fi].status = .open
         push { api in try await api.update("finds", "id=eq.\(findID)", ["status": "open"]) }
         learn(state.finds[fi].agentID, from: item, delta: -2)
+        state.taste.observe(item, .unlike)
         Analytics.track(.findUnliked, ["category": item.category.rawValue])
         save()
     }
@@ -406,7 +410,11 @@ final class AppStore {
 
     func pass(_ findID: String, reason: PassReason) {
         guard let fi = state.finds.firstIndex(where: { $0.id == findID }), let item = Catalog.item(state.finds[fi].itemID) else { return }
-        if state.finds[fi].status == .liked { learn(state.finds[fi].agentID, from: item, delta: -2) }
+        if state.finds[fi].status == .liked {
+            learn(state.finds[fi].agentID, from: item, delta: -2)
+            state.taste.observe(item, .unlike)
+        }
+        state.taste.observe(item, Self.signal(for: reason))
         state.finds[fi].status = .passed
         state.finds[fi].passReason = reason.rawValue.lowercased()
         let reasonText = reason.rawValue.lowercased()

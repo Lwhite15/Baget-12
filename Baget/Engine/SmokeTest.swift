@@ -52,6 +52,20 @@ enum SmokeTest {
                       offers: [Offer(store: "Other Store", price: 180)], lowPrice: 180, lowStore: "Other Store")
         Catalog.cloud[priced.id] = priced
         _ = DealVerdict.of(priced)
+        // Today's taste-ranked feed: it must never be empty, and like / pass / open must teach it.
+        store.bootstrapTasteIfNeeded()
+        let feed = store.forYouFeed()
+        if feed.hero == nil { print("BAGET SMOKE FAIL: Today has no picks"); return }
+        if let h = feed.hero { store.forYouLike(h.item) }
+        if let p = feed.picks.first { store.forYouPass(p.item, reason: .style) }
+        if let p = feed.picks.dropFirst().first { store.forYouPass(p.item, reason: .price) }
+        store.noteTodayShown(feed.picks.map(\.id))
+        if store.forYouFeed().hero == nil { print("BAGET SMOKE FAIL: Today emptied after learning"); return }
+        // Even with no finds at all, Today still shows picks.
+        let savedFinds = store.state.finds
+        store.state.finds = []
+        if store.forYouFeed().hero == nil { print("BAGET SMOKE FAIL: Today empty with no finds"); return }
+        store.state.finds = savedFinds
         let pause: UInt64 = 1_500_000_000
         // Tap a Live item: it opens in Finds.
         if let story = store.stories().first { router.openInFinds(story, store: store); try? await Task.sleep(nanoseconds: 1_500_000_000) }
