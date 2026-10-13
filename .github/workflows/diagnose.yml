@@ -82,6 +82,8 @@ jobs:
                   -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" \
                   -d "$(jq -n --arg q "$1" '{query:$q}')"; }
           q "select count(*) total, count(image_url) with_photo, count(image_checked_at) checked from public.listings" | jq -c . | sed 's/^/::notice::counts /'
+          # For You, as each admin sees it: counts by kind only (no titles).
+          q "begin; select set_config('request.jwt.claim.sub', (select user_id::text from public.app_admins limit 1), true); set local role authenticated; select x ->> 'kind' as kind, count(*) as n from public.for_you(24) x group by 1; " | jq -c . | sed 's/^/::notice::for you /'
           q "select left(title,60) t, source, url, image_url, image_checked_at is not null checked from public.listings order by last_seen_at desc limit 9" > listings.json
           jq -r '.[] | "::notice::\(.checked) | \(.t) | \(.source) | \(.url) | photo=\(.image_url)"' listings.json
           jq -r '.[].url' listings.json > urls.txt
