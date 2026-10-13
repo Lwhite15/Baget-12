@@ -215,6 +215,28 @@ select t.ok((public.admin_stats() -> 'claude' ->> 'cache_saved_week')::numeric >
 select t.ok(jsonb_array_length(public.admin_stats() -> 'daily') = 14, 'two weeks of daily numbers');
 reset role;
 
+-- For You: always something, ranked by taste, learns from reactions
+insert into public.listings (fingerprint, title, brand, category, url, image_url, traits) values
+  ('fy|jordan', 'Air Jordan 1 Low Mocha', 'Jordan', 'sneakers', 'https://nike.com/p/1', 'https://img.example/1.jpg', '{suede}'),
+  ('fy|lamp', 'Arc Floor Lamp', 'Hay', 'furniture', 'https://hay.com/p/2', 'https://img.example/2.jpg', '{brass}'),
+  ('fy|nophoto', 'Jordan 4 Mystery', 'Jordan', 'sneakers', 'https://nike.com/p/3', null, '{suede}');
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
+select t.ok(t.n('select * from public.for_you(10)') >= 2, 'For You has picks');
+select t.ok((select x ->> 'kind' = 'match' and x -> 'listing' ->> 'title' = 'Air Jordan 1 Low Mocha' from public.for_you(10) x limit 1), 'the best taste match comes first');
+select t.ok(not exists (select 1 from public.for_you(10) x where x -> 'listing' ->> 'title' = 'Jordan 4 Mystery'), 'no photo, not shown');
+select t.ok(exists (select 1 from public.for_you(10) x where x -> 'listing' ->> 'title' = 'Arc Floor Lamp' and x ->> 'kind' = 'explore'), 'something new to try is mixed in');
+select t.ok(jsonb_array_length(public.taste_top(8)) > 0, 'taste profile is readable by its owner');
+insert into public.feed_reactions (listing_id, action) select id, 'dismiss' from public.listings where fingerprint = 'fy|lamp';
+select t.ok(not exists (select 1 from public.for_you(10) x where x -> 'listing' ->> 'title' = 'Arc Floor Lamp'), '"not for me" removes it');
+select t.ok(exists (select 1 from jsonb_array_elements(public.taste_top(20)) e where e ->> 'feature' = 'b:hay' and (e ->> 'weight')::numeric < 0), 'and teaches a dislike');
+select t.err($$insert into public.feed_reactions (user_id, listing_id, action) select 'bbbbbbbb-0000-0000-0000-000000000002', id, 'like' from public.listings limit 1$$, 'cannot react for someone else');
+select t.err($$select * from public.taste_features('bbbbbbbb-0000-0000-0000-000000000002')$$, 'cannot read anyone''s raw taste');
+select set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-0000-0000-000000000002', false);
+select t.ok(t.n('select * from public.feed_reactions') = 0, 'reactions are private');
+select t.ok(t.n('select * from public.for_you(10)') >= 1, 'a brand-new user still gets a feed');
+reset role;
+
 -- morning release and account deletion
 set role service_role;
 select t.ok(t.n('select * from public.release_held_notes()') >= 0, 'release runs');
