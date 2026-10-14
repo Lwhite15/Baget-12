@@ -11,6 +11,7 @@ struct TodayView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 greeting
+                if store.isCloud && !store.state.agents.isEmpty && store.state.finds.isEmpty { firstHuntCard }
                 if queue > 0 { swipeCard(queue) }
                 if !picks.isEmpty { todaysDrop(picks) }
                 ForYouSection()
@@ -39,6 +40,24 @@ struct TodayView: View {
                 .font(.footnote).foregroundStyle(Theme.muted)
         }
         .padding(.top, 4)
+    }
+
+    /// Until the first finds land: who's out hunting, so a new account never looks idle.
+    private var firstHuntCard: some View {
+        HStack(spacing: 12) {
+            HStack(spacing: -8) {
+                ForEach(store.state.agents.prefix(4)) { a in AgentAvatarView(agent: a, size: 30).overlay(Circle().strokeBorder(Theme.bg, lineWidth: 2)) }
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Your squad's first hunt is on").font(.subheadline.weight(.bold)).foregroundStyle(Theme.ink)
+                Text("Finds usually land within a few minutes. Pull down to check.").font(.caption).foregroundStyle(Theme.muted)
+            }
+            Spacer(minLength: 0)
+            ProgressView().tint(Theme.cyan)
+        }
+        .padding(12)
+        .background(Theme.green.opacity(0.08), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.green.opacity(0.3)))
     }
 
     private func swipeCard(_ n: Int) -> some View {
@@ -233,7 +252,7 @@ struct ForYouSection: View {
 
     private func open(_ p: ForYouItem, _ item: Item) {
         if let fid = p.findID { router.focusFind = fid; router.tab = .finds; return }
-        guard let url = BuyLink.url(item) else { router.say("No store page for this one yet"); return }
+        guard let url = BuyLink.tracked(item, from: "for_you") else { router.say("No store page for this one yet"); return }
         store.reactForYou(p, .open)
         openURL(url)
     }

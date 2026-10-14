@@ -88,18 +88,30 @@ struct OnboardingView: View {
     @State private var photos: [UIImage] = []
     @State private var working = false
     @State private var made = 0
+    // Taste check
+    @State private var quiz: [Item] = []
+    @State private var quizIndex = 0
+    @State private var quizLoading = false
+    @State private var liked: [String] = []
+    @State private var passed: [String] = []
+    // First hunt
+    @State private var pushOn = false
+    @State private var watching = false
+
+    private let steps = 4
 
     var body: some View {
         ZStack {
             LitBackground()
             VStack(alignment: .leading, spacing: 18) {
                 HStack {
-                    ForEach(0..<3) { i in Capsule().fill(i <= step ? AnyShapeStyle(Theme.gradient) : AnyShapeStyle(Theme.glass)).frame(height: 4) }
+                    ForEach(0..<steps, id: \.self) { i in Capsule().fill(i <= step ? AnyShapeStyle(Theme.gradient) : AnyShapeStyle(Theme.glass)).frame(height: 4) }
                 }
                 switch step {
                 case 0: interests
-                case 1: photoStep
-                default: finished
+                case 1: tasteCheck
+                case 2: photoStep
+                default: firstHunt
                 }
             }
             .padding(24)
@@ -116,10 +128,12 @@ struct OnboardingView: View {
         }
     }
 
+    // MARK: 1. Interests
+
     private var interests: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("What are you into?").font(.system(size: 30, weight: .heavy)).foregroundStyle(Theme.ink)
-            Text("Pick a few. You'll get an agent for each.").font(.subheadline).foregroundStyle(Theme.muted)
+            Text("Pick a few. You'll get a personal scout for each, hunting drops, restocks and deals.").font(.subheadline).foregroundStyle(Theme.muted)
             FlowRow {
                 ForEach(Category.allCases.filter { $0 != .other }) { c in
                     Button {
@@ -128,23 +142,96 @@ struct OnboardingView: View {
                         .buttonStyle(.plain)
                 }
             }
-            TextField("Anything specific? e.g. oud like Frederic Malle, size 10.5", text: $text, axis: .vertical)
+            TextField("Anything specific? e.g. Jordan 1s in mocha, size 10.5", text: $text, axis: .vertical)
                 .lineLimit(1...3)
                 .padding(12)
                 .background(Theme.bg.opacity(0.6), in: RoundedRectangle(cornerRadius: 14))
                 .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Theme.line))
             Spacer()
-            Button("Next") { withAnimation { step = 1 } }
+            Button("Next") { startQuiz() }
                 .buttonStyle(PrimaryButton())
                 .disabled(picked.isEmpty && text.trimmingCharacters(in: .whitespaces).isEmpty)
             Button("Skip setup") { finish() }.font(.footnote).foregroundStyle(Theme.muted).frame(maxWidth: .infinity)
         }
     }
 
+    // MARK: 2. Quick taste check
+
+    private func startQuiz() {
+        withAnimation { step = 1 }
+        quizLoading = true
+        Task { @MainActor in
+            quiz = await store.tasteQuiz(Array(picked))
+            quizIndex = 0
+            quizLoading = false
+            if quiz.isEmpty { withAnimation { step = 2 } }   // nothing to rate yet: go straight on
+        }
+    }
+
+    private var tasteCheck: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Quick taste check").font(.system(size: 30, weight: .heavy)).foregroundStyle(Theme.ink)
+            Text("Heart what you'd wear or buy, ✕ what you wouldn't. Your scouts start from your answers.")
+                .font(.subheadline).foregroundStyle(Theme.muted)
+            if quizLoading {
+                HStack { Spacer(); ProgressView().tint(Theme.cyan); Spacer() }.frame(maxHeight: .infinity)
+            } else if quizIndex < quiz.count {
+                let item = quiz[quizIndex]
+                VStack(alignment: .leading, spacing: 8) {
+                    Plate(item: item, label: item.brand.isEmpty ? item.category.info.label : item.brand, height: 300, lead: true)
+                        .id(item.id)
+                        .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity), removal: .opacity))
+                    Text(item.title).font(.headline).foregroundStyle(Theme.ink).lineLimit(2)
+                    Text([item.priceKnown && item.price > 0 ? Fmt.money(item.price) : nil, item.source].compactMap { $0 }.joined(separator: " · "))
+                        .font(.caption).foregroundStyle(Theme.muted)
+                }
+                Spacer(minLength: 0)
+                HStack(spacing: 18) {
+                    Button { answer(item, liked: false) } label: {
+                        Image(systemName: "xmark").font(.title2.weight(.bold)).foregroundStyle(Theme.hot)
+                            .frame(maxWidth: .infinity).frame(height: 60)
+                            .background(Theme.glass, in: Capsule()).overlay(Capsule().strokeBorder(Theme.hot.opacity(0.5)))
+                    }
+                    .accessibilityLabel("Not for me")
+                    Button { answer(item, liked: true) } label: {
+                        Image(systemName: "heart.fill").font(.title2.weight(.bold)).foregroundStyle(Theme.accentInk)
+                            .frame(maxWidth: .infinity).frame(height: 60)
+                            .background(Theme.gradient, in: Capsule())
+                    }
+                    .accessibilityLabel("Love it")
+                }
+                .buttonStyle(.plain)
+                HStack {
+                    Text("\(quizIndex + 1) of \(quiz.count)").font(.caption.monospaced()).foregroundStyle(Theme.muted)
+                    Spacer()
+                    Button("Done") { withAnimation { step = 2 } }.font(.footnote.weight(.semibold)).foregroundStyle(Theme.accent)
+                }
+            } else {
+                Spacer()
+                Text(liked.isEmpty ? "Got it." : "Nice taste. \(liked.count) noted.").font(.title3.weight(.bold)).foregroundStyle(Theme.ink)
+                Spacer()
+                Button("Next") { withAnimation { step = 2 } }.buttonStyle(PrimaryButton())
+            }
+        }
+    }
+
+    private func answer(_ item: Item, liked like: Bool) {
+        store.rateInQuiz(item, liked: like)
+        let name = [item.brand, item.title.hasPrefix(item.brand) ? String(item.title.dropFirst(item.brand.count)).trimmingCharacters(in: .whitespaces) : item.title]
+            .filter { !$0.isEmpty }.joined(separator: " ")
+        if like { liked.append(name) } else { passed.append(name) }
+        withAnimation(.snappy) {
+            quizIndex += 1
+            if quizIndex >= quiz.count { step = 2 }
+        }
+    }
+
+    // MARK: 3. Photos (optional)
+
     private var photoStep: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Show me 3 things you love").font(.system(size: 30, weight: .heavy)).foregroundStyle(Theme.ink)
-            Text("Optional. Screenshots or photos of pieces you own or want. Your agents read your taste from them.")
+            Text("Optional. Screenshots or photos of pieces you own or want. Your scouts read your taste from them.")
                 .font(.subheadline).foregroundStyle(Theme.muted)
             HStack(spacing: 10) {
                 ForEach(0..<3) { i in
@@ -176,25 +263,84 @@ struct OnboardingView: View {
         }
     }
 
-    private var finished: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Your squad is hunting").font(.system(size: 30, weight: .heavy)).foregroundStyle(Theme.ink)
-            Text(made > 0 ? "\(made) agent\(made == 1 ? "" : "s") are searching the web for you right now. They'll text you when they find something, and Today fills up as they go."
-                          : "Tell Baget what you're hunting on Today and an agent starts right away.")
-                .font(.subheadline).foregroundStyle(Theme.muted)
-            FlowRow { ForEach(store.state.agents) { a in HStack(spacing: 6) { AgentAvatarView(agent: a, size: 24); Text(a.name).font(.caption.weight(.semibold)).foregroundStyle(Theme.ink) }.padding(6).background(Theme.glass, in: Capsule()) } }
-            Spacer()
-            Button("Let's go") { finish() }.buttonStyle(PrimaryButton())
-        }
-    }
-
     private func build() {
         working = true
         Task { @MainActor in
-            let ids = await store.onboard(categories: Array(picked), text: text.trimmingCharacters(in: .whitespacesAndNewlines), photos: photos)
+            let ids = await store.onboard(categories: Array(picked), text: text.trimmingCharacters(in: .whitespacesAndNewlines), photos: photos,
+                                          liked: liked, passed: passed)
             working = false
             made = ids.count
-            withAnimation { step = 2 }
+            pushOn = await store.pushAllowed
+            withAnimation { step = 3 }
+            Task { await store.loadForYou() }
+            watchFirstHunt()
+        }
+    }
+
+    // MARK: 4. The first hunt, live
+
+    private var firstHunt: some View {
+        let newest = store.state.finds.filter { $0.status == .open }.sorted { $0.foundAt > $1.foundAt }.prefix(3)
+        return VStack(alignment: .leading, spacing: 14) {
+            Text(newest.isEmpty ? "Your squad is hunting" : "First finds are in").font(.system(size: 30, weight: .heavy)).foregroundStyle(Theme.ink)
+            Text(made > 0 ? "They're searching stores, release calendars and resale sites for you right now. First finds usually land in a few minutes."
+                          : "Tell Baget what you're hunting on Today and a scout starts right away.")
+                .font(.subheadline).foregroundStyle(Theme.muted)
+            VStack(spacing: 8) {
+                ForEach(store.state.agents) { a in
+                    let n = store.state.finds.filter { $0.agentID == a.id }.count
+                    HStack(spacing: 10) {
+                        AgentAvatarView(agent: a, size: 32)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(a.name).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
+                            Text(n > 0 ? "Found \(n)" : "Searching…").font(.caption).foregroundStyle(n > 0 ? Theme.green : Theme.muted)
+                        }
+                        Spacer()
+                        if n > 0 { Image(systemName: "checkmark.circle.fill").foregroundStyle(Theme.green) }
+                        else { ProgressView().controlSize(.small).tint(Theme.cyan) }
+                    }
+                    .padding(10)
+                    .background(Theme.glass, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                }
+            }
+            if !newest.isEmpty {
+                HStack(spacing: 8) {
+                    ForEach(Array(newest)) { f in if let item = Catalog.item(f.itemID) { ProductThumb(item: item, size: 70) } }
+                }
+                .transition(.opacity.combined(with: .scale))
+            }
+            Spacer()
+            if store.isCloud && !pushOn {
+                Button {
+                    Task { @MainActor in
+                        await store.registerForPush()
+                        pushOn = await store.pushAllowed
+                    }
+                } label: { Label("Text me when they find something", systemImage: "bell.badge.fill") }
+                    .buttonStyle(PrimaryButton())
+                Text("Like a friend texting you a photo of the thing. You choose how often in Settings.")
+                    .font(.caption).foregroundStyle(Theme.muted).frame(maxWidth: .infinity)
+                Button(newest.isEmpty ? "Not now, show me Today" : "Not now, see my finds") { finish() }
+                    .font(.footnote).foregroundStyle(Theme.muted).frame(maxWidth: .infinity)
+            } else {
+                if pushOn { Label("Texts are on", systemImage: "checkmark.circle.fill").font(.footnote).foregroundStyle(Theme.green) }
+                Button(newest.isEmpty ? "Show me Today" : "See my finds") { finish() }.buttonStyle(PrimaryButton())
+            }
+        }
+    }
+
+    /// Checks for the first finds every few seconds while this screen is up (up to 3 minutes).
+    private func watchFirstHunt() {
+        guard store.isCloud, !watching else { return }
+        watching = true
+        Task { @MainActor in
+            for _ in 0..<22 {
+                try? await Task.sleep(for: .seconds(8))
+                guard step == 3, !onboarded else { break }
+                await store.pull()
+                if store.state.finds.contains(where: { $0.status == .open }) && store.state.agents.allSatisfy({ a in store.state.finds.contains { $0.agentID == a.id } }) { break }
+            }
+            watching = false
         }
     }
 

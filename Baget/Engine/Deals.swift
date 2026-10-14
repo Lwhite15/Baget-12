@@ -101,8 +101,8 @@ extension AppStore {
     }
 
     /// First-run setup: interests, an optional sentence and up to three photos -> a squad, already searching.
-    func onboard(categories: [Category], text: String, photos: [UIImage]) async -> [String] {
-        Analytics.track(.onboardingDone, ["categories": categories.count, "photos": photos.count, "text": !text.isEmpty])
+    func onboard(categories: [Category], text: String, photos: [UIImage], liked: [String] = [], passed: [String] = []) async -> [String] {
+        Analytics.track(.onboardingDone, ["categories": categories.count, "photos": photos.count, "text": !text.isEmpty, "rated": liked.count + passed.count])
         guard isCloud else {
             for c in categories {
                 deploy(Agent(id: UUID().uuidString.lowercased(), name: "\(c.info.label) Scout", mission: .category(c), keywords: [],
@@ -115,7 +115,8 @@ extension AppStore {
             return ["media_type": "image/jpeg", "data": jpg.base64EncodedString()]
         }
         do {
-            let r: OnboardReply = try await api.function("hunt", ["categories": categories.map(\.rawValue), "text": text, "images": images])
+            let r: OnboardReply = try await api.function("hunt", ["categories": categories.map(\.rawValue), "text": text, "images": images,
+                                                                   "liked": liked, "passed": passed])
             await pull()
             Task { @MainActor in _ = await self.cloudSweep() }
             return r.agents.map(\.agentId)
@@ -123,6 +124,25 @@ extension AppStore {
             syncProblem = (error as? LocalizedError)?.errorDescription ?? "Couldn't set up your squad. Try again."
             return []
         }
+    }
+
+    /// Setup's quick taste check: real products in the picked categories, one per brand, photos only.
+    func tasteQuiz(_ categories: [Category]) async -> [Item] {
+        guard isCloud else {
+            let cats = Set(categories)
+            var brands = Set<String>()
+            return Catalog.items.filter { (cats.isEmpty || cats.contains($0.category)) && brands.insert($0.brand).inserted }.prefix(10).map { $0 }
+        }
+        let rows: [ListingRow] = (try? await api.rpc("taste_quiz", ["p_categories": categories.map(\.rawValue), "p_limit": 10])) ?? []
+        for r in rows { Catalog.cloud[r.id] = r.item }
+        return rows.map(\.item)
+    }
+
+    /// Records a taste-check answer so For You is personal from the first minute.
+    func rateInQuiz(_ item: Item, liked: Bool) {
+        guard isCloud else { return }
+        let row: [String: Any] = ["listing_id": item.id, "action": liked ? "like" : "dismiss"]
+        push { api in try await api.raw("POST", "/rest/v1/feed_reactions", json: row, prefer: "return=minimal,resolution=ignore-duplicates") }
     }
 
     /// "Watch it for me": the agent re-prices it twice a day and texts on a drop, restock or release.

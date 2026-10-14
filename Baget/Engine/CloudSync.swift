@@ -543,6 +543,20 @@ extension AppStore {
 
     // MARK: Push registration
 
+    /// At launch: register if notifications were already allowed, or for accounts set up before setup asked about them.
+    func registerForPushIfAsked() async {
+        let status = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
+        if status == .notDetermined && !UserDefaults.standard.bool(forKey: "baget.onboarded") && state.agents.isEmpty { return }
+        await registerForPush()
+    }
+
+    var pushAllowed: Bool {
+        get async {
+            let s = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
+            return s == .authorized || s == .provisional
+        }
+    }
+
     func registerForPush() async {
         await Notifier.requestPermission()
         let settings = await UNUserNotificationCenter.current().notificationSettings()

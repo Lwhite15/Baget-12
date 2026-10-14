@@ -466,7 +466,7 @@ struct FindCard: View {
                 chip("arrow.up.right", "Buy") {
                     Analytics.track(.checkoutOpened, ["category": item.category.rawValue, "toStore": true, "from": "find"])
                     router.buyOpened = find.id
-                    openURL(link)
+                    openURL(BuyLink.tracked(item, from: "find") ?? link)
                 }
                 .accessibilityLabel("Buy at \(item.source)")
             }
@@ -522,6 +522,19 @@ struct IconText: View {
 
 /// Where an item can actually be bought: its own https page, never a search page.
 enum BuyLink {
+    /// The link to open: through Baget's "go" redirect when signed in (logs the tap and adds affiliate tracking
+    /// when it's set up), else the store page itself. Only ever leads to the listing's own page.
+    @MainActor static func tracked(_ item: Item, from source: String) -> URL? {
+        guard let direct = url(item) else { return nil }
+        let api = Backend.shared
+        guard api.isSignedIn, let base = api.baseURL,
+              item.id.range(of: #"^[0-9a-fA-F-]{36}$"#, options: .regularExpression) != nil,
+              var c = URLComponents(url: base.appendingPathComponent("functions/v1/go"), resolvingAgainstBaseURL: false) else { return direct }
+        c.queryItems = [URLQueryItem(name: "l", value: item.id), URLQueryItem(name: "s", value: source)]
+            + (api.userID.map { [URLQueryItem(name: "u", value: $0)] } ?? [])
+        return c.url ?? direct
+    }
+
     static func url(_ item: Item) -> URL? {
         guard !item.isSample, let s = item.url, s.hasPrefix("https://"), let u = URL(string: s), let host = u.host else { return nil }
         let q = (u.query ?? "").lowercased()
@@ -569,7 +582,7 @@ struct CheckoutView: View {
                         Button {
                             Analytics.track(.checkoutOpened, ["category": item.category.rawValue, "toStore": true])
                             router.buyOpened = findID
-                            openURL(link)
+                            openURL(BuyLink.tracked(item, from: "checkout") ?? link)
                         } label: { Label("Open at \(item.source)", systemImage: "arrow.up.right.square") }
                             .buttonStyle(PrimaryButton())
                     }

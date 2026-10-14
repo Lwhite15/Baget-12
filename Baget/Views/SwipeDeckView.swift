@@ -124,7 +124,7 @@ struct SwipeDeckView: View {
             if let link = BuyLink.url(item) {
                 Analytics.track(.checkoutOpened, ["category": item.category.rawValue, "toStore": true, "from": "swipe"])
                 router.buyOpened = f.id
-                openURL(link)
+                openURL(BuyLink.tracked(item, from: "swipe") ?? link)
             }
         }
         Analytics.track(.swipe, ["action": "\(a)", "category": item.category.rawValue, "score": f.score])
