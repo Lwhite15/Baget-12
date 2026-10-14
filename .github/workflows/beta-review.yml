@@ -1,0 +1,39 @@
+# Sends a TestFlight build to Apple's Beta App Review (for external testers). Run it after a build is uploaded.
+name: Beta review
+on:
+  workflow_dispatch:
+    inputs:
+      build:
+        description: "Build number, or 'latest'"
+        default: latest
+      what_to_test:
+        description: "What to Test (shown to testers and reviewers)"
+        default: "New Today screen with personal For You picks, product photos in notifications, and remove or clear finds. To sign in: tap 'Continue with email', then 'Sign in' with the demo account in Beta App Review Information."
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      BUNDLE_ID: ${{ secrets.BUNDLE_ID }}
+      BUILD: ${{ inputs.build }}
+      WHAT_TO_TEST: ${{ inputs.what_to_test }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Write key
+        env:
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/keys"
+          if printf '%s' "$ASC_KEY_P8_BASE64" | grep -q "BEGIN"; then printf '%s\n' "$ASC_KEY_P8_BASE64" > "$RUNNER_TEMP/keys/k.p8"
+          else echo "$ASC_KEY_P8_BASE64" | base64 --decode > "$RUNNER_TEMP/keys/k.p8"; fi
+          chmod 600 "$RUNNER_TEMP/keys/k.p8"
+      - name: Submit
+        env:
+          ASC_KEY_PATH: ${{ runner.temp }}/keys/k.p8
+        run: |
+          pip install -q pyjwt cryptography requests
+          python3 scripts/beta_review.py
+      - name: Remove key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/keys"
