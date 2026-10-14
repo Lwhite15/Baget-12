@@ -769,4 +769,49 @@ await test("personal texts: the agent writes them, with your name and taste; tem
   assert.equal(await push.findSubtitle("f1"), "", "no subtitle if the lookup fails");
 });
 
+await test("buy links: logged, forwarded to the listing's own page, affiliate-wrapped when configured", async () => {
+  const go = await import("../functions/go/handler.ts");
+  const lid = "11111111-2222-3333-4444-555555555555";
+  const clicks: any[] = [];
+  reset([
+    [/rest\/v1\/listings/, () => ok([{ url: "https://www.nike.com/t/aj1-mocha" }])],
+    [/rest\/v1\/buy_clicks/, (_u, _i, b) => { clicks.push(b); return new Response(null, { status: 201 }); }],
+  ]);
+  let r = await go.handler(new Request(`https://proj.supabase.co/functions/v1/go?l=${lid}&s=find`));
+  assert.equal(r.status, 302);
+  assert.equal(r.headers.get("location"), "https://www.nike.com/t/aj1-mocha");
+  assert.equal(clicks[0].source, "find");
+  assert.equal(clicks[0].affiliate, "");
+  process.env.SKIMLINKS_ID = "123X456";
+  r = await go.handler(new Request(`https://proj.supabase.co/functions/v1/go?l=${lid}&s=for_you`));
+  assert.equal(r.headers.get("location"), "https://go.skimresources.com/?id=123X456&xs=1&url=https%3A%2F%2Fwww.nike.com%2Ft%2Faj1-mocha");
+  assert.equal(clicks[1].affiliate, "skimlinks");
+  delete process.env.SKIMLINKS_ID;
+  process.env.AMAZON_TAG = "baget-20";
+  assert.equal(go.affiliateURL("https://www.amazon.com/dp/B0X?th=1").url, "https://www.amazon.com/dp/B0X?th=1&tag=baget-20");
+  delete process.env.AMAZON_TAG;
+  r = await go.handler(new Request("https://proj.supabase.co/functions/v1/go?l=https://evil.example"));
+  assert.equal(r.status, 404, "only listing ids, never raw URLs");
+});
+
+await test("onboarding: taste-check picks shape the briefs, and each agent says hi", async () => {
+  let prompt = "";
+  const notes: any[] = [];
+  reset([
+    [/auth\/v1\/user/, () => ok({ id: jumpman.user_id })],
+    [/api\.anthropic\.com/, (_u, _i, b) => { prompt = b.messages[0].content.at(-1).text;
+      return ok({ stop_reason: "end_turn", content: [{ type: "text", text: '{"agents":[{"name":"Mocha Hunter","category":"sneakers","intro":"I\'m on earthy suede Jordans."}]}' }] }); }],
+    [/rest\/v1\/agents/, () => ok([{ id: "a1" }])],
+    [/rest\/v1\/profiles/, () => ok([{ display_name: "Larry White" }])],
+    [/POST .*rest\/v1\/notes/, (_u, _i, b) => { notes.push(...b); return new Response(null, { status: 201 }); }],
+  ]);
+  const res = await hunt.handler(post("hunt", { categories: ["sneakers"], text: "", liked: ["Air Jordan 1 Low Mocha"], passed: ["Crocs Classic Clog"] }, { Authorization: "Bearer user-jwt" }));
+  assert.equal(res.status, 200);
+  assert.match(prompt, /hearted: Air Jordan 1 Low Mocha/);
+  assert.match(prompt, /passed on: Crocs Classic Clog/);
+  assert.equal(notes.length, 1);
+  assert.equal(notes[0].kind, "learned", "intro shows in the inbox without buzzing the phone");
+  assert.match(notes[0].body, /^Hey Larry, Mocha Hunter here\. I'm on earthy suede Jordans\./);
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

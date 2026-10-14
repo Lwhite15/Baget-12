@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.hunt]
 verify_jwt = false
+
+[functions.go]
+verify_jwt = false

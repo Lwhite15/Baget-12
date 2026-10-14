@@ -227,6 +227,10 @@ select t.ok((select x ->> 'kind' = 'match' and x -> 'listing' ->> 'title' = 'Air
 select t.ok(not exists (select 1 from public.for_you(10) x where x -> 'listing' ->> 'title' = 'Jordan 4 Mystery'), 'no photo, not shown');
 select t.ok(exists (select 1 from public.for_you(10) x where x -> 'listing' ->> 'title' = 'Arc Floor Lamp' and x ->> 'kind' = 'explore'), 'something new to try is mixed in');
 select t.ok(jsonb_array_length(public.taste_top(8)) > 0, 'taste profile is readable by its owner');
+select t.ok(t.n($$select * from public.taste_quiz(array['sneakers'], 10)$$) >= 1, 'taste check has sneakers to rate');
+select t.ok(not exists (select 1 from public.taste_quiz(array['sneakers'], 10) x where x ->> 'category' <> 'sneakers'), 'only the categories you picked');
+select t.ok(not exists (select 1 from public.taste_quiz(array['sneakers'], 10) x where x ->> 'image_url' is null), 'only products with photos');
+select t.err($$select * from public.buy_clicks$$, 'buy clicks are server-only');
 insert into public.feed_reactions (listing_id, action) select id, 'dismiss' from public.listings where fingerprint = 'fy|lamp';
 select t.ok(not exists (select 1 from public.for_you(10) x where x -> 'listing' ->> 'title' = 'Arc Floor Lamp'), '"not for me" removes it');
 select t.ok(exists (select 1 from jsonb_array_elements(public.taste_top(20)) e where e ->> 'feature' = 'b:hay' and (e ->> 'weight')::numeric < 0), 'and teaches a dislike');

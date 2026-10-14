@@ -1,6 +1,6 @@
 // "What are you hunting?" One sentence in, a ready agent out.
 // Claude turns the sentence into a brief (mission, brands, styles, keywords, size) and the agent is created for the person.
-import { CATEGORIES } from "../_shared/match.ts";
+import { CATEGORIES, firstName } from "../_shared/match.ts";
 import { HttpError, claude, db, handle, json, parseJSON, requireUser, textOf } from "../_shared/platform.ts";
 
 export interface Plan {
@@ -45,7 +45,7 @@ const BRIEF_FIELDS = `{"name": "a short fun agent name (2-3 words, e.g. Oud Hunt
  "creators": designers, perfumers, artists, collaborators (0-4),
  "size": their size if they said one, else "",
  "voice": "hype" for streetwear and sneakers, "straight" for cars and big purchases, else "chill",
- "intro": one friendly sentence in the agent's voice saying what it will hunt}`;
+ "intro": one friendly sentence in the agent's voice saying what it will hunt, specific to their taste}`;
 
 type Img = { media_type: string; data: string };
 const IMG_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -68,7 +68,19 @@ async function insertAgent(userId: string, plan: Plan): Promise<string> {
 const needsSize = (p: Plan) => (p.category === "sneakers" || p.category === "apparel") && !p.size;
 
 /** Onboarding: a few categories, an optional sentence and up to 3 photos -> one agent per category, tuned to the photos. */
-async function onboard(userId: string, categories: string[], text: string, size: string | undefined, images: Img[]) {
+/** Each new agent says hi in the inbox: who it is, what it's hunting, and when to expect finds. Not pushed (kind "learned"). */
+async function introNotes(userId: string, agents: { agent_id: string; name: string; intro: string }[]) {
+  const [p] = await db.select<{ display_name: string }>("profiles", `select=display_name&id=eq.${userId}`).catch(() => []);
+  const name = firstName(p?.display_name);
+  const rows = agents.map((a) => ({
+    user_id: userId, agent_id: a.agent_id, sender_name: a.name, kind: "learned",
+    body: `${name ? `Hey ${name}, ` : "Hey, "}${a.name} here. ${a.intro || "I'm on the hunt for you."} I'm searching now; my first finds usually land within a few minutes.`.slice(0, 480),
+  }));
+  if (rows.length) await db.insert("notes", rows, false).catch((e) => console.error("intro notes", e));
+}
+
+async function onboard(userId: string, categories: string[], text: string, size: string | undefined, images: Img[],
+                       liked: string[] = [], passed: string[] = []) {
   const cats = [...new Set(categories.filter((c) => (CATEGORIES as string[]).includes(c) && c !== "other"))].slice(0, 6);
   if (!cats.length && !text) throw new HttpError(400, "Pick at least one thing you're into");
   const content: Record<string, unknown>[] = images.map((im) => ({ type: "image", source: { type: "base64", media_type: im.media_type, data: im.data } }));
@@ -76,6 +88,8 @@ async function onboard(userId: string, categories: string[], text: string, size:
 They picked these interests: ${cats.length ? cats.join(", ") : "(none)"}.
 ${text ? `They also said: "${text}".` : ""}
 ${images.length ? `The ${images.length === 1 ? "photo shows" : `${images.length} photos show`} things they love. Read their taste from them (brands, styles, materials, colors, eras) and use it in the briefs where it fits.` : ""}
+${liked.length ? `In a quick taste check they hearted: ${liked.join("; ")}. Use the makers, styles and materials these share.` : ""}
+${passed.length ? `They passed on: ${passed.join("; ")}. Steer the briefs away from what these share.` : ""}
 Make one agent brief per picked interest${text && !cats.length ? " (or one for what they said)" : ""}${text && cats.length ? ", plus one more if what they said is a separate hunt" : ""}.
 Reply with only JSON: {"agents": [${BRIEF_FIELDS}, ...]}
 Use only what they said, picked or showed. Keep every list item short (1-4 words).` });
@@ -89,17 +103,20 @@ Use only what they said, picked or showed. Keep every list item short (1-4 words
     const id = await insertAgent(userId, p);
     agents.push({ agent_id: id, ...p, needs_size: needsSize(p) });
   }
+  await introNotes(userId, agents);
   return { agents };
 }
 
 export const handler = handle(async (req) => {
   const user = await requireUser(req);
-  const body = await req.json().catch(() => ({})) as { text?: string; size?: string; categories?: string[]; images?: Img[] };
+  const body = await req.json().catch(() => ({})) as { text?: string; size?: string; categories?: string[]; images?: Img[]; liked?: string[]; passed?: string[] };
   const text = (body.text ?? "").trim().slice(0, 300);
   if (Array.isArray(body.categories)) {
     const images = (Array.isArray(body.images) ? body.images : [])
       .filter((im) => im && IMG_TYPES.includes(im.media_type) && typeof im.data === "string" && im.data.length < 2_000_000).slice(0, 3);
-    return json(await onboard(user.id, body.categories, text, body.size, images));
+    const titles = (v: unknown) => Array.isArray(v)
+      ? v.filter((x) => typeof x === "string" && x.trim()).map((x) => (x as string).trim().slice(0, 80)).slice(0, 12) : [];
+    return json(await onboard(user.id, body.categories, text, body.size, images, titles(body.liked), titles(body.passed)));
   }
   if (text.length < 2) throw new HttpError(400, "Tell me what to hunt for");
 
@@ -124,5 +141,6 @@ Use only what they said or clearly implied. Keep every list item short (1-4 word
   const plan = cleanPlan(parseJSON(textOf(res.content)), text, body.size);
 
   const id = await insertAgent(user.id, plan);
+  await introNotes(user.id, [{ agent_id: id, name: plan.name, intro: plan.intro }]);
   return json({ agent_id: id, ...plan, needs_size: needsSize(plan) });
 });
