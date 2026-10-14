@@ -82,6 +82,10 @@ jobs:
                   -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" \
                   -d "$(jq -n --arg q "$1" '{query:$q}')"; }
           q "select count(*) total, count(image_url) with_photo, count(image_checked_at) checked from public.listings" | jq -c . | sed 's/^/::notice::counts /'
+          # Buy links: the redirect answers 302 to the store (host only).
+          LID=$(q "select id from public.listings where url is not null order by last_seen_at desc limit 1" | jq -r '.[0].id')
+          curl -s -o /dev/null -w '%{http_code} %{redirect_url}\n' "https://${PROJECT_REF}.supabase.co/functions/v1/go?l=${LID}&s=diagnose" | awk '{split($2,a,"/"); print "::notice::buy link: " $1 " -> " a[3]}'
+          q "select count(*) as clicks, count(*) filter (where affiliate <> '') as affiliate from public.buy_clicks" | jq -c . | sed 's/^/::notice::buy clicks /'
           # For You, as each admin sees it: counts by kind only (no titles).
           q "begin; select set_config('request.jwt.claim.sub', (select user_id::text from public.app_admins limit 1), true); set local role authenticated; select x ->> 'kind' as kind, count(*) as n from public.for_you(24) x group by 1; " | jq -c . | sed 's/^/::notice::for you /'
           q "select left(title,60) t, source, url, image_url, image_checked_at is not null checked from public.listings order by last_seen_at desc limit 9" > listings.json
