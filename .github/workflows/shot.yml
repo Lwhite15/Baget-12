@@ -1,0 +1,19 @@
+# Copies the latest paywall screenshot onto the "shots" branch so it can be reviewed without downloading artifacts.
+name: Shot
+on: workflow_dispatch
+permissions:
+  actions: read
+  contents: write
+jobs:
+  copy:
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for id in $(gh run list -R "$GITHUB_REPOSITORY" -w iOS -L 15 --json databaseId,conclusion -q '.[] | select(.conclusion=="success") | .databaseId'); do
+            gh run download "$id" -R "$GITHUB_REPOSITORY" -n paywall-shot -D shot 2>/dev/null && break
+          done
+          git init -q out && cd out && cp ../shot/paywall.png . && git add paywall.png
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "paywall screenshot"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:shots
