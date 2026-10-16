@@ -273,6 +273,22 @@ set role service_role;
 select t.ok(not exists (select 1 from public.sweep_candidates(20, 50, null, null) c where c ->> 'user_id' = 'aaaaaaaa-0000-0000-0000-000000000001'), 'an expired Pro is Free again');
 reset role;
 
+-- Tester feedback
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-0000-0000-000000000002', false);
+insert into public.feedback (kind, body, app_version) values ('bug', 'The Buy button did nothing', '1.0 (78)');
+select t.ok(t.n('select * from public.feedback') = 1, 'a tester can send feedback and see their own');
+select t.err($$insert into public.feedback (user_id, body) values ('aaaaaaaa-0000-0000-0000-000000000001', 'x')$$, 'not as someone else');
+select t.err($$select public.admin_feedback(10)$$, 'only admins read all feedback');
+select t.err($$update public.feedback set status = 'done'$$, 'testers cannot change status');
+select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
+select t.ok(t.n('select * from public.feedback') = 0, 'feedback is private to the sender');
+select t.ok(t.n('select * from public.admin_feedback(10)') = 1, 'the owner reads it');
+select t.ok(t.n($$select * from public.notes where kind = 'feedback' and body like '%Buy button did nothing%'$$) = 1, 'and gets a text about it');
+select public.admin_mark_feedback((select (x ->> 'id')::uuid from public.admin_feedback(1) x), 'done');
+select t.ok((select x ->> 'status' = 'done' from public.admin_feedback(1) x), 'the owner can mark it done');
+reset role;
+
 -- morning release and account deletion
 set role service_role;
 select t.ok(t.n('select * from public.release_held_notes()') >= 0, 'release runs');
