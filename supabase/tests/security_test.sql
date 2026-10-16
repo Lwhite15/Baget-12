@@ -103,6 +103,10 @@ select t.ok((select last_swept_at is not null from public.agents where name = 'J
 select t.ok(t.n($$select * from public.sweep_candidates(20, 12, null, null) x where x ->> 'name' = 'Jumpman Scout'$$) = 0, 'swept agent not due again yet');
 select t.ok(t.n($$select * from public.sweep_candidates(20, 12, 'aaaaaaaa-0000-0000-0000-000000000001', null)$$) = 0, 'manual sweep cooldown');
 -- With a cap of 2 runs a day and 2 agents, each agent waits 24h; with a cap of 48 it can go after the 3h default.
+-- (Around-the-clock spacing is the Pro schedule; Free hunts in its daily window, tested further down.)
+reset role;
+update public.profiles set plan = 'comp' where id = 'aaaaaaaa-0000-0000-0000-000000000001';
+set role service_role;
 update public.agents set last_swept_at = now() - interval '5 hours';
 select t.ok(t.n($$select * from public.sweep_candidates(20, 2, null, null) x where x ->> 'name' = 'Jumpman Scout'$$) = 0, 'sweeps spread to fit the daily cap');
 select t.ok(t.n($$select * from public.sweep_candidates(20, 48, null, null) x where x ->> 'name' = 'Jumpman Scout'$$) = 1, 'roomy cap: due after the 3 hour default');
