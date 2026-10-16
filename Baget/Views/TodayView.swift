@@ -11,6 +11,7 @@ struct TodayView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 greeting
+                PlanStatusPill()
                 if store.isCloud && !store.state.agents.isEmpty && store.state.finds.isEmpty { firstHuntCard }
                 if queue > 0 { swipeCard(queue) }
                 if !picks.isEmpty { todaysDrop(picks) }

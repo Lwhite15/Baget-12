@@ -86,6 +86,17 @@ jobs:
           fi
           if [ ! -f "$DATA/Documents/smoke-ok" ]; then echo "::error::The launch test didn't finish (no crash report found)"; exit 1; fi
           echo "::notice::Launch test passed: every tab and sheet opened, including a find with no price"
+          # The paywall, for App Review's in-app purchase screenshot.
+          xcrun simctl terminate "$UDID" "$BUNDLE" || true
+          xcrun simctl launch "$UDID" "$BUNDLE" -BagetPaywallShot
+          sleep 8
+          xcrun simctl io "$UDID" screenshot "$RUNNER_TEMP/paywall.png" && echo "::notice::Paywall screenshot taken"
+      - name: Keep the paywall screenshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: paywall-shot
+          path: ${{ runner.temp }}/paywall.png
+          if-no-files-found: ignore
       - name: Upload build log
         if: failure()
         uses: actions/upload-artifact@v4

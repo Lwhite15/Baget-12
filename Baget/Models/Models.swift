@@ -431,6 +431,8 @@ struct Settings: Codable, Hashable {
     var sharePurchasesWithFriends: Bool = false
     /// How often Baget texts you. Nil means the default, `.best`.
     var pushLevel: PushLevel? = nil
+    /// Free plan: the local hour the daily 4-hour hunting window starts. Nil means 9am.
+    var huntStart: Int? = nil
 }
 
 enum PushLevel: String, Codable, CaseIterable, Identifiable {

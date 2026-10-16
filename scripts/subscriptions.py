@@ -108,5 +108,32 @@ if url:
         note("App Store Server Notifications point at Baget")
     except RuntimeError as e:
         note(f"Notification URL not set ({str(e)[:160]}); renewals still sync from the app")
+# App Review screenshot of the paywall (taken by the iOS build in the simulator).
+shot = os.environ.get("SHOT", "")
+if shot and os.path.exists(shot):
+    import hashlib
+    data = open(shot, "rb").read()
+    for s in pages(f"/subscriptionGroups/{gid}/subscriptions"):
+        sid = s["id"]
+        try:
+            have = call("GET", f"/subscriptions/{sid}/appStoreReviewScreenshot").get("data")
+        except RuntimeError:
+            have = None
+        if have:
+            continue
+        res = call("POST", "/subscriptionAppStoreReviewScreenshots", {"data": {"type": "subscriptionAppStoreReviewScreenshots",
+            "attributes": {"fileName": "paywall.png", "fileSize": len(data)},
+            "relationships": {"subscription": {"data": {"type": "subscriptions", "id": sid}}}}})["data"]
+        for op in res["attributes"]["uploadOperations"]:
+            hdrs = {h["name"]: h["value"] for h in op.get("requestHeaders", [])}
+            chunk = data[op["offset"]: op["offset"] + op["length"]]
+            r = requests.request(op["method"], op["url"], headers=hdrs, data=chunk, timeout=120)
+            if r.status_code >= 300: raise RuntimeError(f"screenshot upload {r.status_code}")
+        call("PATCH", f"/subscriptionAppStoreReviewScreenshots/{res['id']}", {"data": {"type": "subscriptionAppStoreReviewScreenshots", "id": res["id"],
+            "attributes": {"uploaded": True, "sourceFileChecksum": hashlib.md5(data).hexdigest()}}})
+        note(f"{s['attributes']['productId']}: review screenshot uploaded")
+else:
+    note("No paywall screenshot yet (run an iOS build first)")
+time.sleep(5)
 for s in pages(f"/subscriptionGroups/{gid}/subscriptions"):
     note(f"{s['attributes']['productId']}: {s['attributes']['state']}")

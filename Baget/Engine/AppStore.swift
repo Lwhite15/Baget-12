@@ -2,6 +2,7 @@ import Foundation
 import Observation
 import SwiftUI
 import UIKit
+import StoreKit
 
 struct Story: Identifiable, Hashable {
     var id: String { item.id }
@@ -40,6 +41,11 @@ final class AppStore {
     var forYouLoadedAt: Date?
     /// Sample-mode "not for me" picks (signed in, the server remembers them).
     var forYouDismissed: Set<String> = []
+    /// Free or Pro, and (Free) whether the scouts are in their hunting window. Nil until loaded or when not signed in.
+    var plan: PlanInfo?
+    /// Baget Pro on the App Store (monthly, yearly), once loaded.
+    var proProducts: [Product] = []
+    var purchasing = false
     /// Owner accounts see the Stats screen (the server decides; the screen's data is admin-only too).
     var isAdmin = false
     /// Bumped when a taste photo finishes downloading, so boards redraw.

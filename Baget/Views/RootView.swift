@@ -34,6 +34,7 @@ struct RootView: View {
                 case .agentIcon(let aid): AgentIconView(agentID: aid)
                 case .swipe: SwipeDeckView()
                 case .taste: TasteView()
+                case .pro: PaywallView()
                 case .ask(let fid):
                     if let f = store.state.finds.first(where: { $0.id == fid }) { ChatView(agentID: f.agentID, aboutFindID: fid) }
                 }

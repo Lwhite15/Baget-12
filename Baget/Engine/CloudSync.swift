@@ -168,6 +168,7 @@ struct SettingsBlob: Codable {
     var liveTabs: [LiveTab]?
     var avatar: Avatar?
     var pushLevel: String?
+    var huntStart: Int?
 }
 
 private struct SweepReply: Decodable { let swept: Int?; let found: Int?; let message: String? }
@@ -222,6 +223,7 @@ extension AppStore {
         }
         await api.signOut()
         isAdmin = false
+        plan = nil
         resetToWelcome()
     }
 
@@ -254,6 +256,7 @@ extension AppStore {
         pulling = true
         defer { pulling = false }
         Task { @MainActor in self.isAdmin = (try? await self.api.rpc("am_i_admin", as: Bool.self)) ?? false }
+        Task { @MainActor in await self.loadPlan() }
         do {
             async let agentsQ: [AgentRow] = api.select("agents", "select=*&order=created_at.asc")
             async let photosQ: [TastePhotoRow] = api.select("taste_photos", "select=*&order=created_at.desc")
@@ -338,6 +341,7 @@ extension AppStore {
             if let tabs = blob.liveTabs, !tabs.isEmpty { state.liveTabs = tabs }
             if let a = blob.avatar { state.avatar = a }
             state.settings.pushLevel = blob.pushLevel.flatMap { PushLevel(rawValue: $0) }
+            state.settings.huntStart = blob.huntStart
         }
         lastSettingsSnapshot = settingsSnapshot()
     }
@@ -346,7 +350,8 @@ extension AppStore {
     func settingsSnapshot() -> Data? {
         let blob = SettingsBlob(sweepMinutes: state.settings.sweepMinutes, quietHours: state.settings.quietHours,
                                 groups: state.settings.groups.map(\.rawValue).sorted(), liveTabs: state.liveTabs,
-                                avatar: state.avatar, pushLevel: (state.settings.pushLevel ?? .best).rawValue)
+                                avatar: state.avatar, pushLevel: (state.settings.pushLevel ?? .best).rawValue,
+                                huntStart: state.settings.huntStart ?? 9)
         var obj: [String: Any] = [:]
         if let d = try? JSONEncoder().encode(blob), let j = try? JSONSerialization.jsonObject(with: d) { obj["settings"] = j }
         obj["share_taste"] = state.settings.shareTasteWithFriends

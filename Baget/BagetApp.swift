@@ -33,9 +33,13 @@ struct BagetApp: App {
                 .task {
                     #if DEBUG
                     if SmokeTest.enabled { await SmokeTest.run(store: store, router: router); return }
+                    if PaywallView.screenshotMode { router.sheet = .pro; return }
                     #endif
                     // New accounts are asked during setup, when it means something ("text me when they find something").
                     if store.isCloud { await store.registerForPushIfAsked() } else { await Notifier.requestPermission() }
+                    store.listenForProUpdates()
+                    await store.syncProEntitlements()
+                    await store.loadPlan()
                 }
         }
         .onChange(of: scenePhase) { _, phase in
@@ -81,6 +85,7 @@ enum ActiveSheet: Identifiable, Hashable {
     case agentIcon(String)
     case swipe, taste
     case ask(String)
+    case pro
 
     var id: String {
         switch self {
@@ -97,6 +102,7 @@ enum ActiveSheet: Identifiable, Hashable {
         case .swipe: return "swipe"
         case .taste: return "taste"
         case .ask(let f): return "ask-\(f)"
+        case .pro: return "pro"
         }
     }
 }
