@@ -241,6 +241,34 @@ select t.ok(t.n('select * from public.feed_reactions') = 0, 'reactions are priva
 select t.ok(t.n('select * from public.for_you(10)') >= 1, 'a brand-new user still gets a feed');
 reset role;
 
+-- Free and Pro
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
+select t.err($$update public.profiles set plan = 'pro', pro_until = now() + interval '1 year' where id = auth.uid()$$, 'nobody can give themselves Pro');
+select t.err($$select public.is_pro(auth.uid())$$, 'plan checks are server-only');
+select t.ok((public.my_plan() ->> 'hours')::int = 4, 'the app can read its own plan');
+reset role;
+update public.profiles set plan = 'free', settings = settings || jsonb_build_object('huntStart', ((extract(hour from now() at time zone tz)::int + 12) % 24))
+ where id = 'aaaaaaaa-0000-0000-0000-000000000001';
+update public.agents set last_swept_at = now() - interval '6 hours', paused = false where user_id = 'aaaaaaaa-0000-0000-0000-000000000001';
+set role service_role;
+select t.ok(not exists (select 1 from public.sweep_candidates(20, 50, null, null) c where c ->> 'user_id' = 'aaaaaaaa-0000-0000-0000-000000000001'), 'Free scouts rest outside their window');
+reset role;
+update public.profiles set settings = settings || jsonb_build_object('huntStart', extract(hour from now() at time zone tz)::int)
+ where id = 'aaaaaaaa-0000-0000-0000-000000000001';
+set role service_role;
+select t.ok(exists (select 1 from public.sweep_candidates(20, 50, null, null) c where c ->> 'user_id' = 'aaaaaaaa-0000-0000-0000-000000000001'), 'and hunt inside it');
+reset role;
+update public.profiles set plan = 'pro', pro_until = now() + interval '30 days', settings = settings || jsonb_build_object('huntStart', ((extract(hour from now() at time zone tz)::int + 12) % 24))
+ where id = 'aaaaaaaa-0000-0000-0000-000000000001';
+set role service_role;
+select t.ok(exists (select 1 from public.sweep_candidates(20, 50, null, null) c where c ->> 'user_id' = 'aaaaaaaa-0000-0000-0000-000000000001'), 'Pro hunts around the clock');
+reset role;
+update public.profiles set pro_until = now() - interval '1 day' where id = 'aaaaaaaa-0000-0000-0000-000000000001';
+set role service_role;
+select t.ok(not exists (select 1 from public.sweep_candidates(20, 50, null, null) c where c ->> 'user_id' = 'aaaaaaaa-0000-0000-0000-000000000001'), 'an expired Pro is Free again');
+reset role;
+
 -- morning release and account deletion
 set role service_role;
 select t.ok(t.n('select * from public.release_held_notes()') >= 0, 'release runs');

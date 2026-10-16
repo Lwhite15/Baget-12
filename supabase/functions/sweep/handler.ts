@@ -2,7 +2,7 @@
 //  * Scheduled (every 15 minutes by pg_cron, with the shared secret): agents whose owner's interval has passed.
 //  * Manual (the app, with the user's session): that user's agents, at most once per agent every 10 minutes.
 // Cost guards: agents per run, searches per agent, and sweeps per user per day are all capped (see env below).
-import { type Agent, CATEGORIES, GROUP_OF, type Listing, firstName, friendLine, heldForMorning, kindFor, match, missionLabel, norm } from "../_shared/match.ts";
+import { type Agent, CATEGORIES, GROUP_OF, type Listing, firstName, friendLine, localHour, heldForMorning, kindFor, match, missionLabel, norm } from "../_shared/match.ts";
 import { type Block, type ClaudeMessage, HttpError, claude, db, env, handle, isScheduler, json, parseJSON, requireUser, textOf } from "../_shared/platform.ts";
 import { addImages, linkIsDead, traceImage } from "../_shared/images.ts";
 import { setupDemo } from "./demo.ts";
@@ -272,6 +272,20 @@ export async function backfillImages(limit: number) {
   return { checked: rows.length, found };
 }
 
+/** Free plan, outside the hunting window: says when the scouts are back. Null when they're allowed to hunt. */
+export async function restingMessage(userId: string, now = new Date()): Promise<string | null> {
+  const [p] = await db.select<{ plan: string; pro_until: string | null; tz: string; settings: Record<string, unknown> | null }>(
+    "profiles", `select=plan,pro_until,tz,settings&id=eq.${userId}`).catch(() => []);
+  if (!p) return null;
+  if (p.plan === "comp" || (p.plan === "pro" && p.pro_until && Date.parse(p.pro_until) > now.getTime())) return null;
+  const raw = Number((p.settings ?? {}).huntStart);
+  const start = Number.isInteger(raw) && raw >= 0 && raw <= 23 ? raw : 9;
+  const h = localHour(p.tz || "America/New_York", now);
+  if ((h - start + 24) % 24 < 4) return null;
+  const label = (x: number) => `${x % 12 === 0 ? 12 : x % 12}${x < 12 ? "am" : "pm"}`;
+  return `Your scouts are resting. On Free they hunt ${label(start)} to ${label((start + 4) % 24)}. Go Pro to hunt around the clock.`;
+}
+
 export const handler = handle(async (req) => {
   const body = await req.json().catch(() => ({})) as { agent_id?: string; backfill?: number; trace_image?: boolean };
   if (isScheduler(req) && (body as { check_sources?: boolean }).check_sources) {
@@ -312,7 +326,8 @@ export const handler = handle(async (req) => {
     trigger = "manual";
     candidates = await db.rpc<Candidate[]>("sweep_candidates", { p_limit: 3, p_daily_cap: dailyCap, p_user: user.id, p_agent: body.agent_id ?? null });
     if (!candidates.length) {
-      return json({ swept: 0, found: 0, message: "Your agents swept recently. They'll go again in a few minutes." });
+      const resting = await restingMessage(user.id);
+      return json({ swept: 0, found: 0, resting: !!resting, message: resting ?? "Your agents swept recently. They'll go again in a few minutes." });
     }
   }
   const runs = await Promise.all(candidates.map((a) => sweepAgent(a, trigger)));

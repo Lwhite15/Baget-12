@@ -128,7 +128,7 @@ export function handle(fn: (req: Request) => Promise<Response>) {
       return await fn(req);
     } catch (e) {
       if (e instanceof HttpError) {
-        if (e.status >= 500) await logError(req, e.status, e.detail ?? e.message);
+        if (e.status >= 500 || e.detail) await logError(req, e.status, e.detail ?? e.message);
         return json({ error: e.message }, e.status);
       }
       console.error(e);

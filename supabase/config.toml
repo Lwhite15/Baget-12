@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.go]
 verify_jwt = false
+
+[functions.subscription]
+verify_jwt = false

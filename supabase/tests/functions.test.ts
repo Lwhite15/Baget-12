@@ -814,4 +814,70 @@ await test("onboarding: taste-check picks shape the briefs, and each agent says 
   assert.match(notes[0].body, /^Hey Larry, Mocha Hunter here\. I'm on earthy suede Jordans\./);
 });
 
+await test("Pro: verified App Store purchases unlock it; forged, foreign or shared ones don't", async () => {
+  const sub = await import("../functions/subscription/handler.ts");
+  process.env.APNS_TOPIC = "com.larry.baget";
+  const tx = (o: Record<string, unknown> = {}) => ({ bundleId: "com.larry.baget", productId: "baget.pro.monthly", originalTransactionId: "2000000123",
+    expiresDate: Date.now() + 30 * 86400_000, appAccountToken: jumpman.user_id, environment: "Sandbox", ...o });
+  let current: any = tx();
+  const handler = sub.makeHandler(async (jws: string) => { if (jws === "forged") throw new Error("bad signature"); return current; });
+  const patches: any[] = [];
+  let owner: any[] = [];
+  const routes = (): [RegExp, any][] => [
+    [/auth\/v1\/user/, () => ok({ id: jumpman.user_id })],
+    [/rest\/v1\/profiles\?select=id&original_transaction_id/, () => ok(owner)],
+    [/GET .*rest\/v1\/profiles\?select=plan/, () => ok([{ plan: "free" }])],
+    [/PATCH .*rest\/v1\/profiles/, (_u: any, _i: any, b: any) => { patches.push(b); return new Response(null, { status: 204 }); }],
+    [/rest\/v1\/function_errors/, () => new Response(null, { status: 201 })],
+  ];
+  reset(routes());
+  let r = await handler(post("subscription", { signed_transaction: "ok" }, { Authorization: "Bearer user-jwt" }));
+  let out = await r.json();
+  assert.equal(r.status, 200, JSON.stringify(out));
+  assert.equal(out.pro, true);
+  assert.equal(patches[0].plan, "pro");
+  assert.equal(patches[0].original_transaction_id, "2000000123");
+
+  r = await handler(post("subscription", { signed_transaction: "forged" }, { Authorization: "Bearer user-jwt" }));
+  assert.equal(r.status, 400, "a forged purchase is refused");
+
+  current = tx({ bundleId: "com.someone.else" });
+  r = await handler(post("subscription", { signed_transaction: "ok" }, { Authorization: "Bearer user-jwt" }));
+  assert.equal(r.status, 400, "another app's purchase is refused");
+
+  current = tx({ appAccountToken: "99999999-0000-0000-0000-000000000000" });
+  r = await handler(post("subscription", { signed_transaction: "ok" }, { Authorization: "Bearer user-jwt" }));
+  assert.equal(r.status, 409, "someone else's subscription can't be claimed");
+
+  current = tx({ appAccountToken: undefined });
+  owner = [{ id: "88888888-0000-0000-0000-000000000000" }];
+  r = await handler(post("subscription", { signed_transaction: "ok" }, { Authorization: "Bearer user-jwt" }));
+  assert.equal(r.status, 409, "one subscription, one account");
+
+  owner = [{ id: jumpman.user_id }];
+  current = tx({ expiresDate: Date.now() - 1000 });
+  patches.length = 0;
+  r = await handler(post("subscription", { signed_transaction: "ok" }, { Authorization: "Bearer user-jwt" }));
+  out = await r.json();
+  assert.equal(out.pro, false, "an expired subscription doesn't unlock Pro");
+
+  current = { data: { signedTransactionInfo: "ok" } };
+  const inner = tx({ revocationDate: Date.now() - 5000 });
+  const handler2 = sub.makeHandler(async (jws: string) => jws === "note" ? current : inner);
+  patches.length = 0;
+  r = await handler2(post("subscription", { signedPayload: "note" }));
+  assert.equal(r.status, 200);
+  assert.ok(Date.parse(patches[0].pro_until) < Date.now(), "a refund from Apple ends Pro");
+});
+
+await test("Free plan: scouts rest outside their 4-hour window", async () => {
+  const at = (iso: string) => new Date(iso);
+  const prof = (o: Record<string, unknown>) => reset([[/rest\/v1\/profiles/, () => ok([{ plan: "free", pro_until: null, tz: "America/New_York", settings: {}, ...o }])]]);
+  prof({}); assert.equal(await sweep.restingMessage("u", at("2026-10-16T14:30:00Z")), null, "10:30am New York is inside 9am-1pm");
+  prof({}); assert.match(String(await sweep.restingMessage("u", at("2026-10-16T19:00:00Z"))), /hunt 9am to 1pm/);
+  prof({ settings: { huntStart: 20 } }); assert.equal(await sweep.restingMessage("u", at("2026-10-17T02:00:00Z")), null, "10pm inside 8pm-12am");
+  prof({ plan: "pro", pro_until: new Date(Date.now() + 86400_000).toISOString() }); assert.equal(await sweep.restingMessage("u", at("2026-10-16T19:00:00Z")), null, "Pro never rests");
+  prof({ plan: "comp" }); assert.equal(await sweep.restingMessage("u", at("2026-10-16T19:00:00Z")), null);
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
