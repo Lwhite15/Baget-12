@@ -230,8 +230,11 @@ struct OnboardingView: View {
 
     private var photoStep: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Show me 3 things you love").font(.system(size: 30, weight: .heavy)).foregroundStyle(Theme.ink)
-            Text("Optional. Screenshots or photos of pieces you own or want. Your scouts read your taste from them.")
+            HStack(alignment: .firstTextBaseline) {
+                Text("Got photos of things you love?").font(.system(size: 30, weight: .heavy)).foregroundStyle(Theme.ink)
+            }
+            Tag(text: "Optional", tint: Theme.muted)
+            Text("Add up to 3 screenshots or photos of pieces you own or want and your scouts read your taste from them. No photos? Skip it.")
                 .font(.subheadline).foregroundStyle(Theme.muted)
             HStack(spacing: 10) {
                 ForEach(0..<3) { i in
@@ -257,7 +260,11 @@ struct OnboardingView: View {
             if working {
                 HStack { Spacer(); ProgressView().tint(Theme.cyan); Text("Building your squad…").foregroundStyle(Theme.muted); Spacer() }
             } else {
-                Button(photos.isEmpty ? "Build my squad" : "Build my squad with these") { build() }.buttonStyle(PrimaryButton())
+                Button(photos.isEmpty ? "Skip and build my squad" : "Build my squad with these") { build() }.buttonStyle(PrimaryButton())
+                if !photos.isEmpty {
+                    Button("Build without photos") { photos = []; pickerItems = []; build() }
+                        .font(.footnote.weight(.semibold)).foregroundStyle(Theme.accent).frame(maxWidth: .infinity)
+                }
                 Button("Back") { withAnimation { step = 0 } }.font(.footnote).foregroundStyle(Theme.muted).frame(maxWidth: .infinity)
             }
         }

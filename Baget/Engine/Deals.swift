@@ -135,7 +135,7 @@ extension AppStore {
         }
         let rows: [ListingRow] = (try? await api.rpc("taste_quiz", ["p_categories": categories.map(\.rawValue), "p_limit": 10])) ?? []
         for r in rows { Catalog.cloud[r.id] = r.item }
-        return rows.map(\.item)
+        return Array(rows.map(\.item).prefix(10))
     }
 
     /// Records a taste-check answer so For You is personal from the first minute.
@@ -187,9 +187,11 @@ extension AppStore {
         return Array(pool.sorted { $0.score != $1.score ? $0.score > $1.score : $0.foundAt > $1.foundAt }.prefix(n))
     }
 
-    /// Open finds to swipe through, best first.
+    /// Open finds to swipe through, best first, 10 at a time (the rest wait in Finds and come up in the next round).
+    static let swipeRound = 10
     var swipeQueue: [Find] {
-        state.finds.filter { $0.status == .open && Catalog.item($0.itemID) != nil }
+        Array(state.finds.filter { $0.status == .open && Catalog.item($0.itemID) != nil }
             .sorted { $0.score != $1.score ? $0.score > $1.score : $0.foundAt > $1.foundAt }
+            .prefix(Self.swipeRound))
     }
 }
