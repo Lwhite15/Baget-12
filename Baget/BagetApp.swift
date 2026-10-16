@@ -86,6 +86,7 @@ enum ActiveSheet: Identifiable, Hashable {
     case swipe, taste
     case ask(String)
     case pro
+    case feedback
 
     var id: String {
         switch self {
@@ -103,6 +104,7 @@ enum ActiveSheet: Identifiable, Hashable {
         case .taste: return "taste"
         case .ask(let f): return "ask-\(f)"
         case .pro: return "pro"
+        case .feedback: return "feedback"
         }
     }
 }

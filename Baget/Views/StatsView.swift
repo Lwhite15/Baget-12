@@ -81,6 +81,7 @@ struct StatsView: View {
     }
 
     @ViewBuilder private func content(_ s: AdminStats) -> some View {
+        FeedbackInbox()
         section("People") {
             grid([
                 ("Users", "\(s.users.total)", nil),

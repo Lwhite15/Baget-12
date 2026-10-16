@@ -35,6 +35,7 @@ struct RootView: View {
                 case .swipe: SwipeDeckView()
                 case .taste: TasteView()
                 case .pro: PaywallView()
+                case .feedback: FeedbackView()
                 case .ask(let fid):
                     if let f = store.state.finds.first(where: { $0.id == fid }) { ChatView(agentID: f.agentID, aboutFindID: fid) }
                 }
@@ -84,6 +85,12 @@ struct RootView: View {
         .fullScreenCover(isPresented: Binding(get: { !store.needsWelcome && store.isCloud && store.state.agents.isEmpty && !onboarded && store.state.lastSynced != nil },
                                               set: { if !$0 { onboarded = true } })) {
             OnboardingView().environment(store)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: FeedbackCapture.shake)) { _ in
+            // Shake anywhere: send feedback with a screenshot of what was on screen.
+            guard store.isCloud, router.sheet == nil else { return }
+            FeedbackCapture.pending = FeedbackCapture.snapshot()
+            router.sheet = .feedback
         }
         .fullScreenCover(isPresented: Binding(get: { store.needsWelcome }, set: { _ in })) {
             WelcomeView().environment(store)

@@ -316,6 +316,8 @@ enum NoteKind: String, Codable {
     case release, available, steal, watch, restock, bought, budget, learned, friend
     /// The 8am "Today's Drop" text, and a price drop on something you're watching.
     case digest, drop
+    /// A tester sent feedback (owner accounts only).
+    case feedback
 }
 
 enum NoteGroup: String, Codable, CaseIterable, Identifiable {
@@ -341,7 +343,7 @@ extension NoteKind {
         case .digest: return .finds
         case .bought, .budget: return .money
         case .learned: return .learning
-        case .friend: return nil
+        case .friend, .feedback: return nil
         }
     }
 }

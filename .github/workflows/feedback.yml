@@ -1,0 +1,58 @@
+# Gathers tester feedback (TestFlight screenshots and crashes, plus in-app feedback) into one report.
+# The report is encrypted with the public key you pass in and pushed to the "reports" branch, so it stays private
+# in this public repo. Prints counts only.
+name: Feedback
+on:
+  workflow_dispatch:
+    inputs:
+      public_key:
+        description: "Base64 of an RSA public key (PEM) to encrypt the report with"
+        required: true
+      days:
+        description: "How many days back"
+        default: "14"
+permissions:
+  contents: write
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      BUNDLE_ID: ${{ secrets.BUNDLE_ID }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      DAYS: ${{ inputs.days }}
+      PUBKEY_B64: ${{ inputs.public_key }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Write key
+        env:
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/keys"
+          if printf '%s' "$ASC_KEY_P8_BASE64" | grep -q "BEGIN"; then printf '%s\n' "$ASC_KEY_P8_BASE64" > "$RUNNER_TEMP/keys/k.p8"
+          else echo "$ASC_KEY_P8_BASE64" | base64 --decode > "$RUNNER_TEMP/keys/k.p8"; fi
+      - name: Collect
+        env:
+          ASC_KEY_PATH: ${{ runner.temp }}/keys/k.p8
+        run: |
+          pip install -q pyjwt cryptography requests
+          python3 scripts/feedback_report.py
+      - name: Encrypt and publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tar czf report.tgz -C out .
+          openssl rand -out k.bin 32
+          openssl enc -aes-256-cbc -pbkdf2 -salt -in report.tgz -out report.enc -pass file:k.bin
+          echo "$PUBKEY_B64" | base64 -d > pub.pem
+          openssl pkeyutl -encrypt -pubin -inkey pub.pem -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -in k.bin -out key.enc
+          rm -f k.bin report.tgz; rm -rf out
+          mkdir pub && mv report.enc key.enc pub/ && cd pub
+          git init -q && git add . && git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "feedback report"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:reports
+          echo "::notice::Encrypted report pushed"
+      - name: Remove key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/keys"

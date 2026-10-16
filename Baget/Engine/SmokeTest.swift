@@ -68,7 +68,7 @@ enum SmokeTest {
             try? await Task.sleep(nanoseconds: pause)
         }
         let firstAgent = store.state.agents.first?.id ?? "a1"
-        for sheet in [ActiveSheet.swipe, .taste, .ask("smoke-find"), .agentIcon(firstAgent), .profile, .inbox, .checkout("smoke-find"), .customizeBar, .deploy, .pro] {
+        for sheet in [ActiveSheet.swipe, .taste, .ask("smoke-find"), .agentIcon(firstAgent), .profile, .inbox, .checkout("smoke-find"), .customizeBar, .deploy, .pro, .feedback] {
             router.sheet = sheet
             try? await Task.sleep(nanoseconds: pause)
             router.sheet = nil
