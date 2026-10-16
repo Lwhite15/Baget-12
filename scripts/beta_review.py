@@ -39,6 +39,10 @@ app_id = app[0]["id"]
 want = os.environ.get("BUILD", "latest").strip() or "latest"
 q = f"/builds?filter[app]={app_id}&sort=-uploadedDate&limit=1" if want == "latest" else f"/builds?filter[app]={app_id}&filter[version]={want}"
 builds = call("GET", q)["data"]
+for _ in range(30):   # a fresh upload takes a few minutes to show up
+    if builds: break
+    time.sleep(30)
+    builds = call("GET", q)["data"]
 if not builds: sys.exit(f"::error::Build {want} not found (still processing?)")
 b = builds[0]
 bid, num, state = b["id"], b["attributes"]["version"], b["attributes"]["processingState"]
