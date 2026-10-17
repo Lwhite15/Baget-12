@@ -223,7 +223,15 @@ reset role;
 insert into public.listings (fingerprint, title, brand, category, url, image_url, traits) values
   ('fy|jordan', 'Air Jordan 1 Low Mocha', 'Jordan', 'sneakers', 'https://nike.com/p/1', 'https://img.example/1.jpg', '{suede}'),
   ('fy|lamp', 'Arc Floor Lamp', 'Hay', 'furniture', 'https://hay.com/p/2', 'https://img.example/2.jpg', '{brass}'),
-  ('fy|nophoto', 'Jordan 4 Mystery', 'Jordan', 'sneakers', 'https://nike.com/p/3', null, '{suede}');
+  ('fy|nophoto', 'Jordan 4 Mystery', 'Jordan', 'sneakers', 'https://nike.com/p/3', null, '{suede}'),
+  ('fy|bobs', 'Bob Secret Grail Sneaker', 'Jordan', 'sneakers', 'https://nike.com/p/4', 'https://img.example/4.jpg', '{suede}'),
+  ('fy|house', 'House Pick Fragrance', 'Le Labo', 'fragrance', 'https://lelabo.com/p/5', 'https://img.example/5.jpg', '{woody}');
+-- Who saw what: Larry's scouts saw the first three, Bob's saw his grail, Baget's house account saw the house pick.
+insert into auth.users (id, email) values ('0a99e1e0-5eed-4d3e-8a00-00000000d3e0', 'house@example.com') on conflict do nothing;
+insert into public.listing_seen (user_id, listing_id)
+  select 'aaaaaaaa-0000-0000-0000-000000000001', id from public.listings where fingerprint in ('fy|jordan', 'fy|lamp', 'fy|nophoto')
+  union all select 'bbbbbbbb-0000-0000-0000-000000000002', id from public.listings where fingerprint = 'fy|bobs'
+  union all select '0a99e1e0-5eed-4d3e-8a00-00000000d3e0', id from public.listings where fingerprint = 'fy|house';
 set role authenticated;
 select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
 select t.ok(t.n('select * from public.for_you(10)') >= 2, 'For You has picks');
@@ -243,6 +251,13 @@ select t.err($$select * from public.taste_features('bbbbbbbb-0000-0000-0000-0000
 select set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-0000-0000-000000000002', false);
 select t.ok(t.n('select * from public.feed_reactions') = 0, 'reactions are private');
 select t.ok(t.n('select * from public.for_you(10)') >= 1, 'a brand-new user still gets a feed');
+select t.ok(not exists (select 1 from public.for_you(20) x where x -> 'listing' ->> 'title' in ('Air Jordan 1 Low Mocha', 'Arc Floor Lamp')), 'never products another person''s scouts found');
+select t.ok(exists (select 1 from public.for_you(20) x where x -> 'listing' ->> 'title' = 'House Pick Fragrance'), 'the house catalog fills a new feed');
+select t.ok(t.n('select * from public.listing_seen') = 1, 'who saw what is private');
+select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
+select t.ok(not exists (select 1 from public.for_you(20) x where x -> 'listing' ->> 'title' = 'Bob Secret Grail Sneaker'), 'Bob''s grail never shows on Larry''s screen');
+select t.ok(not exists (select 1 from public.taste_quiz(array['sneakers'], 10) x where x ->> 'title' = 'Bob Secret Grail Sneaker'), 'nor in Larry''s taste check');
+select t.ok(t.n($$select * from public.taste_quiz(array['fragrance'], 10)$$) >= 1, 'the taste check uses the house catalog');
 reset role;
 
 -- Free and Pro

@@ -218,6 +218,12 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
     if (!listings.length) return run;
 
     const saved = await db.rpc<{ fingerprint: string; id: string; already_found: boolean }[]>("upsert_listings", { p_user: a.user_id, p_listings: listings });
+    // Remember which products this person's scouts came across: their For You is built only from these.
+    if (saved.length) {
+      await db.raw("/rest/v1/listing_seen", { method: "POST", headers: { Prefer: "return=minimal,resolution=merge-duplicates" },
+        body: JSON.stringify(saved.map((x) => ({ user_id: a.user_id, listing_id: x.id, seen_at: new Date().toISOString() }))) })
+        .catch((e) => console.error("listing_seen", e));
+    }
     const ids = new Map(saved.map((s) => [s.fingerprint, s]));
     // Other stores' prices for new listings, for the deal verdict.
     await attachOffers(saved.filter((s) => !s.already_found).map((s) => ({ id: s.id, title: listings.find((l) => l.fingerprint === s.fingerprint)?.title ?? "" }))
