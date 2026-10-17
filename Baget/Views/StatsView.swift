@@ -41,8 +41,14 @@ struct AdminStats: Decodable {
     let claude: ClaudeSpend
 }
 
+/// Progress toward the first 100 people, and the numbers investors ask about.
+struct RoadTo100: Decodable {
+    let goal, users, weekPace, week4Base, week4, pro, paidBase, withFriends, feedback: Int
+}
+
 struct StatsView: View {
     @State private var stats: AdminStats?
+    @State private var road: RoadTo100?
     @State private var error: String?
     @State private var loading = false
     @State private var chart = 0
@@ -75,12 +81,15 @@ struct StatsView: View {
         do {
             stats = try await Backend.shared.rpc("admin_stats", as: AdminStats.self)
             error = nil
+            // Separate call, so the rest of Stats still loads if this one fails.
+            road = try? await Backend.shared.rpc("road_to_100", as: RoadTo100.self)
         } catch {
             self.error = "Couldn't load stats. \((error as? LocalizedError)?.errorDescription ?? "")"
         }
     }
 
     @ViewBuilder private func content(_ s: AdminStats) -> some View {
+        if let r = road { roadCard(r, activeWeek: s.active.week) }
         FeedbackInbox()
         section("People") {
             grid([
@@ -167,6 +176,36 @@ struct StatsView: View {
             }
             if failed > 0, let e = s.claude.lastError { Text(e).font(.caption).foregroundStyle(Theme.muted) }
         }
+    }
+
+    @ViewBuilder private func roadCard(_ r: RoadTo100, activeWeek: Int) -> some View {
+        let left = max(r.goal - r.users, 0)
+        section("Road to 100") {
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text("\(r.users)").font(.system(size: 40, weight: .heavy).monospacedDigit()).foregroundStyle(Theme.ink)
+                Text("/ \(r.goal) people").font(.subheadline).foregroundStyle(Theme.muted)
+                Spacer()
+                if left == 0 {
+                    Text("Goal reached").font(.caption.weight(.semibold)).foregroundStyle(Theme.green)
+                }
+            }
+            ProgressView(value: Double(min(r.users, r.goal)), total: Double(r.goal)).tint(Theme.cyan)
+            Text(paceLine(left: left, pace: r.weekPace)).font(.footnote).foregroundStyle(Theme.muted)
+            grid([
+                ("Still here after 4 weeks", pct(r.week4, of: r.week4Base), r.week4Base == 0 ? "no one 4 weeks in yet" : "of \(r.week4Base) · aim 30%+"),
+                ("Active this week", pct(min(activeWeek, r.users), of: r.users), "of \(r.users) people"),
+                ("Paying for Pro", pct(r.pro, of: r.paidBase), "\(r.pro) people · aim 5%+"),
+                ("Connected to a friend", pct(r.withFriends, of: r.users), "\(r.withFriends) people"),
+            ])
+            Text("\(r.feedback) feedback notes from testers so far").font(.caption).foregroundStyle(Theme.muted)
+        }
+    }
+
+    private func paceLine(left: Int, pace: Int) -> String {
+        if left == 0 { return "You hit 100. Time to talk to investors." }
+        if pace == 0 { return "No sign-ups in the last 7 days. \(left) to go." }
+        let weeks = Int((Double(left) / Double(pace)).rounded(.up))
+        return "+\(pace) this week. At this pace, about \(weeks) week\(weeks == 1 ? "" : "s") to go."
     }
 
     private func section<C: View>(_ title: String, @ViewBuilder _ body: () -> C) -> some View {

@@ -204,6 +204,7 @@ set role authenticated;
 select set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-0000-0000-000000000002', false);
 select t.ok(not public.am_i_admin(), 'a regular user is not an admin');
 select t.err($$select public.admin_stats()$$, 'a regular user cannot read the stats');
+select t.err($$select public.road_to_100()$$, 'a regular user cannot read the road to 100');
 select t.err($$select * from public.claude_usage$$, 'Claude usage is not readable');
 select t.err($$insert into public.app_admins (user_id) values ('bbbbbbbb-0000-0000-0000-000000000002')$$, 'nobody can make themselves an admin');
 reset role;
@@ -217,6 +218,7 @@ select t.ok((public.admin_stats() -> 'users' ->> 'total')::int >= 2, 'the owner 
 select t.ok((public.admin_stats() -> 'claude' ->> 'today')::numeric > 0.06, 'spend includes tokens and searches');
 select t.ok((public.admin_stats() -> 'claude' ->> 'cache_saved_week')::numeric > 0, 'cache savings are counted');
 select t.ok(jsonb_array_length(public.admin_stats() -> 'daily') = 14, 'two weeks of daily numbers');
+select t.ok((public.road_to_100() ->> 'goal')::int = 100 and (public.road_to_100() ->> 'users')::int >= 2, 'the owner sees progress to 100');
 reset role;
 
 -- For You: always something, ranked by taste, learns from reactions
