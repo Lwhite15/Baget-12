@@ -8,6 +8,9 @@ on:
         description: "Also send a read-only test message to every agent (uses Claude credit; may add finds)"
         type: boolean
         default: false
+      trace_title:
+        description: "Trace the photo lookup for the newest listing whose title contains this"
+        default: ""
 jobs:
   push:
     runs-on: ubuntu-latest
@@ -33,7 +36,7 @@ jobs:
           done
           fi
           t=$(curl -sS -m 140 -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/sweep" -H "Content-Type: application/json" \
-                -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d '{"trace_image":true}')
+                -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d "$(jq -nc --arg t "${{ inputs.trace_title }}" 'if $t == "" then {trace_image: true} else {trace_title: $t} end')")
           echo "$t" | jq -c '{title, pageStatus, pageError, pageCandidates, searchQuery, searchHits}' | sed 's/^/::notice::photo trace 1: /'
           echo "$t" | jq -c '{downloads}' | cut -c1-900 | sed 's/^/::notice::photo trace 2: /'
           echo "$t" | jq -c '{claudeSaid, claudeStop, claudeBlocks, claudeUsage, chosen, stored, chooseError, error, detail}' | sed 's/^/::notice::photo trace 3: /'
