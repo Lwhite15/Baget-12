@@ -300,7 +300,16 @@ export const handler = handle(async (req) => {
     if (!a) return json({ none: true });
     const qs = queriesFor(a, [], new Date());
     const [ebayRows, leads] = await Promise.all([ebaySearch(a, qs), shoppingLeads(qs)]);
-    return json({ agent: a.name, queries: qs, ebay: { configured: ebayConfigured(), listings: ebayRows.length, sample: ebayRows[0]?.title ?? null },
+    // The image/shopping search service itself: status and its message (never the key).
+    let serper: unknown = "no key";
+    if (env("SERPER_API_KEY")) {
+      const r = await fetch("https://google.serper.dev/images", { method: "POST", signal: AbortSignal.timeout(8000),
+        headers: { "X-API-KEY": env("SERPER_API_KEY")!, "Content-Type": "application/json" }, body: JSON.stringify({ q: "air jordan 1", num: 3 }) })
+        .catch((e) => ({ status: 0, text: async () => String(e) } as unknown as Response));
+      const text = await r.text();
+      serper = { status: r.status, images: (() => { try { return (JSON.parse(text).images ?? []).length; } catch { return null; } })(), message: r.status === 200 ? undefined : text.slice(0, 200) };
+    }
+    return json({ serper, agent: a.name, queries: qs, ebay: { configured: ebayConfigured(), listings: ebayRows.length, sample: ebayRows[0]?.title ?? null },
                   shopping: { configured: !!env("SERPER_API_KEY"), leads: leads.length, sample: leads[0]?.title ?? null } });
   }
   const traceTitle = (body as { trace_title?: string }).trace_title;
