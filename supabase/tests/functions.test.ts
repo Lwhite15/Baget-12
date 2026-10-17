@@ -159,7 +159,7 @@ await test("scheduled sweep: web search, continue a paused turn, score, notify",
   assert.equal(usage[0].searches, 2);
   const rec = calls.find((c) => c.url.includes("record_finds"))!.body;
   assert.equal(rec.p_finds.length, 1, "the AJ4 isn't in his size, so only one find");
-  assert.match(rec.p_finds[0].note.body, /^Yo! The Travis Scott x Air Jordan 1 Low OG drops/);
+  assert.equal(rec.p_finds[0].note, undefined, "no photo yet, so no text: it waits until the photo is found");
   assert.ok(rec.p_finds[0].why.includes("Like your taste photos: suede"));
   const runLog = calls.find((c) => c.url.includes("sweep_runs"))!.body;
   assert.equal(runLog.searches, 3);
@@ -450,13 +450,16 @@ await test("discovery picks keep the agent's own pitch and text you about it", a
   const disc = '```json\n{"listings":[{"title":"Salehe Bembury x New Balance 2002R","brand":"New Balance","category":"sneakers","price":160,"source":"New Balance","url":"https://www.newbalance.com/pd/salehe-2002r/M2002R.html","traits":["suede"],"sizes_in_stock":["10.5"],"discovery":true,"pitch":"Same earthy suede you liked on the Mocha 1s, from a designer you have not tried yet."}]}\n```';
   let recorded: any[] = [];
   reset([
-    [/api\.anthropic\.com/, (_u, _i, b) => /haiku/.test(b.model) ? claudeSays(null)
+    [/api\.anthropic\.com/, (_u, _i, b) => /haiku/.test(b.model) ? claudeSays(1)
       : ok({ content: [{ type: "text", text: disc }], stop_reason: "end_turn", usage: { input_tokens: 10, output_tokens: 10 } })],
     [/rest\/v1\/finds/, () => ok([])],
     [/rpc\/upsert_listings/, (_u, _i, b) => ok(b.p_listings.map((l: any) => ({ fingerprint: l.fingerprint, id: "l1", already_found: false })))],
     [/taste_photos/, () => ok([])],
     [/rpc\/record_finds/, (_u, _i, b) => { recorded = b.p_finds; return ok(recorded.length); }],
     [/sweep_runs/, () => ok({})],
+    [/GET https:\/\/www\.newbalance\.com\/pd/, () => html(`<head><meta property="og:image" content="https://nb.scene7.com/2002r.jpg"></head>`)],
+    [/GET https:\/\/nb\.scene7\.com/, () => jpeg()],
+    [/POST .*storage\/v1\/object\/product-photos\//, () => ok({ Key: "x" })],
     [/newbalance\.com/, () => html("<head></head>")],
   ]);
   await sweep.sweepAgent({ ...jumpman, settings: {}, tz: "America/New_York" } as never, "manual", new Date("2026-10-08T15:00:00Z"));

@@ -9,6 +9,7 @@ struct TastePhotoView: View {
     let agentID: String
 
     @State private var pick: PhotosPickerItem?
+    @State private var showCamera = false
     @State private var image: UIImage?
     @State private var reading: PhotoReading?
     @State private var kept: Set<String> = []
@@ -31,10 +32,19 @@ struct TastePhotoView: View {
                                 .frame(maxWidth: .infinity, maxHeight: 340)
                                 .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                         }
-                        PhotosPicker(selection: $pick, matching: .images, photoLibrary: .shared()) {
-                            Label(image == nil ? "Choose a photo" : "Choose a different photo", systemImage: "photo.on.rectangle.angled")
+                        HStack(spacing: 10) {
+                            if CameraPicker.available {
+                                Button { showCamera = true } label: { Label("Take a photo", systemImage: "camera.fill") }
+                                    .buttonStyle(image == nil ? AnyButtonStyle(PrimaryButton()) : AnyButtonStyle(GhostButton()))
+                            }
+                            PhotosPicker(selection: $pick, matching: .images, photoLibrary: .shared()) {
+                                Label(image == nil ? "Choose a photo" : "Choose another", systemImage: "photo.on.rectangle.angled")
+                            }
+                            .buttonStyle(image == nil && !CameraPicker.available ? AnyButtonStyle(PrimaryButton()) : AnyButtonStyle(GhostButton()))
                         }
-                        .buttonStyle(image == nil ? AnyButtonStyle(PrimaryButton()) : AnyButtonStyle(GhostButton()))
+                        .fullScreenCover(isPresented: $showCamera) {
+                            CameraPicker { img in Task { await analyze(img) } }.ignoresSafeArea()
+                        }
 
                         if image == nil {
                             Text(store.isCloud
@@ -96,10 +106,14 @@ struct TastePhotoView: View {
     }
 
     private func load(_ item: PhotosPickerItem) async {
+        guard let data = try? await item.loadTransferable(type: Data.self), let ui = UIImage(data: data) else { failed = true; return }
+        await analyze(ui)
+    }
+
+    private func analyze(_ ui: UIImage) async {
         loading = true; failed = false; reading = nil; kept = []; extra = []
         defer { loading = false }
-        guard let data = try? await item.loadTransferable(type: Data.self), let ui = UIImage(data: data),
-              let a = store.agent(agentID) else { failed = true; return }
+        guard let a = store.agent(agentID) else { failed = true; return }
         image = PhotoTaste.normalized(ui, maxSide: 1400)
         // Signed in, Claude reads the photo; otherwise (or if that fails) the phone reads it on its own.
         var r: PhotoReading

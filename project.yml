@@ -61,6 +61,8 @@ targets:
         BGTaskSchedulerPermittedIdentifiers:
           - app.baget.sweep
         ITSAppUsesNonExemptEncryption: false
+        NSCameraUsageDescription: "Snap something you love so your scouts can learn your style."
+        NSPhotoLibraryUsageDescription: "Choose photos of things you love so your scouts can learn your style."
         BagetSupabaseURL: $(BAGET_SUPABASE_URL)
         BagetSupabaseAnonKey: $(BAGET_SUPABASE_ANON_KEY)
     scheme:

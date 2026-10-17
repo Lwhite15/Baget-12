@@ -569,3 +569,8 @@ struct AwayReport: Codable, Hashable {
     var notes: Int
     var restocks: Int
 }
+
+extension Item {
+    /// Shown in Finds, Swipe and Today's Drop only once Baget has its real photo (the sample tour has none, so it always shows).
+    var showable: Bool { isSample || (imageURL?.hasPrefix("https://") ?? false) }
+}

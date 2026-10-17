@@ -94,6 +94,20 @@ export const db = {
 
 export const enc = encodeURIComponent;
 
+/** Texts the owner (admins) about a server problem they need to fix, at most once a day per problem. */
+export async function alertOwner(key: string, message: string): Promise<void> {
+  try {
+    const since = new Date(Date.now() - 24 * 3600_000).toISOString();
+    const recent = await db.select<{ id: string }>("notes", `select=id&kind=eq.feedback&sender_name=eq.${enc("Baget server")}` +
+      `&body=like.${enc(`[${key}]*`)}&created_at=gt.${since}&limit=1`);
+    if (recent.length) return;
+    const admins = await db.select<{ user_id: string }>("app_admins", "select=user_id");
+    if (!admins.length) return;
+    await db.insert("notes", admins.map((a) => ({ user_id: a.user_id, sender_name: "Baget server", kind: "feedback",
+      body: `[${key}] ${message}`.slice(0, 480) })), false);
+  } catch { /* alerts must never break the work */ }
+}
+
 /** The signed-in user making this request, verified with Supabase Auth. */
 export async function requireUser(req: Request): Promise<{ id: string; token: string }> {
   const auth = req.headers.get("authorization") ?? "";

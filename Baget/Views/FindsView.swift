@@ -28,7 +28,7 @@ struct FindsView: View {
     /// Passed and bought finds leave the screen; the agents still learn from them and never show them again.
     private var visible: [Find] {
         store.state.finds.filter { f in
-            guard f.status == .open || f.status == .liked, Catalog.item(f.itemID) != nil else { return false }
+            guard f.status == .open || f.status == .liked, Catalog.item(f.itemID)?.showable == true else { return false }
             switch show {
             case .all: return true
             case .new: return f.status == .open
@@ -77,8 +77,8 @@ struct FindsView: View {
 
     var body: some View {
         let groups = self.groups
-        let newTotal = store.state.finds.filter { $0.status == .open }.count
-        let likedTotal = store.state.finds.filter { $0.status == .liked }.count
+        let newTotal = store.state.finds.filter { $0.status == .open && Catalog.item($0.itemID)?.showable == true }.count
+        let likedTotal = store.state.finds.filter { $0.status == .liked && Catalog.item($0.itemID)?.showable == true }.count
 
         ScrollViewReader { proxy in
             ScrollView {

@@ -5,7 +5,7 @@
 // 3. Download a few and let Claude pick the one that shows this exact product, or none.
 // 4. Keep a copy in our own storage, so the app can always load it (stores also block apps from loading their images).
 // A wrong photo is worse than no photo, so anything uncertain stays empty and the app shows the brand tile.
-import { SUPABASE_URL, claude, db, env } from "./platform.ts";
+import { SUPABASE_URL, alertOwner, claude, db, env } from "./platform.ts";
 
 const BLOCKED_HOST = /^(localhost|.+\.local|.+\.internal|.+\.localdomain|metadata\.google\.internal)$/i;
 const GENERIC = /(^|[\/_.-])(logo|logos|favicon|sprite|placeholder|no[-_]?image|default[-_]?(image|share|og|social)?|social[-_]?(share|card)|share[-_]?(image|card)|og[-_]?(default|image[-_]?default)|banner|hero[-_]?banner|icon|icons|apple-touch|brand[-_]?(image|mark)|fallback|blank|spacer|pixel)([\/_.-]|$)/i;
@@ -192,7 +192,15 @@ export async function imageSearch(query: string, fetchFn: FetchFn = fetch): Prom
         headers: { "X-API-KEY": serper, "Content-Type": "application/json" },
         body: JSON.stringify({ q: query, num: 10, gl: "us", hl: "en" }),
       });
-      if (!r.ok) { console.error("serper", r.status, (await r.text()).slice(0, 200)); return []; }
+      if (!r.ok) {
+        const text = (await r.text()).slice(0, 200);
+        console.error("serper", r.status, text);
+        if (/credit/i.test(text) || r.status === 401 || r.status === 403) {
+          await alertOwner("serper", "Photo search (Serper) stopped working: " + (/credit/i.test(text) ? "it's out of credits. Top up at serper.dev." : "the key was refused.") +
+            " Until then new finds wait for photos instead of showing without one.");
+        }
+        return [];
+      }
       const j = await r.json() as { images?: { imageUrl?: string; thumbnailUrl?: string; imageWidth?: number; imageHeight?: number }[] };
       return (j.images ?? [])
         .filter((x) => x.imageUrl && (!x.imageWidth || x.imageWidth >= 300) && (!x.imageHeight || x.imageHeight >= 300))

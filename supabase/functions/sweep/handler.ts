@@ -242,7 +242,8 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
       // Discovery picks are the agent's own initiative, so they don't need to hit the stated keywords as hard.
       if (!m || m.notInSize || m.score < (l.discovery ? 35 : 45)) continue;
       const kind = kindFor(l, now.getTime());
-      const wantNote = !groups || groups.includes(GROUP_OF[kind]);
+      // No photo, no text: a find only buzzes your phone once Baget has its real photo.
+      const wantNote = (!groups || groups.includes(GROUP_OF[kind])) && !!l.image_url;
       const why = [...(l.pitch ? [l.pitch] : []), ...(l.discovery ? ["Discovery: something new it found for you"] : []), ...m.why].slice(0, 6);
       // The agent's own personal text first; the templates are the fallback.
       const body = l.text ? l.text : l.discovery && l.pitch
@@ -267,7 +268,9 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
 /** Listings saved before photos were looked up (or whose page didn't answer): try each once. */
 export async function backfillImages(limit: number) {
   const rows = await db.select<{ id: string; url: string; title: string; brand: string; category: string }>("listings",
-    `select=id,url,title,brand,category&image_url=is.null&url=not.is.null&image_checked_at=is.null&order=last_seen_at.desc&limit=${limit}`);
+    `select=id,url,title,brand,category&image_url=is.null&url=not.is.null` +
+    `&or=(image_checked_at.is.null,image_checked_at.lt.${new Date(Date.now() - 24 * 3600_000).toISOString()})` +
+    `&order=image_checked_at.asc.nullsfirst,last_seen_at.desc&limit=${limit}`);
   let found = 0;
   for (let i = 0; i < rows.length; i += 6) {
     const items = rows.slice(i, i + 6).map((r) => ({ ...r, fingerprint: r.id, image_url: null as string | null }));

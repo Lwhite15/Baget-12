@@ -182,15 +182,15 @@ extension AppStore {
     /// Today's best: open finds from the last few days, strongest first, one per item.
     func todaysPicks(_ n: Int = 5) -> [Find] {
         let since = Date.now.addingTimeInterval(-4 * 86400)
-        let fresh = state.finds.filter { $0.status == .open && $0.foundAt > since && Catalog.item($0.itemID) != nil }
-        let pool = fresh.isEmpty ? state.finds.filter { $0.status == .open && Catalog.item($0.itemID) != nil } : fresh
+        let fresh = state.finds.filter { $0.status == .open && $0.foundAt > since && Catalog.item($0.itemID)?.showable == true }
+        let pool = fresh.isEmpty ? state.finds.filter { $0.status == .open && Catalog.item($0.itemID)?.showable == true } : fresh
         return Array(pool.sorted { $0.score != $1.score ? $0.score > $1.score : $0.foundAt > $1.foundAt }.prefix(n))
     }
 
     /// Open finds to swipe through, best first, 10 at a time (the rest wait in Finds and come up in the next round).
     static let swipeRound = 10
     var swipeQueue: [Find] {
-        Array(state.finds.filter { $0.status == .open && Catalog.item($0.itemID) != nil }
+        Array(state.finds.filter { $0.status == .open && Catalog.item($0.itemID)?.showable == true }
             .sorted { $0.score != $1.score ? $0.score > $1.score : $0.foundAt > $1.foundAt }
             .prefix(Self.swipeRound))
     }

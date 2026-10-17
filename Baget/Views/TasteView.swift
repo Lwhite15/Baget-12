@@ -85,6 +85,10 @@ struct OnboardingView: View {
     @State private var picked: Set<Category> = []
     @State private var text = ""
     @State private var pickerItems: [PhotosPickerItem] = []
+    @State private var tileMenu: Int?
+    @State private var replacing: Int?
+    @State private var showCamera = false
+    @State private var showLibrary = false
     @State private var photos: [UIImage] = []
     @State private var working = false
     @State private var made = 0
@@ -118,12 +122,12 @@ struct OnboardingView: View {
         }
         .preferredColorScheme(.dark)
         .onChange(of: pickerItems) { _, items in
+            guard !items.isEmpty else { return }
             Task { @MainActor in
-                var out: [UIImage] = []
                 for it in items.prefix(3) {
-                    if let d = try? await it.loadTransferable(type: Data.self), let img = UIImage(data: d) { out.append(img) }
+                    if let d = try? await it.loadTransferable(type: Data.self), let img = UIImage(data: d) { addPhoto(img) }
                 }
-                photos = out
+                pickerItems = []
             }
         }
     }
@@ -237,25 +241,41 @@ struct OnboardingView: View {
             Text("Add up to 3 screenshots or photos of pieces you own or want and your scouts read your taste from them. No photos? Skip it.")
                 .font(.subheadline).foregroundStyle(Theme.muted)
             HStack(spacing: 10) {
-                ForEach(0..<3) { i in
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 16).fill(Theme.glass)
-                        if i < photos.count {
-                            Image(uiImage: photos[i]).resizable().scaledToFill()
-                        } else {
-                            Image(systemName: "plus").foregroundStyle(Theme.muted)
+                ForEach(0..<3, id: \.self) { i in
+                    Button { tileMenu = i } label: {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 16).fill(Theme.glass)
+                            if i < photos.count {
+                                Image(uiImage: photos[i]).resizable().scaledToFill()
+                            } else {
+                                VStack(spacing: 4) {
+                                    Image(systemName: i == photos.count ? "camera.fill" : "plus").font(.title3)
+                                    if i == photos.count { Text("Add").font(.caption2.weight(.semibold)) }
+                                }
+                                .foregroundStyle(i == photos.count ? Theme.accent : Theme.muted)
+                            }
                         }
+                        .frame(maxWidth: .infinity).frame(height: 110)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(i == photos.count ? Theme.accent.opacity(0.5) : Theme.line))
                     }
-                    .frame(maxWidth: .infinity).frame(height: 110)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Theme.line))
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(i < photos.count ? "Photo \(i + 1)" : "Add a photo")
                 }
             }
-            PhotosPicker(selection: $pickerItems, maxSelectionCount: 3, matching: .images, photoLibrary: .shared()) {
-                Label(photos.isEmpty ? "Choose photos" : "Change photos", systemImage: "photo.on.rectangle")
-                    .frame(maxWidth: .infinity)
+            .confirmationDialog("Photo", isPresented: Binding(get: { tileMenu != nil }, set: { if !$0 { tileMenu = nil } }), titleVisibility: .hidden) {
+                let i = tileMenu ?? 0
+                if CameraPicker.available {
+                    Button(i < photos.count ? "Retake photo" : "Take a photo") { replacing = i < photos.count ? i : nil; showCamera = true }
+                }
+                Button(i < photos.count ? "Replace from library" : "Choose from library") { replacing = i < photos.count ? i : nil; showLibrary = true }
+                if i < photos.count { Button("Remove", role: .destructive) { photos.remove(at: i) } }
             }
-            .buttonStyle(GhostButton())
+            .fullScreenCover(isPresented: $showCamera) {
+                CameraPicker { img in addPhoto(img) }.ignoresSafeArea()
+            }
+            .photosPicker(isPresented: $showLibrary, selection: $pickerItems, maxSelectionCount: replacing == nil ? max(1, 3 - photos.count) : 1,
+                          matching: .images, photoLibrary: .shared())
             Spacer()
             if working {
                 HStack { Spacer(); ProgressView().tint(Theme.cyan); Text("Building your squad…").foregroundStyle(Theme.muted); Spacer() }
@@ -268,6 +288,13 @@ struct OnboardingView: View {
                 Button("Back") { withAnimation { step = 0 } }.font(.footnote).foregroundStyle(Theme.muted).frame(maxWidth: .infinity)
             }
         }
+    }
+
+    /// Fills the next empty tile, or replaces the one being changed.
+    private func addPhoto(_ img: UIImage) {
+        let small = PhotoTaste.normalized(img, maxSide: 1400)
+        if let r = replacing, r < photos.count { photos[r] = small; replacing = nil }
+        else if photos.count < 3 { photos.append(small) }
     }
 
     private func build() {
