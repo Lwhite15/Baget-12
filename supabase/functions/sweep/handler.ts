@@ -303,6 +303,12 @@ export const handler = handle(async (req) => {
     return json({ agent: a.name, queries: qs, ebay: { configured: ebayConfigured(), listings: ebayRows.length, sample: ebayRows[0]?.title ?? null },
                   shopping: { configured: !!env("SERPER_API_KEY"), leads: leads.length, sample: leads[0]?.title ?? null } });
   }
+  const traceTitle = (body as { trace_title?: string }).trace_title;
+  if (isScheduler(req) && traceTitle) {
+    const [l] = await db.select<{ url: string; title: string; brand: string; category: string }>("listings",
+      `select=url,title,brand,category&title=ilike.*${encodeURIComponent(traceTitle.replace(/[*,()]/g, " ").slice(0, 60))}*&url=not.is.null&order=last_seen_at.desc&limit=1`);
+    return json(l ? await traceImage(l) : { none: true });
+  }
   if (isScheduler(req) && body.trace_image) {
     const [l] = await db.select<{ url: string; title: string; brand: string; category: string }>("listings",
       "select=url,title,brand,category&url=not.is.null&url=like.*carhartt*&order=last_seen_at.desc&limit=1");
