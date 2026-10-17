@@ -229,9 +229,9 @@ insert into public.listings (fingerprint, title, brand, category, url, image_url
 -- Who saw what: Larry's scouts saw the first three, Bob's saw his grail, Baget's house account saw the house pick.
 insert into auth.users (id, email) values ('0a99e1e0-5eed-4d3e-8a00-00000000d3e0', 'house@example.com') on conflict do nothing;
 insert into public.listing_seen (user_id, listing_id)
-  select 'aaaaaaaa-0000-0000-0000-000000000001', id from public.listings where fingerprint in ('fy|jordan', 'fy|lamp', 'fy|nophoto')
-  union all select 'bbbbbbbb-0000-0000-0000-000000000002', id from public.listings where fingerprint = 'fy|bobs'
-  union all select '0a99e1e0-5eed-4d3e-8a00-00000000d3e0', id from public.listings where fingerprint = 'fy|house';
+  select 'aaaaaaaa-0000-0000-0000-000000000001'::uuid, id from public.listings where fingerprint in ('fy|jordan', 'fy|lamp', 'fy|nophoto')
+  union all select 'bbbbbbbb-0000-0000-0000-000000000002'::uuid, id from public.listings where fingerprint = 'fy|bobs'
+  union all select '0a99e1e0-5eed-4d3e-8a00-00000000d3e0'::uuid, id from public.listings where fingerprint = 'fy|house';
 set role authenticated;
 select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
 select t.ok(t.n('select * from public.for_you(10)') >= 2, 'For You has picks');
