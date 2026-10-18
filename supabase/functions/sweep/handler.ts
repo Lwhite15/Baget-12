@@ -224,7 +224,7 @@ export function cleanListings(raw: unknown, fallbackCategory: string): (Listing 
 }
 
 export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", now = new Date()) {
-  const run = { user_id: a.user_id, agent_id: a.id, trigger, searches: 0, listings: 0, finds: 0, input_tokens: 0, output_tokens: 0, cache_write_tokens: 0, cache_read_tokens: 0, error: null as string | null };
+  const run = { user_id: a.user_id, agent_id: a.id, trigger, searches: 0, listings: 0, finds: 0, input_tokens: 0, output_tokens: 0, cache_write_tokens: 0, cache_read_tokens: 0, fetches: 0, error: null as string | null };
   try {
     const reactions = await reactionsFor(a.id).catch(() => undefined);
     // Extra sources (each only when its key is set): Google Shopping leads for Claude, and real eBay listings.
@@ -250,6 +250,7 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
       run.cache_write_tokens += res.usage?.cache_creation_input_tokens ?? 0;
       run.cache_read_tokens += res.usage?.cache_read_input_tokens ?? 0;
       run.searches += res.usage?.server_tool_use?.web_search_requests ?? 0;
+      run.fetches += res.usage?.server_tool_use?.web_fetch_requests ?? 0;
       final = res.content;
       if (res.stop_reason !== "pause_turn") break;
       messages.push({ role: "assistant", content: res.content });   // continue a long search turn
@@ -368,6 +369,14 @@ export const handler = handle(async (req) => {
     }
     return json({ serper, agent: a.name, queries: qs, ebay: { configured: ebayConfigured(), listings: ebayRows.length, sample: ebayRows[0]?.title ?? null },
                   shopping: { configured: !!env("SERPER_API_KEY"), leads: leads.length, sample: leads[0]?.title ?? null } });
+  }
+  // Diagnose: one real hunt on Baget's house account, to prove the search setup works end to end.
+  if (isScheduler(req) && (body as { test_hunt?: boolean }).test_hunt) {
+    const [cand] = await db.rpc<Candidate[]>("sweep_candidates", { p_limit: 1, p_daily_cap: 1000, p_user: "0a99e1e0-5eed-4d3e-8a00-00000000d3e0", p_agent: null });
+    if (!cand) return json({ none: "no house scout available (all hunted in the last 10 minutes)" });
+    const t0 = Date.now();
+    const run = await sweepAgent(cand, "manual");
+    return json({ agent: cand.name, seconds: Math.round((Date.now() - t0) / 1000), ...run });
   }
   const traceTitle = (body as { trace_title?: string }).trace_title;
   if (isScheduler(req) && traceTitle) {

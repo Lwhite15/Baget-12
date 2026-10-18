@@ -11,6 +11,10 @@ on:
       trace_title:
         description: "Trace the photo lookup for the newest listing whose title contains this"
         default: ""
+      test_hunt:
+        description: "Run one real hunt on Baget's house account (uses Claude credit)"
+        type: boolean
+        default: false
 jobs:
   push:
     runs-on: ubuntu-latest
@@ -88,6 +92,18 @@ jobs:
           q "select a.paused, a.last_swept_at, coalesce(p.settings->>'sweepMinutes','unset') as every, (select count(*) from public.sweep_runs r where r.user_id = p.id and r.created_at > now() - interval '24 hours' and r.error is null) as ok_24h, (select count(*) from public.sweep_runs r where r.user_id = p.id and r.created_at > now() - interval '24 hours' and r.error is not null) as failed_24h, (select left(error,150) from public.sweep_runs r where r.user_id = p.id and r.error is not null order by created_at desc limit 1) as last_error from public.agents a join public.profiles p on p.id = a.user_id where exists (select 1 from public.app_admins x where x.user_id = p.id)" | jq -c '.[]?' | sed 's/^/::notice::owner agent /'
           # Per account (no names): plan, agents on, last hunt, and whether it's in its window now.
           q "select p.plan, public.is_pro(p.id) as pro, public.in_hunt_window(p.tz, p.settings) as in_window, coalesce(p.settings->>'sweepMinutes','180') as every, count(a.id) filter (where not a.paused) as agents_on, max(a.last_swept_at) as last_hunt, (select count(*) from public.sweep_runs r where r.user_id = p.id and r.created_at > now() - interval '24 hours' and r.error is null) as ok_runs_24h from public.profiles p left join public.agents a on a.user_id = p.id group by p.id having count(a.id) > 0" | jq -c '.[]?' | sed 's/^/::notice::account /'
+  hunt:
+    if: ${{ inputs.test_hunt }}
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      BAGET_CRON_SECRET: ${{ secrets.BAGET_CRON_SECRET }}
+    steps:
+      - name: One test hunt
+        run: |
+          r=$(curl -sS -m 200 -w ' [HTTP %{http_code}]' -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/sweep" \
+                -H "Content-Type: application/json" -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d '{"test_hunt":true}')
+          echo "::notice::test hunt: $(echo "$r" | cut -c1-600)"
   listings:
     runs-on: ubuntu-latest
     env:
