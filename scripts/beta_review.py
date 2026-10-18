@@ -44,6 +44,15 @@ for _ in range(30):   # a fresh upload takes a few minutes to show up
     time.sleep(30)
     builds = call("GET", q)["data"]
 if not builds: sys.exit(f"::error::Build {want} not found (still processing?)")
+# "latest" right after an upload: the new build can take several minutes to appear, and until then the newest one
+# listed is the previous build, which was already submitted. Wait for a build that hasn't been submitted yet.
+if want == "latest":
+    for _ in range(30):
+        if not call("GET", f"/betaAppReviewSubmissions?filter[build]={builds[0]['id']}")["data"]: break
+        time.sleep(30)
+        builds = call("GET", q)["data"]
+    else:
+        sys.exit(f"::error::No new build since {builds[0]['attributes']['version']}, which was already submitted. Pass a build number to resubmit.")
 b = builds[0]
 bid, num, state = b["id"], b["attributes"]["version"], b["attributes"]["processingState"]
 note(f"Build {num}: processing {state}, expired={b['attributes'].get('expired')}")
