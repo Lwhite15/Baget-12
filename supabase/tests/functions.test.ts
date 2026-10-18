@@ -702,6 +702,7 @@ await test("onboarding: picked interests plus photos become a tuned squad", asyn
     [/api\.anthropic\.com/, (_u, _i, b) => { sent = b; return ok({ content: [{ type: "text", text: JSON.stringify({ agents: [
       { name: "Oud Hunter", category: "fragrance", makers: ["Frederic Malle"], traits: ["oud"], voice: "chill", intro: "On it." },
     ] }) }], stop_reason: "end_turn" }); }],
+    [/GET .*rest\/v1\/agents/, () => ok([])],
     [/rest\/v1\/agents/, (_u, _i, b) => { inserted.push(b); return ok([{ id: `a${inserted.length}` }]); }],
   ]);
   const res = await hunt.handler(post("hunt", { categories: ["fragrance", "sneakers", "nonsense"], text: "dark woody stuff",
@@ -951,6 +952,23 @@ await test("hunts search through Serper when it works, and fall back to Claude's
   assert.equal(claudeBodies[0].tools.length, 1, "Free hunts don't open pages");
   delete process.env.SERPER_API_KEY;
   search.resetSerperHealth();
+});
+
+await test("setup only makes as many scouts as the plan allows", async () => {
+  const inserted: any[] = [];
+  reset([
+    [/auth\/v1\/user/, () => ok({ id: jumpman.user_id })],
+    [/api\.anthropic\.com/, () => ok({ stop_reason: "end_turn", content: [{ type: "text", text: JSON.stringify({ agents: [
+      { name: "A", category: "sneakers" }, { name: "B", category: "fragrance" }, { name: "C", category: "watches" }, { name: "D", category: "cars" }] }) }] })],
+    [/profiles\?select=plan/, () => ok([{ plan: "free", pro_until: null }])],
+    [/GET .*rest\/v1\/agents/, () => ok([])],
+    [/rest\/v1\/agents/, (_u, _i, b) => { inserted.push(b); return ok([{ id: `a${inserted.length}` }]); }],
+    [/rest\/v1\/profiles/, () => ok([{ display_name: "" }])],
+    [/rest\/v1\/notes/, () => new Response(null, { status: 201 })],
+  ]);
+  const res = await hunt.handler(post("hunt", { categories: ["sneakers", "fragrance", "watches", "cars"], text: "" }, { Authorization: "Bearer user-jwt" }));
+  const body = await res.json();
+  assert.equal(body.agents.length, 2, "Free: 2 scouts");
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

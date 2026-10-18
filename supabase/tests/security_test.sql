@@ -108,8 +108,12 @@ reset role;
 update public.profiles set plan = 'comp' where id = 'aaaaaaaa-0000-0000-0000-000000000001';
 set role service_role;
 update public.agents set last_swept_at = now() - interval '5 hours';
-select t.ok(t.n($$select * from public.sweep_candidates(20, 2, null, null) x where x ->> 'name' = 'Jumpman Scout'$$) = 0, 'sweeps spread to fit the daily cap');
-select t.ok(t.n($$select * from public.sweep_candidates(20, 48, null, null) x where x ->> 'name' = 'Jumpman Scout'$$) = 1, 'roomy cap: due after the 3 hour default');
+select t.ok(t.n($$select * from public.sweep_candidates(20, 48, null, null) x where x ->> 'name' = 'Jumpman Scout'$$) = 0, 'Pro schedule: not due within 6 hours');
+update public.agents set last_swept_at = now() - interval '7 hours';
+select t.ok(t.n($$select * from public.sweep_candidates(20, 48, null, null) x where x ->> 'name' = 'Jumpman Scout'$$) = 1, 'due again after 6 hours');
+insert into public.sweep_runs (user_id, trigger) select 'aaaaaaaa-0000-0000-0000-000000000001', 'scheduled' from generate_series(1, 2);
+select t.ok(t.n($$select * from public.sweep_candidates(20, 2, null, null) x where x ->> 'name' = 'Jumpman Scout'$$) = 0, 'the daily cap stops hunts');
+delete from public.sweep_runs where user_id = 'aaaaaaaa-0000-0000-0000-000000000001' and error is null and searches = 0;
 -- Failed runs don't use up the daily cap.
 insert into public.sweep_runs (user_id, trigger, error) select 'aaaaaaaa-0000-0000-0000-000000000001', 'scheduled', 'out of credit' from generate_series(1, 5);
 update public.agents set last_swept_at = now() - interval '30 hours';
@@ -271,7 +275,7 @@ select t.ok((public.my_plan() ->> 'hours')::int = 4, 'the app can read its own p
 reset role;
 update public.profiles set plan = 'free', settings = settings || jsonb_build_object('huntStart', ((extract(hour from now() at time zone tz)::int + 12) % 24))
  where id = 'aaaaaaaa-0000-0000-0000-000000000001';
-update public.agents set last_swept_at = now() - interval '6 hours', paused = false where user_id = 'aaaaaaaa-0000-0000-0000-000000000001';
+update public.agents set last_swept_at = now() - interval '21 hours', paused = false where user_id = 'aaaaaaaa-0000-0000-0000-000000000001';
 set role service_role;
 select t.ok(not exists (select 1 from public.sweep_candidates(20, 50, null, null) c where c ->> 'user_id' = 'aaaaaaaa-0000-0000-0000-000000000001'), 'Free scouts rest outside their window');
 reset role;
@@ -304,6 +308,42 @@ select t.ok(t.n('select * from public.admin_feedback(10)') = 1, 'the owner reads
 select t.ok(t.n($$select * from public.notes where kind = 'feedback' and body like '%Buy button did nothing%'$$) = 1, 'and gets a text about it');
 select public.admin_mark_feedback((select (x ->> 'id')::uuid from public.admin_feedback(1) x), 'done');
 select t.ok((select x ->> 'status' = 'done' from public.admin_feedback(1) x), 'the owner can mark it done');
+reset role;
+
+-- Plan limits
+reset role;
+update public.profiles set plan = 'free', pro_until = null where id = 'bbbbbbbb-0000-0000-0000-000000000002';
+delete from public.agents where user_id = 'bbbbbbbb-0000-0000-0000-000000000002';
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-0000-0000-000000000002', false);
+insert into public.agents (name, mission_category) values ('One', 'cars'), ('Two', 'watches');
+select t.err($$insert into public.agents (name, mission_category) values ('Three', 'fragrance')$$, 'Free includes 2 scouts');
+select t.ok((public.my_plan() ->> 'scouts')::int = 2, 'the app knows the limit');
+reset role;
+update public.profiles set plan = 'pro', pro_until = now() + interval '30 days' where id = 'bbbbbbbb-0000-0000-0000-000000000002';
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-0000-0000-000000000002', false);
+insert into public.agents (name, mission_category) values ('Three', 'fragrance'), ('Four', 'cars'), ('Five', 'furniture');
+select t.err($$insert into public.agents (name, mission_category) values ('Six', 'apparel')$$, 'Pro includes 5 scouts');
+reset role;
+-- Pro: a scout that hunted 3 hours ago isn't due (every 6 hours); one from 7 hours ago is.
+update public.agents set last_swept_at = now() - interval '3 hours' where user_id = 'bbbbbbbb-0000-0000-0000-000000000002';
+update public.agents set last_swept_at = now() - interval '7 hours' where user_id = 'bbbbbbbb-0000-0000-0000-000000000002' and name = 'One';
+set role service_role;
+select t.ok(t.n($$select * from public.sweep_candidates(20, 30, null, null) c where c ->> 'user_id' = 'bbbbbbbb-0000-0000-0000-000000000002'$$) = 1, 'Pro hunts every 6 hours');
+select t.ok((select (c ->> 'pro')::boolean from public.sweep_candidates(20, 30, null, null) c where c ->> 'user_id' = 'bbbbbbbb-0000-0000-0000-000000000002' limit 1), 'hunts know the plan');
+reset role;
+-- Back to Free with 5 scouts: only the first 2 hunt, once a day.
+update public.profiles set plan = 'free', pro_until = null, settings = settings || jsonb_build_object('huntStart', extract(hour from now() at time zone tz)::int)
+ where id = 'bbbbbbbb-0000-0000-0000-000000000002';
+update public.agents set last_swept_at = now() - interval '21 hours' where user_id = 'bbbbbbbb-0000-0000-0000-000000000002';
+set role service_role;
+select t.ok(t.n($$select * from public.sweep_candidates(20, 30, null, null) c where c ->> 'user_id' = 'bbbbbbbb-0000-0000-0000-000000000002'$$) = 2, 'Free: only 2 scouts hunt');
+select t.ok(t.n($$select * from public.sweep_candidates(20, 30, 'bbbbbbbb-0000-0000-0000-000000000002', null) c where c ->> 'name' = 'Three'$$) = 0, 'extra scouts on Free stay home, even on refresh');
+reset role;
+update public.agents set last_swept_at = now() - interval '5 hours' where user_id = 'bbbbbbbb-0000-0000-0000-000000000002';
+set role service_role;
+select t.ok(t.n($$select * from public.sweep_candidates(20, 30, 'bbbbbbbb-0000-0000-0000-000000000002', null)$$) = 0, 'Free: no extra hunts by refreshing the same day');
 reset role;
 
 -- morning release and account deletion

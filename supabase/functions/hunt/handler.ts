@@ -60,7 +60,10 @@ async function insertAgent(userId: string, plan: Plan): Promise<string> {
     const created = await db.insert<{ id: string }>("agents", row);
     return created[0].id;
   } catch (e) {
-    if (/agent_limit|12 agents/i.test((e as Error).message)) throw new HttpError(409, "A squad can have up to 12 agents. Retire one to add another.");
+    if (/agent_limit/i.test((e as Error).message)) {
+      const hint = (e as Error).message.match(/"hint":"([^"]+)"/)?.[1];
+      throw new HttpError(409, hint ?? "Your squad is full. Retire a scout to add another.");
+    }
     throw e;
   }
 }
@@ -68,6 +71,14 @@ async function insertAgent(userId: string, plan: Plan): Promise<string> {
 const needsSize = (p: Plan) => (p.category === "sneakers" || p.category === "apparel") && !p.size;
 
 /** Onboarding: a few categories, an optional sentence and up to 3 photos -> one agent per category, tuned to the photos. */
+/** Free 2 scouts, Pro 5, owner accounts 12 (matches the database's limit). */
+export async function scoutLimit(userId: string): Promise<number> {
+  const [p] = await db.select<{ plan: string; pro_until: string | null }>("profiles", `select=plan,pro_until&id=eq.${userId}`).catch(() => []);
+  if (p?.plan === "comp") return 12;
+  if (p?.plan === "pro" && p.pro_until && Date.parse(p.pro_until) > Date.now()) return 5;
+  return 2;
+}
+
 /** Each new agent says hi in the inbox: who it is, what it's hunting, and when to expect finds. Not pushed (kind "learned"). */
 async function introNotes(userId: string, agents: { agent_id: string; name: string; intro: string }[]) {
   const [p] = await db.select<{ display_name: string }>("profiles", `select=display_name&id=eq.${userId}`).catch(() => []);
@@ -98,6 +109,10 @@ Use only what they said, picked or showed. Keep every list item short (1-4 words
   const plans = raw.map((r) => cleanPlan(r, text || "Anything I'd love", size));
   // Make sure every picked category got an agent, even if Claude skipped one.
   for (const c of cats) if (!plans.some((p) => p.category === c)) plans.push(cleanPlan({ category: c, name: `${c[0].toUpperCase()}${c.slice(1)} Scout` }, c, size));
+  // Only as many scouts as the plan allows (Free 2, Pro 5); the strongest picks first.
+  const limit = await scoutLimit(userId);
+  const existing = (await db.select<{ id: string }>("agents", `select=id&user_id=eq.${userId}`)).length;
+  plans.splice(Math.max(0, limit - existing));
   const agents = [];
   for (const p of plans) {
     const id = await insertAgent(userId, p);

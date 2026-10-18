@@ -391,6 +391,13 @@ export async function restingMessage(userId: string, now = new Date()): Promise<
   return `Your scouts are resting. On Free they hunt ${label(start)} to ${label((start + 4) % 24)}. Go Pro to hunt around the clock.`;
 }
 
+/** Free, inside the window, but today's hunt is done. */
+export async function huntedTodayMessage(userId: string): Promise<string | null> {
+  const [p] = await db.select<{ plan: string; pro_until: string | null }>("profiles", `select=plan,pro_until&id=eq.${userId}`).catch(() => []);
+  if (!p || p.plan === "comp" || (p.plan === "pro" && p.pro_until && Date.parse(p.pro_until) > Date.now())) return null;
+  return "Your scouts already hunted today. On Free each scout hunts once a day. Go Pro for deep hunts every 6 hours.";
+}
+
 export const handler = handle(async (req) => {
   const body = await req.json().catch(() => ({})) as { agent_id?: string; backfill?: number; trace_image?: boolean };
   if (isScheduler(req) && (body as { check_sources?: boolean }).check_sources) {
@@ -460,7 +467,7 @@ export const handler = handle(async (req) => {
     trigger = "manual";
     candidates = await db.rpc<Candidate[]>("sweep_candidates", { p_limit: 3, p_daily_cap: dailyCap, p_user: user.id, p_agent: body.agent_id ?? null });
     if (!candidates.length) {
-      const resting = await restingMessage(user.id);
+      const resting = await restingMessage(user.id) ?? await huntedTodayMessage(user.id);
       return json({ swept: 0, found: 0, resting: !!resting, message: resting ?? "Your agents swept recently. They'll go again in a few minutes." });
     }
   }
