@@ -111,6 +111,7 @@ struct RootView: View {
                 // The name sits in the middle; on iOS 26 a leading text item gets squeezed into a glass bubble.
                 ToolbarItem(placement: .principal) {
                     HStack(spacing: 0) {
+                        AppIcon(size: 26).padding(.trailing, 8)
                         Text("Baget").foregroundStyle(Theme.ink)
                         Text(".").gradientText()
                     }
@@ -200,14 +201,26 @@ struct RootView: View {
     }
 }
 
+/// Baget's logo, the "Agent b": a lowercase b whose bowl wears an orange visor. Same drawing as the home-screen icon.
 struct AppIcon: View {
     var size: CGFloat = 36
+    static let ground = Color(red: 0x2B / 255, green: 0x3B / 255, blue: 1.0)
+    static let visor = Color(red: 1.0, green: 0x6A / 255, blue: 0x1A / 255)
     var body: some View {
-        Text("B")
-            .font(.system(size: size * 0.5, weight: .heavy))
-            .foregroundStyle(Theme.accentInk)
-            .frame(width: size, height: size)
-            .background(Theme.gradient, in: RoundedRectangle(cornerRadius: size * 0.28, style: .continuous))
+        Canvas { ctx, sz in
+            let k = sz.width / 100
+            func r(_ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat) -> CGRect {
+                CGRect(x: x * k, y: y * k, width: w * k, height: h * k)
+            }
+            ctx.fill(Path(roundedRect: r(23, 17, 12, 66), cornerRadius: 6 * k), with: .color(.white))
+            ctx.fill(Path(ellipseIn: r(25, 31, 52, 52)), with: .color(.white))
+            ctx.fill(Path(ellipseIn: r(37, 43, 28, 28)), with: .color(Self.ground))
+            ctx.fill(Path(roundedRect: r(40, 53, 22, 8), cornerRadius: 4 * k), with: .color(Self.visor))
+        }
+        .frame(width: size, height: size)
+        .background(Self.ground)
+        .clipShape(RoundedRectangle(cornerRadius: size * 0.224, style: .continuous))
+        .accessibilityHidden(true)
     }
 }
 

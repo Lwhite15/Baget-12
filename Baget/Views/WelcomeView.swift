@@ -14,6 +14,7 @@ struct WelcomeView: View {
             LitBackground()
             VStack(alignment: .leading, spacing: 22) {
                 Spacer()
+                AppIcon(size: 76)
                 HStack(spacing: 0) {
                     Text("Baget").foregroundStyle(Theme.ink)
                     Text(".").gradientText()
