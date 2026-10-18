@@ -50,6 +50,9 @@ jobs:
       - name: Launch test on the simulator
         run: |
           APP=$(ls -d build/Build/Products/Debug-iphonesimulator/Baget.app | head -1)
+          # App Store review requires a privacy manifest in the app and in the notification extension.
+          test -f "$APP/PrivacyInfo.xcprivacy" || { echo "::error::PrivacyInfo.xcprivacy is missing from the app bundle"; exit 1; }
+          test -f "$APP/PlugIns/BagetNotify.appex/PrivacyInfo.xcprivacy" || { echo "::error::PrivacyInfo.xcprivacy is missing from the notification extension"; exit 1; }
           BUNDLE=$(/usr/libexec/PlistBuddy -c "Print CFBundleIdentifier" "$APP/Info.plist")
           UDID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; print(next(x["udid"] for k,v in d.items() if "iOS" in k for x in v if x["name"].startswith("iPhone")))')
           xcrun simctl boot "$UDID" || true
