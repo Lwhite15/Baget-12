@@ -1,7 +1,7 @@
 // Talk to an agent. Claude plays the agent, can search the live web, and acts through tools that run here
 // on the server against the user's own data. It never buys anything: the most it does is line up checkout.
 import { type Agent, intel, match, missionLabel, norm, words } from "../_shared/match.ts";
-import { type Block, type ClaudeMessage, HttpError, claude, db, enc, handle, isScheduler, json, requireUser, textOf } from "../_shared/platform.ts";
+import { type Block, type ClaudeMessage, HttpError, claude, db, enc, handle, isScheduler, json, quota, requireUser, textOf } from "../_shared/platform.ts";
 import { cleanListings } from "../sweep/handler.ts";
 import { addImages } from "../_shared/images.ts";
 
@@ -78,6 +78,7 @@ export const handler = handle(async (req) => {
     console.log("trace chat", ag.name);
   } else {
     user = await requireUser(req);
+    await quota(user.id, "chat", 60, 400);
   }
   if (!body.agent_id || !Array.isArray(body.messages) || body.messages.length === 0) throw new HttpError(400, "agent_id and messages are required");
   const turns = body.messages

@@ -1,7 +1,7 @@
 // Claude looks at a taste photo and describes the style in the language of the agent's mission.
 // The app shows the result, the person keeps what's right, and the app saves it.
 import { type Agent, info, missionLabel } from "../_shared/match.ts";
-import { HttpError, claude, db, enc, handle, json, parseJSON, requireUser, textOf } from "../_shared/platform.ts";
+import { HttpError, claude, db, enc, handle, json, parseJSON, quota, requireUser, textOf } from "../_shared/platform.ts";
 
 const VOCAB: Record<string, [string, string, string]> = {
   sneakers: ["silhouettes, colorways and materials", "brands", "collaborators and designers"],
@@ -16,6 +16,7 @@ const VOCAB: Record<string, [string, string, string]> = {
 
 export const handler = handle(async (req) => {
   const user = await requireUser(req);
+  await quota(user.id, "read-photo", 20, 60);
   const body = await req.json().catch(() => ({})) as { agent_id?: string; image_base64?: string; media_type?: string };
   if (!body.agent_id || !body.image_base64) throw new HttpError(400, "agent_id and image_base64 are required");
   if (body.image_base64.length > 2_000_000) throw new HttpError(413, "That photo is too large. Try a smaller one.");

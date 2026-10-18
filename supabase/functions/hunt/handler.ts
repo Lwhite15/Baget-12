@@ -1,7 +1,7 @@
 // "What are you hunting?" One sentence in, a ready agent out.
 // Claude turns the sentence into a brief (mission, brands, styles, keywords, size) and the agent is created for the person.
 import { CATEGORIES, firstName } from "../_shared/match.ts";
-import { HttpError, claude, db, handle, json, parseJSON, requireUser, textOf } from "../_shared/platform.ts";
+import { HttpError, claude, db, handle, json, parseJSON, quota, requireUser, textOf } from "../_shared/platform.ts";
 
 export interface Plan {
   name: string;
@@ -153,6 +153,7 @@ Use only what they said, picked or showed. Keep every list item short (1-4 words
 
 export const handler = handle(async (req) => {
   const user = await requireUser(req);
+  await quota(user.id, "hunt", 20, 50);
   const body = await req.json().catch(() => ({})) as { text?: string; size?: string; categories?: string[]; images?: Img[]; liked?: string[]; passed?: string[];
     vibes?: unknown; budget?: unknown; brands?: unknown };
   const text = (body.text ?? "").trim().slice(0, 300);

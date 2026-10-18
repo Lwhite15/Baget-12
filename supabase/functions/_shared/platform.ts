@@ -120,6 +120,18 @@ export async function requireUser(req: Request): Promise<{ id: string; token: st
   return { id: u.id, token };
 }
 
+/** Per-account limit on a feature that calls Claude on demand. Limits come from env (QUOTA_<FN>_HOUR / _DAY) so they can
+ *  be raised without a release. Fails open if the check itself errors, so a database hiccup never blocks real users. */
+export async function quota(userId: string, fn: string, perHour: number, perDay: number) {
+  const key = fn.toUpperCase().replace(/[^A-Z]/g, "_");
+  const h = Number(env(`QUOTA_${key}_HOUR`)) || perHour, d = Number(env(`QUOTA_${key}_DAY`)) || perDay;
+  const r = await db.rpc<string>("take_quota", { p_user: userId, p_fn: fn, p_per_hour: h, p_per_day: d }).catch((e) => {
+    console.error("quota", e); return "ok";
+  });
+  if (r === "hour") throw new HttpError(429, "You're going fast. Give it a few minutes and try again.");
+  if (r === "day") throw new HttpError(429, "That's the limit for today. It resets tomorrow.");
+}
+
 /** Scheduler and database-trigger calls carry a shared secret. */
 export function isScheduler(req: Request): boolean {
   const want = env("BAGET_CRON_SECRET");

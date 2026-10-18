@@ -1084,4 +1084,15 @@ await test("batch answers can't land on the wrong brand", () => {
     "a trimmed long title still matches; a different product doesn't");
 });
 
+await test("on-demand Claude features are limited per account", async () => {
+  reset([
+    [/auth\/v1\/user/, () => ok({ id: jumpman.user_id })],
+    [/rpc\/take_quota/, (_u, _i, b) => { assert.equal(b.p_fn, "hunt"); return ok("day"); }],
+  ]);
+  const res = await hunt.handler(post("hunt", { text: "jordans" }, { Authorization: "Bearer user-jwt" }));
+  assert.equal(res.status, 429);
+  assert.match((await res.json()).error, /limit for today/);
+  assert.equal(calls.filter((c) => c.url.includes("anthropic")).length, 0, "Claude isn't called");
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
