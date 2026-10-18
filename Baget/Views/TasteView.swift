@@ -137,14 +137,22 @@ struct OnboardingView: View {
     private var interests: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("What are you into?").font(.system(size: 30, weight: .heavy)).foregroundStyle(Theme.ink)
-            Text("Pick a few. You'll get a personal scout for each, hunting drops, restocks and deals.").font(.subheadline).foregroundStyle(Theme.muted)
+            Text(store.scoutLimit >= 5 ? "Pick a few. You'll get a personal scout for each, hunting drops, restocks and deals."
+                                       : "Pick up to \(store.scoutLimit). You'll get a personal scout for each, hunting drops, restocks and deals.")
+                .font(.subheadline).foregroundStyle(Theme.muted)
             FlowRow {
                 ForEach(Category.allCases.filter { $0 != .other }) { c in
                     Button {
-                        if picked.contains(c) { picked.remove(c) } else { picked.insert(c) }
+                        if picked.contains(c) { picked.remove(c) }
+                        else if picked.count < store.scoutLimit { picked.insert(c) }
                     } label: { Pill(text: c.info.label, selected: picked.contains(c)) }
+                        .opacity(!picked.contains(c) && picked.count >= store.scoutLimit ? 0.4 : 1)
                         .buttonStyle(.plain)
                 }
+            }
+            if picked.count >= store.scoutLimit && store.isCloud && !store.isPro {
+                Text("Free includes 2 scouts. You can go Pro any time for up to 5, hunting around the clock.")
+                    .font(.caption).foregroundStyle(Theme.muted)
             }
             TextField("Anything specific? e.g. Jordan 1s in mocha, size 10.5", text: $text, axis: .vertical)
                 .lineLimit(1...3)

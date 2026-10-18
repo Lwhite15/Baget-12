@@ -78,7 +78,9 @@ for pid, name, period, usd, level in plans:
     except RuntimeError as e:
         note(f"{pid} availability: {str(e)[:160]}")
     # Prices: the US price point, then its equivalents in every other territory.
-    if pages(f"/subscriptions/{sid}/prices?limit=200"):
+    # REPRICE=1 changes existing prices (from tomorrow if Apple won't change today's).
+    reprice = os.environ.get("REPRICE") == "1"
+    if pages(f"/subscriptions/{sid}/prices?limit=200") and not reprice:
         note(f"{pid}: prices already set")
         continue
     us = next((p for p in pages(f"/subscriptions/{sid}/pricePoints?filter[territory]=USA&limit=200")
@@ -87,15 +89,21 @@ for pid, name, period, usd, level in plans:
         print(f"::error::{pid}: no US price point for ${usd}"); continue
     points = [us] + pages(f"/subscriptionPricePoints/{us['id']}/equalizations?limit=200")
     done = 0
+    start = None
+    import datetime
     for p in points:
-        try:
-            call("POST", "/subscriptionPrices", {"data": {"type": "subscriptionPrices", "attributes": {"preserveCurrentPrice": False},
-                "relationships": {"subscription": {"data": {"type": "subscriptions", "id": sid}},
-                                  "subscriptionPricePoint": {"data": {"type": "subscriptionPricePoints", "id": p["id"]}}}}})
-            done += 1
-        except RuntimeError as e:
-            if done == 0: print(f"::warning::{pid} price: {str(e)[:200]}")
-    note(f"{pid}: ${usd} set in {done} territories")
+        for attempt in (start, (datetime.date.today() + datetime.timedelta(days=1)).isoformat()):
+            try:
+                attrs = {"preserveCurrentPrice": False, **({"startDate": attempt} if attempt else {})}
+                call("POST", "/subscriptionPrices", {"data": {"type": "subscriptionPrices", "attributes": attrs,
+                    "relationships": {"subscription": {"data": {"type": "subscriptions", "id": sid}},
+                                      "subscriptionPricePoint": {"data": {"type": "subscriptionPricePoints", "id": p["id"]}}}}})
+                done += 1
+                start = attempt
+                break
+            except RuntimeError as e:
+                if done == 0 and attempt: print(f"::warning::{pid} price: {str(e)[:200]}")
+    note(f"{pid}: ${usd} set in {done} territories" + (f" (from {start})" if start else ""))
     final = call("GET", f"/subscriptions/{sid}")["data"]["attributes"]["state"]
     note(f"{pid} state: {final}")
 
@@ -118,6 +126,9 @@ if shot and os.path.exists(shot):
         try:
             have = call("GET", f"/subscriptions/{sid}/appStoreReviewScreenshot").get("data")
         except RuntimeError:
+            have = None
+        if have and os.environ.get("RESHOT") == "1":
+            call("DELETE", f"/subscriptionAppStoreReviewScreenshots/{have['id']}")
             have = None
         if have:
             continue

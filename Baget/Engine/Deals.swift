@@ -89,6 +89,10 @@ extension AppStore {
             deploy(a)
             return (a.id, "I'm on it. I'll text you when I find something.", false)
         }
+        if squadFull {
+            syncProblem = scoutLimitMessage
+            return nil
+        }
         do {
             let r: HuntReply = try await api.function("hunt", ["text": t])
             await pull()

@@ -9,6 +9,8 @@ struct PlanInfo: Decodable, Equatable {
     let huntStart: Int
     let hours: Int
     let huntingNow: Bool
+    /// How many scouts the plan includes (Free 2, Pro 5).
+    var scouts: Int?
 
     /// "9am to 1pm"
     var windowLabel: String { "\(Self.hourLabel(huntStart)) to \(Self.hourLabel((huntStart + hours) % 24))" }
@@ -35,6 +37,11 @@ extension AppStore {
     static let privacyURL = URL(string: "https://github.com/Lwhite15/Baget-12/blob/main/PRIVACY.md")!
 
     var isPro: Bool { plan?.pro ?? false }
+
+    /// How many scouts this account may have: Free 2, Pro 5 (the sample tour: no limit to speak of).
+    var scoutLimit: Int { isCloud ? (plan?.scouts ?? (isPro ? 5 : 2)) : 12 }
+    var squadFull: Bool { state.agents.count >= scoutLimit }
+    var scoutLimitMessage: String { isPro ? "Pro includes up to \(scoutLimit) scouts. Retire one to add another." : "Free includes 2 scouts. Go Pro for up to 5." }
 
     func loadPlan() async {
         guard isCloud else { plan = nil; return }

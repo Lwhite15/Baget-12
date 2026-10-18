@@ -192,7 +192,11 @@ struct DeployAgentView: View {
         if case .custom(let t) = a.mission, t.isEmpty { error = "Tell the agent what to hunt."; return }
         if Sizes.required(a) && !Sizes.has(a) { error = "Pick your \(category == .sneakers ? "shoe size" : "size"). This agent only hunts things in stock in your size."; return }
         if a.name.isEmpty { a.name = String("\(a.mission.label.capitalizedFirst) Hunter".prefix(40)) }
-        if store.state.agents.count >= 12 { error = "A squad can have up to 12 agents. Retire one to add another."; return }
+        if store.squadFull {
+            error = store.scoutLimitMessage
+            if !store.isPro && store.isCloud { router.sheet = .pro }
+            return
+        }
         // The icon: a photo is kept on the phone now and uploaded once the agent exists.
         var upload: (id: String, jpeg: Data)?
         if icon.style == .photo {

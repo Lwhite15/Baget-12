@@ -56,11 +56,11 @@ struct PaywallView: View {
     private var compare: some View {
         VStack(spacing: 0) {
             row("", "Free", "Pro", head: true)
+            row("Scouts", "2", "Up to 5")
             row("Hunting", "4 hours a day", "Around the clock")
             row("When", store.plan?.windowLabel ?? "9am to 1pm", "Any time")
-            row("Hunts", "2 a day", "Every 3 hours")
+            row("Hunts", "1 a day each", "Every 6 hours")
             row("Search depth", "Standard", "Deep: 12 searches, checks each page")
-            row("Night drops and restocks", "Caught next window", "Caught live")
             row("Everything else", "Included", "Included")
         }
         .background(Theme.glass, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
@@ -84,8 +84,8 @@ struct PaywallView: View {
         let yearly = store.proProducts.first { $0.id == "baget.pro.yearly" }
         if monthly == nil && yearly == nil {
             guard Self.screenshotMode else { return [] }
-            return [PlanOption(id: "baget.pro.yearly", title: "Yearly", price: "$59.99 / year", note: "Save 37%"),
-                    PlanOption(id: "baget.pro.monthly", title: "Monthly", price: "$7.99 / month", note: nil)]
+            return [PlanOption(id: "baget.pro.yearly", title: "Yearly", price: "$99.99 / year", note: "Save 44%"),
+                    PlanOption(id: "baget.pro.monthly", title: "Monthly", price: "$14.99 / month", note: nil)]
         }
         var out: [PlanOption] = []
         if let y = yearly {

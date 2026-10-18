@@ -418,7 +418,7 @@ extension AppStore {
             state.agents.removeAll { $0.id == a.id }
             save()
             let msg = (error as? LocalizedError)?.errorDescription ?? ""
-            return msg.contains("agent_limit") ? "A squad can have up to 12 agents." : "Couldn't deploy \(a.name). \(msg)"
+            return msg.contains("agent_limit") ? scoutLimitMessage : "Couldn't deploy \(a.name). \(msg)"
         }
         return await cloudSweep(agentID: a.id, quietIfNone: true) ?? "\(a.name) is out hunting. Finds land here as it spots them."
     }

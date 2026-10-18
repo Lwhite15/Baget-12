@@ -6,10 +6,18 @@ on:
     inputs:
       monthly:
         description: "US monthly price"
-        default: "7.99"
+        default: "14.99"
       yearly:
         description: "US yearly price"
-        default: "59.99"
+        default: "99.99"
+      reprice:
+        description: "Change existing prices to these"
+        type: boolean
+        default: false
+      reshot:
+        description: "Replace the paywall review screenshot with the latest build's"
+        type: boolean
+        default: false
 permissions:
   actions: read
   contents: read
@@ -21,6 +29,8 @@ jobs:
       ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
       BUNDLE_ID: ${{ secrets.BUNDLE_ID }}
       MONTHLY: ${{ inputs.monthly }}
+      REPRICE: ${{ inputs.reprice && '1' || '' }}
+      RESHOT: ${{ inputs.reshot && '1' || '' }}
       YEARLY: ${{ inputs.yearly }}
       PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
     steps:
