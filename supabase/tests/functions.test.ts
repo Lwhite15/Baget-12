@@ -149,6 +149,8 @@ await test("scheduled sweep: web search, continue a paused turn, score, notify",
   const claudeReq = calls.filter((c) => c.url.includes("anthropic"));
   assert.equal(claudeReq[0].headers["x-api-key"], "sk-test");
   assert.equal(claudeReq[0].body.tools[0].type, "web_search_20250305");
+  assert.equal(claudeReq[0].body.tools[0].max_uses, 12, "deeper search budget");
+  assert.equal(claudeReq[0].body.tools[1].name, "web_fetch", "opens product pages to check them");
   assert.equal(claudeReq[1].body.messages.length, 2, "paused turn continued");
   assert.deepEqual(claudeReq[0].body.cache_control, { type: "ephemeral" }, "sweeps use prompt caching");
   assert.equal(claudeReq[0].body.cache, undefined, "the internal flag never reaches the API");
@@ -439,8 +441,8 @@ await test("likes, buys and style passes steer the next web search", async () =>
 await test("each sweep hunts from different angles", () => {
   const t0 = new Date("2026-10-08T12:00:00Z");
   const a1 = sweep.anglesFor("agent-1", t0), a2 = sweep.anglesFor("agent-1", new Date(t0.getTime() + 3 * 3600_000));
-  assert.equal(a1.length, 2);
-  assert.notEqual(a1[0], a1[1]);
+  assert.equal(a1.length, 3);
+  assert.equal(new Set(a1).size, 3, "three different angles");
   assert.notDeepEqual(a1, a2, "the next run uses different angles");
   const seen = new Set<string>();
   for (let i = 0; i < 8; i++) seen.add(sweep.anglesFor("agent-1", new Date(t0.getTime() + i * 3 * 3600_000))[0]);
@@ -468,7 +470,7 @@ await test("discovery picks keep the agent's own pitch and text you about it", a
   assert.match(recorded[0].why[1], /^Discovery/);
   assert.match(recorded[0].note.body, /didn't ask for but I think you'll love: Salehe Bembury/);
   const asked = calls.find((c) => /anthropic/.test(c.url) && !/haiku/.test(c.body.model));
-  assert.equal(asked!.body.tools[0].max_uses, 6);
+  assert.equal(asked!.body.tools[0].max_uses, 12);
 });
 
 await test("Claude hiccups are retried, and people see a plain message if it keeps failing", async () => {
@@ -881,6 +883,19 @@ await test("Free plan: scouts rest outside their 4-hour window", async () => {
   prof({ settings: { huntStart: 20 } }); assert.equal(await sweep.restingMessage("u", at("2026-10-17T02:00:00Z")), null, "10pm inside 8pm-12am");
   prof({ plan: "pro", pro_until: new Date(Date.now() + 86400_000).toISOString() }); assert.equal(await sweep.restingMessage("u", at("2026-10-16T19:00:00Z")), null, "Pro never rests");
   prof({ plan: "comp" }); assert.equal(await sweep.restingMessage("u", at("2026-10-16T19:00:00Z")), null);
+});
+
+await test("deep hunts: more searches, page checks, three angles and rotating sources", async () => {
+  const p = sweep.sweepPrompt(jumpman as never, "2026-10-18", undefined, sweep.anglesFor("a1", new Date()), [], "Larry",
+    sweep.sourcesFor("sneakers", "a1", new Date()));
+  assert.match(p, /leave no stone unturned/);
+  assert.match(p, /at least 8 different searches/);
+  assert.match(p, /web_fetch/);
+  assert.equal(sweep.anglesFor("a1", new Date()).length, 3);
+  const day = new Set<string>();
+  for (let i = 0; i < 8; i++) for (const s of sweep.sourcesFor("sneakers", "a1", new Date(Date.UTC(2026, 9, 18) + i * 3 * 3600_000))) day.add(s);
+  assert.equal(day.size, sweep.DEEP_SOURCES.sneakers.length, "a day of hunts covers every sneaker source");
+  assert.ok(sweep.sourcesFor("vinyl", "a1", new Date()).length > 0, "unknown categories still get places to dig");
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

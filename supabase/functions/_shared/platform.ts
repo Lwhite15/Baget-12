@@ -165,7 +165,7 @@ export interface ClaudeMessage { role: "user" | "assistant"; content: string | B
 export interface ClaudeResponse {
   content: Block[];
   stop_reason: string;
-  usage?: { input_tokens?: number; output_tokens?: number; cache_creation_input_tokens?: number; cache_read_input_tokens?: number; server_tool_use?: { web_search_requests?: number } };
+  usage?: { input_tokens?: number; output_tokens?: number; cache_creation_input_tokens?: number; cache_read_input_tokens?: number; server_tool_use?: { web_search_requests?: number; web_fetch_requests?: number } };
 }
 
 export async function claude(body: Record<string, unknown>): Promise<ClaudeResponse> {

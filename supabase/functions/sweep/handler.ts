@@ -65,10 +65,47 @@ export function anglesFor(agentId: string, now: Date): string[] {
   for (const c of agentId) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   const slot = Math.floor(now.getTime() / (3 * 3600_000));
   const first = (h + slot) % ANGLES.length;
-  return [ANGLES[first], ANGLES[(first + 3) % ANGLES.length]];
+  return [ANGLES[first], ANGLES[(first + 3) % ANGLES.length], ANGLES[(first + 5) % ANGLES.length]];
 }
 
-export function sweepPrompt(a: Agent, today: string, r: Reactions = { liked: [], bought: [], passed: [] }, angles: string[] = [ANGLES[0], ANGLES[4]], leads: Lead[] = [], name = ""): string {
+/** Where to dig, by category: official, big retail, resale, boutiques, auctions, communities, international.
+ *  Each hunt gets a rotating handful so over a day every corner gets checked. */
+export const DEEP_SOURCES: Record<string, string[]> = {
+  sneakers: ["Nike SNKRS and Nike.com", "adidas Confirmed", "New Balance", "END. Launches", "SNS (Sneakersnstuff)", "Kith", "Concepts", "Bodega",
+    "Extra Butter", "Foot Locker / Champs", "StockX", "GOAT", "Flight Club", "Stadium Goods", "eBay (authenticated)", "Grailed",
+    "Sole Retriever and Sneaker News release calendars", "r/sneakermarket and sneaker forums", "Depop and Mercari", "Japanese and European shops that ship to the US"],
+  apparel: ["the brands' own sites and drops", "SSENSE", "END.", "Mr Porter", "Kith", "Dover Street Market", "Grailed", "Depop", "Vinted",
+    "Poshmark", "The RealReal", "Vestiaire Collective", "eBay", "Mercari", "Highsnobiety and Hypebeast drop roundups", "independent boutiques",
+    "archive and vintage shops", "Japanese resellers that ship to the US"],
+  fragrance: ["the houses' own boutiques", "Luckyscent", "Twisted Lily", "Aedes", "Osswald NYC", "Nordstrom, Saks and Neiman Marcus",
+    "FragranceNet and FragranceX", "Jomashop", "decant shops", "r/fragranceswap", "eBay (sealed bottles)", "Fragrantica news for new releases",
+    "European niche boutiques that ship to the US", "discontinued and vintage bottle sellers"],
+  watches: ["Chrono24", "WatchCharts", "Bob's Watches", "Hodinkee Shop", "The 1916 Company (WatchBox)", "Crown & Caliber", "Analog/Shift",
+    "Jomashop", "authorized dealers and brand boutiques", "r/Watchexchange", "WatchUSeek forums", "eBay (authenticated)",
+    "Phillips, Christie's and Sotheby's watch auctions", "independent dealers' inventory pages", "Japanese vintage dealers"],
+  cars: ["Bring a Trailer", "Cars & Bids", "PCARMARKET", "Hemmings", "AutoTrader", "Cars.com", "CarGurus", "Collecting Cars",
+    "duPont REGISTRY", "eBay Motors", "RM Sotheby's, Mecum and Barrett-Jackson", "marque-specific forums' classifieds (Rennlist, Bimmerpost)",
+    "certified pre-owned dealer inventory", "specialist and independent dealers"],
+  furniture: ["1stDibs", "Chairish", "Kaiyo", "AptDeco", "Design Within Reach", "Herman Miller and Knoll stores", "Hay and Muuto",
+    "LiveAuctioneers and Invaluable", "Etsy vintage", "eBay", "Lumens", "local vintage and estate dealers' sites", "designer outlet sales",
+    "European design shops that ship to the US"],
+  accessories: ["the brands' own sites", "SSENSE", "Mytheresa", "Farfetch", "Nordstrom", "The RealReal", "Fashionphile", "Rebag",
+    "Vestiaire Collective", "eBay", "Grailed", "Depop", "independent eyewear and leather boutiques", "Japanese resellers"],
+  collectibles: ["official brand and artist stores", "StockX", "eBay", "Heritage Auctions", "Goldin", "Whatnot replays and listings",
+    "Mercari", "Etsy", "specialty toy and art shops", "r/ collector communities", "Japanese hobby shops that ship to the US", "convention exclusives"],
+  other: ["official brand sites", "major retailers", "eBay", "specialist marketplaces", "independent shops", "forums and communities",
+    "auctions", "classifieds", "international sellers that ship to the US"],
+};
+
+export function sourcesFor(category: string | null | undefined, agentId: string, now: Date, n = 6): string[] {
+  const list = DEEP_SOURCES[category ?? "other"] ?? DEEP_SOURCES.other;
+  let h = 7;
+  for (const c of agentId) h = (h * 33 + c.charCodeAt(0)) >>> 0;
+  const start = (h + Math.floor(now.getTime() / (3 * 3600_000)) * n) % list.length;
+  return Array.from({ length: Math.min(n, list.length) }, (_, i) => list[(start + i) % list.length]);
+}
+
+export function sweepPrompt(a: Agent, today: string, r: Reactions = { liked: [], bought: [], passed: [] }, angles: string[] = [ANGLES[0], ANGLES[4]], leads: Lead[] = [], name = "", sources: string[] = []): string {
   const leaning = Object.entries(a.learned ?? {}).filter(([, w]) => w >= 2).sort((x, y) => y[1] - x[1]).map(([k]) => k).slice(0, 10);
   const parts = [
     `Mission: ${missionLabel(a)}`,
@@ -89,12 +126,17 @@ export function sweepPrompt(a: Agent, today: string, r: Reactions = { liked: [],
 ${parts}
 
 This run, hunt from these angles first:
-1. ${angles[0]}
-2. ${angles[1]}
-Then use any searches left on whatever looks most promising.
+${angles.map((x, i) => `${i + 1}. ${x}`).join("\n")}
+Then use any searches left on whatever looks most promising.${sources.length ? `
 
-How to hunt:
-- Use several different searches, not one. Vary the wording, check brand sites, retailers, release calendars and marketplaces.
+Dig through these places this run (others get their turn on later runs): ${sources.join("; ")}.` : ""}
+
+How to hunt (leave no stone unturned):
+- Search wide and deep: run at least 8 different searches across at least 4 kinds of places (official brand sites, big retailers,
+  resale marketplaces, small boutiques, auctions, forums and communities, international shops that ship to the US).
+  Vary the wording: model names, nicknames, style codes, colorways, misspellings people use in listings, "deadstock", "NOS", "rare".
+- Look past page one and past the obvious big stores: the best finds are often on a small boutique, a forum post, an auction or a marketplace listing.
+- Open the most promising product pages with web_fetch to confirm the price, that it's in stock (and in their size), before you include it.
 - Things available now, releasing in the next two weeks, or restocking.
 - Take initiative: include at least two discovery picks the person never named (a maker, model, note, collab or era that fits their taste), and mark them "discovery": true.${r.liked.length || r.bought.length ? `
 - Their likes and buys are the strongest signal: find more in that spirit (same makers, materials, notes, silhouettes, eras), but not the same items again.` : ""}${r.passed.length ? `
@@ -191,10 +233,17 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
       shoppingLeads(queries).catch(() => [] as Lead[]),
       ebaySearch(a, queries).catch(() => [] as Record<string, unknown>[]),
     ]);
-    const messages: ClaudeMessage[] = [{ role: "user", content: sweepPrompt(a, now.toISOString().slice(0, 10), reactions, anglesFor(a.id, now), leads, firstName(a.display_name)) }];
-    const tools = [{ type: "web_search_20250305", name: "web_search", max_uses: num("SWEEP_MAX_SEARCHES", 6), user_location: { type: "approximate", country: "US" } }];
+    const messages: ClaudeMessage[] = [{ role: "user", content: sweepPrompt(a, now.toISOString().slice(0, 10), reactions, anglesFor(a.id, now), leads,
+      firstName(a.display_name), sourcesFor(a.mission_category, a.id, now)) }];
+    const tools = [
+      { type: "web_search_20250305", name: "web_search", max_uses: num("SWEEP_MAX_SEARCHES", 12), user_location: { type: "approximate", country: "US" } },
+      // Opens product pages to check price, stock and sizes. Capped so one page can't flood the context.
+      { type: "web_fetch_20250910", name: "web_fetch", max_uses: num("SWEEP_MAX_FETCHES", 6), max_content_tokens: 6000 },
+    ];
     let final: Block[] = [];
-    for (let turn = 0; turn < 3; turn++) {
+    const started = Date.now();
+    let wrapped = false;
+    for (let turn = 0; turn < 6; turn++) {
       const res = await claude({ max_tokens: 12000, messages, tools, cache: true, purpose: "sweep" });
       run.input_tokens += res.usage?.input_tokens ?? 0;
       run.output_tokens += res.usage?.output_tokens ?? 0;
@@ -204,6 +253,11 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
       final = res.content;
       if (res.stop_reason !== "pause_turn") break;
       messages.push({ role: "assistant", content: res.content });   // continue a long search turn
+      if (!wrapped && Date.now() - started > 95_000) {
+        wrapped = true;
+        // Running long: ask for the results so far instead of searching more (keeps the run inside the server's time limit).
+        messages.push({ role: "user", content: "Time's up for this run. Don't search any more: reply now with the JSON for the best products you've confirmed so far." });
+      }
     }
     let listings = cleanListings(parseJSON(textOf(final)), a.mission_category ?? "other");
     // Made-up links (404) go; then each real one gets a verified product photo.
@@ -353,6 +407,14 @@ export const handler = handle(async (req) => {
       const resting = await restingMessage(user.id);
       return json({ swept: 0, found: 0, resting: !!resting, message: resting ?? "Your agents swept recently. They'll go again in a few minutes." });
     }
+  }
+  // A deep hunt can take a couple of minutes. Asked from the app, it keeps going on the server and the finds sync in.
+  // deno-lint-ignore no-explicit-any
+  const edge = (globalThis as any).EdgeRuntime;
+  if (trigger === "manual" && edge?.waitUntil) {
+    edge.waitUntil(Promise.all(candidates.map((a) => sweepAgent(a, trigger))).catch((e) => console.error("sweep", e)));
+    return json({ swept: candidates.length, found: 0, background: true,
+      message: `${candidates.length === 1 ? "Your scout is" : "Your scouts are"} digging deep. Finds land here in a few minutes.` });
   }
   const runs = await Promise.all(candidates.map((a) => sweepAgent(a, trigger)));
   if (trigger === "scheduled") await backfillImages(num("IMAGE_BACKFILL", 12)).catch((e) => console.error("images", e));
