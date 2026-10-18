@@ -390,7 +390,7 @@ export function keyed(raw: unknown, field: string, asked: { id: string; name: st
   const byId = new Map<string, Record<string, unknown>>();
   if (Array.isArray(items)) for (const it of items) {
     const r = it as Record<string, unknown>;
-    if (r && typeof r.id === "string") byId.set(r.id.trim().toLowerCase(), r);
+    if (r && typeof r.id === "string") byId.set(r.id.trim().toLowerCase().replace(/^\[|\]$/g, ""), r);
   }
   // Same item if the names match, or (long marketplace titles get trimmed when echoed back) most of the words do.
   const words = (x: string) => new Set(norm(x).split(/[^a-z0-9]+/).filter((w) => w.length > 1));
@@ -429,7 +429,11 @@ ${list}
 
 Reply with only JSON, one entry per product, copying its id and exact title:
 {"items":[{"id":"p1","title":"<exact title>","about":"..." or null}, ...]}` }] });
-  const out = keyed(parseJSON(textOf(res.content)), "about", rows.map((r, i) => ({ id: `p${i + 1}`, name: r.title })));
+  const parsed = parseJSON(textOf(res.content)) as { items?: Record<string, unknown>[] } | null;
+  const out = keyed(parsed, "about", rows.map((r, i) => ({ id: `p${i + 1}`, name: r.title })));
+  const items = Array.isArray(parsed?.items) ? parsed!.items : [];
+  console.log("about backfill", JSON.stringify({ asked: rows.length, items: items.length, withText: items.filter((x) => typeof x?.about === "string").length,
+    kept: out.filter(Boolean).length, sample: items.slice(0, 2).map((x) => ({ id: x?.id, t: String(x?.title ?? x?.name ?? "").slice(0, 50), a: typeof x?.about })) }));
   let written = 0;
   await Promise.all(rows.map((r, i) => {
     const a = out[i] && out[i]!.length > 15 ? out[i]!.slice(0, 400) : null;
