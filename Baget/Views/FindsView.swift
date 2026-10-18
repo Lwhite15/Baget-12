@@ -347,6 +347,10 @@ struct FindCard: View {
                         .font(.caption).foregroundStyle(Theme.muted).lineLimit(1)
                     if find.watching { Image(systemName: "eye.fill").font(.caption2).foregroundStyle(Theme.warn).accessibilityLabel("Watching") }
                 }
+                if let about = item.about {
+                    Text(about).font(.caption).foregroundStyle(Theme.ink.opacity(0.8)).lineLimit(expanded ? 6 : 2)
+                        .multilineTextAlignment(.leading)
+                }
                 if let reason = find.why.first, !reason.isEmpty {
                     Text(reason).font(.caption).foregroundStyle(Theme.green.opacity(0.9)).lineLimit(expanded ? 4 : 1)
                 }
@@ -565,6 +569,7 @@ struct CheckoutView: View {
             VStack(alignment: .leading, spacing: 16) {
                 Text(item.title).font(.title2.weight(.heavy)).foregroundStyle(Theme.ink)
                 Text([item.source, item.sku].filter { !$0.isEmpty }.joined(separator: " · ")).font(.footnote).foregroundStyle(Theme.muted)
+                if let about = item.about { Text(about).font(.subheadline).foregroundStyle(Theme.ink) }
                 Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 12) {
                     GridRow { cell("Price", item.priceKnown ? Fmt.money(item.price) : "Not listed"); cell("Agent", a?.name ?? "—") }
                     GridRow {

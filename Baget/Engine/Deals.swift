@@ -105,7 +105,8 @@ extension AppStore {
     }
 
     /// First-run setup: interests, an optional sentence and up to three photos -> a squad, already searching.
-    func onboard(categories: [Category], text: String, photos: [UIImage], liked: [String] = [], passed: [String] = []) async -> [String] {
+    func onboard(categories: [Category], text: String, photos: [UIImage], liked: [String] = [], passed: [String] = [],
+                 vibes: [Category: [String]] = [:], budget: Int? = nil) async -> [String] {
         Analytics.track(.onboardingDone, ["categories": categories.count, "photos": photos.count, "text": !text.isEmpty, "rated": liked.count + passed.count])
         guard isCloud else {
             for c in categories {
@@ -119,8 +120,11 @@ extension AppStore {
             return ["media_type": "image/jpeg", "data": jpg.base64EncodedString()]
         }
         do {
-            let r: OnboardReply = try await api.function("hunt", ["categories": categories.map(\.rawValue), "text": text, "images": images,
-                                                                   "liked": liked, "passed": passed])
+            var body: [String: Any] = ["categories": categories.map(\.rawValue), "text": text, "images": images,
+                                       "liked": liked, "passed": passed,
+                                       "vibes": Dictionary(uniqueKeysWithValues: vibes.filter { !$0.value.isEmpty }.map { ($0.key.rawValue, $0.value) })]
+            if let budget { body["budget"] = budget }
+            let r: OnboardReply = try await api.function("hunt", body)
             await pull()
             Task { @MainActor in _ = await self.cloudSweep() }
             return r.agents.map(\.agentId)

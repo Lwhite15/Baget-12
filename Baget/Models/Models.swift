@@ -129,6 +129,8 @@ struct Item: Identifiable, Hashable, Codable {
     var offers: [Offer]? = nil
     var lowPrice: Double? = nil
     var lowStore: String? = nil
+    /// Plain-language description: what it is (for fragrance, what it smells like). Written by the scout.
+    var about: String? = nil
 }
 
 struct Offer: Codable, Hashable {

@@ -52,7 +52,7 @@ const IMG_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 async function insertAgent(userId: string, plan: Plan, budget: number | null = null): Promise<string> {
   const row: Record<string, unknown> = {
-    ...(budget ? { price_note: budget } : {}),
+    ...(budget && plan.category !== "cars" ? { price_note: budget } : {}),   // an item budget makes no sense for a car
     user_id: userId, name: plan.name, keywords: plan.keywords, traits: plan.traits, makers: plan.makers,
     creators: plan.creators, size: plan.size, voice: plan.voice, mode: "ask",
     ...(plan.category ? { mission_category: plan.category } : { mission_custom: plan.custom }),

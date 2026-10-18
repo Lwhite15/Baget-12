@@ -217,6 +217,9 @@ struct ForYouSection: View {
                 .lineLimit(2).multilineTextAlignment(.leading).frame(maxWidth: .infinity, minHeight: 34, alignment: .topLeading)
             Text([known ? Fmt.money(item.price) : nil, item.source].compactMap { $0 }.joined(separator: " · "))
                 .font(.caption2).foregroundStyle(Theme.muted).lineLimit(1)
+            Text(item.about ?? " ").font(.caption2).foregroundStyle(Theme.ink.opacity(0.8))
+                .lineLimit(2).multilineTextAlignment(.leading).frame(maxWidth: .infinity, minHeight: 26, alignment: .topLeading)
+                .accessibilityHidden(item.about == nil)
             HStack(spacing: 4) {
                 Image(systemName: p.kind == "explore" ? "sparkles" : p.kind == "yours" ? "tray.full" : "wand.and.stars")
                     .font(.system(size: 9, weight: .bold))

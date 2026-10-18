@@ -98,11 +98,14 @@ struct OnboardingView: View {
     @State private var quizLoading = false
     @State private var liked: [String] = []
     @State private var passed: [String] = []
+    // Vibes and budget, in plain words
+    @State private var vibes: [Category: Set<String>] = [:]
+    @State private var budget: Int? = nil
     // First hunt
     @State private var pushOn = false
     @State private var watching = false
 
-    private let steps = 4
+    private let steps = 5
 
     var body: some View {
         ZStack {
@@ -113,8 +116,9 @@ struct OnboardingView: View {
                 }
                 switch step {
                 case 0: interests
-                case 1: tasteCheck
-                case 2: photoStep
+                case 1: vibeStep
+                case 2: tasteCheck
+                case 3: photoStep
                 default: firstHunt
                 }
             }
@@ -160,23 +164,70 @@ struct OnboardingView: View {
                 .background(Theme.bg.opacity(0.6), in: RoundedRectangle(cornerRadius: 14))
                 .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Theme.line))
             Spacer()
-            Button("Next") { startQuiz() }
+            Button("Next") { if picked.isEmpty { startQuiz() } else { withAnimation { step = 1 } } }
                 .buttonStyle(PrimaryButton())
                 .disabled(picked.isEmpty && text.trimmingCharacters(in: .whitespaces).isEmpty)
             Button("Skip setup") { finish() }.font(.footnote).foregroundStyle(Theme.muted).frame(maxWidth: .infinity)
         }
     }
 
-    // MARK: 2. Quick taste check
+    // MARK: 2. Your vibe, in plain words (no brand knowledge needed)
+
+    private var vibeStep: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("What's your vibe?").font(.system(size: 30, weight: .heavy)).foregroundStyle(Theme.ink)
+            Text("No need to know brands. Tap what sounds like you and your scouts find the products that fit.")
+                .font(.subheadline).foregroundStyle(Theme.muted)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    ForEach(Category.allCases.filter { picked.contains($0) }) { c in
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label(Vibes.question(c), systemImage: c.info.symbol)
+                                .font(.headline).foregroundStyle(Theme.ink)
+                            FlowRow {
+                                ForEach(Vibes.options(c), id: \.self) { v in
+                                    let on = vibes[c, default: []].contains(v)
+                                    Button {
+                                        if on { vibes[c, default: []].remove(v) } else { vibes[c, default: []].insert(v) }
+                                    } label: { Pill(text: v, selected: on) }
+                                        .buttonStyle(.plain)
+                                        .accessibilityAddTraits(on ? .isSelected : [])
+                                }
+                            }
+                        }
+                    }
+                    if picked.contains(where: { $0 != .cars }) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label("How much do you usually spend on one thing?", systemImage: "dollarsign.circle")
+                            .font(.headline).foregroundStyle(Theme.ink)
+                        FlowRow {
+                            ForEach(Vibes.budgets, id: \.label) { b in
+                                Button { budget = budget == b.cap ? nil : b.cap } label: { Pill(text: b.label, selected: budget == b.cap) }
+                                    .buttonStyle(.plain)
+                                    .accessibilityAddTraits(budget == b.cap ? .isSelected : [])
+                            }
+                        }
+                    }
+                    }
+                }
+                .padding(.bottom, 8)
+            }
+            Button(vibes.values.allSatisfy(\.isEmpty) && budget == nil ? "Skip" : "Next") { startQuiz() }
+                .buttonStyle(PrimaryButton())
+            Button("Back") { withAnimation { step = 0 } }.font(.footnote).foregroundStyle(Theme.muted).frame(maxWidth: .infinity)
+        }
+    }
+
+    // MARK: 3. Quick taste check
 
     private func startQuiz() {
-        withAnimation { step = 1 }
+        withAnimation { step = 2 }
         quizLoading = true
         Task { @MainActor in
             quiz = await store.tasteQuiz(Array(picked))
             quizIndex = 0
             quizLoading = false
-            if quiz.isEmpty { withAnimation { step = 2 } }   // nothing to rate yet: go straight on
+            if quiz.isEmpty { withAnimation { step = 3 } }   // nothing to rate yet: go straight on
         }
     }
 
@@ -196,6 +247,7 @@ struct OnboardingView: View {
                     Text(item.title).font(.headline).foregroundStyle(Theme.ink).lineLimit(2)
                     Text([item.priceKnown && item.price > 0 ? Fmt.money(item.price) : nil, item.source].compactMap { $0 }.joined(separator: " · "))
                         .font(.caption).foregroundStyle(Theme.muted)
+                    if let about = item.about { Text(about).font(.footnote).foregroundStyle(Theme.ink.opacity(0.85)).lineLimit(3) }
                 }
                 Spacer(minLength: 0)
                 HStack(spacing: 18) {
@@ -216,13 +268,13 @@ struct OnboardingView: View {
                 HStack {
                     Text("\(quizIndex + 1) of \(quiz.count)").font(.caption.monospaced()).foregroundStyle(Theme.muted)
                     Spacer()
-                    Button("Done") { withAnimation { step = 2 } }.font(.footnote.weight(.semibold)).foregroundStyle(Theme.accent)
+                    Button("Done") { withAnimation { step = 3 } }.font(.footnote.weight(.semibold)).foregroundStyle(Theme.accent)
                 }
             } else {
                 Spacer()
                 Text(liked.isEmpty ? "Got it." : "Nice taste. \(liked.count) noted.").font(.title3.weight(.bold)).foregroundStyle(Theme.ink)
                 Spacer()
-                Button("Next") { withAnimation { step = 2 } }.buttonStyle(PrimaryButton())
+                Button("Next") { withAnimation { step = 3 } }.buttonStyle(PrimaryButton())
             }
         }
     }
@@ -234,11 +286,11 @@ struct OnboardingView: View {
         if like { liked.append(name) } else { passed.append(name) }
         withAnimation(.snappy) {
             quizIndex += 1
-            if quizIndex >= quiz.count { step = 2 }
+            if quizIndex >= quiz.count { step = 3 }
         }
     }
 
-    // MARK: 3. Photos (optional)
+    // MARK: 4. Photos (optional)
 
     private var photoStep: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -309,17 +361,18 @@ struct OnboardingView: View {
         working = true
         Task { @MainActor in
             let ids = await store.onboard(categories: Array(picked), text: text.trimmingCharacters(in: .whitespacesAndNewlines), photos: photos,
-                                          liked: liked, passed: passed)
+                                          liked: liked, passed: passed,
+                                          vibes: vibes.mapValues { Array($0) }, budget: budget.flatMap { $0 > 0 ? $0 : nil })
             working = false
             made = ids.count
             pushOn = await store.pushAllowed
-            withAnimation { step = 3 }
+            withAnimation { step = 4 }
             Task { await store.loadForYou() }
             watchFirstHunt()
         }
     }
 
-    // MARK: 4. The first hunt, live
+    // MARK: 5. The first hunt, live
 
     private var firstHunt: some View {
         let newest = store.state.finds.filter { $0.status == .open }.sorted { $0.foundAt > $1.foundAt }.prefix(3)
@@ -378,7 +431,7 @@ struct OnboardingView: View {
         Task { @MainActor in
             for _ in 0..<22 {
                 try? await Task.sleep(for: .seconds(8))
-                guard step == 3, !onboarded else { break }
+                guard step == 4, !onboarded else { break }
                 await store.pull()
                 if store.state.finds.contains(where: { $0.status == .open }) && store.state.agents.allSatisfy({ a in store.state.finds.contains { $0.agentID == a.id } }) { break }
             }
