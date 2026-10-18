@@ -234,8 +234,9 @@ export function cleanListings(raw: unknown, fallbackCategory: string): (Listing 
 /** The last hunt's listings (for the Diagnose model comparison). */
 const lastHunt: string[] = [];
 
-/** The model for hunts: SWEEP_MODEL if set, else the app-wide model. */
-export const SWEEP_MODEL = () => env("SWEEP_MODEL") ?? env("ANTHROPIC_MODEL") ?? "claude-sonnet-5-5";
+/** The model for hunts: SWEEP_MODEL if set, else Haiku. In side-by-side tests (Oct 18) Haiku found as many real,
+ *  in-stock products as Sonnet at about a fifth of the cost. Chat and setup keep the app-wide model. */
+export const SWEEP_MODEL = () => env("SWEEP_MODEL") ?? "claude-haiku-5-5";
 
 export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", now = new Date(),
                                  opts: { model?: string; provider?: "serper" | "claude" } = {}) {

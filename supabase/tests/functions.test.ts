@@ -350,7 +350,7 @@ await test("addImages drops a photo shared by two different products", async () 
 await test("sweep saves only verified product photos", async () => {
   let saved: any[] = [];
   reset([
-    [/api\.anthropic\.com/, (_u, _i, b) => /haiku/.test(b.model)
+    [/api\.anthropic\.com/, (_u, _i, b) => !b.tools
       ? claudeSays(JSON.stringify(b).includes("Travis") ? 1 : null)
       : ok({ content: [{ type: "text", text: listingJSON }], stop_reason: "end_turn", usage: { input_tokens: 10, output_tokens: 10 } })],
     [/GET https:\/\/www\.nike\.com\/launch/, () => html(`<head><meta property="og:image" content="https://static.nike.com/ts.jpg"></head>`)],
@@ -452,7 +452,7 @@ await test("discovery picks keep the agent's own pitch and text you about it", a
   const disc = '```json\n{"listings":[{"title":"Salehe Bembury x New Balance 2002R","brand":"New Balance","category":"sneakers","price":160,"source":"New Balance","url":"https://www.newbalance.com/pd/salehe-2002r/M2002R.html","traits":["suede"],"sizes_in_stock":["10.5"],"discovery":true,"pitch":"Same earthy suede you liked on the Mocha 1s, from a designer you have not tried yet."}]}\n```';
   let recorded: any[] = [];
   reset([
-    [/api\.anthropic\.com/, (_u, _i, b) => /haiku/.test(b.model) ? claudeSays(1)
+    [/api\.anthropic\.com/, (_u, _i, b) => !b.tools ? claudeSays(1)
       : ok({ content: [{ type: "text", text: disc }], stop_reason: "end_turn", usage: { input_tokens: 10, output_tokens: 10 } })],
     [/rest\/v1\/finds/, () => ok([])],
     [/rpc\/upsert_listings/, (_u, _i, b) => ok(b.p_listings.map((l: any) => ({ fingerprint: l.fingerprint, id: "l1", already_found: false })))],
@@ -469,7 +469,7 @@ await test("discovery picks keep the agent's own pitch and text you about it", a
   assert.match(recorded[0].why[0], /earthy suede/);
   assert.match(recorded[0].why[1], /^Discovery/);
   assert.match(recorded[0].note.body, /didn't ask for but I think you'll love: Salehe Bembury/);
-  const asked = calls.find((c) => /anthropic/.test(c.url) && !/haiku/.test(c.body.model));
+  const asked = calls.find((c) => /anthropic/.test(c.url) && c.body.tools);
   assert.equal(asked!.body.tools[0].max_uses, 12);
 });
 
@@ -917,7 +917,7 @@ await test("hunts search through Serper when it works, and fall back to Claude's
   reset([
     [/google\.serper\.dev\/search/, () => { serperCalls++; return ok({ organic: [{ title: "Salehe 2002R - New Balance", link: "https://www.newbalance.com/pd/salehe-2002r/M2002R.html", snippet: "Earthy suede" }] }); }],
     [/api\.anthropic\.com/, (_u, _i, b) => {
-      if (/haiku/.test(b.model)) return claudeSays(null);
+      if (!b.tools) return claudeSays(null);
       claudeBodies.push(b);
       step++;
       if (step === 1) return ok({ stop_reason: "tool_use", content: [{ type: "tool_use", id: "t1", name: "search", input: { query: "salehe bembury 2002r" } }], usage: { input_tokens: 10, output_tokens: 10 } });
