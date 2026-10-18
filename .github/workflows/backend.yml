@@ -48,9 +48,10 @@ jobs:
       - name: Edge function tests
         run: node --experimental-strip-types --no-warnings supabase/tests/functions.test.ts
 
+  # Going live is manual: pushes only run the tests. Run this workflow by hand (Larry's go-ahead) to deploy.
   deploy:
     needs: test
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
