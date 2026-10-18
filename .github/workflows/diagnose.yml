@@ -15,6 +15,9 @@ on:
         description: "Run one real hunt on Baget's house account (uses Claude credit)"
         type: boolean
         default: false
+      hunt_options:
+        description: 'JSON for the test hunt, e.g. {"model":"claude-haiku-5-5","provider":"claude","category":"sneakers"}'
+        default: "{}"
 jobs:
   push:
     runs-on: ubuntu-latest
@@ -102,8 +105,9 @@ jobs:
       - name: One test hunt
         run: |
           r=$(curl -sS -m 200 -w ' [HTTP %{http_code}]' -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/sweep" \
-                -H "Content-Type: application/json" -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d '{"test_hunt":true}')
-          echo "::notice::test hunt: $(echo "$r" | cut -c1-600)"
+                -H "Content-Type: application/json" -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d "$(jq -nc --argjson o '${{ inputs.hunt_options }}' '{test_hunt: (if $o == {} then true else $o end)}')")
+          echo "::notice::test hunt: $(echo "$r" | jq -c 'del(.found_titles)' 2>/dev/null | cut -c1-600)"
+          echo "$r" | jq -r '.found_titles[]?' 2>/dev/null | head -9 | sed 's/^/::notice::found: /' 
   listings:
     runs-on: ubuntu-latest
     env:

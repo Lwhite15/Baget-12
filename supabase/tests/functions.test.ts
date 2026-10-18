@@ -908,4 +908,49 @@ await test("hunt depth: Pro digs deep, Free gets a standard hunt", () => {
   assert.match(sweep.sweepPrompt(jumpman as never, "2026-10-18", undefined, ["a", "b", "c"], [], "", [], pro), /leave no stone unturned/);
 });
 
+await test("hunts search through Serper when it works, and fall back to Claude's search when it doesn't", async () => {
+  const search = await import("../functions/_shared/search.ts");
+  process.env.SERPER_API_KEY = "serper-test";
+  search.resetSerperHealth();
+  let step = 0, serperCalls = 0;
+  const claudeBodies: any[] = [];
+  reset([
+    [/google\.serper\.dev\/search/, () => { serperCalls++; return ok({ organic: [{ title: "Salehe 2002R - New Balance", link: "https://www.newbalance.com/pd/salehe-2002r/M2002R.html", snippet: "Earthy suede" }] }); }],
+    [/api\.anthropic\.com/, (_u, _i, b) => {
+      if (/haiku/.test(b.model)) return claudeSays(null);
+      claudeBodies.push(b);
+      step++;
+      if (step === 1) return ok({ stop_reason: "tool_use", content: [{ type: "tool_use", id: "t1", name: "search", input: { query: "salehe bembury 2002r" } }], usage: { input_tokens: 10, output_tokens: 10 } });
+      return ok({ stop_reason: "end_turn", content: [{ type: "text", text: '```json\n{"listings":[]}\n```' }], usage: { input_tokens: 10, output_tokens: 10 } });
+    }],
+    [/rest\/v1\/finds/, () => ok([])],
+    [/taste_photos/, () => ok([])],
+    [/rpc\/record_finds/, () => ok(0)],
+    [/sweep_runs/, () => ok({})],
+    [/claude_usage/, () => ok({})],
+  ]);
+  const run = await sweep.sweepAgent({ ...jumpman, settings: {}, tz: "America/New_York", pro: true } as never, "manual", new Date());
+  assert.equal(claudeBodies[0].tools[0].name, "search", "Baget's own search tool, not Claude's");
+  assert.equal(claudeBodies[0].tools[1].name, "web_fetch");
+  const toolResult = claudeBodies[1].messages.at(-1).content[0];
+  assert.equal(toolResult.type, "tool_result");
+  assert.match(toolResult.content, /newbalance\.com\/pd\/salehe-2002r/);
+  assert.equal(run.searches, 1);
+  assert.equal(serperCalls, 2, "one health check, one search");
+
+  search.resetSerperHealth();
+  claudeBodies.length = 0; step = 1;
+  reset([
+    [/google\.serper\.dev/, () => new Response(JSON.stringify({ message: "Not enough credits" }), { status: 400 })],
+    [/rest\/v1\/(notes|app_admins)/, () => ok([])],
+    [/api\.anthropic\.com/, (_u, _i, b) => { claudeBodies.push(b); return ok({ stop_reason: "end_turn", content: [{ type: "text", text: '{"listings":[]}' }], usage: {} }); }],
+    [/rest\/v1\/finds/, () => ok([])], [/taste_photos/, () => ok([])], [/rpc\/record_finds/, () => ok(0)], [/sweep_runs/, () => ok({})], [/claude_usage/, () => ok({})],
+  ]);
+  await sweep.sweepAgent({ ...jumpman, settings: {}, tz: "America/New_York", pro: false } as never, "manual", new Date());
+  assert.equal(claudeBodies[0].tools[0].type, "web_search_20250305", "out of Serper credits: Claude's search instead");
+  assert.equal(claudeBodies[0].tools.length, 1, "Free hunts don't open pages");
+  delete process.env.SERPER_API_KEY;
+  search.resetSerperHealth();
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

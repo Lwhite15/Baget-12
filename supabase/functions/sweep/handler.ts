@@ -6,6 +6,7 @@ import { type Agent, CATEGORIES, GROUP_OF, type Listing, firstName, friendLine, 
 import { type Block, type ClaudeMessage, HttpError, claude, db, env, handle, isScheduler, json, parseJSON, requireUser, textOf } from "../_shared/platform.ts";
 import { addImages, linkIsDead, traceImage } from "../_shared/images.ts";
 import { setupDemo } from "./demo.ts";
+import { SEARCH_TOOL, hitsText, serperSearch, serperUsable } from "../_shared/search.ts";
 export { firstName };
 import { type Lead, attachOffers, ebayConfigured, ebaySearch, queriesFor, shoppingLeads, shoppingOffers } from "../_shared/sources.ts";
 
@@ -230,7 +231,14 @@ export function cleanListings(raw: unknown, fallbackCategory: string): (Listing 
   return out;
 }
 
-export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", now = new Date()) {
+/** The last hunt's listings (for the Diagnose model comparison). */
+const lastHunt: string[] = [];
+
+/** The model for hunts: SWEEP_MODEL if set, else the app-wide model. */
+export const SWEEP_MODEL = () => env("SWEEP_MODEL") ?? env("ANTHROPIC_MODEL") ?? "claude-sonnet-5-5";
+
+export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", now = new Date(),
+                                 opts: { model?: string; provider?: "serper" | "claude" } = {}) {
   const run = { user_id: a.user_id, agent_id: a.id, trigger, searches: 0, listings: 0, finds: 0, input_tokens: 0, output_tokens: 0, cache_write_tokens: 0, cache_read_tokens: 0, fetches: 0, error: null as string | null };
   try {
     const reactions = await reactionsFor(a.id).catch(() => undefined);
@@ -243,16 +251,19 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
     const depth = depthFor(a.pro !== false);
     const messages: ClaudeMessage[] = [{ role: "user", content: sweepPrompt(a, now.toISOString().slice(0, 10), reactions, anglesFor(a.id, now).slice(0, depth.angles), leads,
       firstName(a.display_name), sourcesFor(a.mission_category, a.id, now, depth.sources), depth) }];
-    const tools: Record<string, unknown>[] = [
-      { type: "web_search_20250305", name: "web_search", max_uses: depth.searches, user_location: { type: "approximate", country: "US" } },
-    ];
+    // Searching: through Serper (Google, ~10x cheaper) when it's working, else Claude's built-in web search.
+    const useSerper = opts.provider ? opts.provider === "serper" : await serperUsable();
+    const tools: Record<string, unknown>[] = useSerper ? [SEARCH_TOOL]
+      : [{ type: "web_search_20250305", name: "web_search", max_uses: depth.searches, user_location: { type: "approximate", country: "US" } }];
     // Deep hunts (Pro) open product pages to check price, stock and sizes. Capped so one page can't flood the context.
     if (depth.fetches > 0) tools.push({ type: "web_fetch_20250910", name: "web_fetch", max_uses: depth.fetches, max_content_tokens: 6000 });
+    const model = opts.model ?? SWEEP_MODEL();
     let final: Block[] = [];
     const started = Date.now();
     let wrapped = false;
-    for (let turn = 0; turn < 6; turn++) {
-      const res = await claude({ max_tokens: 12000, messages, tools, cache: true, purpose: "sweep" });
+    let searchesLeft = depth.searches;
+    for (let turn = 0; turn < 20; turn++) {
+      const res = await claude({ model, max_tokens: 12000, messages, tools, cache: true, purpose: "sweep" });
       run.input_tokens += res.usage?.input_tokens ?? 0;
       run.output_tokens += res.usage?.output_tokens ?? 0;
       run.cache_write_tokens += res.usage?.cache_creation_input_tokens ?? 0;
@@ -260,15 +271,36 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
       run.searches += res.usage?.server_tool_use?.web_search_requests ?? 0;
       run.fetches += res.usage?.server_tool_use?.web_fetch_requests ?? 0;
       final = res.content;
+      const timeUp = Date.now() - started > 95_000;
+      if (res.stop_reason === "tool_use") {
+        messages.push({ role: "assistant", content: res.content });
+        const results: Block[] = [];
+        for (const b of res.content.filter((x) => x.type === "tool_use")) {
+          const q = String((b.input as { query?: string })?.query ?? "").trim();
+          let out: string;
+          if (b.name !== "search" || !q) out = "Unknown tool.";
+          else if (searchesLeft <= 0 || timeUp) out = "No searches left for this run. Reply now with the JSON for the best products you've confirmed.";
+          else {
+            searchesLeft--;
+            run.searches++;
+            out = await serperSearch(q).then((hits) => hitsText(q, hits)).catch(() => "Search failed. Try another query or wrap up.");
+          }
+          results.push({ type: "tool_result", tool_use_id: b.id, content: out });
+        }
+        if (timeUp && !wrapped) { wrapped = true; results.push({ type: "text", text: "Time's up for this run: reply now with the JSON." }); }
+        messages.push({ role: "user", content: results });
+        continue;
+      }
       if (res.stop_reason !== "pause_turn") break;
-      messages.push({ role: "assistant", content: res.content });   // continue a long search turn
-      if (!wrapped && Date.now() - started > 95_000) {
+      messages.push({ role: "assistant", content: res.content });   // continue a long server-side search turn
+      if (!wrapped && timeUp) {
         wrapped = true;
         // Running long: ask for the results so far instead of searching more (keeps the run inside the server's time limit).
         messages.push({ role: "user", content: "Time's up for this run. Don't search any more: reply now with the JSON for the best products you've confirmed so far." });
       }
     }
     let listings = cleanListings(parseJSON(textOf(final)), a.mission_category ?? "other");
+    lastHunt.splice(0, lastHunt.length, ...listings.map((l) => `${l.title} | ${l.source} | ${l.price ?? "?"} | ${l.url}`.slice(0, 220)));
     // Made-up links (404) go; then each real one gets a verified product photo.
     const dead = await Promise.all(listings.map((l) => linkIsDead(l.url)));
     listings = listings.filter((_, i) => !dead[i]);
@@ -378,13 +410,19 @@ export const handler = handle(async (req) => {
     return json({ serper, agent: a.name, queries: qs, ebay: { configured: ebayConfigured(), listings: ebayRows.length, sample: ebayRows[0]?.title ?? null },
                   shopping: { configured: !!env("SERPER_API_KEY"), leads: leads.length, sample: leads[0]?.title ?? null } });
   }
-  // Diagnose: one real hunt on Baget's house account, to prove the search setup works end to end.
-  if (isScheduler(req) && (body as { test_hunt?: boolean }).test_hunt) {
-    const [cand] = await db.rpc<Candidate[]>("sweep_candidates", { p_limit: 1, p_daily_cap: 1000, p_user: "0a99e1e0-5eed-4d3e-8a00-00000000d3e0", p_agent: null });
-    if (!cand) return json({ none: "no house scout available (all hunted in the last 10 minutes)" });
+  // Diagnose: one real hunt on Baget's house account, to prove the search setup works end to end and compare models.
+  const test = (body as { test_hunt?: boolean | { model?: string; provider?: "serper" | "claude"; category?: string; pro?: boolean } }).test_hunt;
+  if (isScheduler(req) && test) {
+    const o = typeof test === "object" ? test : {};
+    const house = "0a99e1e0-5eed-4d3e-8a00-00000000d3e0";
+    const [agent] = await db.select<Agent>("agents", `select=*&user_id=eq.${house}&mission_category=eq.${encodeURIComponent(o.category ?? "sneakers")}&limit=1`);
+    const [prof] = await db.select<{ tz: string; settings: Record<string, unknown>; display_name: string }>("profiles", `select=tz,settings,display_name&id=eq.${house}`);
+    if (!agent || !prof) return json({ none: "no house scout for that category" });
     const t0 = Date.now();
-    const run = await sweepAgent(cand, "manual");
-    return json({ agent: cand.name, seconds: Math.round((Date.now() - t0) / 1000), ...run });
+    lastHunt.length = 0;
+    const run = await sweepAgent({ ...agent, ...prof, last_swept_at: null, pro: o.pro !== false } as Candidate, "manual", new Date(),
+                                 { model: o.model, provider: o.provider });
+    return json({ agent: agent.name, model: o.model ?? SWEEP_MODEL(), seconds: Math.round((Date.now() - t0) / 1000), ...run, found_titles: [...lastHunt] });
   }
   const traceTitle = (body as { trace_title?: string }).trace_title;
   if (isScheduler(req) && traceTitle) {
