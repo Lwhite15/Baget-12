@@ -1,8 +1,13 @@
 """Read-only App Store launch check: prints what's ready and what's missing for releasing Baget on the App Store.
 Never changes anything. Prints statuses and counts only (no secrets, no tester data).
 Env: ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_PATH, BUNDLE_ID."""
-import os, time
+import builtins, os, time
 import jwt, requests
+
+LINES: list[str] = []
+_print = builtins.print
+def print(*a, **k):  # noqa: A001 - collect lines for one combined notice at the end
+    LINES.append(" ".join(str(x) for x in a)); _print(*a, **k)
 
 API = "https://api.appstoreconnect.apple.com/v1"
 now = int(time.time())
@@ -100,5 +105,4 @@ for b in blds:
     print(f"      beta review: {sub['attributes'].get('betaReviewState') if sub else 'not submitted'}")
 
 print(f"\n{ok_count} ready, {len(todo)} to do")
-for t in todo:
-    print(f"::warning::{t}")
+_print("::notice title=Launch check::" + "%0A".join(l.replace("%", "%25").replace("\n", " ") for l in LINES))
