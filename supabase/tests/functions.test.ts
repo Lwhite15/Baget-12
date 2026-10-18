@@ -305,16 +305,20 @@ await test("push: delivers to each phone and drops dead tokens", async () => {
 
 // ── account deletion ──
 await test("delete-account removes photos then the account", async () => {
+  let fbGone: string[] = [];
   reset([
     [/auth\/v1\/user$/, () => ok({ id: jumpman.user_id })],
     [/object\/list\/taste-photos/, (_u, _i, b) => b.prefix === `${jumpman.user_id}/`
       ? ok([{ name: "p1.jpg", id: "f1" }, { name: "avatars", id: null }])
       : (assert.equal(b.prefix, `${jumpman.user_id}/avatars/`), ok([{ name: "me.jpg", id: "f2" }]))],
     [/DELETE .*object\/taste-photos/, (_u, _i, b) => { assert.deepEqual(b.prefixes, [`${jumpman.user_id}/p1.jpg`, `${jumpman.user_id}/avatars/me.jpg`]); return ok([]); }],
+    [/object\/list\/feedback/, () => ok([{ name: "shot.jpg", id: "f3" }])],
+    [/DELETE .*object\/feedback/, (_u, _i, b) => { fbGone = b.prefixes; return ok([]); }],
     [/DELETE .*admin\/users/, (u) => { assert.ok(u.pathname.endsWith(jumpman.user_id)); return ok({}); }],
   ]);
   const res = await del.handler(post("delete-account", {}, { Authorization: "Bearer user-jwt" }));
   assert.deepEqual(await res.json(), { deleted: true });
+  assert.deepEqual(fbGone, [`${jumpman.user_id}/shot.jpg`], "feedback screenshots go too");
 });
 
 // ── product photos ──
