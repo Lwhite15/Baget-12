@@ -176,6 +176,7 @@ struct PlanStatusPill: View {
 struct PlanSettingsRows: View {
     @Environment(AppStore.self) private var store
     @Environment(Router.self) private var router
+    @State private var managing = false
 
     var body: some View {
         if store.isCloud {
@@ -187,6 +188,10 @@ struct PlanSettingsRows: View {
                 }
             }
             .disabled(store.isPro && store.plan?.plan == "comp")
+            if store.isPro && store.plan?.plan != "comp" {
+                Button { managing = true } label: { Label("Manage subscription", systemImage: "creditcard") }
+                    .manageSubscriptionsSheet(isPresented: $managing)
+            }
             if !store.isPro {
                 Picker(selection: Binding(get: { store.plan?.huntStart ?? store.state.settings.huntStart ?? 9 },
                                           set: { store.setHuntStart($0) })) {
