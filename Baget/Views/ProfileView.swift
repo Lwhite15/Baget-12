@@ -46,6 +46,9 @@ struct ProfileView: View {
                                  "🌿", "🍸", "🏎️", "🛋️", "🎧", "📸", "🎨", "🧸",
                                  "🐉", "🦍", "👑", "⚡️", "🌙", "🍀", "🎯", "🛹"]
 
+    @State private var nameSave: SaveState = .idle
+    @FocusState private var nameFocused: Bool
+
     var body: some View {
         NavigationStack {
             Form {
@@ -222,8 +225,10 @@ struct ProfileView: View {
             HStack {
                 TextField("Your name", text: $name)
                     .textContentType(.name)
+                    .focused($nameFocused)
                     .onSubmit(saveName)
-                if name != (store.state.profile?.displayName ?? "") { Button("Save", action: saveName).bold() }
+                    .onChange(of: name) { _, v in if nameSave == .saved && v != store.state.profile?.displayName { nameSave = .idle } }
+                InlineSave(state: nameSave, dirty: name != (store.state.profile?.displayName ?? ""), action: saveName)
             }
             if let nameError { Text(nameError).font(.footnote).foregroundStyle(Theme.hot) }
         } header: { Text("Name") } footer: {
@@ -232,9 +237,19 @@ struct ProfileView: View {
     }
 
     private func saveName() {
+        guard name != (store.state.profile?.displayName ?? "") else { return }
+        nameFocused = false
+        withAnimation { nameSave = .saving }
         Task { @MainActor in
             nameError = await store.updateDisplayName(name)
-            if nameError == nil { router.say("Saved") }
+            if nameError == nil {
+                name = store.state.profile?.displayName ?? name
+                withAnimation { nameSave = .saved }
+                try? await Task.sleep(for: .seconds(2.5))
+                withAnimation { if nameSave == .saved { nameSave = .idle } }
+            } else {
+                withAnimation { nameSave = .idle }
+            }
         }
     }
 

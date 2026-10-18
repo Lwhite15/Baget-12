@@ -323,6 +323,8 @@ struct AccountSection: View {
     @Environment(Router.self) private var router
     @State private var handle = ""
     @State private var handleError: String?
+    @State private var handleSave: SaveState = .idle
+    @FocusState private var handleFocused: Bool
     @State private var confirmDelete = false
     @State private var deleting = false
 
@@ -333,8 +335,15 @@ struct AccountSection: View {
                     Text("@").foregroundStyle(Theme.muted)
                     TextField("handle", text: $handle)
                         .textInputAutocapitalization(.never).autocorrectionDisabled()
+                        .focused($handleFocused)
                         .onSubmit(saveHandle)
-                    if handle != store.state.profile?.handle && !handle.isEmpty { Button("Save", action: saveHandle).bold() }
+                        // Handles are lowercase letters, numbers, dots and underscores: show exactly what will be saved.
+                        .onChange(of: handle) { _, v in
+                            let clean = String(v.lowercased().filter { $0.isLetter && $0.isASCII || $0.isNumber || $0 == "." || $0 == "_" }.prefix(24))
+                            if clean != v { handle = clean }
+                            if handleSave == .saved && clean != store.state.profile?.handle { handleSave = .idle }
+                        }
+                    InlineSave(state: handleSave, dirty: handle != store.state.profile?.handle && !handle.isEmpty, action: saveHandle)
                 }
                 if let handleError { Text(handleError).font(.footnote).foregroundStyle(Theme.hot) }
                 Button("Sign out") { Task { await store.signOut() } }
@@ -365,9 +374,19 @@ struct AccountSection: View {
     }
 
     private func saveHandle() {
+        guard handle != store.state.profile?.handle, !handle.isEmpty else { return }
+        handleFocused = false
+        withAnimation { handleSave = .saving }
         Task { @MainActor in
             handleError = await store.updateHandle(handle)
-            if handleError == nil { router.say("Your handle is now @\(store.state.profile?.handle ?? handle)") }
+            if handleError == nil {
+                handle = store.state.profile?.handle ?? handle
+                withAnimation { handleSave = .saved }
+                try? await Task.sleep(for: .seconds(2.5))
+                withAnimation { if handleSave == .saved { handleSave = .idle } }
+            } else {
+                withAnimation { handleSave = .idle }
+            }
         }
     }
 }

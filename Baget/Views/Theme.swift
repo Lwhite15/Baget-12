@@ -265,3 +265,25 @@ struct EmptyCard: View {
             .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(Theme.line, style: StrokeStyle(lineWidth: 1, dash: [5])))
     }
 }
+
+/// Save, then a clear "Saved" check right where you tapped (toasts can hide behind sheets).
+enum SaveState { case idle, saving, saved }
+
+struct InlineSave: View {
+    let state: SaveState
+    let dirty: Bool
+    let action: () -> Void
+
+    var body: some View {
+        switch state {
+        case .saving:
+            ProgressView().controlSize(.small)
+        case .saved:
+            Label("Saved", systemImage: "checkmark.circle.fill")
+                .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.green)
+                .transition(.opacity.combined(with: .scale))
+        case .idle:
+            if dirty { Button("Save", action: action).bold() }
+        }
+    }
+}
