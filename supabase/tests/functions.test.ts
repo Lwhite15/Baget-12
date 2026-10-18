@@ -127,10 +127,9 @@ await test("APNs JWT is a valid ES256 signature", async () => {
 const soon = new Date(Date.now() + 2 * 86400_000).toISOString().slice(0, 10) + "T14:00:00Z";
 const listingJSON = '```json\n{"listings":[{"title":"Travis Scott x Air Jordan 1 Low OG","brand":"Jordan","category":"sneakers","price":150,"market":610,"source":"Nike SNKRS","url":"https://www.nike.com/launch/t/ts-aj1","drop_at":"' + soon + '","sold_out":false,"creator":"Travis Scott","traits":["suede","low top"],"sizes_in_stock":["10.5","11"],"sku":"DM7866-140"},{"title":"Jordan 4 Bred","brand":"Jordan","category":"sneakers","price":215,"source":"Kith","url":"https://kith.com/aj4","traits":["leather"],"sizes_in_stock":["8","9"]}]}\n```';
 
-await test("scheduled sweep: web search, continue a paused turn, score, notify", async () => {
+await test("scheduled hunt (one scout, own worker): web search, continue a paused turn, score, notify", async () => {
   let claudeCalls = 0;
   reset([
-    [/rpc\/sweep_candidates/, () => ok([{ ...jumpman, tz: "America/New_York", settings: { quietHours: false }, last_swept_at: null }])],
     [/api\.anthropic\.com/, () => {
       claudeCalls++;
       return claudeCalls === 1
@@ -142,10 +141,11 @@ await test("scheduled sweep: web search, continue a paused turn, score, notify",
     [/rpc\/record_finds/, (_u, _i, b) => ok(b.p_finds.length)],
     [/rest\/v1\/sweep_runs/, () => new Response(null, { status: 201 })],
   ]);
-  const res = await sweep.handler(post("sweep", { mode: "scheduled" }, { "x-baget-secret": "s3cret-value" }));
+  const res = await sweep.handler(post("sweep", { one: { ...jumpman, tz: "America/New_York", settings: { quietHours: false }, last_swept_at: null } },
+    { "x-baget-secret": "s3cret-value" }));
   const out = await res.json();
   assert.equal(res.status, 200, JSON.stringify(out));
-  assert.deepEqual(out, { swept: 1, found: 1, searches: 3 });
+  assert.deepEqual(out, { swept: 1, found: 1, error: null });
   const claudeReq = calls.filter((c) => c.url.includes("anthropic"));
   assert.equal(claudeReq[0].headers["x-api-key"], "sk-test");
   assert.equal(claudeReq[0].body.tools[0].type, "web_search_20250305");
@@ -166,6 +166,31 @@ await test("scheduled sweep: web search, continue a paused turn, score, notify",
   const runLog = calls.find((c) => c.url.includes("sweep_runs"))!.body;
   assert.equal(runLog.searches, 3);
   assert.equal(runLog.input_tokens, 2900);
+});
+await test("scheduler claims due scouts and starts each hunt in its own worker", async () => {
+  const started: any[] = [];
+  reset([
+    [/rpc\/claim_sweeps/, (_u, _i, b) => { assert.equal(b.p_limit, 20); return ok([{ ...jumpman, id: "a1" }, { ...jumpman, id: "a2" }]); }],
+    [/POST .*functions\/v1\/sweep/, (_u, init, b) => { started.push({ b, secret: (init.headers as any)["x-baget-secret"] }); return ok({ swept: 1, found: 0 }); }],
+  ]);
+  const res = await sweep.handler(post("sweep", { mode: "scheduled" }, { "x-baget-secret": "s3cret-value" }));
+  assert.deepEqual(await res.json(), { dispatched: 2, failed: 0 });
+  assert.deepEqual(started.map((x) => x.b.one.id), ["a1", "a2"]);
+  assert.ok(started.every((x) => x.secret === "s3cret-value"), "each worker call is signed");
+  const one = await sweep.handler(post("sweep", { one: { id: "x" } }, { "x-baget-secret": "wrong" }));
+  assert.equal(one.status, 401, "a single hunt can't be started from outside");
+});
+await test("upkeep runs on its own and one failing step doesn't stop the rest", async () => {
+  reset([
+    [/GET .*rest\/v1\/listings\?select=id,url/, () => ok({ message: "boom" }, 500)],
+    [/GET .*rest\/v1\/listings/, () => ok([])],
+    [/rpc\/brands_needing_blurbs/, () => ok([])],
+    [/rpc\/apply_brand_blurbs/, () => ok(0)],
+  ]);
+  const out = await (await sweep.handler(post("sweep", { maintain: true }, { "x-baget-secret": "s3cret-value" }))).json();
+  assert.equal(out.images, null);
+  assert.deepEqual(out.about, { checked: 0, written: 0 });
+  assert.deepEqual(out.brands, { brands: 0, written: 0, applied: 0 });
 });
 await test("sweep refuses callers without the secret or a session", async () => {
   reset([[/auth\/v1\/user/, () => ok({ msg: "bad jwt" }, 401)]]);
@@ -1053,6 +1078,10 @@ await test("batch answers can't land on the wrong brand", () => {
   assert.deepEqual(sweep.keyed({ items: [{ id: "b2", name: "the row", blurb: "Olsen twins label" }, { id: "b1", name: "CREED", blurb: "Paris perfume house" }] }, "blurb", asked),
     ["Paris perfume house", "Olsen twins label"], "order doesn't matter, the echoed name does");
   assert.deepEqual(sweep.keyed(null, "blurb", asked), [null, null]);
+  const long = [{ id: "p1", name: "Creed Bois de Cedrat 75ml / 2.5 oz Vintage 2013 Batch 13Q01 RARE NEW" }, { id: "p2", name: "Creed Royal Princess Oud" }];
+  assert.deepEqual(sweep.keyed({ items: [{ id: "p1", title: "Creed Bois de Cedrat 75ml 2.5 oz Vintage 2013 Batch 13Q01", about: "Citrus and cedar." },
+    { id: "p2", title: "Creed Aventus 100ml", about: "Wrong one." }] }, "about", long), ["Citrus and cedar.", null],
+    "a trimmed long title still matches; a different product doesn't");
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

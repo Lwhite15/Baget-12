@@ -392,7 +392,15 @@ export function keyed(raw: unknown, field: string, asked: { id: string; name: st
     const r = it as Record<string, unknown>;
     if (r && typeof r.id === "string") byId.set(r.id.trim().toLowerCase(), r);
   }
-  const same = (a: string, b: string) => norm(a).replace(/[^a-z0-9]+/g, "") === norm(b).replace(/[^a-z0-9]+/g, "");
+  // Same item if the names match, or (long marketplace titles get trimmed when echoed back) most of the words do.
+  const words = (x: string) => new Set(norm(x).split(/[^a-z0-9]+/).filter((w) => w.length > 1));
+  const same = (a: string, b: string) => {
+    if (norm(a).replace(/[^a-z0-9]+/g, "") === norm(b).replace(/[^a-z0-9]+/g, "")) return true;
+    const A = words(a), B = words(b);
+    if (A.size < 3 || B.size < 3) return false;
+    const shared = [...A].filter((w) => B.has(w)).length;
+    return shared / Math.min(A.size, B.size) >= 0.8 && shared / Math.max(A.size, B.size) >= 0.5;
+  };
   return asked.map((q) => {
     const r = byId.get(q.id.toLowerCase());
     const echoed = r && (typeof r.name === "string" ? r.name : typeof r.title === "string" ? r.title : "");
@@ -460,6 +468,27 @@ Reply with only JSON, one entry per brand, copying its id and exact name:
   return { brands: names.length, written, applied };
 }
 
+/** Starts one scheduled hunt in its own worker and waits for it (each worker has its own time and memory budget). */
+async function dispatchOne(a: Candidate) {
+  const r = await fetch(`${env("SUPABASE_URL")}/functions/v1/sweep`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-baget-secret": env("BAGET_CRON_SECRET") ?? "" },
+    body: JSON.stringify({ one: a }),
+  });
+  await r.body?.cancel().catch(() => {});
+  if (!r.ok && r.status !== 546) throw new Error(`hunt ${a.id}: ${r.status}`);
+}
+
+/** Upkeep on its own schedule: missing photos, then descriptions, then brand blurbs. Each step's failure is logged
+ *  and doesn't stop the next. */
+export async function maintain() {
+  const out: Record<string, unknown> = {};
+  out.images = await backfillImages(num("IMAGE_BACKFILL", 12)).catch((e) => { console.error("images", e); return null; });
+  out.about = await backfillAbout(num("ABOUT_BACKFILL", 20)).catch((e) => { console.error("about", e); return null; });
+  out.brands = await backfillBrands(num("BRAND_BACKFILL", 15)).catch((e) => { console.error("brands", e); return null; });
+  return out;
+}
+
 /** Free plan, outside the hunting window: says when the scouts are back. Null when they're allowed to hunt. */
 export async function restingMessage(userId: string, now = new Date()): Promise<string | null> {
   const [p] = await db.select<{ plan: string; pro_until: string | null; tz: string; settings: Record<string, unknown> | null }>(
@@ -482,7 +511,7 @@ export async function huntedTodayMessage(userId: string): Promise<string | null>
 }
 
 export const handler = handle(async (req) => {
-  const body = await req.json().catch(() => ({})) as { agent_id?: string; backfill?: number; backfill_about?: number; backfill_brands?: number; trace_image?: boolean };
+  const body = await req.json().catch(() => ({})) as { agent_id?: string; backfill?: number; backfill_about?: number; backfill_brands?: number; maintain?: boolean; one?: unknown; trace_image?: boolean };
   if (isScheduler(req) && (body as { check_sources?: boolean }).check_sources) {
     // Diagnose: are the extra data sources working? Counts only.
     const [a] = await db.select<Agent>("agents", "select=*&mission_category=not.is.null&order=created_at.desc&limit=1");
@@ -539,6 +568,13 @@ export const handler = handle(async (req) => {
   if (isScheduler(req) && body.backfill) {
     return json(await backfillImages(Math.min(30, Math.max(1, Number(body.backfill)))));
   }
+  // Upkeep, on its own schedule: photos, then descriptions, then brand blurbs.
+  if (isScheduler(req) && body.maintain) return json(await maintain());
+  // One scheduled hunt in its own worker (handed out by the dispatcher below).
+  if (isScheduler(req) && body.one && typeof body.one === "object") {
+    const run = await sweepAgent(body.one as Candidate, "scheduled");
+    return json({ swept: 1, found: run.finds, error: run.error });
+  }
   if (isScheduler(req) && body.backfill_brands) {
     return json(await backfillBrands(Math.min(40, Math.max(1, Number(body.backfill_brands)))));
   }
@@ -550,7 +586,13 @@ export const handler = handle(async (req) => {
   let trigger: "scheduled" | "manual";
   if (isScheduler(req)) {
     trigger = "scheduled";
-    candidates = await db.rpc<Candidate[]>("sweep_candidates", { p_limit: num("SWEEP_BATCH", 3), p_daily_cap: dailyCap, p_user: null, p_agent: null });
+    // Dispatcher: claim the next scouts due and start each hunt in its own worker, so one slow hunt can't hold up or
+    // crash the rest. Every 5 minutes × SWEEP_BATCH (20) = up to 5,760 hunts a day.
+    const due = await db.rpc<Candidate[]>("claim_sweeps", { p_limit: num("SWEEP_BATCH", 20), p_daily_cap: dailyCap });
+    const results = await Promise.allSettled(due.map((a) => dispatchOne(a)));
+    const failed = results.filter((r) => r.status === "rejected").length;
+    if (failed) console.error("dispatch", `${failed} of ${due.length} hunts didn't start`);
+    return json({ dispatched: due.length, failed });
   } else {
     const user = await requireUser(req);
     trigger = "manual";
@@ -569,9 +611,6 @@ export const handler = handle(async (req) => {
       message: `${candidates.length === 1 ? "Your scout is" : "Your scouts are"} digging deep. Finds land here in a few minutes.` });
   }
   const runs = await Promise.all(candidates.map((a) => sweepAgent(a, trigger)));
-  if (trigger === "scheduled") await backfillImages(num("IMAGE_BACKFILL", 12)).catch((e) => console.error("images", e));
-  if (trigger === "scheduled") await backfillAbout(num("ABOUT_BACKFILL", 20)).catch((e) => console.error("about", e));
-  if (trigger === "scheduled") await backfillBrands(num("BRAND_BACKFILL", 15)).catch((e) => console.error("brands", e));
   const errors = runs.filter((r) => r.error);
   if (errors.length === runs.length && runs.length > 0 && trigger === "manual") {
     const msg = errors[0].error ?? "";

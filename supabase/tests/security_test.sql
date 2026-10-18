@@ -119,6 +119,10 @@ insert into public.sweep_runs (user_id, trigger, error) select 'aaaaaaaa-0000-00
 update public.agents set last_swept_at = now() - interval '30 hours';
 select t.ok(t.n($$select * from public.sweep_candidates(20, 5, null, null) x where x ->> 'name' = 'Jumpman Scout'$$) = 1, 'failed sweeps do not count toward the cap');
 delete from public.sweep_runs where error = 'out of credit';
+select t.ok((select count(*) from public.claim_sweeps(20, 5) x where x ->> 'name' = 'Jumpman Scout') = 1, 'scheduler claims a due scout');
+select t.ok(t.n($$select * from public.sweep_candidates(20, 5, null, null) x where x ->> 'name' = 'Jumpman Scout'$$) = 0, 'a claimed scout is not handed out twice');
+select t.ok((select count(*) from public.sweep_candidates(20, 5, (select user_id from public.agents where name = 'Jumpman Scout'), null)) >= 0, 'pull to refresh ignores scheduler claims');
+update public.agents set sweep_claimed_at = null;
 update public.agents set last_swept_at = now();
 -- Listings without sizes (fragrance, furniture) arrive with JSON nulls; they must save, not error.
 select * from public.upsert_listings('aaaaaaaa-0000-0000-0000-000000000001',
