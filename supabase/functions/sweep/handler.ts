@@ -383,6 +383,25 @@ export async function backfillImages(limit: number) {
   return { checked: rows.length, found };
 }
 
+/** Matches a batch answer back to what was asked, by id AND by the name the model echoes back. Anything that doesn't
+ *  match both (skipped, reordered, mixed up) is dropped, so a blurb can never land on the wrong brand or product. */
+export function keyed(raw: unknown, field: string, asked: { id: string; name: string }[]): (string | null)[] {
+  const items = (raw as { items?: unknown[] } | null)?.items;
+  const byId = new Map<string, Record<string, unknown>>();
+  if (Array.isArray(items)) for (const it of items) {
+    const r = it as Record<string, unknown>;
+    if (r && typeof r.id === "string") byId.set(r.id.trim().toLowerCase(), r);
+  }
+  const same = (a: string, b: string) => norm(a).replace(/[^a-z0-9]+/g, "") === norm(b).replace(/[^a-z0-9]+/g, "");
+  return asked.map((q) => {
+    const r = byId.get(q.id.toLowerCase());
+    const echoed = r && (typeof r.name === "string" ? r.name : typeof r.title === "string" ? r.title : "");
+    if (!r || !echoed || !same(echoed, q.name)) return null;
+    const v = r[field];
+    return typeof v === "string" && v.trim() ? v.trim().replace(/\s+/g, " ") : null;
+  });
+}
+
 /** Plain-language "about" lines for products saved without one (older finds, eBay listings). One cheap call per batch,
  *  no web search: only what's well known about that exact product. Unsure → stays empty rather than made up. */
 export async function backfillAbout(limit: number) {
@@ -390,7 +409,7 @@ export async function backfillAbout(limit: number) {
     `select=id,title,brand,category,traits,source&about=is.null&about_checked_at=is.null` +
     `&last_seen_at=gt.${new Date(Date.now() - 60 * 86400_000).toISOString()}&order=last_seen_at.desc&limit=${limit}`);
   if (!rows.length) return { checked: 0, written: 0 };
-  const list = rows.map((r, i) => `${i + 1}. ${r.title}${r.brand ? ` | brand: ${r.brand}` : ""} | ${r.category}${r.traits?.length ? ` | ${r.traits.join(", ")}` : ""} | sold at ${r.source}`).join("\n");
+  const list = rows.map((r, i) => `[p${i + 1}] ${r.title}${r.brand ? ` | brand: ${r.brand}` : ""} | ${r.category}${r.traits?.length ? ` | ${r.traits.join(", ")}` : ""} | sold at ${r.source}`).join("\n");
   const res = await claude({ model: SWEEP_MODEL(), max_tokens: 3000, purpose: "about", messages: [{ role: "user", content:
 `Write a plain-language description for each product below, for a shopper seeing it for the first time.
 1-2 sentences, max 260 characters, everyday words, no hype or jargon: what it is, and what makes it special or who it's for.
@@ -400,11 +419,12 @@ what the name and details show. If you can't say anything useful, use null.
 
 ${list}
 
-Reply with only JSON: {"about":["...", null, ...]} in the same order.` }] });
-  const out = (parseJSON(textOf(res.content)) as { about?: unknown[] } | null)?.about ?? [];
+Reply with only JSON, one entry per product, copying its id and exact title:
+{"items":[{"id":"p1","title":"<exact title>","about":"..." or null}, ...]}` }] });
+  const out = keyed(parseJSON(textOf(res.content)), "about", rows.map((r, i) => ({ id: `p${i + 1}`, name: r.title })));
   let written = 0;
   await Promise.all(rows.map((r, i) => {
-    const a = typeof out[i] === "string" && (out[i] as string).trim().length > 15 ? (out[i] as string).trim().replace(/\s+/g, " ").slice(0, 400) : null;
+    const a = out[i] && out[i]!.length > 15 ? out[i]!.slice(0, 400) : null;
     if (a) written++;
     return db.update("listings", `id=eq.${r.id}`, { about: a, about_checked_at: new Date().toISOString() });
   }));
@@ -417,18 +437,20 @@ export async function backfillBrands(limit: number) {
   const names = (await db.rpc<{ name: string }[]>("brands_needing_blurbs", { p_limit: limit })).map((r) => r.name).filter(Boolean);
   let written = 0;
   if (names.length) {
-    const res = await claude({ model: SWEEP_MODEL(), max_tokens: 3000, purpose: "brands", messages: [{ role: "user", content:
+    const res = await claude({ max_tokens: 3000, purpose: "brands",   // the app-wide model: written once per brand, so accuracy wins
+      messages: [{ role: "user", content:
 `For each brand below, write a short blurb for a shopper who may be new to it: who they are, where they're from, what they're
 known for and their price range (e.g. "A New York perfume house known for small-batch, unisex scents made fresh to order.
 Pricey, around $200+ a bottle."). 1-2 sentences, max 220 characters, everyday words, no hype.
 Only what you're confident is true. If you don't know a brand (or it's a store, not a brand), use null.
 
-${names.map((n, i) => `${i + 1}. ${n}`).join("\n")}
+${names.map((n, i) => `[b${i + 1}] ${n}`).join("\n")}
 
-Reply with only JSON: {"blurbs":["...", null, ...]} in the same order.` }] });
-    const out = (parseJSON(textOf(res.content)) as { blurbs?: unknown[] } | null)?.blurbs ?? [];
+Reply with only JSON, one entry per brand, copying its id and exact name:
+{"items":[{"id":"b1","name":"<exact brand name>","blurb":"..." or null}, ...]}` }] });
+    const out = keyed(parseJSON(textOf(res.content)), "blurb", names.map((n, i) => ({ id: `b${i + 1}`, name: n })));
     const rows = names.map((n, i) => {
-      const b = typeof out[i] === "string" && (out[i] as string).trim().length > 20 ? (out[i] as string).trim().replace(/\s+/g, " ").slice(0, 400) : null;
+      const b = out[i] && out[i]!.length > 20 ? out[i]!.slice(0, 400) : null;
       if (b) written++;
       return { key: n.trim().toLowerCase(), name: n.trim(), blurb: b };
     });

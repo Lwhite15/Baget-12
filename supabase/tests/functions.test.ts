@@ -1018,7 +1018,7 @@ await test("older finds get a plain description, and unsure stays empty", async 
       { id: "l1", title: "Le Labo Santal 33 50ml", brand: "Le Labo", category: "fragrance", traits: [], source: "Nordstrom" },
       { id: "l2", title: "Mystery Item 7", brand: "", category: "other", traits: [], source: "shop" }])],
     [/api\.anthropic\.com/, () => ok({ stop_reason: "end_turn", content: [{ type: "text", text:
-      '{"about":["A creamy, woody scent of sandalwood and cedar that works day or night.", null]}' }] })],
+      '{"items":[{"id":"p2","title":"Mystery Item 7","about":null},{"id":"p1","title":"Le Labo Santal 33 50ml","about":"A creamy, woody scent of sandalwood and cedar that works day or night."}]}' }] })],
     [/PATCH .*rest\/v1\/listings/, (u, _i, b) => { updates.push({ q: u.search, b }); return ok([]); }],
     [/rest\/v1\/claude_usage/, () => new Response(null, { status: 201 })],
   ]);
@@ -1035,7 +1035,7 @@ await test("every brand gets a short blurb, written once and copied onto its lis
   reset([
     [/rpc\/brands_needing_blurbs/, () => ok([{ name: "Le Labo" }, { name: "Nordstrom" }])],
     [/api\.anthropic\.com/, () => ok({ stop_reason: "end_turn", content: [{ type: "text", text:
-      '{"blurbs":["A New York perfume house known for small-batch, unisex scents. Around $200+ a bottle.", null]}' }] })],
+      '{"items":[{"id":"b1","name":"Le Labo","blurb":"A New York perfume house known for small-batch, unisex scents. Around $200+ a bottle."},{"id":"b2","name":"Nordstrom","blurb":null}]}' }] })],
     [/rest\/v1\/brand_blurbs/, (_u, _i, b) => { saved = b; return new Response(null, { status: 201 }); }],
     [/rpc\/apply_brand_blurbs/, () => ok(3)],
     [/rest\/v1\/claude_usage/, () => new Response(null, { status: 201 })],
@@ -1044,6 +1044,15 @@ await test("every brand gets a short blurb, written once and copied onto its lis
   assert.equal(saved[0].key, "le labo");
   assert.match(saved[0].blurb, /New York perfume house/);
   assert.equal(saved[1].blurb, null, "unknown or a store: saved empty so it isn't asked again");
+});
+
+await test("batch answers can't land on the wrong brand", () => {
+  const asked = [{ id: "b1", name: "Creed" }, { id: "b2", name: "The Row" }];
+  // Skipped Creed and shifted The Row up into its slot: nothing for Creed.
+  assert.deepEqual(sweep.keyed({ items: [{ id: "b1", name: "The Row", blurb: "Olsen twins label" }] }, "blurb", asked), [null, null]);
+  assert.deepEqual(sweep.keyed({ items: [{ id: "b2", name: "the row", blurb: "Olsen twins label" }, { id: "b1", name: "CREED", blurb: "Paris perfume house" }] }, "blurb", asked),
+    ["Paris perfume house", "Olsen twins label"], "order doesn't matter, the echoed name does");
+  assert.deepEqual(sweep.keyed(null, "blurb", asked), [null, null]);
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
