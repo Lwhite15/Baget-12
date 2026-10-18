@@ -14,7 +14,14 @@ const num = (name: string, fallback: number) => {
   return Number.isFinite(v) && v > 0 ? v : fallback;
 };
 
-interface Candidate extends Agent { tz: string; settings: Record<string, unknown>; last_swept_at: string | null; display_name?: string }
+interface Candidate extends Agent { tz: string; settings: Record<string, unknown>; last_swept_at: string | null; display_name?: string; pro?: boolean }
+
+/** How hard a hunt digs. Pro: deep (more searches, opens product pages, more angles and places). Free: standard. */
+export function depthFor(pro: boolean) {
+  return pro
+    ? { searches: num("SWEEP_MAX_SEARCHES", 12), fetches: num("SWEEP_MAX_FETCHES", 6), angles: 3, sources: 6, minSearches: 8, kinds: 4, deep: true }
+    : { searches: num("FREE_MAX_SEARCHES", 6), fetches: 0, angles: 2, sources: 3, minSearches: 4, kinds: 3, deep: false };
+}
 
 const VOICE: Record<string, string> = {
   hype: "excited and hyped, casual slang is fine, like a friend who can't wait to show them",
@@ -105,7 +112,7 @@ export function sourcesFor(category: string | null | undefined, agentId: string,
   return Array.from({ length: Math.min(n, list.length) }, (_, i) => list[(start + i) % list.length]);
 }
 
-export function sweepPrompt(a: Agent, today: string, r: Reactions = { liked: [], bought: [], passed: [] }, angles: string[] = [ANGLES[0], ANGLES[4]], leads: Lead[] = [], name = "", sources: string[] = []): string {
+export function sweepPrompt(a: Agent, today: string, r: Reactions = { liked: [], bought: [], passed: [] }, angles: string[] = [ANGLES[0], ANGLES[4]], leads: Lead[] = [], name = "", sources: string[] = [], depth = depthFor(true)): string {
   const leaning = Object.entries(a.learned ?? {}).filter(([, w]) => w >= 2).sort((x, y) => y[1] - x[1]).map(([k]) => k).slice(0, 10);
   const parts = [
     `Mission: ${missionLabel(a)}`,
@@ -131,12 +138,12 @@ Then use any searches left on whatever looks most promising.${sources.length ? `
 
 Dig through these places this run (others get their turn on later runs): ${sources.join("; ")}.` : ""}
 
-How to hunt (leave no stone unturned):
-- Search wide and deep: run at least 8 different searches across at least 4 kinds of places (official brand sites, big retailers,
+How to hunt${depth.deep ? " (leave no stone unturned)" : ""}:
+- Search wide: run at least ${depth.minSearches} different searches across at least ${depth.kinds} kinds of places (official brand sites, big retailers,
   resale marketplaces, small boutiques, auctions, forums and communities, international shops that ship to the US).
   Vary the wording: model names, nicknames, style codes, colorways, misspellings people use in listings, "deadstock", "NOS", "rare".
-- Look past page one and past the obvious big stores: the best finds are often on a small boutique, a forum post, an auction or a marketplace listing.
-- Open the most promising product pages with web_fetch to confirm the price, that it's in stock (and in their size), before you include it.
+- Look past page one and past the obvious big stores: the best finds are often on a small boutique, a forum post, an auction or a marketplace listing.${depth.deep ? `
+- Open the most promising product pages with web_fetch to confirm the price, that it's in stock (and in their size), before you include it.` : ""}
 - Things available now, releasing in the next two weeks, or restocking.
 - Take initiative: include at least two discovery picks the person never named (a maker, model, note, collab or era that fits their taste), and mark them "discovery": true.${r.liked.length || r.bought.length ? `
 - Their likes and buys are the strongest signal: find more in that spirit (same makers, materials, notes, silhouettes, eras), but not the same items again.` : ""}${r.passed.length ? `
@@ -233,13 +240,14 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
       shoppingLeads(queries).catch(() => [] as Lead[]),
       ebaySearch(a, queries).catch(() => [] as Record<string, unknown>[]),
     ]);
-    const messages: ClaudeMessage[] = [{ role: "user", content: sweepPrompt(a, now.toISOString().slice(0, 10), reactions, anglesFor(a.id, now), leads,
-      firstName(a.display_name), sourcesFor(a.mission_category, a.id, now)) }];
-    const tools = [
-      { type: "web_search_20250305", name: "web_search", max_uses: num("SWEEP_MAX_SEARCHES", 12), user_location: { type: "approximate", country: "US" } },
-      // Opens product pages to check price, stock and sizes. Capped so one page can't flood the context.
-      { type: "web_fetch_20250910", name: "web_fetch", max_uses: num("SWEEP_MAX_FETCHES", 6), max_content_tokens: 6000 },
+    const depth = depthFor(a.pro !== false);
+    const messages: ClaudeMessage[] = [{ role: "user", content: sweepPrompt(a, now.toISOString().slice(0, 10), reactions, anglesFor(a.id, now).slice(0, depth.angles), leads,
+      firstName(a.display_name), sourcesFor(a.mission_category, a.id, now, depth.sources), depth) }];
+    const tools: Record<string, unknown>[] = [
+      { type: "web_search_20250305", name: "web_search", max_uses: depth.searches, user_location: { type: "approximate", country: "US" } },
     ];
+    // Deep hunts (Pro) open product pages to check price, stock and sizes. Capped so one page can't flood the context.
+    if (depth.fetches > 0) tools.push({ type: "web_fetch_20250910", name: "web_fetch", max_uses: depth.fetches, max_content_tokens: 6000 });
     let final: Block[] = [];
     const started = Date.now();
     let wrapped = false;

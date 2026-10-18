@@ -149,7 +149,7 @@ await test("scheduled sweep: web search, continue a paused turn, score, notify",
   const claudeReq = calls.filter((c) => c.url.includes("anthropic"));
   assert.equal(claudeReq[0].headers["x-api-key"], "sk-test");
   assert.equal(claudeReq[0].body.tools[0].type, "web_search_20250305");
-  assert.equal(claudeReq[0].body.tools[0].max_uses, 12, "deeper search budget");
+  assert.equal(claudeReq[0].body.tools[0].max_uses, 12, "deep search budget (no plan given counts as Pro)");
   assert.equal(claudeReq[0].body.tools[1].name, "web_fetch", "opens product pages to check them");
   assert.equal(claudeReq[1].body.messages.length, 2, "paused turn continued");
   assert.deepEqual(claudeReq[0].body.cache_control, { type: "ephemeral" }, "sweeps use prompt caching");
@@ -896,6 +896,16 @@ await test("deep hunts: more searches, page checks, three angles and rotating so
   for (let i = 0; i < 8; i++) for (const s of sweep.sourcesFor("sneakers", "a1", new Date(Date.UTC(2026, 9, 18) + i * 3 * 3600_000))) day.add(s);
   assert.equal(day.size, sweep.DEEP_SOURCES.sneakers.length, "a day of hunts covers every sneaker source");
   assert.ok(sweep.sourcesFor("vinyl", "a1", new Date()).length > 0, "unknown categories still get places to dig");
+});
+
+await test("hunt depth: Pro digs deep, Free gets a standard hunt", () => {
+  const pro = sweep.depthFor(true), free = sweep.depthFor(false);
+  assert.equal(pro.searches, 12); assert.equal(pro.fetches, 6); assert.equal(pro.angles, 3);
+  assert.equal(free.searches, 6); assert.equal(free.fetches, 0); assert.equal(free.angles, 2);
+  const fp = sweep.sweepPrompt(jumpman as never, "2026-10-18", undefined, ["a", "b"], [], "", [], free);
+  assert.doesNotMatch(fp, /web_fetch/, "Free hunts don't open pages");
+  assert.match(fp, /at least 4 different searches/);
+  assert.match(sweep.sweepPrompt(jumpman as never, "2026-10-18", undefined, ["a", "b", "c"], [], "", [], pro), /leave no stone unturned/);
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

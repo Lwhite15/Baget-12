@@ -48,7 +48,7 @@ struct PaywallView: View {
                 Text("Pro").gradientText()
             }
             .font(.system(size: 36, weight: .heavy)).tracking(-1)
-            Text("Your scouts never clock out. Drops, restocks and price cuts get caught the moment they happen, day or night.")
+            Text("Your scouts never clock out and dig deeper every time: more searches, more stores, and they open the product page to check price and stock before telling you.")
                 .font(.subheadline).foregroundStyle(Theme.muted)
         }
     }
@@ -58,6 +58,8 @@ struct PaywallView: View {
             row("", "Free", "Pro", head: true)
             row("Hunting", "4 hours a day", "Around the clock")
             row("When", store.plan?.windowLabel ?? "9am to 1pm", "Any time")
+            row("Hunts", "2 a day", "Every 3 hours")
+            row("Search depth", "Standard", "Deep: 12 searches, checks each page")
             row("Night drops and restocks", "Caught next window", "Caught live")
             row("Everything else", "Included", "Included")
         }
