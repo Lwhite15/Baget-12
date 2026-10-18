@@ -971,4 +971,61 @@ await test("setup only makes as many scouts as the plan allows", async () => {
   assert.equal(body.agents.length, 2, "Free: 2 scouts");
 });
 
+await test("easy for everyone: plain descriptions, and setup vibes and budget reach the scouts", async () => {
+  const fr = { ...jumpman, mission_category: "fragrance", price_note: 120 };
+  const prompt = sweep.sweepPrompt(fr as never, "2026-10-18");
+  assert.match(prompt, /"about"/);
+  assert.match(prompt, /what it smells like in everyday words/);
+  assert.match(prompt, /up to \$120/);
+  assert.doesNotMatch(sweep.sweepPrompt(jumpman as never, "2026-10-18"), /smells like/, "only fragrance gets scent wording");
+  const [l] = sweep.cleanListings({ listings: [{ title: "Le Labo Santal 33", url: "https://www.lelabofragrances.com/santal-33.html",
+    about: "  A creamy, woody scent:  sandalwood, cedar and a little leather. Easy to wear day or night.  " }] }, "fragrance");
+  assert.equal(l.about, "A creamy, woody scent: sandalwood, cedar and a little leather. Easy to wear day or night.");
+  assert.equal(sweep.cleanListings({ listings: [{ title: "X", url: "https://shop.com/p/x" }] }, "fragrance")[0].about, null);
+
+  assert.deepEqual(hunt.cleanVibes({ fragrance: ["Fresh & clean", 3, ""], nope: ["x"], cars: "fast" }), { fragrance: ["fresh & clean"] });
+  assert.equal(hunt.cleanBudget(150), 150);
+  assert.equal(hunt.cleanBudget("150"), null);
+  assert.equal(hunt.cleanBudget(0), null);
+
+  const inserted: any[] = [];
+  let sent = "";
+  reset([
+    [/auth\/v1\/user/, () => ok({ id: jumpman.user_id })],
+    [/api\.anthropic\.com/, (_u, _i, b) => { sent = JSON.stringify(b); return ok({ stop_reason: "end_turn", content: [{ type: "text", text: JSON.stringify({ agents: [
+      { name: "Scent Scout", category: "fragrance", traits: ["citrus", "musk"] }] }) }] }); }],
+    [/profiles\?select=plan/, () => ok([{ plan: "free", pro_until: null }])],
+    [/GET .*rest\/v1\/agents/, () => ok([])],
+    [/rest\/v1\/agents/, (_u, _i, b) => { inserted.push(b); return ok([{ id: "a1" }]); }],
+    [/rest\/v1\/profiles/, () => ok([{ display_name: "" }])],
+    [/rest\/v1\/notes/, () => new Response(null, { status: 201 })],
+  ]);
+  const res = await hunt.handler(post("hunt", { categories: ["fragrance"], text: "", vibes: { fragrance: ["fresh & clean", "date night"] }, budget: 120 },
+    { Authorization: "Bearer user-jwt" }));
+  assert.equal(res.status, 200);
+  assert.match(sent, /fresh & clean, date night/);
+  assert.match(sent, /up to \$120/);
+  assert.deepEqual(inserted[0].traits, ["fresh & clean", "date night", "citrus", "musk"], "their own words stay on the scout");
+  assert.equal(inserted[0].price_note, 120);
+});
+
+await test("older finds get a plain description, and unsure stays empty", async () => {
+  const updates: any[] = [];
+  reset([
+    [/GET .*rest\/v1\/listings/, () => ok([
+      { id: "l1", title: "Le Labo Santal 33 50ml", brand: "Le Labo", category: "fragrance", traits: [], source: "Nordstrom" },
+      { id: "l2", title: "Mystery Item 7", brand: "", category: "other", traits: [], source: "shop" }])],
+    [/api\.anthropic\.com/, () => ok({ stop_reason: "end_turn", content: [{ type: "text", text:
+      '{"about":["A creamy, woody scent of sandalwood and cedar that works day or night.", null]}' }] })],
+    [/PATCH .*rest\/v1\/listings/, (u, _i, b) => { updates.push({ q: u.search, b }); return ok([]); }],
+    [/rest\/v1\/claude_usage/, () => new Response(null, { status: 201 })],
+  ]);
+  const r = await sweep.backfillAbout(20);
+  assert.deepEqual(r, { checked: 2, written: 1 });
+  assert.equal(updates.find((x) => x.q.includes("l1")).b.about, "A creamy, woody scent of sandalwood and cedar that works day or night.");
+  const l2 = updates.find((x) => x.q.includes("l2")).b;
+  assert.equal(l2.about, null);
+  assert.ok(l2.about_checked_at, "checked once, not retried every run");
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

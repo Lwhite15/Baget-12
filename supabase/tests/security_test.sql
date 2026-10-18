@@ -127,6 +127,12 @@ select t.ok((select sizes_in_stock is null and traits = '{smoky,woody}' from pub
 select * from public.upsert_listings('aaaaaaaa-0000-0000-0000-000000000001',
   '[{"fingerprint":"aesop|hwyl eau de parfum","title":"Aesop Hwyl Eau de Parfum","price":190,"traits":"smoky","sizes_in_stock":null}]'::jsonb);
 select t.ok((select price = 190 and traits = '{smoky,woody}' from public.listings where fingerprint = 'aesop|hwyl eau de parfum'), 'update with scalar and null lists keeps what was there');
+select t.ok((select about is null from public.listings where fingerprint = 'aesop|hwyl eau de parfum'), 'no description yet');
+select * from public.upsert_listings('aaaaaaaa-0000-0000-0000-000000000001',
+  '[{"fingerprint":"aesop|hwyl eau de parfum","title":"Aesop Hwyl Eau de Parfum","about":"Smoky and woody, like a forest after rain."}]'::jsonb);
+select * from public.upsert_listings('aaaaaaaa-0000-0000-0000-000000000001',
+  '[{"fingerprint":"aesop|hwyl eau de parfum","title":"Aesop Hwyl Eau de Parfum","about":"Something else"}]'::jsonb);
+select t.ok((select about = 'Smoky and woody, like a forest after rain.' from public.listings where fingerprint = 'aesop|hwyl eau de parfum'), 'a description is saved once and kept');
 select t.ok(public.record_finds((select id from public.agents where name = 'Jumpman Scout'),
   jsonb_build_array(jsonb_build_object('listing_id', (select id from public.listings where fingerprint = 'aesop|hwyl eau de parfum'), 'score', 70, 'why', null))) = 1,
   'find with null reasons saves');

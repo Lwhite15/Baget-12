@@ -50,8 +50,9 @@ const BRIEF_FIELDS = `{"name": "a short fun agent name (2-3 words, e.g. Oud Hunt
 type Img = { media_type: string; data: string };
 const IMG_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-async function insertAgent(userId: string, plan: Plan): Promise<string> {
+async function insertAgent(userId: string, plan: Plan, budget: number | null = null): Promise<string> {
   const row: Record<string, unknown> = {
+    ...(budget ? { price_note: budget } : {}),
     user_id: userId, name: plan.name, keywords: plan.keywords, traits: plan.traits, makers: plan.makers,
     creators: plan.creators, size: plan.size, voice: plan.voice, mode: "ask",
     ...(plan.category ? { mission_category: plan.category } : { mission_custom: plan.custom }),
@@ -90,8 +91,23 @@ async function introNotes(userId: string, agents: { agent_id: string; name: stri
   if (rows.length) await db.insert("notes", rows, false).catch((e) => console.error("intro notes", e));
 }
 
+/** Plain-language vibes picked in setup, per category ("fragrance": ["fresh & clean", "date night"]). */
+export function cleanVibes(v: unknown): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  if (!v || typeof v !== "object" || Array.isArray(v)) return out;
+  for (const [k, list] of Object.entries(v as Record<string, unknown>)) {
+    if (!(CATEGORIES as string[]).includes(k) || !Array.isArray(list)) continue;
+    const xs = list.filter((x) => typeof x === "string").map((x) => (x as string).trim().toLowerCase().slice(0, 30)).filter(Boolean).slice(0, 8);
+    if (xs.length) out[k] = xs;
+  }
+  return out;
+}
+
+/** Budget picked in setup: the most they'd usually spend on one item, or null for no limit. */
+export const cleanBudget = (v: unknown) => typeof v === "number" && v >= 10 && v <= 100000 ? Math.round(v) : null;
+
 async function onboard(userId: string, categories: string[], text: string, size: string | undefined, images: Img[],
-                       liked: string[] = [], passed: string[] = []) {
+                       liked: string[] = [], passed: string[] = [], vibes: Record<string, string[]> = {}, budget: number | null = null) {
   const cats = [...new Set(categories.filter((c) => (CATEGORIES as string[]).includes(c) && c !== "other"))].slice(0, 6);
   if (!cats.length && !text) throw new HttpError(400, "Pick at least one thing you're into");
   const content: Record<string, unknown>[] = images.map((im) => ({ type: "image", source: { type: "base64", media_type: im.media_type, data: im.data } }));
@@ -101,6 +117,10 @@ ${text ? `They also said: "${text}".` : ""}
 ${images.length ? `The ${images.length === 1 ? "photo shows" : `${images.length} photos show`} things they love. Read their taste from them (brands, styles, materials, colors, eras) and use it in the briefs where it fits.` : ""}
 ${liked.length ? `In a quick taste check they hearted: ${liked.join("; ")}. Use the makers, styles and materials these share.` : ""}
 ${passed.length ? `They passed on: ${passed.join("; ")}. Steer the briefs away from what these share.` : ""}
+${Object.keys(vibes).length ? `In plain words, the vibes they picked: ${Object.entries(vibes).map(([c, xs]) => `${c}: ${xs.join(", ")}`).join("; ")}.
+They may not know brand names, so turn these vibes into concrete traits the scout can search for (for fragrance: the notes and
+scent families that give that vibe, e.g. "fresh & clean" → citrus, aquatic, musk; "sweet & cozy" → vanilla, tonka, amber).` : ""}
+${budget ? `They usually spend up to $${budget} on one item.` : ""}
 Make one agent brief per picked interest${text && !cats.length ? " (or one for what they said)" : ""}${text && cats.length ? ", plus one more if what they said is a separate hunt" : ""}.
 Reply with only JSON: {"agents": [${BRIEF_FIELDS}, ...]}
 Use only what they said, picked or showed. Keep every list item short (1-4 words).` });
@@ -109,13 +129,18 @@ Use only what they said, picked or showed. Keep every list item short (1-4 words
   const plans = raw.map((r) => cleanPlan(r, text || "Anything I'd love", size));
   // Make sure every picked category got an agent, even if Claude skipped one.
   for (const c of cats) if (!plans.some((p) => p.category === c)) plans.push(cleanPlan({ category: c, name: `${c[0].toUpperCase()}${c.slice(1)} Scout` }, c, size));
+  // The vibes they picked always reach the scout, in their own words, alongside what Claude translated them into.
+  for (const p of plans) {
+    const v = p.category ? vibes[p.category] ?? [] : [];
+    p.traits = [...new Set([...v, ...p.traits])].slice(0, 12);
+  }
   // Only as many scouts as the plan allows (Free 2, Pro 5); the strongest picks first.
   const limit = await scoutLimit(userId);
   const existing = (await db.select<{ id: string }>("agents", `select=id&user_id=eq.${userId}`)).length;
   plans.splice(Math.max(0, limit - existing));
   const agents = [];
   for (const p of plans) {
-    const id = await insertAgent(userId, p);
+    const id = await insertAgent(userId, p, budget);
     agents.push({ agent_id: id, ...p, needs_size: needsSize(p) });
   }
   await introNotes(userId, agents);
@@ -124,14 +149,16 @@ Use only what they said, picked or showed. Keep every list item short (1-4 words
 
 export const handler = handle(async (req) => {
   const user = await requireUser(req);
-  const body = await req.json().catch(() => ({})) as { text?: string; size?: string; categories?: string[]; images?: Img[]; liked?: string[]; passed?: string[] };
+  const body = await req.json().catch(() => ({})) as { text?: string; size?: string; categories?: string[]; images?: Img[]; liked?: string[]; passed?: string[];
+    vibes?: unknown; budget?: unknown };
   const text = (body.text ?? "").trim().slice(0, 300);
   if (Array.isArray(body.categories)) {
     const images = (Array.isArray(body.images) ? body.images : [])
       .filter((im) => im && IMG_TYPES.includes(im.media_type) && typeof im.data === "string" && im.data.length < 2_000_000).slice(0, 3);
     const titles = (v: unknown) => Array.isArray(v)
       ? v.filter((x) => typeof x === "string" && x.trim()).map((x) => (x as string).trim().slice(0, 80)).slice(0, 12) : [];
-    return json(await onboard(user.id, body.categories, text, body.size, images, titles(body.liked), titles(body.passed)));
+    return json(await onboard(user.id, body.categories, text, body.size, images, titles(body.liked), titles(body.passed),
+      cleanVibes(body.vibes), cleanBudget(body.budget)));
   }
   if (text.length < 2) throw new HttpError(400, "Tell me what to hunt for");
 

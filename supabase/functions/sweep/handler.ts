@@ -122,6 +122,7 @@ export function sweepPrompt(a: Agent, today: string, r: Reactions = { liked: [],
     a.makers.length ? `Brands and makers they like: ${a.makers.join(", ")}` : "",
     a.creators.length ? `Creators they follow: ${a.creators.join(", ")}` : "",
     a.size ? `Their size: ${a.size}` : "",
+    a.price_note > 0 ? `Budget: they usually spend up to $${Math.round(a.price_note)} on one item. Mostly stay under it; a standout deal slightly over is fine.` : "",
     Object.entries(a.learned ?? {}).filter(([, w]) => w < 0).length
       ? `Not into: ${Object.entries(a.learned).filter(([, w]) => w < 0).map(([k]) => k).join(", ")}` : "",
     leaning.length ? `Leaning into lately (from what they liked and bought): ${leaning.join(", ")}` : "",
@@ -150,7 +151,12 @@ How to hunt${depth.deep ? " (leave no stone unturned)" : ""}:
 - Their likes and buys are the strongest signal: find more in that spirit (same makers, materials, notes, silhouettes, eras), but not the same items again.` : ""}${r.passed.length ? `
 - Steer away from what they passed on as not their style.` : ""}${r.seen?.length ? `
 - Already shown to them (find different things): ${r.seen.slice(0, 30).join("; ")}` : ""}
-- For each product, write "pitch": one short sentence, in your own voice, on why it's for them.
+- For each product, write "pitch": one short sentence, in your own voice, on why it's for them, in plain words tied to what
+  they told you they like (a vibe, a style, a brand, something they liked). Write for someone who may not know the brand.
+- For each product, write "about": 1-2 plain sentences (max 260 characters) for someone who has never heard of the brand: what
+  it actually is${a.mission_category === "fragrance" ? `. For fragrance, say what it smells like in everyday words (e.g. "fresh and clean, like
+  soap and citrus" or "warm and sweet, like vanilla and wood"), its main notes, and when it's worn (daytime, night out, summer)` : ", what makes it special, and who or what it's for"}.
+  No hype words, no jargon. Only facts from the page or well known facts about this exact product; if you're not sure, say less.
 - For each product, also write "text": the notification you'd text them about it, max 170 characters. Make it feel personal, like
   a friend who knows their taste texting them: say what you found in a few natural words (not the full product title), the key fact
   (price and store, the drop date, or that it's back in stock), and one specific reason it's for THEM, tied to something above
@@ -172,7 +178,7 @@ Rules:
 - Up to 8 products. Aim for 5 or more strong ones; never pad with weak ones.
 
 End your reply with only this JSON in a \`\`\`json block:
-{"listings":[{"title":"","brand":"","category":"${a.mission_category ?? "other"}","price":null,"market":null,"source":"store name","url":"https://...","image_url":null,"drop_at":null,"sold_out":false,"creator":null,"traits":[],"sizes_in_stock":null,"sku":"","discovery":false,"pitch":"","text":""}]}`;
+{"listings":[{"title":"","brand":"","category":"${a.mission_category ?? "other"}","price":null,"market":null,"source":"store name","url":"https://...","image_url":null,"drop_at":null,"sold_out":false,"creator":null,"traits":[],"sizes_in_stock":null,"sku":"","discovery":false,"about":"","pitch":"","text":""}]}`;
 }
 
 /** Cleans what Claude returned. Anything without a real web address is dropped. */
@@ -188,7 +194,7 @@ export function isSearchPage(url: string): boolean {
   return false;
 }
 
-export function cleanListings(raw: unknown, fallbackCategory: string): (Listing & { fingerprint: string; url: string; sku: string; image_url: string | null; discovery: boolean; pitch: string; text: string })[] {
+export function cleanListings(raw: unknown, fallbackCategory: string): (Listing & { fingerprint: string; url: string; sku: string; image_url: string | null; discovery: boolean; about: string | null; pitch: string; text: string })[] {
   const arr = (raw as { listings?: unknown[] })?.listings;
   if (!Array.isArray(arr)) return [];
   const out = [];
@@ -224,6 +230,7 @@ export function cleanListings(raw: unknown, fallbackCategory: string): (Listing 
       sizes_in_stock: sizes && sizes.length ? sizes : null,
       sku: typeof r.sku === "string" ? r.sku.trim().slice(0, 60) : "",
       discovery: r.discovery === true,
+      about: typeof r.about === "string" && r.about.trim() ? r.about.trim().replace(/\s+/g, " ").slice(0, 400) : null,
       pitch: typeof r.pitch === "string" ? r.pitch.trim().slice(0, 160) : "",
       text: cleanText(r.text),
     });
@@ -377,6 +384,34 @@ export async function backfillImages(limit: number) {
   return { checked: rows.length, found };
 }
 
+/** Plain-language "about" lines for products saved without one (older finds, eBay listings). One cheap call per batch,
+ *  no web search: only what's well known about that exact product. Unsure → stays empty rather than made up. */
+export async function backfillAbout(limit: number) {
+  const rows = await db.select<{ id: string; title: string; brand: string; category: string; traits: string[]; source: string }>("listings",
+    `select=id,title,brand,category,traits,source&about=is.null&about_checked_at=is.null` +
+    `&last_seen_at=gt.${new Date(Date.now() - 60 * 86400_000).toISOString()}&order=last_seen_at.desc&limit=${limit}`);
+  if (!rows.length) return { checked: 0, written: 0 };
+  const list = rows.map((r, i) => `${i + 1}. ${r.title}${r.brand ? ` | brand: ${r.brand}` : ""} | ${r.category}${r.traits?.length ? ` | ${r.traits.join(", ")}` : ""} | sold at ${r.source}`).join("\n");
+  const res = await claude({ model: SWEEP_MODEL(), max_tokens: 3000, purpose: "about", messages: [{ role: "user", content:
+`Write a plain-language description for each product below, for a shopper who has never heard of the brand.
+1-2 sentences, max 260 characters, everyday words, no hype or jargon: what it is, and what makes it special or who it's for.
+For a fragrance: what it smells like in everyday words (e.g. "fresh and clean, like soap and citrus"), main notes, and when it's worn.
+Only say what you're confident is true of this exact product. If you don't know a fragrance's notes, don't guess them: describe only
+what the name and details show. If you can't say anything useful, use null.
+
+${list}
+
+Reply with only JSON: {"about":["...", null, ...]} in the same order.` }] });
+  const out = (parseJSON(textOf(res.content)) as { about?: unknown[] } | null)?.about ?? [];
+  let written = 0;
+  await Promise.all(rows.map((r, i) => {
+    const a = typeof out[i] === "string" && (out[i] as string).trim().length > 15 ? (out[i] as string).trim().replace(/\s+/g, " ").slice(0, 400) : null;
+    if (a) written++;
+    return db.update("listings", `id=eq.${r.id}`, { about: a, about_checked_at: new Date().toISOString() });
+  }));
+  return { checked: rows.length, written };
+}
+
 /** Free plan, outside the hunting window: says when the scouts are back. Null when they're allowed to hunt. */
 export async function restingMessage(userId: string, now = new Date()): Promise<string | null> {
   const [p] = await db.select<{ plan: string; pro_until: string | null; tz: string; settings: Record<string, unknown> | null }>(
@@ -399,7 +434,7 @@ export async function huntedTodayMessage(userId: string): Promise<string | null>
 }
 
 export const handler = handle(async (req) => {
-  const body = await req.json().catch(() => ({})) as { agent_id?: string; backfill?: number; trace_image?: boolean };
+  const body = await req.json().catch(() => ({})) as { agent_id?: string; backfill?: number; backfill_about?: number; trace_image?: boolean };
   if (isScheduler(req) && (body as { check_sources?: boolean }).check_sources) {
     // Diagnose: are the extra data sources working? Counts only.
     const [a] = await db.select<Agent>("agents", "select=*&mission_category=not.is.null&order=created_at.desc&limit=1");
@@ -456,6 +491,9 @@ export const handler = handle(async (req) => {
   if (isScheduler(req) && body.backfill) {
     return json(await backfillImages(Math.min(30, Math.max(1, Number(body.backfill)))));
   }
+  if (isScheduler(req) && body.backfill_about) {
+    return json(await backfillAbout(Math.min(40, Math.max(1, Number(body.backfill_about)))));
+  }
   const dailyCap = num("SWEEP_DAILY_CAP", 30);
   let candidates: Candidate[];
   let trigger: "scheduled" | "manual";
@@ -481,6 +519,7 @@ export const handler = handle(async (req) => {
   }
   const runs = await Promise.all(candidates.map((a) => sweepAgent(a, trigger)));
   if (trigger === "scheduled") await backfillImages(num("IMAGE_BACKFILL", 12)).catch((e) => console.error("images", e));
+  if (trigger === "scheduled") await backfillAbout(num("ABOUT_BACKFILL", 20)).catch((e) => console.error("about", e));
   const errors = runs.filter((r) => r.error);
   if (errors.length === runs.length && runs.length > 0 && trigger === "manual") {
     const msg = errors[0].error ?? "";
