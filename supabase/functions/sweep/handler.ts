@@ -153,8 +153,7 @@ How to hunt${depth.deep ? " (leave no stone unturned)" : ""}:
 - Already shown to them (find different things): ${r.seen.slice(0, 30).join("; ")}` : ""}
 - For each product, write "pitch": one short sentence, in your own voice, on why it's for them, in plain words tied to what
   they told you they like (a vibe, a style, a brand, something they liked). Write for someone who may not know the brand.
-- For each product, write "about": 1-2 plain sentences (max 260 characters) for someone who has never heard of the brand: what
-  it actually is${a.mission_category === "fragrance" ? `. For fragrance, say what it smells like in everyday words (e.g. "fresh and clean, like
+- For each product, write "about": 1-2 plain sentences (max 260 characters) about this product: what it actually is${a.mission_category === "fragrance" ? `. For fragrance, say what it smells like in everyday words (e.g. "fresh and clean, like
   soap and citrus" or "warm and sweet, like vanilla and wood"), its main notes, and when it's worn (daytime, night out, summer)` : ", what makes it special, and who or what it's for"}.
   No hype words, no jargon. Only facts from the page or well known facts about this exact product; if you're not sure, say less.
 - For each product, also write "text": the notification you'd text them about it, max 170 characters. Make it feel personal, like
@@ -393,7 +392,7 @@ export async function backfillAbout(limit: number) {
   if (!rows.length) return { checked: 0, written: 0 };
   const list = rows.map((r, i) => `${i + 1}. ${r.title}${r.brand ? ` | brand: ${r.brand}` : ""} | ${r.category}${r.traits?.length ? ` | ${r.traits.join(", ")}` : ""} | sold at ${r.source}`).join("\n");
   const res = await claude({ model: SWEEP_MODEL(), max_tokens: 3000, purpose: "about", messages: [{ role: "user", content:
-`Write a plain-language description for each product below, for a shopper who has never heard of the brand.
+`Write a plain-language description for each product below, for a shopper seeing it for the first time.
 1-2 sentences, max 260 characters, everyday words, no hype or jargon: what it is, and what makes it special or who it's for.
 For a fragrance: what it smells like in everyday words (e.g. "fresh and clean, like soap and citrus"), main notes, and when it's worn.
 Only say what you're confident is true of this exact product. If you don't know a fragrance's notes, don't guess them: describe only
@@ -410,6 +409,33 @@ Reply with only JSON: {"about":["...", null, ...]} in the same order.` }] });
     return db.update("listings", `id=eq.${r.id}`, { about: a, about_checked_at: new Date().toISOString() });
   }));
   return { checked: rows.length, written };
+}
+
+/** A short blurb about each brand on recent listings, written once per brand and copied onto its listings.
+ *  Only well-known facts; a brand the model doesn't know gets no blurb (saved as null so it isn't retried every run). */
+export async function backfillBrands(limit: number) {
+  const names = (await db.rpc<{ name: string }[]>("brands_needing_blurbs", { p_limit: limit })).map((r) => r.name).filter(Boolean);
+  let written = 0;
+  if (names.length) {
+    const res = await claude({ model: SWEEP_MODEL(), max_tokens: 3000, purpose: "brands", messages: [{ role: "user", content:
+`For each brand below, write a short blurb for a shopper who may be new to it: who they are, where they're from, what they're
+known for and their price range (e.g. "A New York perfume house known for small-batch, unisex scents made fresh to order.
+Pricey, around $200+ a bottle."). 1-2 sentences, max 220 characters, everyday words, no hype.
+Only what you're confident is true. If you don't know a brand (or it's a store, not a brand), use null.
+
+${names.map((n, i) => `${i + 1}. ${n}`).join("\n")}
+
+Reply with only JSON: {"blurbs":["...", null, ...]} in the same order.` }] });
+    const out = (parseJSON(textOf(res.content)) as { blurbs?: unknown[] } | null)?.blurbs ?? [];
+    const rows = names.map((n, i) => {
+      const b = typeof out[i] === "string" && (out[i] as string).trim().length > 20 ? (out[i] as string).trim().replace(/\s+/g, " ").slice(0, 400) : null;
+      if (b) written++;
+      return { key: n.trim().toLowerCase(), name: n.trim(), blurb: b };
+    });
+    await db.raw("/rest/v1/brand_blurbs", { method: "POST", headers: { Prefer: "return=minimal,resolution=ignore-duplicates" }, body: JSON.stringify(rows) });
+  }
+  const applied = await db.rpc<number>("apply_brand_blurbs", {});
+  return { brands: names.length, written, applied };
 }
 
 /** Free plan, outside the hunting window: says when the scouts are back. Null when they're allowed to hunt. */
@@ -434,7 +460,7 @@ export async function huntedTodayMessage(userId: string): Promise<string | null>
 }
 
 export const handler = handle(async (req) => {
-  const body = await req.json().catch(() => ({})) as { agent_id?: string; backfill?: number; backfill_about?: number; trace_image?: boolean };
+  const body = await req.json().catch(() => ({})) as { agent_id?: string; backfill?: number; backfill_about?: number; backfill_brands?: number; trace_image?: boolean };
   if (isScheduler(req) && (body as { check_sources?: boolean }).check_sources) {
     // Diagnose: are the extra data sources working? Counts only.
     const [a] = await db.select<Agent>("agents", "select=*&mission_category=not.is.null&order=created_at.desc&limit=1");
@@ -491,6 +517,9 @@ export const handler = handle(async (req) => {
   if (isScheduler(req) && body.backfill) {
     return json(await backfillImages(Math.min(30, Math.max(1, Number(body.backfill)))));
   }
+  if (isScheduler(req) && body.backfill_brands) {
+    return json(await backfillBrands(Math.min(40, Math.max(1, Number(body.backfill_brands)))));
+  }
   if (isScheduler(req) && body.backfill_about) {
     return json(await backfillAbout(Math.min(40, Math.max(1, Number(body.backfill_about)))));
   }
@@ -520,6 +549,7 @@ export const handler = handle(async (req) => {
   const runs = await Promise.all(candidates.map((a) => sweepAgent(a, trigger)));
   if (trigger === "scheduled") await backfillImages(num("IMAGE_BACKFILL", 12)).catch((e) => console.error("images", e));
   if (trigger === "scheduled") await backfillAbout(num("ABOUT_BACKFILL", 20)).catch((e) => console.error("about", e));
+  if (trigger === "scheduled") await backfillBrands(num("BRAND_BACKFILL", 15)).catch((e) => console.error("brands", e));
   const errors = runs.filter((r) => r.error);
   if (errors.length === runs.length && runs.length > 0 && trigger === "manual") {
     const msg = errors[0].error ?? "";

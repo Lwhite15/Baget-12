@@ -1000,13 +1000,15 @@ await test("easy for everyone: plain descriptions, and setup vibes and budget re
     [/rest\/v1\/profiles/, () => ok([{ display_name: "" }])],
     [/rest\/v1\/notes/, () => new Response(null, { status: 201 })],
   ]);
-  const res = await hunt.handler(post("hunt", { categories: ["fragrance"], text: "", vibes: { fragrance: ["fresh & clean", "date night"] }, budget: 120 },
+  const res = await hunt.handler(post("hunt", { categories: ["fragrance"], text: "", vibes: { fragrance: ["fresh & clean", "date night"] }, budget: 120, brands: { fragrance: ["Le Labo"] } },
     { Authorization: "Bearer user-jwt" }));
   assert.equal(res.status, 200);
   assert.match(sent, /fresh & clean, date night/);
   assert.match(sent, /up to \$120/);
   assert.deepEqual(inserted[0].traits, ["fresh & clean", "date night", "citrus", "musk"], "their own words stay on the scout");
   assert.equal(inserted[0].price_note, 120);
+  assert.match(sent, /Brands they picked: fragrance: Le Labo/);
+  assert.deepEqual(inserted[0].makers, ["Le Labo"]);
 });
 
 await test("older finds get a plain description, and unsure stays empty", async () => {
@@ -1026,6 +1028,22 @@ await test("older finds get a plain description, and unsure stays empty", async 
   const l2 = updates.find((x) => x.q.includes("l2")).b;
   assert.equal(l2.about, null);
   assert.ok(l2.about_checked_at, "checked once, not retried every run");
+});
+
+await test("every brand gets a short blurb, written once and copied onto its listings", async () => {
+  let saved: any[] = [];
+  reset([
+    [/rpc\/brands_needing_blurbs/, () => ok([{ name: "Le Labo" }, { name: "Nordstrom" }])],
+    [/api\.anthropic\.com/, () => ok({ stop_reason: "end_turn", content: [{ type: "text", text:
+      '{"blurbs":["A New York perfume house known for small-batch, unisex scents. Around $200+ a bottle.", null]}' }] })],
+    [/rest\/v1\/brand_blurbs/, (_u, _i, b) => { saved = b; return new Response(null, { status: 201 }); }],
+    [/rpc\/apply_brand_blurbs/, () => ok(3)],
+    [/rest\/v1\/claude_usage/, () => new Response(null, { status: 201 })],
+  ]);
+  assert.deepEqual(await sweep.backfillBrands(15), { brands: 2, written: 1, applied: 3 });
+  assert.equal(saved[0].key, "le labo");
+  assert.match(saved[0].blurb, /New York perfume house/);
+  assert.equal(saved[1].blurb, null, "unknown or a store: saved empty so it isn't asked again");
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

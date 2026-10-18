@@ -101,6 +101,7 @@ struct OnboardingView: View {
     // Vibes and budget, in plain words
     @State private var vibes: [Category: Set<String>] = [:]
     @State private var budget: Int? = nil
+    @State private var brands: [Category: Set<String>] = [:]
     // First hunt
     @State private var pushOn = false
     @State private var watching = false
@@ -175,15 +176,27 @@ struct OnboardingView: View {
 
     private var vibeStep: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("What's your vibe?").font(.system(size: 30, weight: .heavy)).foregroundStyle(Theme.ink)
-            Text("No need to know brands. Tap what sounds like you and your scouts find the products that fit.")
+            Text("Your taste").font(.system(size: 30, weight: .heavy)).foregroundStyle(Theme.ink)
+            Text("Tap the brands you love and the vibe you're after. New to a brand? Your scouts will tell you about every one they find.")
                 .font(.subheadline).foregroundStyle(Theme.muted)
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     ForEach(Category.allCases.filter { picked.contains($0) }) { c in
                         VStack(alignment: .leading, spacing: 8) {
-                            Label(Vibes.question(c), systemImage: c.info.symbol)
+                            Label(c.info.label, systemImage: c.info.symbol)
                                 .font(.headline).foregroundStyle(Theme.ink)
+                            Text("Brands you like").font(.caption.weight(.semibold)).foregroundStyle(Theme.muted)
+                            FlowRow {
+                                ForEach(Vibes.brands(c), id: \.self) { b in
+                                    let on = brands[c, default: []].contains(b)
+                                    Button {
+                                        if on { brands[c, default: []].remove(b) } else { brands[c, default: []].insert(b) }
+                                    } label: { Pill(text: b, selected: on) }
+                                        .buttonStyle(.plain)
+                                        .accessibilityAddTraits(on ? .isSelected : [])
+                                }
+                            }
+                            Text(Vibes.question(c)).font(.caption.weight(.semibold)).foregroundStyle(Theme.muted).padding(.top, 4)
                             FlowRow {
                                 ForEach(Vibes.options(c), id: \.self) { v in
                                     let on = vibes[c, default: []].contains(v)
@@ -212,7 +225,7 @@ struct OnboardingView: View {
                 }
                 .padding(.bottom, 8)
             }
-            Button(vibes.values.allSatisfy(\.isEmpty) && budget == nil ? "Skip" : "Next") { startQuiz() }
+            Button(vibes.values.allSatisfy(\.isEmpty) && brands.values.allSatisfy(\.isEmpty) && budget == nil ? "Skip" : "Next") { startQuiz() }
                 .buttonStyle(PrimaryButton())
             Button("Back") { withAnimation { step = 0 } }.font(.footnote).foregroundStyle(Theme.muted).frame(maxWidth: .infinity)
         }
@@ -247,7 +260,7 @@ struct OnboardingView: View {
                     Text(item.title).font(.headline).foregroundStyle(Theme.ink).lineLimit(2)
                     Text([item.priceKnown && item.price > 0 ? Fmt.money(item.price) : nil, item.source].compactMap { $0 }.joined(separator: " · "))
                         .font(.caption).foregroundStyle(Theme.muted)
-                    if let about = item.about { Text(about).font(.footnote).foregroundStyle(Theme.ink.opacity(0.85)).lineLimit(3) }
+                    if AboutBlock.has(item) { AboutBlock(item: item, lines: 3) }
                 }
                 Spacer(minLength: 0)
                 HStack(spacing: 18) {
@@ -362,7 +375,8 @@ struct OnboardingView: View {
         Task { @MainActor in
             let ids = await store.onboard(categories: Array(picked), text: text.trimmingCharacters(in: .whitespacesAndNewlines), photos: photos,
                                           liked: liked, passed: passed,
-                                          vibes: vibes.mapValues { Array($0) }, budget: budget.flatMap { $0 > 0 ? $0 : nil })
+                                          vibes: vibes.mapValues { Array($0) }, budget: budget.flatMap { $0 > 0 ? $0 : nil },
+                                          brands: brands.mapValues { Array($0) })
             working = false
             made = ids.count
             pushOn = await store.pushAllowed

@@ -92,12 +92,12 @@ async function introNotes(userId: string, agents: { agent_id: string; name: stri
 }
 
 /** Plain-language vibes picked in setup, per category ("fragrance": ["fresh & clean", "date night"]). */
-export function cleanVibes(v: unknown): Record<string, string[]> {
+export function cleanVibes(v: unknown, lower = true): Record<string, string[]> {
   const out: Record<string, string[]> = {};
   if (!v || typeof v !== "object" || Array.isArray(v)) return out;
   for (const [k, list] of Object.entries(v as Record<string, unknown>)) {
     if (!(CATEGORIES as string[]).includes(k) || !Array.isArray(list)) continue;
-    const xs = list.filter((x) => typeof x === "string").map((x) => (x as string).trim().toLowerCase().slice(0, 30)).filter(Boolean).slice(0, 8);
+    const xs = list.filter((x) => typeof x === "string").map((x) => (x as string).trim().slice(0, 30)).map((x) => lower ? x.toLowerCase() : x).filter(Boolean).slice(0, 8);
     if (xs.length) out[k] = xs;
   }
   return out;
@@ -107,7 +107,8 @@ export function cleanVibes(v: unknown): Record<string, string[]> {
 export const cleanBudget = (v: unknown) => typeof v === "number" && v >= 10 && v <= 100000 ? Math.round(v) : null;
 
 async function onboard(userId: string, categories: string[], text: string, size: string | undefined, images: Img[],
-                       liked: string[] = [], passed: string[] = [], vibes: Record<string, string[]> = {}, budget: number | null = null) {
+                       liked: string[] = [], passed: string[] = [], vibes: Record<string, string[]> = {}, budget: number | null = null,
+                       brands: Record<string, string[]> = {}) {
   const cats = [...new Set(categories.filter((c) => (CATEGORIES as string[]).includes(c) && c !== "other"))].slice(0, 6);
   if (!cats.length && !text) throw new HttpError(400, "Pick at least one thing you're into");
   const content: Record<string, unknown>[] = images.map((im) => ({ type: "image", source: { type: "base64", media_type: im.media_type, data: im.data } }));
@@ -118,8 +119,9 @@ ${images.length ? `The ${images.length === 1 ? "photo shows" : `${images.length}
 ${liked.length ? `In a quick taste check they hearted: ${liked.join("; ")}. Use the makers, styles and materials these share.` : ""}
 ${passed.length ? `They passed on: ${passed.join("; ")}. Steer the briefs away from what these share.` : ""}
 ${Object.keys(vibes).length ? `In plain words, the vibes they picked: ${Object.entries(vibes).map(([c, xs]) => `${c}: ${xs.join(", ")}`).join("; ")}.
-They may not know brand names, so turn these vibes into concrete traits the scout can search for (for fragrance: the notes and
+Turn these vibes into concrete traits the scout can search for (for fragrance: the notes and
 scent families that give that vibe, e.g. "fresh & clean" → citrus, aquatic, musk; "sweet & cozy" → vanilla, tonka, amber).` : ""}
+${Object.keys(brands).length ? `Brands they picked: ${Object.entries(brands).map(([c, xs]) => `${c}: ${xs.join(", ")}`).join("; ")}. Put these in that category's makers.` : ""}
 ${budget ? `They usually spend up to $${budget} on one item.` : ""}
 Make one agent brief per picked interest${text && !cats.length ? " (or one for what they said)" : ""}${text && cats.length ? ", plus one more if what they said is a separate hunt" : ""}.
 Reply with only JSON: {"agents": [${BRIEF_FIELDS}, ...]}
@@ -133,6 +135,8 @@ Use only what they said, picked or showed. Keep every list item short (1-4 words
   for (const p of plans) {
     const v = p.category ? vibes[p.category] ?? [] : [];
     p.traits = [...new Set([...v, ...p.traits])].slice(0, 12);
+    const b = p.category ? brands[p.category] ?? [] : [];
+    p.makers = [...new Set([...b, ...p.makers].map((x) => x.trim()))].slice(0, 10);
   }
   // Only as many scouts as the plan allows (Free 2, Pro 5); the strongest picks first.
   const limit = await scoutLimit(userId);
@@ -150,7 +154,7 @@ Use only what they said, picked or showed. Keep every list item short (1-4 words
 export const handler = handle(async (req) => {
   const user = await requireUser(req);
   const body = await req.json().catch(() => ({})) as { text?: string; size?: string; categories?: string[]; images?: Img[]; liked?: string[]; passed?: string[];
-    vibes?: unknown; budget?: unknown };
+    vibes?: unknown; budget?: unknown; brands?: unknown };
   const text = (body.text ?? "").trim().slice(0, 300);
   if (Array.isArray(body.categories)) {
     const images = (Array.isArray(body.images) ? body.images : [])
@@ -158,7 +162,7 @@ export const handler = handle(async (req) => {
     const titles = (v: unknown) => Array.isArray(v)
       ? v.filter((x) => typeof x === "string" && x.trim()).map((x) => (x as string).trim().slice(0, 80)).slice(0, 12) : [];
     return json(await onboard(user.id, body.categories, text, body.size, images, titles(body.liked), titles(body.passed),
-      cleanVibes(body.vibes), cleanBudget(body.budget)));
+      cleanVibes(body.vibes), cleanBudget(body.budget), cleanVibes(body.brands, false)));
   }
   if (text.length < 2) throw new HttpError(400, "Tell me what to hunt for");
 

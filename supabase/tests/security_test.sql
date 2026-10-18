@@ -133,6 +133,12 @@ select * from public.upsert_listings('aaaaaaaa-0000-0000-0000-000000000001',
 select * from public.upsert_listings('aaaaaaaa-0000-0000-0000-000000000001',
   '[{"fingerprint":"aesop|hwyl eau de parfum","title":"Aesop Hwyl Eau de Parfum","about":"Something else"}]'::jsonb);
 select t.ok((select about = 'Smoky and woody, like a forest after rain.' from public.listings where fingerprint = 'aesop|hwyl eau de parfum'), 'a description is saved once and kept');
+reset role;
+insert into public.brand_blurbs (key, name, blurb) values ('aesop', 'Aesop', 'An Australian skincare and fragrance brand known for botanical scents.');
+select t.ok(public.apply_brand_blurbs() >= 1, 'brand blurbs are copied onto listings');
+select t.ok((select brand_about like 'An Australian%' from public.listings where fingerprint = 'aesop|hwyl eau de parfum'), 'listing carries its brand blurb');
+set role service_role;
+
 select t.ok(public.record_finds((select id from public.agents where name = 'Jumpman Scout'),
   jsonb_build_array(jsonb_build_object('listing_id', (select id from public.listings where fingerprint = 'aesop|hwyl eau de parfum'), 'score', 70, 'why', null))) = 1,
   'find with null reasons saves');

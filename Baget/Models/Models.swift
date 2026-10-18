@@ -131,6 +131,8 @@ struct Item: Identifiable, Hashable, Codable {
     var lowStore: String? = nil
     /// Plain-language description: what it is (for fragrance, what it smells like). Written by the scout.
     var about: String? = nil
+    /// Who the brand is, in a sentence or two. Shared by every product from that brand.
+    var brandAbout: String? = nil
 }
 
 struct Offer: Codable, Hashable {

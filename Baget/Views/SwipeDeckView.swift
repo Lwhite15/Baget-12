@@ -83,7 +83,7 @@ struct SwipeDeckView: View {
             Text(item.title).font(.title3.weight(.heavy)).foregroundStyle(Theme.ink).lineLimit(3)
             Text([item.source, item.priceKnown && item.price > 0 ? Fmt.money(item.price) : "Price at store"].joined(separator: " · "))
                 .font(.subheadline).foregroundStyle(Theme.muted)
-            if let about = item.about { Text(about).font(.subheadline).foregroundStyle(Theme.ink.opacity(0.85)).lineLimit(4) }
+            if AboutBlock.has(item) { AboutBlock(item: item, lines: 3) }
             if let v = DealVerdict.of(item) { VerdictChip(verdict: v, showDetail: true) }
             if let why = f.why.first { Text(why).font(.footnote).foregroundStyle(Theme.green.opacity(0.9)).lineLimit(3) }
         }
