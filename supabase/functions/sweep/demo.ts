@@ -59,5 +59,6 @@ export async function setupShots(passwordHash: string) {
     if (!r.ok) throw new HttpError(502, "Couldn't set up the screenshots user", `${r.status} ${(await r.text()).slice(0, 200)}`);
   }
   await r.text().catch(() => "");
-  return await db.rpc<Record<string, number>>("seed_shots", { p_user: SHOTS_USER_ID });
+  const passwordSet = await db.rpc<boolean>("set_shots_password", { p_hash: passwordHash });
+  return { ...(await db.rpc<Record<string, number>>("seed_shots", { p_user: SHOTS_USER_ID })), password_set: passwordSet };
 }
