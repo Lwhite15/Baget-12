@@ -33,12 +33,15 @@ jobs:
           echo "::notice::account: $r"
           echo "$r" | grep -q 'HTTP 200' || exit 1
       - name: Build for simulator
+        env:
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           brew install xcodegen >/dev/null
           xcodegen generate
           set -o pipefail
           xcodebuild build -project Baget.xcodeproj -scheme Baget -configuration Debug \
-            -destination 'generic/platform=iOS Simulator' -derivedDataPath build CODE_SIGNING_ALLOWED=NO > build.log 2>&1 \
+            -destination 'generic/platform=iOS Simulator' -derivedDataPath build CODE_SIGNING_ALLOWED=NO \
+            BAGET_SUPABASE_URL="https://${PROJECT_REF}.supabase.co" BAGET_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" > build.log 2>&1 \
             || { grep -E ": error: " build.log | head -20 | while IFS= read -r l; do echo "::error::$l"; done; exit 1; }
       - name: Take the screenshots
         run: |
