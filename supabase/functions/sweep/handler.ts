@@ -3,7 +3,7 @@
 //  * Manual (the app, with the user's session): that user's agents, at most once per agent every 10 minutes.
 // Cost guards: agents per run, searches per agent, and sweeps per user per day are all capped (see env below).
 import { type Agent, CATEGORIES, GROUP_OF, type Listing, firstName, friendLine, localHour, heldForMorning, kindFor, match, missionLabel, norm } from "../_shared/match.ts";
-import { type Block, type ClaudeMessage, HttpError, claude, db, env, handle, isScheduler, json, parseJSON, requireUser, textOf } from "../_shared/platform.ts";
+import { type Block, type ClaudeMessage, HttpError, MODEL, batchResults, batchStatus, claude, db, env, handle, isScheduler, json, logBatchUsage, parseJSON, requireUser, submitBatch, textOf } from "../_shared/platform.ts";
 import { addImages, linkIsDead, pageProduct, traceImage } from "../_shared/images.ts";
 import { setupDemo, setupShots } from "./demo.ts";
 import { restockCheck } from "../_shared/daily.ts";
@@ -414,16 +414,11 @@ export function keyed(raw: unknown, field: string, asked: { id: string; name: st
 
 /** Plain-language "about" lines for products saved without one (older finds, eBay listings). One cheap call per batch,
  *  no web search: only what's well known about that exact product. Unsure → stays empty rather than made up. */
-export async function backfillAbout(limit: number) {
-  const rows = await db.select<{ id: string; title: string; brand: string; category: string; traits: string[]; source: string }>("listings",
-    `select=id,title,brand,category,traits,source&about=is.null&about_checked_at=is.null` +
-    `&last_seen_at=gt.${new Date(Date.now() - 60 * 86400_000).toISOString()}&order=last_seen_at.desc&limit=${limit}`);
-  let written = 0, checked = 0;
-  // Small batches: a long list can run past the reply limit, and a cut-off reply can't be read at all.
-  for (let i = 0; i < rows.length; i += 8) {
-    const batch = rows.slice(i, i + 8);
-    const list = batch.map((r, j) => `[p${j + 1}] ${r.title}${r.brand ? ` | brand: ${r.brand}` : ""} | ${r.category}${r.traits?.length ? ` | ${r.traits.join(", ")}` : ""} | sold at ${r.source}`).join("\n");
-    const res = await claude({ model: SWEEP_MODEL(), max_tokens: 4000, purpose: "about", messages: [{ role: "user", content:
+type AboutRow = { id: string; title: string; brand: string; category: string; traits: string[]; source: string };
+
+function aboutRequest(batch: AboutRow[]) {
+  const list = batch.map((r, j) => `[p${j + 1}] ${r.title}${r.brand ? ` | brand: ${r.brand}` : ""} | ${r.category}${r.traits?.length ? ` | ${r.traits.join(", ")}` : ""} | sold at ${r.source}`).join("\n");
+  return { model: SWEEP_MODEL(), max_tokens: 4000, messages: [{ role: "user", content:
 `Write a plain-language description for each product below, for a shopper seeing it for the first time.
 1-2 sentences, max 260 characters, everyday words, no hype or jargon: what it is, and what makes it special or who it's for.
 For a fragrance: what it smells like in everyday words (e.g. "fresh and clean, like soap and citrus"), main notes, and when it's worn.
@@ -433,30 +428,44 @@ what the name and details show. If you can't say anything useful, use null.
 ${list}
 
 Reply with only JSON, one entry per product, copying its id and its title:
-{"items":[{"id":"p1","title":"<title>","about":"..." or null}, ...]}` }] });
-    const parsed = parseJSON(textOf(res.content)) as { items?: Record<string, unknown>[] } | null;
-    const items = Array.isArray(parsed?.items) ? parsed!.items : [];
-    const out = keyed(parsed, "about", batch.map((r, j) => ({ id: `p${j + 1}`, name: r.title })));
-    console.log("about backfill", JSON.stringify({ asked: batch.length, items: items.length, kept: out.filter(Boolean).length, stop: res.stop_reason }));
-    if (!items.length) continue;   // unreadable reply: leave these for the next run rather than marking them done
-    checked += batch.length;
-    await Promise.all(batch.map((r, j) => {
-      const a = out[j] && out[j]!.length > 15 ? out[j]!.slice(0, 400) : null;
-      if (a) written++;
-      return db.update("listings", `id=eq.${r.id}`, { about: a, about_checked_at: new Date().toISOString() });
-    }));
+{"items":[{"id":"p1","title":"<title>","about":"..." or null}, ...]}` }] };
+}
+
+/** Saves one reply's descriptions. An unreadable reply changes nothing, so those products are tried again later. */
+async function applyAbout(batch: AboutRow[], text: string) {
+  const parsed = parseJSON(text) as { items?: Record<string, unknown>[] } | null;
+  const items = Array.isArray(parsed?.items) ? parsed!.items : [];
+  if (!items.length) return { checked: 0, written: 0 };
+  const out = keyed(parsed, "about", batch.map((r, j) => ({ id: `p${j + 1}`, name: r.title })));
+  let written = 0;
+  await Promise.all(batch.map((r, j) => {
+    const a = out[j] && out[j]!.length > 15 ? out[j]!.slice(0, 400) : null;
+    if (a) written++;
+    return db.update("listings", `id=eq.${r.id}`, { about: a, about_checked_at: new Date().toISOString() });
+  }));
+  return { checked: batch.length, written };
+}
+
+const aboutRows = (limit: number) => db.select<AboutRow>("listings",
+  `select=id,title,brand,category,traits,source&about=is.null&about_checked_at=is.null` +
+  `&last_seen_at=gt.${new Date(Date.now() - 60 * 86400_000).toISOString()}&order=last_seen_at.desc&limit=${limit}`);
+
+/** Plain-language descriptions for older products, right away (small batches of 8 so no reply gets cut off). */
+export async function backfillAbout(limit: number) {
+  const rows = await aboutRows(limit);
+  let written = 0, checked = 0;
+  for (let i = 0; i < rows.length; i += 8) {
+    const batch = rows.slice(i, i + 8);
+    const res = await claude({ ...aboutRequest(batch), purpose: "about" });
+    const r = await applyAbout(batch, textOf(res.content));
+    checked += r.checked; written += r.written;
   }
   return { checked, written };
 }
 
-/** A short blurb about each brand on recent listings, written once per brand and copied onto its listings.
- *  Only well-known facts; a brand the model doesn't know gets no blurb (saved as null so it isn't retried every run). */
-export async function backfillBrands(limit: number) {
-  const names = (await db.rpc<{ name: string }[]>("brands_needing_blurbs", { p_limit: limit })).map((r) => r.name).filter(Boolean);
-  let written = 0;
-  if (names.length) {
-    const res = await claude({ max_tokens: 3000, purpose: "brands",   // the app-wide model: written once per brand, so accuracy wins
-      messages: [{ role: "user", content:
+function brandsRequest(names: string[]) {
+  return { model: MODEL(), max_tokens: 3000,   // the app-wide model: written once per brand, so accuracy wins
+    messages: [{ role: "user", content:
 `For each brand below, write a short blurb for a shopper who may be new to it: who they are, where they're from, what they're
 known for and their price range (e.g. "A New York perfume house known for small-batch, unisex scents made fresh to order.
 Pricey, around $200+ a bottle."). 1-2 sentences, max 220 characters, everyday words, no hype.
@@ -465,17 +474,82 @@ Only what you're confident is true. If you don't know a brand (or it's a store, 
 ${names.map((n, i) => `[b${i + 1}] ${n}`).join("\n")}
 
 Reply with only JSON, one entry per brand, copying its id and exact name:
-{"items":[{"id":"b1","name":"<exact brand name>","blurb":"..." or null}, ...]}` }] });
-    const out = keyed(parseJSON(textOf(res.content)), "blurb", names.map((n, i) => ({ id: `b${i + 1}`, name: n })));
-    const rows = names.map((n, i) => {
-      const b = out[i] && out[i]!.length > 20 ? out[i]!.slice(0, 400) : null;
-      if (b) written++;
-      return { key: n.trim().toLowerCase(), name: n.trim(), blurb: b };
-    });
-    await db.raw("/rest/v1/brand_blurbs", { method: "POST", headers: { Prefer: "return=minimal,resolution=ignore-duplicates" }, body: JSON.stringify(rows) });
-  }
+{"items":[{"id":"b1","name":"<exact brand name>","blurb":"..." or null}, ...]}` }] };
+}
+
+async function applyBrands(names: string[], text: string) {
+  const out = keyed(parseJSON(text), "blurb", names.map((n, i) => ({ id: `b${i + 1}`, name: n })));
+  let written = 0;
+  const rows = names.map((n, i) => {
+    const b = out[i] && out[i]!.length > 20 ? out[i]!.slice(0, 400) : null;
+    if (b) written++;
+    return { key: n.trim().toLowerCase(), name: n.trim(), blurb: b };
+  });
+  await db.raw("/rest/v1/brand_blurbs", { method: "POST", headers: { Prefer: "return=minimal,resolution=ignore-duplicates" }, body: JSON.stringify(rows) });
+  return written;
+}
+
+/** A short blurb about each brand on recent listings, written once per brand and copied onto its listings, right away.
+ *  Only well-known facts; a brand the model doesn't know gets no blurb (saved as null so it isn't retried every run). */
+export async function backfillBrands(limit: number) {
+  const names = (await db.rpc<{ name: string }[]>("brands_needing_blurbs", { p_limit: limit })).map((r) => r.name).filter(Boolean);
+  let written = 0;
+  if (names.length) written = await applyBrands(names, textOf((await claude({ ...brandsRequest(names), purpose: "brands" })).content));
   const applied = await db.rpc<number>("apply_brand_blurbs", {});
   return { brands: names.length, written, applied };
+}
+
+// ── The same two jobs through Anthropic's batch processing: about half the price, results within hours (usually
+// minutes). One batch of each kind at a time, so nothing is sent twice; failed or expired requests are simply
+// picked up again by the next batch. ──
+
+interface BatchRow { id: string; kind: string; items: Record<string, unknown>; created_at: string }
+
+export async function batchBackfills() {
+  const out: Record<string, unknown> = { applied: await collectBatches() };
+  const pending = new Set((await db.select<{ kind: string }>("claude_batches", "select=kind&finished_at=is.null")).map((r) => r.kind));
+  if (!pending.has("about")) {
+    const rows = await aboutRows(num("ABOUT_BACKFILL", 40));
+    if (rows.length) {
+      const chunks: Record<string, AboutRow[]> = {};
+      for (let i = 0; i < rows.length; i += 8) chunks[`about-${i / 8}`] = rows.slice(i, i + 8);
+      const id = await submitBatch(Object.entries(chunks).map(([cid, rs]) => ({ custom_id: cid, params: aboutRequest(rs) })));
+      await db.insert("claude_batches", { id, kind: "about", items: chunks }, false);
+      out.about_sent = rows.length;
+    }
+  }
+  if (!pending.has("brands")) {
+    const names = (await db.rpc<{ name: string }[]>("brands_needing_blurbs", { p_limit: num("BRAND_BACKFILL", 15) })).map((r) => r.name).filter(Boolean);
+    if (names.length) {
+      const id = await submitBatch([{ custom_id: "brands-0", params: brandsRequest(names) }]);
+      await db.insert("claude_batches", { id, kind: "brands", items: { "brands-0": names } }, false);
+      out.brands_sent = names.length;
+    }
+  }
+  out.brands_applied = await db.rpc<number>("apply_brand_blurbs", {}).catch(() => 0);
+  return out;
+}
+
+async function collectBatches() {
+  const open = await db.select<BatchRow>("claude_batches", "select=id,kind,items,created_at&finished_at=is.null");
+  let applied = 0;
+  for (const b of open) {
+    const st = await batchStatus(b.id).catch(() => null);
+    const stale = Date.now() - Date.parse(b.created_at) > 30 * 3600_000;
+    if (!st || (st.processing_status !== "ended" && !stale)) continue;
+    if (st.processing_status === "ended" && st.results_url) {
+      for (const r of await batchResults(st.results_url).catch(() => [])) {
+        if (r.result?.type !== "succeeded" || !r.result.message) continue;
+        const msg = r.result.message;
+        await logBatchUsage(b.kind, String(msg.model ?? ""), msg.usage);
+        const text = textOf(msg.content ?? []);
+        if (b.kind === "about") applied += (await applyAbout((b.items[r.custom_id] ?? []) as AboutRow[], text)).written;
+        else if (b.kind === "brands") applied += await applyBrands((b.items[r.custom_id] ?? []) as string[], text);
+      }
+    }
+    await db.update("claude_batches", `id=eq.${encodeURIComponent(b.id)}`, { finished_at: new Date().toISOString() });
+  }
+  return applied;
 }
 
 /** Starts one scheduled hunt in its own worker and waits for it (each worker has its own time and memory budget). */
@@ -494,8 +568,12 @@ async function dispatchOne(a: Candidate) {
 export async function maintain() {
   const out: Record<string, unknown> = {};
   out.images = await backfillImages(num("IMAGE_BACKFILL", 12)).catch((e) => { console.error("images", e); return null; });
-  out.about = await backfillAbout(num("ABOUT_BACKFILL", 20)).catch((e) => { console.error("about", e); return null; });
-  out.brands = await backfillBrands(num("BRAND_BACKFILL", 15)).catch((e) => { console.error("brands", e); return null; });
+  if (env("CLAUDE_BATCH") === "off") {
+    out.about = await backfillAbout(num("ABOUT_BACKFILL", 20)).catch((e) => { console.error("about", e); return null; });
+    out.brands = await backfillBrands(num("BRAND_BACKFILL", 15)).catch((e) => { console.error("brands", e); return null; });
+  } else {
+    out.batches = await batchBackfills().catch((e) => { console.error("batches", e); return null; });
+  }
   out.restocks = await restockCheck(num("RESTOCK_CHECKS", 15)).catch((e) => { console.error("restocks", e); return null; });
   out.refreshed = await refreshFinds(num("REFRESH_CHECKS", 40)).catch((e) => { console.error("refresh", e); return null; });
   out.prices = await repriceOld(num("PRICE_BACKFILL", 10)).catch((e) => { console.error("prices", e); return null; });

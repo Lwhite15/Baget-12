@@ -218,6 +218,36 @@ export async function claude(body: Record<string, unknown>): Promise<ClaudeRespo
   throw new HttpError(502, "Your agent couldn't reach Claude just now. Try again in a moment.", `Claude ${last}`);
 }
 
+// ── Batch processing: about half price, results within 24 hours (usually minutes) ──
+
+const anthropicHeaders = () => ({ "x-api-key": env("ANTHROPIC_API_KEY") ?? "", "anthropic-version": "2023-06-01", "content-type": "application/json" });
+
+export async function submitBatch(requests: { custom_id: string; params: Record<string, unknown> }[]): Promise<string> {
+  const r = await fetch("https://api.anthropic.com/v1/messages/batches", { method: "POST", headers: anthropicHeaders(), body: JSON.stringify({ requests }) });
+  if (!r.ok) throw new Error(`batch submit ${r.status} ${(await r.text()).slice(0, 300)}`);
+  return (await r.json() as { id: string }).id;
+}
+
+export async function batchStatus(id: string): Promise<{ processing_status: string; results_url: string | null }> {
+  const r = await fetch(`https://api.anthropic.com/v1/messages/batches/${encodeURIComponent(id)}`, { headers: anthropicHeaders() });
+  if (!r.ok) throw new Error(`batch status ${r.status}`);
+  return await r.json();
+}
+
+export interface BatchResult { custom_id: string; result?: { type: string; message?: { content?: Block[]; model?: string; usage?: ClaudeResponse["usage"] } } }
+
+export async function batchResults(url: string): Promise<BatchResult[]> {
+  if (!url.startsWith("https://api.anthropic.com/")) throw new Error("unexpected results url");
+  const r = await fetch(url, { headers: anthropicHeaders() });
+  if (!r.ok) throw new Error(`batch results ${r.status}`);
+  return (await r.text()).split("\n").filter((l) => l.trim()).map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+}
+
+/** Batch calls are logged like any other, marked so the stats screen counts them at the batch price. */
+export async function logBatchUsage(fn: string, model: string, u: ClaudeResponse["usage"]) {
+  await logUsage(fn, `${model} (batch)`, u);
+}
+
 /** One row per Claude call, for the owner's stats screen (spend per day and per feature). Never breaks a call. */
 async function logUsage(fn: string, model: string, u: ClaudeResponse["usage"]) {
   if (!u) return;

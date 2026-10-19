@@ -187,7 +187,9 @@ await test("upkeep runs on its own and one failing step doesn't stop the rest", 
     [/rpc\/brands_needing_blurbs/, () => ok([])],
     [/rpc\/apply_brand_blurbs/, () => ok(0)],
   ]);
+  process.env.CLAUDE_BATCH = "off";
   const out = await (await sweep.handler(post("sweep", { maintain: true }, { "x-baget-secret": "s3cret-value" }))).json();
+  delete process.env.CLAUDE_BATCH;
   assert.equal(out.images, null);
   assert.deepEqual(out.about, { checked: 0, written: 0 });
   assert.deepEqual(out.brands, { brands: 0, written: 0, applied: 0 });
@@ -1244,6 +1246,57 @@ await test("pulse: a famous brand at a fraction of its usual price, or a dupe, i
   assert.equal(r.kept, 1);
   assert.equal(saved[0].title, "Amouage Reflection Man EDP 100ml");
   delete process.env.SERPER_API_KEY;
+});
+
+await test("background writing goes through batches: sent once, applied when Anthropic finishes", async () => {
+  let submitted: any = null, inserted: any = null, patched: any[] = [], blurbs: any[] = [], usage: any[] = [];
+  const rows = [{ id: "l1", title: "Le Labo Santal 33 50ml", brand: "Le Labo", category: "fragrance", traits: [], source: "Nordstrom" }];
+  // Round 1: nothing pending, so a batch is sent for each kind.
+  reset([
+    [/GET .*rest\/v1\/claude_batches/, () => ok([])],
+    [/GET .*rest\/v1\/listings/, () => ok(rows)],
+    [/rpc\/brands_needing_blurbs/, () => ok([{ name: "Le Labo" }])],
+    [/rpc\/apply_brand_blurbs/, () => ok(0)],
+    [/POST https:\/\/api\.anthropic\.com\/v1\/messages\/batches/, (_u, _i, b) => { submitted = submitted ?? []; submitted.push(b); return ok({ id: `msgbatch_${submitted.length}` }); }],
+    [/POST .*rest\/v1\/claude_batches/, (_u, _i, b) => { inserted = inserted ?? []; inserted.push(b); return new Response(null, { status: 201 }); }],
+  ]);
+  const r1 = await sweep.batchBackfills();
+  assert.equal(r1.about_sent, 1); assert.equal(r1.brands_sent, 1);
+  assert.equal(submitted[0].requests[0].custom_id, "about-0");
+  assert.equal(inserted[0].kind, "about");
+  // Round 2: both still running, so nothing new is sent.
+  submitted = null;
+  reset([
+    [/GET .*rest\/v1\/claude_batches\?select=id/, () => ok([{ id: "msgbatch_1", kind: "about", items: { "about-0": rows }, created_at: new Date().toISOString() }])],
+    [/GET .*rest\/v1\/claude_batches\?select=kind/, () => ok([{ kind: "about" }, { kind: "brands" }])],
+    [/GET https:\/\/api\.anthropic\.com\/v1\/messages\/batches\/msgbatch_1$/, () => ok({ processing_status: "in_progress", results_url: null })],
+    [/rpc\/apply_brand_blurbs/, () => ok(0)],
+  ]);
+  await sweep.batchBackfills();
+  assert.equal(submitted, null, "one batch of each kind at a time");
+  // Round 3: done; results applied and the batch closed.
+  reset([
+    [/GET .*rest\/v1\/claude_batches\?select=id/, () => ok([
+      { id: "msgbatch_1", kind: "about", items: { "about-0": rows }, created_at: new Date().toISOString() },
+      { id: "msgbatch_2", kind: "brands", items: { "brands-0": ["Le Labo"] }, created_at: new Date().toISOString() }])],
+    [/GET https:\/\/api\.anthropic\.com\/v1\/messages\/batches\/msgbatch_1$/, () => ok({ processing_status: "ended", results_url: "https://api.anthropic.com/v1/messages/batches/msgbatch_1/results" })],
+    [/GET https:\/\/api\.anthropic\.com\/v1\/messages\/batches\/msgbatch_2$/, () => ok({ processing_status: "ended", results_url: "https://api.anthropic.com/v1/messages/batches/msgbatch_2/results" })],
+    [/msgbatch_1\/results/, () => new Response(JSON.stringify({ custom_id: "about-0", result: { type: "succeeded", message: { model: "claude-haiku-5-5", usage: { input_tokens: 100, output_tokens: 50 },
+      content: [{ type: "text", text: '{"items":[{"id":"p1","title":"Le Labo Santal 33 50ml","about":"A creamy, woody scent of sandalwood and cedar."}]}' }] } } }) + "\n")],
+    [/msgbatch_2\/results/, () => new Response(JSON.stringify({ custom_id: "brands-0", result: { type: "succeeded", message: { model: "claude-sonnet-5-5", usage: { input_tokens: 80, output_tokens: 40 },
+      content: [{ type: "text", text: '{"items":[{"id":"b1","name":"Le Labo","blurb":"A New York perfume house known for small-batch scents."}]}' }] } } }) + "\n")],
+    [/PATCH .*rest\/v1\/(listings|claude_batches)/, (u, _i, b) => { patched.push({ path: u.pathname, b }); return ok([]); }],
+    [/rest\/v1\/brand_blurbs/, (_u, _i, b) => { blurbs = b; return new Response(null, { status: 201 }); }],
+    [/rest\/v1\/claude_usage/, (_u, _i, b) => { usage.push(b); return new Response(null, { status: 201 }); }],
+    [/GET .*rest\/v1\/claude_batches\?select=kind/, () => ok([{ kind: "about" }, { kind: "brands" }])],
+    [/rpc\/apply_brand_blurbs/, () => ok(3)],
+  ]);
+  const r3 = await sweep.batchBackfills();
+  assert.equal(r3.applied, 2);
+  assert.equal(patched.find((p) => p.path.endsWith("listings")).b.about, "A creamy, woody scent of sandalwood and cedar.");
+  assert.equal(blurbs[0].blurb, "A New York perfume house known for small-batch scents.");
+  assert.equal(patched.filter((p) => p.path.endsWith("claude_batches")).length, 2, "both batches closed");
+  assert.match(usage[0].model, /\(batch\)$/, "logged at the batch price");
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
