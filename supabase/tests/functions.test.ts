@@ -678,6 +678,25 @@ await test("other stores' prices: same product only, cheapest first", async () =
     assert.equal(offers[2].price, 1299.99);
   } finally { delete process.env.SERPER_API_KEY; }
 });
+await test("other stores' prices skip samples, decants and odd low prices", async () => {
+  process.env.SERPER_API_KEY = "serper-test";
+  try {
+    const fake = async () => ok({ shopping: [
+      { title: "Nasomatto Pardon Extrait de Parfum Sample Vial", source: "Nicchia Luxury", price: "$6.00" },
+      { title: "Nasomatto Pardon Extrait de Parfum 2ml", source: "CologneCurators", price: "$9.99" },
+      { title: "Nasomatto Pardon Extrait de Parfum 5ml Decant", source: "Scents Angel", price: "$30.00" },
+      { title: "Nasomatto Pardon Extrait de Parfum", source: "DecantX", price: "$35.09" },
+      { title: "Nasomatto Pardon Extrait de Parfum 30ml", source: "Luckyscent", price: "$175.00" },
+      { title: "Nasomatto Pardon Extrait de Parfum", source: "Nordstrom", price: "$180.00" },
+      { title: "Nasomatto Pardon Extrait de Parfum", source: "Some Shop", price: "$18.00" },
+      { title: "Nasomatto Pardon Extrait de Parfum", source: "FragranceNet", price: "$150.00" },
+    ] });
+    const offers = await SRC.shoppingOffers("Pardon Extrait de Parfum", fake as never);
+    assert.deepEqual(offers.map((o: any) => o.store), ["FragranceNet", "Luckyscent", "Nordstrom"]);
+    assert.equal(SRC.partialSize("Amouage Material 100ml", "Amouage Material Eau de Parfum 100ml"), false);
+    assert.equal(SRC.partialSize("Amouage Material 10ml travel", "Amouage Material Eau de Parfum 100ml"), true);
+  } finally { delete process.env.SERPER_API_KEY; }
+});
 await test("watched finds text you when the price drops 5% or more", async () => {
   process.env.SERPER_API_KEY = "serper-test";
   try {

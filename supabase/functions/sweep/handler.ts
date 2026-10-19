@@ -494,7 +494,17 @@ export async function maintain() {
   out.images = await backfillImages(num("IMAGE_BACKFILL", 12)).catch((e) => { console.error("images", e); return null; });
   out.about = await backfillAbout(num("ABOUT_BACKFILL", 20)).catch((e) => { console.error("about", e); return null; });
   out.brands = await backfillBrands(num("BRAND_BACKFILL", 15)).catch((e) => { console.error("brands", e); return null; });
+  out.prices = await repriceOld(num("PRICE_BACKFILL", 10)).catch((e) => { console.error("prices", e); return null; });
   return out;
+}
+
+/** Prices checked before samples and decants were filtered out (Oct 19, 2026): look them up again, newest first. */
+const PRICE_FIX = "2026-10-19T13:30:00Z";
+export async function repriceOld(limit: number) {
+  const rows = await db.select<{ id: string; title: string }>("listings",
+    `select=id,title&offers_checked_at=lt.${PRICE_FIX}&order=last_seen_at.desc&limit=${limit}`);
+  const priced = await attachOffers(rows, (id, patch) => db.update("listings", `id=eq.${id}`, patch).then(() => {}));
+  return { checked: rows.length, priced };
 }
 
 /** Free plan, outside the hunting window: says when the scouts are back. Null when they're allowed to hunt. */

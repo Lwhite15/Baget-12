@@ -162,6 +162,22 @@ const money = (s: string | undefined) => {
   return m ? Number(m[1]) : null;
 };
 
+const PARTIAL_WORDS = /\b(samples?|decants?|decanted|vials?|minis?|miniatures?|travel[- ]size|travel spray|atomi[sz]ers?|splits?|discovery set|sampler|carded)\b/i;
+const sizeMl = (t: string) => {
+  const ml = t.match(/(\d+(?:\.\d+)?)\s?ml\b/i);
+  if (ml) return Number(ml[1]);
+  const oz = t.match(/(\d*\.?\d+)\s?(?:fl\.?\s?)?oz\b/i);
+  return oz ? Number(oz[1]) * 29.57 : null;
+};
+/** True when a shopping result is a sample, decant or small size the product name didn't ask for. */
+export function partialSize(offerTitle: string, productTitle: string): boolean {
+  if (PARTIAL_WORDS.test(offerTitle) && !PARTIAL_WORDS.test(productTitle)) return true;
+  const got = sizeMl(offerTitle), want = sizeMl(productTitle);
+  if (got === null) return false;
+  if (want !== null) return Math.abs(got - want) > want * 0.15;
+  return got < 30;
+}
+
 /** What other stores charge for this product right now (Google Shopping), cheapest first. */
 export async function shoppingOffers(title: string, fetchFn: FetchFn = fetch): Promise<Offer[]> {
   const key = env("SERPER_API_KEY");
@@ -183,11 +199,16 @@ export async function shoppingOffers(title: string, fetchFn: FetchFn = fetch): P
       const words = norm(s.title ?? "").split(/\s+/);
       const overlap = words.filter((w) => want.has(w)).length / Math.max(1, Math.min(want.size, 8));
       if (overlap < 0.6) continue;
+      // A sample, decant or travel size of the product isn't the product's price.
+      if (partialSize(s.title ?? "", title) || /decant|sample/i.test(s.source)) continue;
       out.push({ store: s.source.slice(0, 60), price: p });
     }
     out.sort((a, b) => a.price - b.price);
     const seen = new Set<string>();
-    return out.filter((o) => { const k = norm(o.store); if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 5);
+    const unique = out.filter((o) => { const k = norm(o.store); if (seen.has(k)) return false; seen.add(k); return true; });
+    // Prices far under the rest are almost always a sample or a mislabeled listing.
+    const mid = unique.length >= 3 ? unique[Math.floor(unique.length / 2)].price : 0;
+    return unique.filter((o) => o.price >= mid * 0.4).slice(0, 5);
   } catch {
     return [];
   }

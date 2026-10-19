@@ -64,7 +64,7 @@ final class ImageCache {
     // MARK: Off the main thread
 
     nonisolated private static func key(_ url: URL) -> String {
-        SHA256.hash(data: Data(url.absoluteString.utf8)).prefix(16).map { String(format: "%02x", $0) }.joined()
+        SHA256.hash(data: Data(("v2:" + url.absoluteString).utf8)).prefix(16).map { String(format: "%02x", $0) }.joined()
     }
 
     nonisolated private static func readDisk(_ key: String) -> ProductPhoto? {
@@ -79,9 +79,16 @@ final class ImageCache {
     nonisolated private static func process(_ data: Data, key: String) -> ProductPhoto? {
         guard let raw = UIImage(data: data), raw.size.width >= 120, raw.size.height >= 120 else { return nil }
         let img = raw.preparingThumbnail(of: fit(raw.size, max: 1000)) ?? raw
-        if let cut = lift(img) {
-            if let png = cut.pngData() { try? png.write(to: dir.appendingPathComponent("\(key)-cut.png"), options: .atomic) }
-            return ProductPhoto(image: cut, lifted: true)
+        if let cut = lift(img), let look = visibility(cut), look.coverage > 0.12 {
+            if look.brightness > 0.28 {
+                if let png = cut.pngData() { try? png.write(to: dir.appendingPathComponent("\(key)-cut.png"), options: .atomic) }
+                return ProductPhoto(image: cut, lifted: true)
+            }
+            // A dark product (black bottle, dark shoe) vanishes on the app's dark tiles: put the cut-out on white instead.
+            if let white = onWhite(cut), let jpg = white.jpegData(compressionQuality: 0.85) {
+                try? jpg.write(to: dir.appendingPathComponent("\(key)-flat.jpg"), options: .atomic)
+                return ProductPhoto(image: white, lifted: false)
+            }
         }
         let flat = trimWhite(img) ?? img
         if let jpg = flat.jpegData(compressionQuality: 0.85) { try? jpg.write(to: dir.appendingPathComponent("\(key)-flat.jpg"), options: .atomic) }
@@ -104,6 +111,42 @@ final class ImageCache {
         let ci = CIImage(cvPixelBuffer: buffer)
         guard let out = CIContext(options: [.useSoftwareRenderer: false]).createCGImage(ci, from: ci.extent) else { return nil }
         return UIImage(cgImage: out)
+    }
+
+    /// How much of a cut-out is actually visible, and how bright that part is (0 to 1).
+    nonisolated private static func visibility(_ img: UIImage) -> (coverage: Double, brightness: Double)? {
+        guard let cg = img.cgImage else { return nil }
+        let w = 64, h = 64
+        var px = [UInt8](repeating: 0, count: w * h * 4)
+        guard let ctx = CGContext(data: &px, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
+                                  space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
+        ctx.interpolationQuality = .medium
+        ctx.draw(cg, in: CGRect(x: 0, y: 0, width: w, height: h))
+        var seen = 0, light = 0.0
+        for i in stride(from: 0, to: px.count, by: 4) {
+            let a = Double(px[i + 3])
+            guard a > 128 else { continue }
+            seen += 1
+            // Un-premultiply, then perceived brightness.
+            let r = Double(px[i]) / a, g = Double(px[i + 1]) / a, b = Double(px[i + 2]) / a
+            light += min(1, 0.299 * r + 0.587 * g + 0.114 * b)
+        }
+        guard seen > 0 else { return (0, 0) }
+        return (Double(seen) / Double(w * h), light / Double(seen))
+    }
+
+    /// The cut-out centered on white with a little margin, the way stores shoot products.
+    nonisolated private static func onWhite(_ img: UIImage) -> UIImage? {
+        let pad = max(img.size.width, img.size.height) * 0.08
+        let size = CGSize(width: img.size.width + pad * 2, height: img.size.height + pad * 2)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = true
+        return UIGraphicsImageRenderer(size: size, format: format).image { ctx in
+            UIColor.white.setFill()
+            ctx.fill(CGRect(origin: .zero, size: size))
+            img.draw(in: CGRect(x: pad, y: pad, width: img.size.width, height: img.size.height))
+        }
     }
 
     /// Crops away plain white or near-white margins so the product fills the tile.
