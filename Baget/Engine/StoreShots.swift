@@ -16,6 +16,7 @@ enum StoreShots {
         Analytics.enabled = false
         UserDefaults.standard.set(true, forKey: "baget.onboarded")
         let env = ProcessInfo.processInfo.environment
+        await shot("welcome", router) {}   // the sign-in screen, before signing in (for review, not the store set)
         guard let email = env["BAGET_SHOT_EMAIL"], let password = env["BAGET_SHOT_PASSWORD"] else { mark("shots-error", "no credentials in the launch environment"); return }
         do {
             try await Backend.shared.signInWithEmail(email: email, password: password)

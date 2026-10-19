@@ -12,63 +12,115 @@ struct WelcomeView: View {
     var body: some View {
         ZStack {
             LitBackground()
-            VStack(alignment: .leading, spacing: 22) {
-                Spacer()
-                AppIcon(size: 76)
-                HStack(spacing: 0) {
-                    Text("Baget").foregroundStyle(Theme.ink)
-                    Text(".").gradientText()
-                }
-                .font(.system(size: 56, weight: .heavy))
-                .tracking(-2)
-                Text("Your own personal squad that learns your taste and makes recommendations for you to purchase.")
-                    .font(.title3).foregroundStyle(Theme.muted)
-                VStack(alignment: .leading, spacing: 12) {
-                    point("sparkle.magnifyingglass", "Agents search the web for sneakers, fragrance, watches, cars, furniture or anything you name.")
-                    point("heart.text.square", "They learn from what you buy, pass on and show them in photos.")
-                    point("bell.badge", "They text you like a friend when something you'd love drops.")
-                }
-                .padding(.vertical, 6)
-                Spacer()
-                if working {
-                    HStack { Spacer(); ProgressView().tint(Theme.cyan); Spacer() }.frame(height: 52)
-                } else {
-                    SignInWithAppleButton(.continue) { req in
-                        nonce = Backend.makeNonce()
-                        req.requestedScopes = [.fullName]
-                        req.nonce = Backend.sha256(nonce)
-                    } onCompletion: { result in
-                        Task { await handle(result) }
+            GeometryReader { geo in
+                ScrollView {
+                    VStack(spacing: 0) {
+                        Spacer(minLength: 24)
+                        brand
+                        Spacer(minLength: 28)
+                        features
+                        Spacer(minLength: 28)
+                        actions
                     }
-                    .signInWithAppleButtonStyle(.white)
-                    .frame(height: 52)
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    Button { showEmail = true } label: {
-                        Label("Continue with email", systemImage: "envelope.fill")
-                            .font(.body.weight(.semibold))
-                            .frame(maxWidth: .infinity).frame(height: 52)
-                            .foregroundStyle(Theme.ink)
-                            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Theme.ink.opacity(0.35), lineWidth: 1))
-                    }
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 16)
+                    .frame(minHeight: geo.size.height)
                 }
-                if let error { Text(error).font(.footnote).foregroundStyle(Theme.hot) }
-                Button("Look around with sample data first") { store.exploreSamples() }
-                    .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.accent)
-                    .frame(maxWidth: .infinity)
-                Text("Signing in creates your Baget account. You can delete it any time from your icon at the top left.")
-                    .font(.caption).foregroundStyle(Theme.muted).frame(maxWidth: .infinity)
-                    .multilineTextAlignment(.center)
+                .scrollBounceBehavior(.basedOnSize)
             }
-            .padding(24)
         }
         .preferredColorScheme(.dark)
         .sheet(isPresented: $showEmail) { EmailSignInView().presentationDetents([.large]) }
     }
 
-    private func point(_ icon: String, _ text: String) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: icon).foregroundStyle(Theme.cyan).frame(width: 24)
-            Text(text).font(.subheadline).foregroundStyle(Theme.ink)
+    private var brand: some View {
+        VStack(spacing: 14) {
+            AppIcon(size: 84)
+                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .shadow(color: AppIcon.ground.opacity(0.45), radius: 22, y: 8)
+            HStack(spacing: 0) {
+                Text("Baget").foregroundStyle(Theme.ink)
+                Text(".").gradientText()
+            }
+            .font(.system(size: 48, weight: .heavy)).tracking(-1.5)
+            Text("Never miss what you'd love.")
+                .font(.title2.weight(.bold)).foregroundStyle(Theme.ink)
+                .multilineTextAlignment(.center)
+            Text("Baget gives you personal scouts that learn your taste, hunt the web and tell you when they find something worth buying.")
+                .font(.body).foregroundStyle(Theme.muted)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var features: some View {
+        VStack(spacing: 10) {
+            feature("sparkle.magnifyingglass", "They hunt for you",
+                    "Sneakers, fragrance, watches and more, across stores, resale sites and boutiques.")
+            feature("heart.text.square", "They learn your taste",
+                    "Every like and pass makes their next picks sharper.")
+            feature("bell.badge", "They tell you first",
+                    "A heads-up when something you'd love drops, restocks or goes on sale.")
+        }
+    }
+
+    private func feature(_ icon: String, _ title: String, _ detail: String) -> some View {
+        HStack(alignment: .top, spacing: 14) {
+            Image(systemName: icon)
+                .font(.body.weight(.semibold)).foregroundStyle(Theme.cyan)
+                .frame(width: 36, height: 36)
+                .background(Theme.cyan.opacity(0.12), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
+                Text(detail).font(.footnote).foregroundStyle(Theme.muted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(14)
+        .background(Theme.glass, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.line))
+        .accessibilityElement(children: .combine)
+    }
+
+    /// "By continuing, you agree to the Terms of Use and Privacy Policy", both as links.
+    private static let legal: AttributedString = {
+        let md = "By continuing, you agree to the [Terms of Use](\(AppStore.termsURL.absoluteString)) and [Privacy Policy](\(AppStore.privacyURL.absoluteString))."
+        return (try? AttributedString(markdown: md)) ?? AttributedString("By continuing, you agree to the Terms of Use and Privacy Policy.")
+    }()
+
+    private var actions: some View {
+        VStack(spacing: 12) {
+            if working {
+                ProgressView().tint(Theme.cyan).frame(height: 52)
+            } else {
+                SignInWithAppleButton(.continue) { req in
+                    nonce = Backend.makeNonce()
+                    req.requestedScopes = [.fullName]
+                    req.nonce = Backend.sha256(nonce)
+                } onCompletion: { result in
+                    Task { await handle(result) }
+                }
+                .signInWithAppleButtonStyle(.white)
+                .frame(height: 52)
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                Button { showEmail = true } label: {
+                    Label("Continue with email", systemImage: "envelope.fill")
+                        .font(.body.weight(.semibold))
+                        .frame(maxWidth: .infinity).frame(height: 52)
+                        .foregroundStyle(Theme.ink)
+                        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Theme.ink.opacity(0.35), lineWidth: 1))
+                }
+            }
+            if let error { Text(error).font(.footnote).foregroundStyle(Theme.hot).multilineTextAlignment(.center) }
+            Button("Take a look first") { store.exploreSamples() }
+                .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.accent)
+                .padding(.top, 4)
+            Text(Self.legal)
+                .font(.caption).foregroundStyle(Theme.muted).tint(Theme.accent)
+                .multilineTextAlignment(.center)
+                .padding(.top, 4)
         }
     }
 
