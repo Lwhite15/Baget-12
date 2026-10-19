@@ -1,0 +1,87 @@
+# App Store screenshots on the 6.9" iPhone simulator, from the screenshots account (not the App Review demo account).
+# Makes a fresh random password each run (Supabase only ever gets its bcrypt hash), refills the account with real finds,
+# then the app steps through its screens and this workflow photographs each one. The PNGs land on the "shots" branch
+# under store/. Changes nothing in App Store Connect.
+name: Store screenshots
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  shots:
+    runs-on: macos-26
+    env:
+      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      BAGET_CRON_SECRET: ${{ secrets.BAGET_CRON_SECRET }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Use Xcode 26
+        run: |
+          X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | grep -v -i beta | sort -V | tail -1)
+          [ -z "$X" ] && X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          sudo xcode-select -s "$X"
+      - name: Fill the screenshots account
+        run: |
+          pip3 install -q bcrypt --break-system-packages 2>/dev/null || pip3 install -q bcrypt
+          pw=$(python3 -c "import secrets,string; print('Shot-' + ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(20)))")
+          echo "::add-mask::$pw"
+          hash=$(PW="$pw" python3 -c "import bcrypt,os; print(bcrypt.hashpw(os.environ['PW'].encode(), bcrypt.gensalt(10)).decode())")
+          echo "::add-mask::$hash"
+          echo "SHOT_PW=$pw" >> "$GITHUB_ENV"
+          body=$(jq -nc --arg h "$hash" '{shots: {password_hash: $h}}')
+          r=$(curl -sS -m 120 -w ' [HTTP %{http_code}]' -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/sweep" \
+                -H "Content-Type: application/json" -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d "$body")
+          echo "::notice::account: $r"
+          echo "$r" | grep -q 'HTTP 200' || exit 1
+      - name: Build for simulator
+        run: |
+          brew install xcodegen >/dev/null
+          xcodegen generate
+          set -o pipefail
+          xcodebuild build -project Baget.xcodeproj -scheme Baget -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' -derivedDataPath build CODE_SIGNING_ALLOWED=NO > build.log 2>&1 \
+            || { grep -E ": error: " build.log | head -20 | while IFS= read -r l; do echo "::error::$l"; done; exit 1; }
+      - name: Take the screenshots
+        run: |
+          APP=build/Build/Products/Debug-iphonesimulator/Baget.app
+          BUNDLE=$(/usr/libexec/PlistBuddy -c "Print CFBundleIdentifier" "$APP/Info.plist")
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json,sys
+          d=json.load(sys.stdin)["devices"]
+          devs=[x for k,v in d.items() if "iOS" in k for x in v]
+          pick=next((x for x in devs if "Pro Max" in x["name"]), None) or next((x for x in devs if "Plus" in x["name"] or "Air" in x["name"]), None)
+          print(pick["udid"] if pick else "")')
+          [ -n "$UDID" ] || { echo "::error::No large iPhone simulator on this runner"; exit 1; }
+          echo "::notice::Device: $(xcrun simctl list devices | grep "$UDID" | sed 's/^ *//')"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b >/dev/null
+          xcrun simctl ui "$UDID" appearance dark
+          xcrun simctl status_bar "$UDID" override --time "9:41" --dataNetwork wifi --wifiMode active --wifiBars 3 \
+            --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100
+          xcrun simctl install "$UDID" "$APP"
+          xcrun simctl privacy "$UDID" grant all "$BUNDLE" || true
+          DATA=$(xcrun simctl get_app_container "$UDID" "$BUNDLE" data)
+          mkdir -p shots
+          SIMCTL_CHILD_BAGET_SHOT_EMAIL="screenshots@example.com" SIMCTL_CHILD_BAGET_SHOT_PASSWORD="$SHOT_PW" \
+            xcrun simctl launch "$UDID" "$BUNDLE" -BagetStoreShots
+          for i in $(seq 1 240); do
+            sleep 1
+            [ -f "$DATA/Documents/shots-error" ] && { echo "::error::The app couldn't sign in to the screenshots account"; exit 1; }
+            [ -f "$DATA/Documents/shots-done" ] && break
+            for f in "$DATA"/Documents/shot-*; do
+              [ -e "$f" ] || continue
+              name=${f##*/shot-}
+              [ -f "$DATA/Documents/taken-$name" ] && continue
+              xcrun simctl io "$UDID" screenshot "shots/$name.png" >/dev/null 2>&1
+              touch "$DATA/Documents/taken-$name"
+              echo "::notice::took $name ($(sips -g pixelWidth -g pixelHeight "shots/$name.png" | awk '/pixel/{printf "%s ", $2}'))"
+            done
+          done
+          ls shots/*.png >/dev/null 2>&1 || { echo "::error::No screenshots taken"; exit 1; }
+      - name: Put them on the shots branch
+        run: |
+          cd shots
+          git init -q && git checkout -q -b shots
+          mkdir -p store && mv *.png store/
+          git add store
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "App Store screenshots"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" HEAD:shots

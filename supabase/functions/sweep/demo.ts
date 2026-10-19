@@ -21,7 +21,7 @@ export async function setupDemo(
 ) {
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new HttpError(400, "Bad demo email");
   if (!/^\$2[aby]\$\d\d\$[./A-Za-z0-9]{53}$/.test(passwordHash)) throw new HttpError(400, "Demo password must be a bcrypt hash");
-  const attrs = { email, password_hash: passwordHash, email_confirm: true, user_metadata: { full_name: "App Review" } };
+  const attrs = { email, password_hash: passwordHash, email_confirm: true, user_metadata: { full_name: "Alex" } };
 
   // Create the user, or reset its email and password if it already exists.
   let r = await db.raw("/auth/v1/admin/users", { method: "POST", body: JSON.stringify({ id: DEMO_USER_ID, ...attrs }) });
@@ -33,7 +33,7 @@ export async function setupDemo(
     created = false;
   } else await r.text();
 
-  await db.update("profiles", `id=eq.${DEMO_USER_ID}`, { display_name: "App Review" });
+  await db.update("profiles", `id=eq.${DEMO_USER_ID}`, { display_name: "Alex" });   // scouts text "Alex, …", not "App, …"
   const existing = await db.select<{ id: string }>("agents", `select=id&user_id=eq.${DEMO_USER_ID}`);
   if (!existing.length) {
     await db.insert("agents", DEMO_AGENTS.map((a) => ({ ...a, user_id: DEMO_USER_ID, mode: "ask" })), false);
@@ -43,4 +43,21 @@ export async function setupDemo(
   const run = finds.length < 6 ? await sweep(DEMO_USER_ID) : { swept: 0, found: 0 };
   const after = run.swept ? (await db.select<{ id: string }>("finds", `select=id&user_id=eq.${DEMO_USER_ID}&limit=200`)).length : finds.length;
   return { user_created: created, agents: existing.length || DEMO_AGENTS.length, swept: run.swept, finds: after };
+}
+
+/** The App Store screenshots account: its own login (the demo account's password belongs to App Review), filled with
+ *  real finds copied from the catalog account. Called by the "Store screenshots" workflow with a fresh bcrypt hash. */
+export const SHOTS_USER_ID = "0a99e1e0-5eed-4d3e-8a00-0000000054a7";
+
+export async function setupShots(passwordHash: string) {
+  if (!/^\$2[aby]\$\d\d\$[./A-Za-z0-9]{53}$/.test(passwordHash)) throw new HttpError(400, "Password must be a bcrypt hash");
+  const attrs = { email: "screenshots@example.com", password_hash: passwordHash, email_confirm: true, user_metadata: { full_name: "Maya" } };
+  let r = await db.raw("/auth/v1/admin/users", { method: "POST", body: JSON.stringify({ id: SHOTS_USER_ID, ...attrs }) });
+  if (!r.ok) {
+    await r.text();
+    r = await db.raw(`/auth/v1/admin/users/${SHOTS_USER_ID}`, { method: "PUT", body: JSON.stringify(attrs) });
+    if (!r.ok) throw new HttpError(502, "Couldn't set up the screenshots user", `${r.status} ${(await r.text()).slice(0, 200)}`);
+  }
+  await r.text().catch(() => "");
+  return await db.rpc<Record<string, number>>("seed_shots", { p_user: SHOTS_USER_ID });
 }

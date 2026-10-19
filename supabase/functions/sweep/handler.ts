@@ -5,7 +5,7 @@
 import { type Agent, CATEGORIES, GROUP_OF, type Listing, firstName, friendLine, localHour, heldForMorning, kindFor, match, missionLabel, norm } from "../_shared/match.ts";
 import { type Block, type ClaudeMessage, HttpError, claude, db, env, handle, isScheduler, json, parseJSON, requireUser, textOf } from "../_shared/platform.ts";
 import { addImages, linkIsDead, traceImage } from "../_shared/images.ts";
-import { setupDemo } from "./demo.ts";
+import { setupDemo, setupShots } from "./demo.ts";
 import { SEARCH_TOOL, hitsText, serperSearch, serperUsable } from "../_shared/search.ts";
 export { firstName };
 import { type Lead, attachOffers, ebayConfigured, ebaySearch, queriesFor, shoppingLeads, shoppingOffers } from "../_shared/sources.ts";
@@ -519,7 +519,7 @@ export async function huntedTodayMessage(userId: string): Promise<string | null>
 }
 
 export const handler = handle(async (req) => {
-  const body = await req.json().catch(() => ({})) as { agent_id?: string; backfill?: number; backfill_about?: number; backfill_brands?: number; maintain?: boolean; one?: unknown; trace_image?: boolean };
+  const body = await req.json().catch(() => ({})) as { agent_id?: string; backfill?: number; backfill_about?: number; backfill_brands?: number; maintain?: boolean; one?: unknown; shots?: unknown; trace_image?: boolean };
   if (isScheduler(req) && (body as { check_sources?: boolean }).check_sources) {
     // Diagnose: are the extra data sources working? Counts only.
     const [a] = await db.select<Agent>("agents", "select=*&mission_category=not.is.null&order=created_at.desc&limit=1");
@@ -578,6 +578,9 @@ export const handler = handle(async (req) => {
   }
   // Upkeep, on its own schedule: photos, then descriptions, then brand blurbs.
   if (isScheduler(req) && body.maintain) return json(await maintain());
+  if (isScheduler(req) && typeof body.shots === "object" && body.shots) {
+    return json(await setupShots(String((body.shots as { password_hash?: string }).password_hash ?? "")));
+  }
   // One scheduled hunt in its own worker (handed out by the dispatcher below).
   if (isScheduler(req) && body.one && typeof body.one === "object") {
     const run = await sweepAgent(body.one as Candidate, "scheduled");
