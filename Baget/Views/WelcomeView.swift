@@ -56,8 +56,8 @@ struct WelcomeView: View {
 
     private var features: some View {
         VStack(spacing: 10) {
-            feature("sparkle.magnifyingglass", "They hunt for you",
-                    "Sneakers, fragrance, watches and more, across stores, resale sites and boutiques.")
+            feature("sparkle.magnifyingglass", "Whatever you're into, they find it",
+                    "Rare vinyl, a vintage chair, the perfect gift or your next car. Name it, and your scouts search stores, resale sites and small shops for you.")
             feature("heart.text.square", "They learn your taste",
                     "Every like and pass makes their next picks sharper.")
             feature("bell.badge", "They tell you first",
