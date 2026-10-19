@@ -19,11 +19,20 @@ enum StoreShots {
         guard let email = env["BAGET_SHOT_EMAIL"], let password = env["BAGET_SHOT_PASSWORD"] else { mark("shots-error", "no credentials in the launch environment"); return }
         do {
             try await Backend.shared.signInWithEmail(email: email, password: password)
-            await store.didSignIn(fullName: nil)
+            // What didSignIn does, minus the notification permission prompt (nobody is there to tap it).
+            guard let uid = Backend.shared.userID else { mark("shots-error", "signed in but no user id"); return }
+            store.state = AppState()
+            store.state.accountID = uid
+            Catalog.cloud = [:]
+            Catalog.useCloud = true
+            store.save()
+            mark("stage-signed-in")
         } catch { mark("shots-error", "sign-in: \((error as? LocalizedError)?.errorDescription ?? String(describing: error))"); return }
         await store.pull()
+        mark("stage-pulled")
         await store.loadPlan()
         await store.loadForYou()
+        mark("stage-loaded")
         try? await Task.sleep(for: .seconds(3))
 
         let finds = store.state.finds.filter { $0.status == .open }

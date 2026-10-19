@@ -79,9 +79,15 @@ jobs:
               echo "::notice::took $name ($(sips -g pixelWidth -g pixelHeight "shots/$name.png" | awk '/pixel/{printf "%s ", $2}'))"
             done
           done
+          if [ ! -f "$DATA/Documents/shots-done" ]; then
+            echo "::warning::Stalled after: $(ls "$DATA/Documents" | grep -E '^(stage|shot|taken)-' | tr '\n' ' ')"
+            xcrun simctl io "$UDID" screenshot "shots/stalled.png" >/dev/null 2>&1 || true
+          fi
           ls shots/*.png >/dev/null 2>&1 || { echo "::error::No screenshots taken"; exit 1; }
       - name: Put them on the shots branch
+        if: always()
         run: |
+          ls shots/*.png >/dev/null 2>&1 || exit 0
           cd shots
           git init -q && git checkout -q -b shots
           mkdir -p store && mv *.png store/
