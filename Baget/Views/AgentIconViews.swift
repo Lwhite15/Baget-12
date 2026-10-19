@@ -10,6 +10,8 @@ struct AgentAvatarView: View {
     var preview: Avatar? = nil
     var previewPhoto: UIImage? = nil
     var nameOverride: String? = nil
+    /// For a scout still being set up (no agent yet): what it will hunt, so the preview emoji fits.
+    var mission: Mission? = nil
 
     var body: some View {
         let icon = preview ?? agent?.icon
@@ -19,19 +21,20 @@ struct AgentAvatarView: View {
                 Image(uiImage: img).resizable().scaledToFill()
             } else {
                 AvatarPalette.gradient(icon?.color ?? 0)
-                if icon?.style == .emoji, let e = icon?.emoji {
-                    Text(e).font(.system(size: size * 0.54))
-                } else {
-                    Text(AppStore.initials(name))
-                        .font(.system(size: size * 0.36, weight: .heavy))
-                        .foregroundStyle(AvatarPalette.ink(icon?.color ?? 0))
-                }
+                // No emoji or photo picked: an emoji that fits what the scout hunts, never initials.
+                Text(icon?.style == .emoji ? (icon?.emoji ?? autoEmoji(name)) : autoEmoji(name))
+                    .font(.system(size: size * 0.54))
             }
         }
         .frame(width: size, height: size)
         .clipShape(RoundedRectangle(cornerRadius: size * 0.3, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: size * 0.3, style: .continuous).strokeBorder(Theme.line))
         .accessibilityHidden(true)
+    }
+
+    private func autoEmoji(_ name: String) -> String {
+        if let agent, nameOverride == nil { return AgentEmoji.pick(agent) }
+        return AgentEmoji.pick(name: name, mission: agent?.mission ?? mission, keywords: agent?.keywords ?? [])
     }
 }
 
@@ -52,7 +55,7 @@ struct IconPickerRows: View {
 
     var body: some View {
         Picker("Icon style", selection: $icon.style) {
-            Text("Initials").tag(Avatar.Style.initials)
+            Text("Auto").tag(Avatar.Style.initials)
             Text("Emoji").tag(Avatar.Style.emoji)
             Text("Photo").tag(Avatar.Style.photo)
         }
@@ -93,7 +96,7 @@ struct IconPickerRows: View {
             }
             if failed { Text("Couldn't open that photo. Try another.").font(.footnote).foregroundStyle(Theme.hot) }
             if photo == nil && !hasSavedPhoto {
-                Text("Pick a photo, or this agent keeps its initials.").font(.caption).foregroundStyle(Theme.muted)
+                Text("Pick a photo, or this agent keeps its auto emoji.").font(.caption).foregroundStyle(Theme.muted)
             }
         }
     }

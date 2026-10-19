@@ -82,7 +82,7 @@ struct DeployAgentView: View {
 
                 Section {
                     HStack(spacing: 14) {
-                        AgentAvatarView(agent: nil, size: 56, preview: icon, previewPhoto: iconPhoto, nameOverride: previewName)
+                        AgentAvatarView(agent: nil, size: 56, preview: icon, previewPhoto: iconPhoto, nameOverride: previewName, mission: mission)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(previewName).font(.headline).foregroundStyle(Theme.ink)
                             Text("Shows on its card and on every text it sends you.").font(.caption).foregroundStyle(Theme.muted)
