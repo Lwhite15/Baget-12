@@ -10,7 +10,7 @@ struct PaywallView: View {
     @State private var message: String?
 
     /// CI takes the App Review screenshot in the simulator, where the App Store isn't reachable: show the list prices.
-    static var screenshotMode: Bool { ProcessInfo.processInfo.arguments.contains("-BagetPaywallShot") }
+    static var screenshotMode: Bool { ProcessInfo.processInfo.arguments.contains("-BagetPaywallShot") || ProcessInfo.processInfo.arguments.contains("-BagetStoreShots") }
 
     var body: some View {
         NavigationStack {

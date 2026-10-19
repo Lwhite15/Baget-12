@@ -35,19 +35,12 @@ enum StoreShots {
         mark("stage-loaded")
         try? await Task.sleep(for: .seconds(3))
 
-        let finds = store.state.finds.filter { $0.status == .open }
-        let showcase = finds.first { f in
-            guard let i = Catalog.item(f.itemID) else { return false }
-            return i.about != nil && i.brandAbout != nil && i.imageURL != nil && i.category == .fragrance
-        } ?? finds.first
-
         await shot("1-today", router) { router.sheet = nil; router.tab = .live }
         await shot("2-finds", router) { router.sheet = nil; router.tab = .finds }
-        if let f = showcase { await shot("3-find", router) { router.sheet = .checkout(f.id) } }
-        await shot("4-swipe", router) { router.sheet = .swipe }
-        await shot("5-texts", router) { router.sheet = .inbox }
-        await shot("6-squad", router) { router.sheet = nil; router.tab = .squad }
-        await shot("7-pro", router) { router.sheet = .pro }
+        await shot("3-swipe", router) { router.sheet = .swipe }
+        await shot("4-texts", router) { router.sheet = .inbox }
+        await shot("5-squad", router) { router.sheet = nil; router.tab = .squad }
+        await shot("6-pro", router) { router.sheet = .pro }
         mark("shots-done")
     }
 
