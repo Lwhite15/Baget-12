@@ -947,12 +947,13 @@ await test("deep hunts: more searches, page checks, three angles and rotating so
   assert.ok(sweep.sourcesFor("vinyl", "a1", new Date()).length > 0, "unknown categories still get places to dig");
 });
 
-await test("hunt depth: Pro digs deep, Free gets a standard hunt", () => {
+await test("hunt depth: Pro digs deep, Free searches less but still checks product pages", () => {
   const pro = sweep.depthFor(true), free = sweep.depthFor(false);
   assert.equal(pro.searches, 12); assert.equal(pro.fetches, 6); assert.equal(pro.angles, 3);
-  assert.equal(free.searches, 6); assert.equal(free.fetches, 0); assert.equal(free.angles, 2);
+  assert.equal(free.searches, 6); assert.equal(free.fetches, 3); assert.equal(free.angles, 2);
   const fp = sweep.sweepPrompt(jumpman as never, "2026-10-18", undefined, ["a", "b"], [], "", [], free);
-  assert.doesNotMatch(fp, /web_fetch/, "Free hunts don't open pages");
+  assert.match(fp, /web_fetch/, "Free hunts open product pages to confirm price and stock");
+  assert.doesNotMatch(fp, /leave no stone unturned/);
   assert.match(fp, /at least 4 different searches/);
   assert.match(sweep.sweepPrompt(jumpman as never, "2026-10-18", undefined, ["a", "b", "c"], [], "", [], pro), /leave no stone unturned/);
 });
@@ -997,7 +998,8 @@ await test("hunts search through Serper when it works, and fall back to Claude's
   ]);
   await sweep.sweepAgent({ ...jumpman, settings: {}, tz: "America/New_York", pro: false } as never, "manual", new Date());
   assert.equal(claudeBodies[0].tools[0].type, "web_search_20250305", "out of Serper credits: Claude's search instead");
-  assert.equal(claudeBodies[0].tools.length, 1, "Free hunts don't open pages");
+  assert.equal(claudeBodies[0].tools[1].name, "web_fetch", "Free hunts open product pages too");
+  assert.equal(claudeBodies[0].tools[1].max_uses, 3, "up to 3 on Free");
   delete process.env.SERPER_API_KEY;
   search.resetSerperHealth();
 });

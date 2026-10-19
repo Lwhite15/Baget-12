@@ -48,7 +48,7 @@ struct PaywallView: View {
                 Text("Pro").gradientText()
             }
             .font(.system(size: 36, weight: .heavy)).tracking(-1)
-            Text("Your scouts never clock out and dig deeper every time: more searches, more stores, and they open the product page to check price and stock before telling you.")
+            Text("Your scouts never clock out and dig twice as deep: more searches, more stores and more angles on every hunt.")
                 .font(.subheadline).foregroundStyle(Theme.muted)
         }
     }
@@ -59,7 +59,7 @@ struct PaywallView: View {
             row("Scouts", "2", "Up to 5")
             row("Hunting", "4 hours a day", "Around the clock")
             row("Hunts", "1 a day each", "Every 6 hours")
-            row("Search depth", "Standard", "Deep: 12 searches, checks each page")
+            row("Search depth", "Checks product pages", "Twice as deep: 12 searches, more stores")
             row("Everything else", "Included", "Included")
         }
         .background(Theme.glass, in: RoundedRectangle(cornerRadius: 16, style: .continuous))

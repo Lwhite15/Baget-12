@@ -17,11 +17,12 @@ const num = (name: string, fallback: number) => {
 
 interface Candidate extends Agent { tz: string; settings: Record<string, unknown>; last_swept_at: string | null; display_name?: string; pro?: boolean }
 
-/** How hard a hunt digs. Pro: deep (more searches, opens product pages, more angles and places). Free: standard. */
+/** How hard a hunt digs. Pro: deep (twice the searches, more angles and places, opens up to 6 product pages).
+ *  Free: fewer searches, but still opens up to 3 product pages to confirm price and stock, so its finds are reliable. */
 export function depthFor(pro: boolean) {
   return pro
     ? { searches: num("SWEEP_MAX_SEARCHES", 12), fetches: num("SWEEP_MAX_FETCHES", 6), angles: 3, sources: 6, minSearches: 8, kinds: 4, deep: true }
-    : { searches: num("FREE_MAX_SEARCHES", 6), fetches: 0, angles: 2, sources: 3, minSearches: 4, kinds: 3, deep: false };
+    : { searches: num("FREE_MAX_SEARCHES", 6), fetches: num("FREE_MAX_FETCHES", 3), angles: 2, sources: 3, minSearches: 4, kinds: 3, deep: false };
 }
 
 const VOICE: Record<string, string> = {
@@ -144,7 +145,7 @@ How to hunt${depth.deep ? " (leave no stone unturned)" : ""}:
 - Search wide: run at least ${depth.minSearches} different searches across at least ${depth.kinds} kinds of places (official brand sites, big retailers,
   resale marketplaces, small boutiques, auctions, forums and communities, international shops that ship to the US).
   Vary the wording: model names, nicknames, style codes, colorways, misspellings people use in listings, "deadstock", "NOS", "rare".
-- Look past page one and past the obvious big stores: the best finds are often on a small boutique, a forum post, an auction or a marketplace listing.${depth.deep ? `
+- Look past page one and past the obvious big stores: the best finds are often on a small boutique, a forum post, an auction or a marketplace listing.${depth.fetches > 0 ? `
 - Open the most promising product pages with web_fetch to confirm the price, that it's in stock (and in their size), before you include it.` : ""}
 - Things available now, releasing in the next two weeks, or restocking.
 - Take initiative: include at least two discovery picks the person never named (a maker, model, note, collab or era that fits their taste), and mark them "discovery": true.${r.liked.length || r.bought.length ? `
