@@ -83,7 +83,7 @@ jobs:
             echo "::warning::Stalled after: $(ls "$DATA/Documents" | grep -E '^(stage|shot|taken)-' | tr '\n' ' ')"
             xcrun simctl io "$UDID" screenshot "shots/stalled.png" >/dev/null 2>&1 || true
           fi
-          ls shots/*.png >/dev/null 2>&1 || { echo "::error::No screenshots taken"; exit 1; }
+          ls shots/[0-9]*.png >/dev/null 2>&1 || { echo "::error::No screenshots taken"; exit 1; }
       - name: Put them on the shots branch
         if: always()
         run: |
