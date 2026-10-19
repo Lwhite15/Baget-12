@@ -4,7 +4,7 @@
 // Cost guards: agents per run, searches per agent, and sweeps per user per day are all capped (see env below).
 import { type Agent, CATEGORIES, GROUP_OF, type Listing, firstName, friendLine, localHour, heldForMorning, kindFor, match, missionLabel, norm } from "../_shared/match.ts";
 import { type Block, type ClaudeMessage, HttpError, claude, db, env, handle, isScheduler, json, parseJSON, requireUser, textOf } from "../_shared/platform.ts";
-import { addImages, linkIsDead, traceImage } from "../_shared/images.ts";
+import { addImages, linkIsDead, pageProduct, traceImage } from "../_shared/images.ts";
 import { setupDemo, setupShots } from "./demo.ts";
 import { restockCheck } from "../_shared/daily.ts";
 import { SEARCH_TOOL, hitsText, serperSearch, serperUsable } from "../_shared/search.ts";
@@ -497,6 +497,7 @@ export async function maintain() {
   out.about = await backfillAbout(num("ABOUT_BACKFILL", 20)).catch((e) => { console.error("about", e); return null; });
   out.brands = await backfillBrands(num("BRAND_BACKFILL", 15)).catch((e) => { console.error("brands", e); return null; });
   out.restocks = await restockCheck(num("RESTOCK_CHECKS", 15)).catch((e) => { console.error("restocks", e); return null; });
+  out.refreshed = await refreshFinds(num("REFRESH_CHECKS", 40)).catch((e) => { console.error("refresh", e); return null; });
   out.prices = await repriceOld(num("PRICE_BACKFILL", 10)).catch((e) => { console.error("prices", e); return null; });
   return out;
 }
@@ -508,6 +509,89 @@ export async function repriceOld(limit: number) {
     `select=id,title&offers_checked_at=lt.${PRICE_FIX}&order=last_seen_at.desc&limit=${limit}`);
   const priced = await attachOffers(rows, (id, patch) => db.update("listings", `id=eq.${id}`, patch).then(() => {}));
   return { checked: rows.length, priced };
+}
+
+// ── Between hunts: no AI, and nothing is kept unless the store's own page confirms it ──
+
+const pwords = (x: string) => norm(x).split(/[^a-z0-9]+/).filter((w) => w.length > 2);
+
+/** One scout's quick pulse: one web search from its brief, then each product page is opened and kept only when the
+ *  store's own page confirms the product, a US-dollar price, that it's in stock, and a photo, and it fits the scout's
+ *  brief as well as a hunt's finds must. Kept products feed For You; nothing is texted. */
+export async function pulseAgent(a: Candidate, now = new Date(), fetchFn: typeof fetch = fetch) {
+  const q = queriesFor(a, [], now, 1)[0] ?? missionLabel(a);
+  if (!q) return { checked: 0, kept: 0 };
+  const hits = (await serperSearch(q, fetchFn).catch(() => [])).filter((h) => !isSearchPage(h.link)).slice(0, 6);
+  const pages = await Promise.all(hits.map((h) => pageProduct(h.link, fetchFn).catch(() => null)));
+  const keep = [];
+  for (let i = 0; i < hits.length; i++) {
+    const p = pages[i];
+    if (!p || p === "gone" || !p.name || !p.price || p.stock !== "in" || !p.image) continue;
+    // The page's product is the one the search result named.
+    const named = pwords(p.name), result = new Set(pwords(hits[i].title));
+    if (!named.length || named.filter((w) => result.has(w)).length / named.length < 0.6) continue;
+    let host = "";
+    try { host = new URL(hits[i].link).hostname.replace(/^www\./, ""); } catch { continue; }
+    const l = {
+      fingerprint: `${host}|${norm(p.name).replace(/[^a-z0-9]+/g, " ").trim()}`.slice(0, 300),
+      title: p.name, brand: (p.brand ?? "").slice(0, 80), category: a.mission_category ?? "other", price: p.price, market: null,
+      source: (p.site ?? host).slice(0, 80), url: hits[i].link.slice(0, 1000), image_url: p.image.slice(0, 500), drop_at: null,
+      sold_out: false, creator: null, traits: [] as string[], tags: ["pulse"], sizes_in_stock: null, sku: "",
+    };
+    // Same bar as a hunt's finds: it has to fit this scout's brief.
+    const m = match(a, l as unknown as Listing, []);
+    if (!m || m.notInSize || m.score < 45) continue;
+    keep.push(l);
+  }
+  if (keep.length) {
+    const saved = await db.rpc<{ id: string }[]>("upsert_listings", { p_user: a.user_id, p_listings: keep });
+    if (saved.length) {
+      await db.raw("/rest/v1/listing_seen", { method: "POST", headers: { Prefer: "return=minimal,resolution=merge-duplicates" },
+        body: JSON.stringify(saved.map((x) => ({ user_id: a.user_id, listing_id: x.id, seen_at: now.toISOString() }))) })
+        .catch((e) => console.error("pulse seen", e));
+    }
+  }
+  return { checked: hits.length, kept: keep.length };
+}
+
+export async function pulseAll(now = new Date()) {
+  const due = await db.rpc<Candidate[]>("claim_pulses", { p_limit: num("PULSE_BATCH", 30),
+    p_free_minutes: num("PULSE_FREE_MINUTES", 360), p_pro_minutes: num("PULSE_PRO_MINUTES", 180) });
+  const runs = await Promise.all(due.map((a) => pulseAgent(a, now).catch((e) => { console.error("pulse", e); return { checked: 0, kept: 0 }; })));
+  return { pulsed: due.length, checked: runs.reduce((t, r) => t + r.checked, 0), kept: runs.reduce((t, r) => t + r.kept, 0) };
+}
+
+/** Keeps open finds accurate: each one's store page at most once a day. Price changes are updated; a page that says
+ *  sold out marks it sold out; a page the store has removed (404/410) takes the find off the list (liked ones stay,
+ *  marked sold out). Coming back in stock is left to the restock watcher and the hunts, which text people. */
+export async function refreshFinds(limit: number, now = new Date(), fetchFn: typeof fetch = fetch) {
+  const rows = await db.select<{ listing: { id: string; url: string | null; price: number | null; sold_out: boolean; page_checked_at: string | null } | null }>("finds",
+    "select=listing:listings!inner(id,url,price,sold_out,page_checked_at)&status=in.(open,liked)&order=created_at.desc&limit=400");
+  const due = new Map<string, { id: string; url: string; price: number | null; sold_out: boolean }>();
+  for (const r of rows) {
+    const l = r.listing;
+    if (!l?.url || due.has(l.id)) continue;
+    if (l.page_checked_at && now.getTime() - Date.parse(l.page_checked_at) < 24 * 3600_000) continue;
+    due.set(l.id, { id: l.id, url: l.url, price: l.price, sold_out: l.sold_out });
+  }
+  const list = [...due.values()].slice(0, limit);
+  let updated = 0, gone = 0, soldOut = 0;
+  for (let i = 0; i < list.length; i += 10) {
+    await Promise.all(list.slice(i, i + 10).map(async (l) => {
+      const p = await pageProduct(l.url, fetchFn).catch(() => null);
+      const patch: Record<string, unknown> = { page_checked_at: now.toISOString() };
+      if (p === "gone") {
+        gone++;
+        patch.sold_out = true;
+        await db.update("finds", `listing_id=eq.${l.id}&status=eq.open`, { status: "removed" }).catch(() => {});
+      } else if (p) {
+        if (p.price && (!l.price || Math.abs(p.price - l.price) / l.price > 0.01)) { patch.price = p.price; updated++; }
+        if (p.stock === "out" && !l.sold_out) { patch.sold_out = true; soldOut++; }
+      }
+      await db.update("listings", `id=eq.${l.id}`, patch).catch(() => {});
+    }));
+  }
+  return { checked: list.length, repriced: updated, sold_out: soldOut, gone };
 }
 
 /** Free plan, outside the hunting window: says when the scouts are back. Null when they're allowed to hunt. */
@@ -532,7 +616,7 @@ export async function huntedTodayMessage(userId: string): Promise<string | null>
 }
 
 export const handler = handle(async (req) => {
-  const body = await req.json().catch(() => ({})) as { agent_id?: string; backfill?: number; backfill_about?: number; backfill_brands?: number; maintain?: boolean; one?: unknown; shots?: unknown; trace_image?: boolean };
+  const body = await req.json().catch(() => ({})) as { agent_id?: string; backfill?: number; backfill_about?: number; backfill_brands?: number; maintain?: boolean; pulse?: boolean; one?: unknown; shots?: unknown; trace_image?: boolean };
   if (isScheduler(req) && (body as { check_sources?: boolean }).check_sources) {
     // Diagnose: are the extra data sources working? Counts only.
     const [a] = await db.select<Agent>("agents", "select=*&mission_category=not.is.null&order=created_at.desc&limit=1");
@@ -591,6 +675,7 @@ export const handler = handle(async (req) => {
   }
   // Upkeep, on its own schedule: photos, then descriptions, then brand blurbs.
   if (isScheduler(req) && body.maintain) return json(await maintain());
+  if (isScheduler(req) && body.pulse) return json(await pulseAll());
   if (isScheduler(req) && typeof body.shots === "object" && body.shots) {
     return json(await setupShots(String((body.shots as { password_hash?: string }).password_hash ?? "")));
   }

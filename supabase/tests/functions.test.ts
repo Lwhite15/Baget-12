@@ -1164,4 +1164,61 @@ await test("watched sold-out finds: the store page is checked and watchers get a
   assert.match(notes[0].body, /^Larry, the Air Bakin High SP is back in stock at Slam Jam/);
 });
 
+await test("store pages: product, US price, stock and photo are read from what the store publishes", async () => {
+  const I3 = await import("../functions/_shared/images.ts");
+  const page = `<head><meta property="og:site_name" content="Kith"><meta property="og:image" content="https://cdn.kith.com/p/990v6.jpg"></head>
+    <script type="application/ld+json">{"@graph":[{"@type":"Product","name":"New Balance 990v6 Made in USA Grey","brand":{"@type":"Brand","name":"New Balance"},
+    "image":"https://cdn.kith.com/p/990v6.jpg","offers":[{"@type":"Offer","price":"199.99","priceCurrency":"USD","availability":"https://schema.org/InStock"}]}]}</script>`;
+  const p = I3.productFromHtml(page, "https://kith.com/products/990v6");
+  assert.deepEqual(p, { name: "New Balance 990v6 Made in USA Grey", brand: "New Balance", price: 199.99, stock: "in", image: "https://cdn.kith.com/p/990v6.jpg", site: "Kith" });
+  const eur = I3.productFromHtml('<script type="application/ld+json">{"@type":"Product","name":"X","offers":{"price":"150","priceCurrency":"EUR"}}</script>', "https://x.de/p");
+  assert.equal(eur.price, null, "never shows a euro price as dollars");
+});
+
+await test("pulse: keeps only what the store's own page confirms and what fits the scout", async () => {
+  process.env.SERPER_API_KEY = "serper-test";
+  const pageFor = (name: string, avail: string, img = true) => new Response(`<meta property="og:site_name" content="Kith">${img ? '<meta property="og:image" content="https://cdn.kith.com/a.jpg">' : ""}
+    <script type="application/ld+json">{"@type":"Product","name":"${name}","brand":"Jordan","offers":{"price":"150","priceCurrency":"USD","availability":"https://schema.org/${avail}"}}</script>`, { headers: { "content-type": "text/html" } });
+  let saved: any[] = [];
+  reset([
+    [/google\.serper\.dev\/search/, () => ok({ organic: [
+      { title: "Air Jordan 1 Low Travis Scott | Kith", link: "https://kith.com/products/aj1-low-ts", snippet: "" },
+      { title: "Air Jordan 1 Low Mocha | Shop", link: "https://shop.com/products/aj1-mocha", snippet: "" },
+      { title: "Air Jordan 1 Low Bred", link: "https://shop.com/products/aj1-bred", snippet: "" },
+      { title: "Totally different headline", link: "https://blog.com/posts/jordan", snippet: "" },
+      { title: "Search", link: "https://kith.com/search?q=jordan", snippet: "" }] })],
+    [/kith\.com\/products\/aj1-low-ts/, () => pageFor("Air Jordan 1 Low Travis Scott", "InStock")],
+    [/shop\.com\/products\/aj1-mocha/, () => pageFor("Air Jordan 1 Low Mocha", "OutOfStock")],
+    [/shop\.com\/products\/aj1-bred/, () => pageFor("Air Jordan 1 Low Bred", "InStock", false)],
+    [/blog\.com/, () => pageFor("Air Jordan 1 Low Fragment", "InStock")],
+    [/rpc\/upsert_listings/, (_u, _i, b) => { saved = b.p_listings; return ok(b.p_listings.map((_: any, i: number) => ({ id: `l${i}`, fingerprint: "f", already_found: false }))); }],
+    [/rest\/v1\/listing_seen/, () => new Response(null, { status: 201 })],
+  ]);
+  const r = await sweep.pulseAgent({ ...jumpman, tz: "UTC", settings: {}, last_swept_at: "2026-10-19T00:00:00Z" } as never, new Date(), fetch as never);
+  assert.equal(r.kept, 1, "sold out, no photo, a page that isn't the named product, and search pages are all dropped");
+  assert.equal(saved[0].title, "Air Jordan 1 Low Travis Scott");
+  assert.equal(saved[0].price, 150);
+  assert.equal(saved[0].source, "Kith");
+  assert.deepEqual(saved[0].tags, ["pulse"]);
+  delete process.env.SERPER_API_KEY;
+});
+
+await test("refresh: open finds get the store's current price, sold out, or come off the list when the page is gone", async () => {
+  const patches: any[] = [];
+  reset([
+    [/GET .*rest\/v1\/finds/, () => ok([
+      { listing: { id: "l1", url: "https://kith.com/p/1", price: 200, sold_out: false, page_checked_at: null } },
+      { listing: { id: "l2", url: "https://kith.com/p/2", price: 100, sold_out: false, page_checked_at: null } },
+      { listing: { id: "l3", url: "https://kith.com/p/3", price: 100, sold_out: false, page_checked_at: new Date().toISOString() } }])],
+    [/kith\.com\/p\/1/, () => new Response('<script type="application/ld+json">{"@type":"Product","name":"A","offers":{"price":"180","priceCurrency":"USD","availability":"https://schema.org/OutOfStock"}}</script>', { headers: { "content-type": "text/html" } })],
+    [/kith\.com\/p\/2/, () => new Response("gone", { status: 404 })],
+    [/PATCH .*rest\/v1\/(listings|finds)/, (u, _i, b) => { patches.push({ path: u.pathname + u.search, b }); return ok([]); }],
+  ]);
+  const r = await sweep.refreshFinds(40, new Date(), fetch as never);
+  assert.deepEqual(r, { checked: 2, repriced: 1, sold_out: 1, gone: 1 });
+  const l1 = patches.find((p) => p.path.includes("listings") && p.path.includes("l1")).b;
+  assert.equal(l1.price, 180); assert.equal(l1.sold_out, true);
+  assert.ok(patches.some((p) => p.path.includes("finds") && p.path.includes("l2") && p.b.status === "removed"));
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

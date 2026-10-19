@@ -145,6 +145,79 @@ export async function pageStock(pageUrl: string, fetchFn: FetchFn = fetch, timeo
   return stockFromHtml(await readBytes(got.res, 1_500_000));
 }
 
+/** What a store's own product page says about the product: name, brand, price (US dollars only), stock and photo,
+ *  read from its schema.org Product data and product meta tags. Anything the page doesn't state stays null. */
+export interface PageProduct { name: string | null; brand: string | null; price: number | null; stock: "in" | "out" | null; image: string | null; site: string | null }
+
+export function productFromHtml(html: string, pageUrl: string): PageProduct {
+  const out: PageProduct = { name: null, brand: null, price: null, stock: stockFromHtml(html), image: null, site: null };
+  const num = (v: unknown) => { const n = typeof v === "number" ? v : parseFloat(String(v ?? "").replace(/[^0-9.]/g, "")); return Number.isFinite(n) && n > 0 ? n : null; };
+  const usd = (c: unknown) => c === undefined || c === null || String(c).toUpperCase() === "USD";
+  const offerPrice = (o: Record<string, unknown>): number | null => {
+    if (!usd(o.priceCurrency)) return null;
+    const spec = o.priceSpecification as Record<string, unknown> | undefined;
+    return num(o.price ?? o.lowPrice ?? (spec && usd(spec.priceCurrency) ? spec.price : undefined));
+  };
+  const walk = (node: unknown, depth = 0) => {
+    if (!node || typeof node !== "object" || depth > 6 || out.name) return;
+    if (Array.isArray(node)) { node.forEach((n) => walk(n, depth + 1)); return; }
+    const o = node as Record<string, unknown>;
+    const type = ([] as unknown[]).concat(o["@type"] ?? []).map(String);
+    if (type.some((t) => /^(Product|ProductGroup|IndividualProduct|Vehicle|Car)$/i.test(t)) && typeof o.name === "string") {
+      out.name = decode(o.name).trim().slice(0, 200);
+      const b = o.brand as unknown;
+      out.brand = typeof b === "string" ? b : (b && typeof b === "object" && typeof (b as Record<string, unknown>).name === "string") ? String((b as Record<string, unknown>).name) : null;
+      const offers = ([] as unknown[]).concat(o.offers ?? []).flatMap((x) => {
+        const r = x as Record<string, unknown>;
+        return r && Array.isArray(r.offers) ? r.offers : [r];
+      }) as Record<string, unknown>[];
+      const prices = offers.map(offerPrice).filter((x): x is number => x !== null);
+      if (prices.length) out.price = Math.min(...prices);
+      return;
+    }
+    for (const v of Object.values(o)) if (v && typeof v === "object") walk(v, depth + 1);
+  };
+  for (const m of html.matchAll(/<script[^>]+application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi)) {
+    try { walk(JSON.parse(m[1].trim())); } catch { /* broken JSON-LD is common */ }
+  }
+  const meta = (name: string) => {
+    for (const m of html.matchAll(/<meta[^>]+>/gi)) {
+      const a = attrs(m[0]);
+      if ((a.property ?? a.name ?? "").toLowerCase() === name && a.content) return decode(a.content);
+    }
+    return null;
+  };
+  if (out.price === null && usd(meta("product:price:currency") ?? meta("og:price:currency"))) {
+    out.price = num(meta("product:price:amount") ?? meta("og:price:amount"));
+  }
+  out.site = meta("og:site_name");
+  const img = imageCandidates(html, pageUrl)[0];
+  out.image = img && /^https:\/\//.test(img) ? img : null;
+  return out;
+}
+
+/** Reads a store page. "gone" when the store says the page no longer exists (404/410); null when it couldn't be read. */
+export async function pageProduct(pageUrl: string, fetchFn: FetchFn = fetch, timeoutMs = 8000): Promise<PageProduct | "gone" | null> {
+  let url = safePublicUrl(pageUrl);
+  for (let hop = 0; url && hop < 4; hop++) {
+    const res = await fetchFn(url.toString(), {
+      redirect: "manual", signal: AbortSignal.timeout(timeoutMs),
+      headers: { "user-agent": UA, "accept": "text/html,application/xhtml+xml", "accept-language": "en-US,en;q=0.9" },
+    }).catch(() => null);
+    if (!res) return null;
+    if (res.status >= 300 && res.status < 400) {
+      const loc = res.headers.get("location");
+      await res.body?.cancel();
+      url = loc ? safePublicUrl(loc, url.toString()) : null;
+      continue;
+    }
+    if (res.status === 404 || res.status === 410) { await res.body?.cancel(); return "gone"; }
+    if (!res.ok || !(res.headers.get("content-type") ?? "text/html").includes("html")) { await res.body?.cancel(); return null; }
+    return productFromHtml(await readBytes(res, 1_500_000), url.toString());
+  }
+  return null;
+}
+
 /** Back-compat: the top candidate without verification. */
 export async function findImage(pageUrl: string, fetchFn: FetchFn = fetch, timeoutMs = 5000): Promise<string | null> {
   return (await pageImages(pageUrl, fetchFn, timeoutMs))[0] ?? null;

@@ -123,6 +123,9 @@ select t.ok((select count(*) from public.claim_sweeps(20, 5) x where x ->> 'name
 select t.ok(t.n($$select * from public.sweep_candidates(20, 5, null, null) x where x ->> 'name' = 'Jumpman Scout'$$) = 0, 'a claimed scout is not handed out twice');
 select t.ok((select count(*) from public.sweep_candidates(20, 5, (select user_id from public.agents where name = 'Jumpman Scout'), null)) >= 0, 'pull to refresh ignores scheduler claims');
 update public.agents set sweep_claimed_at = null;
+update public.agents set last_swept_at = now() - interval '2 hours', last_pulse_at = null;
+select t.ok((select count(*) from public.claim_pulses(50, 360, 180) x where x ->> 'name' = 'Jumpman Scout') = 1, 'a scout between hunts gets a pulse');
+select t.ok((select count(*) from public.claim_pulses(50, 360, 180) x where x ->> 'name' = 'Jumpman Scout') = 0, 'and not again until its interval passes');
 update public.agents set last_swept_at = now();
 -- Listings without sizes (fragrance, furniture) arrive with JSON nulls; they must save, not error.
 select * from public.upsert_listings('aaaaaaaa-0000-0000-0000-000000000001',
