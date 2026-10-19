@@ -416,9 +416,12 @@ export async function backfillAbout(limit: number) {
   const rows = await db.select<{ id: string; title: string; brand: string; category: string; traits: string[]; source: string }>("listings",
     `select=id,title,brand,category,traits,source&about=is.null&about_checked_at=is.null` +
     `&last_seen_at=gt.${new Date(Date.now() - 60 * 86400_000).toISOString()}&order=last_seen_at.desc&limit=${limit}`);
-  if (!rows.length) return { checked: 0, written: 0 };
-  const list = rows.map((r, i) => `[p${i + 1}] ${r.title}${r.brand ? ` | brand: ${r.brand}` : ""} | ${r.category}${r.traits?.length ? ` | ${r.traits.join(", ")}` : ""} | sold at ${r.source}`).join("\n");
-  const res = await claude({ model: SWEEP_MODEL(), max_tokens: 3000, purpose: "about", messages: [{ role: "user", content:
+  let written = 0, checked = 0;
+  // Small batches: a long list can run past the reply limit, and a cut-off reply can't be read at all.
+  for (let i = 0; i < rows.length; i += 8) {
+    const batch = rows.slice(i, i + 8);
+    const list = batch.map((r, j) => `[p${j + 1}] ${r.title}${r.brand ? ` | brand: ${r.brand}` : ""} | ${r.category}${r.traits?.length ? ` | ${r.traits.join(", ")}` : ""} | sold at ${r.source}`).join("\n");
+    const res = await claude({ model: SWEEP_MODEL(), max_tokens: 4000, purpose: "about", messages: [{ role: "user", content:
 `Write a plain-language description for each product below, for a shopper seeing it for the first time.
 1-2 sentences, max 260 characters, everyday words, no hype or jargon: what it is, and what makes it special or who it's for.
 For a fragrance: what it smells like in everyday words (e.g. "fresh and clean, like soap and citrus"), main notes, and when it's worn.
@@ -427,20 +430,21 @@ what the name and details show. If you can't say anything useful, use null.
 
 ${list}
 
-Reply with only JSON, one entry per product, copying its id and exact title:
-{"items":[{"id":"p1","title":"<exact title>","about":"..." or null}, ...]}` }] });
-  const parsed = parseJSON(textOf(res.content)) as { items?: Record<string, unknown>[] } | null;
-  const out = keyed(parsed, "about", rows.map((r, i) => ({ id: `p${i + 1}`, name: r.title })));
-  const items = Array.isArray(parsed?.items) ? parsed!.items : [];
-  console.log("about backfill", JSON.stringify({ asked: rows.length, items: items.length, withText: items.filter((x) => typeof x?.about === "string").length,
-    kept: out.filter(Boolean).length, sample: items.slice(0, 2).map((x) => ({ id: x?.id, t: String(x?.title ?? x?.name ?? "").slice(0, 50), a: typeof x?.about })) }));
-  let written = 0;
-  await Promise.all(rows.map((r, i) => {
-    const a = out[i] && out[i]!.length > 15 ? out[i]!.slice(0, 400) : null;
-    if (a) written++;
-    return db.update("listings", `id=eq.${r.id}`, { about: a, about_checked_at: new Date().toISOString() });
-  }));
-  return { checked: rows.length, written };
+Reply with only JSON, one entry per product, copying its id and its title:
+{"items":[{"id":"p1","title":"<title>","about":"..." or null}, ...]}` }] });
+    const parsed = parseJSON(textOf(res.content)) as { items?: Record<string, unknown>[] } | null;
+    const items = Array.isArray(parsed?.items) ? parsed!.items : [];
+    const out = keyed(parsed, "about", batch.map((r, j) => ({ id: `p${j + 1}`, name: r.title })));
+    console.log("about backfill", JSON.stringify({ asked: batch.length, items: items.length, kept: out.filter(Boolean).length, stop: res.stop_reason }));
+    if (!items.length) continue;   // unreadable reply: leave these for the next run rather than marking them done
+    checked += batch.length;
+    await Promise.all(batch.map((r, j) => {
+      const a = out[j] && out[j]!.length > 15 ? out[j]!.slice(0, 400) : null;
+      if (a) written++;
+      return db.update("listings", `id=eq.${r.id}`, { about: a, about_checked_at: new Date().toISOString() });
+    }));
+  }
+  return { checked, written };
 }
 
 /** A short blurb about each brand on recent listings, written once per brand and copied onto its listings.
