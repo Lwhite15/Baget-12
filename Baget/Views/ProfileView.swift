@@ -260,6 +260,9 @@ struct ProfileView: View {
             Button { router.sheet = .feedback } label: {
                 Label("Send feedback", systemImage: "bubble.left.and.exclamationmark.bubble.right")
             }
+            Link(destination: URL(string: "mailto:bagetsupport@gmail.com?subject=Baget%20support")!) {
+                Label("Contact support", systemImage: "envelope")
+            }
             PlanSettingsRows()
             Button { router.sheet = .taste } label: {
                 Label("What Baget knows about you", systemImage: "brain.head.profile")

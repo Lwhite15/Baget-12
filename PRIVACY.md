@@ -32,4 +32,4 @@ Edit or delete anything Baget has learned in "What Baget knows about you". Turn 
 Baget isn't meant for children under 13, and we don't knowingly collect their data.
 
 ## Contact
-Questions: open an issue at https://github.com/Lwhite15/Baget-12 or reach the developer through the App Store listing.
+Questions or requests about your data: email bagetsupport@gmail.com.
