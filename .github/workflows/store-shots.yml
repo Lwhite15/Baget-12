@@ -65,7 +65,7 @@ jobs:
             xcrun simctl launch "$UDID" "$BUNDLE" -BagetStoreShots
           for i in $(seq 1 240); do
             sleep 1
-            [ -f "$DATA/Documents/shots-error" ] && { echo "::error::The app couldn't sign in to the screenshots account"; exit 1; }
+            [ -f "$DATA/Documents/shots-error" ] && { echo "::error::The app couldn't sign in: $(cut -c1-300 "$DATA/Documents/shots-error")"; exit 1; }
             [ -f "$DATA/Documents/shots-done" ] && break
             for f in "$DATA"/Documents/shot-*; do
               [ -e "$f" ] || continue

@@ -9,18 +9,18 @@ enum StoreShots {
     static var enabled: Bool { ProcessInfo.processInfo.arguments.contains("-BagetStoreShots") }
 
     private static var docs: URL { FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0] }
-    private static func mark(_ name: String) { FileManager.default.createFile(atPath: docs.appendingPathComponent(name).path, contents: Data()) }
+    private static func mark(_ name: String, _ text: String = "") { FileManager.default.createFile(atPath: docs.appendingPathComponent(name).path, contents: Data(text.utf8)) }
     private static func exists(_ name: String) -> Bool { FileManager.default.fileExists(atPath: docs.appendingPathComponent(name).path) }
 
     static func run(store: AppStore, router: Router) async {
         Analytics.enabled = false
         UserDefaults.standard.set(true, forKey: "baget.onboarded")
         let env = ProcessInfo.processInfo.environment
-        guard let email = env["BAGET_SHOT_EMAIL"], let password = env["BAGET_SHOT_PASSWORD"] else { mark("shots-error"); return }
+        guard let email = env["BAGET_SHOT_EMAIL"], let password = env["BAGET_SHOT_PASSWORD"] else { mark("shots-error", "no credentials in the launch environment"); return }
         do {
             try await Backend.shared.signInWithEmail(email: email, password: password)
             await store.didSignIn(fullName: nil)
-        } catch { mark("shots-error"); return }
+        } catch { mark("shots-error", "sign-in: \((error as? LocalizedError)?.errorDescription ?? String(describing: error))"); return }
         await store.pull()
         await store.loadPlan()
         await store.loadForYou()
