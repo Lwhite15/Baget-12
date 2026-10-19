@@ -2,6 +2,7 @@
 import { db } from "./platform.ts";
 import { firstName } from "./match.ts";
 import { shoppingOffers } from "./sources.ts";
+import { pageStock } from "./images.ts";
 
 type FetchFn = (input: string, init?: RequestInit) => Promise<Response>;
 const money = (n: number) => `$${n >= 100 ? Math.round(n).toLocaleString("en-US") : n.toFixed(2).replace(/\.00$/, "")}`;
@@ -46,6 +47,45 @@ export async function watchCheck(limit = 6, now = new Date(), fetchFn: FetchFn =
     }
   }
   return { checked: due.length, drops };
+}
+
+interface SoldOutWatch {
+  id: string; user_id: string; agent_id: string | null;
+  listing: { id: string; title: string; source: string; url: string | null; sold_out: boolean; stock_checked_at: string | null } | null;
+  agent: { name: string } | null;
+}
+
+/** Sold-out finds someone is watching: open the store's page (at most hourly per product) and text everyone watching
+ *  the moment it says it's back in stock. A page that doesn't say either way changes nothing. */
+export async function restockCheck(limit = 15, now = new Date(), fetchFn: FetchFn = fetch): Promise<{ checked: number; restocked: number }> {
+  const rows = await db.select<SoldOutWatch>("finds",
+    "select=id,user_id,agent_id,listing:listings!inner(id,title,source,url,sold_out,stock_checked_at),agent:agents(name)" +
+    "&watching=eq.true&status=in.(open,liked)&listing.sold_out=eq.true&order=created_at.desc&limit=200");
+  const byListing = new Map<string, SoldOutWatch[]>();
+  for (const r of rows) {
+    const l = r.listing;
+    if (!l?.url || !l.sold_out) continue;
+    if (l.stock_checked_at && now.getTime() - Date.parse(l.stock_checked_at) < 3600_000) continue;
+    byListing.set(l.id, [...(byListing.get(l.id) ?? []), r]);
+  }
+  let checked = 0, restocked = 0;
+  for (const [lid, watchers] of [...byListing.entries()].slice(0, limit)) {
+    const l = watchers[0].listing!;
+    const stock = await pageStock(l.url!, fetchFn).catch(() => null);
+    checked++;
+    await db.update("listings", `id=eq.${lid}`, { stock_checked_at: now.toISOString(), ...(stock === "in" ? { sold_out: false } : {}) }).catch(() => {});
+    if (stock !== "in") continue;
+    restocked++;
+    for (const r of watchers) {
+      const [p] = await db.select<{ display_name: string }>("profiles", `select=display_name&id=eq.${r.user_id}`).catch(() => []);
+      const name = firstName(p?.display_name);
+      await db.insert("notes", {
+        user_id: r.user_id, agent_id: r.agent_id, sender_name: r.agent?.name ?? "Baget", kind: "restock", find_id: r.id,
+        body: `${name ? `${name}, the` : "The"} ${l.title} is back in stock at ${l.source}. You asked me to watch it, so grab it before it sells out again.`.slice(0, 480),
+      }, false).catch((e) => console.error("restock note", e));
+    }
+  }
+  return { checked, restocked };
 }
 
 /** Local date and hour for a timezone. */

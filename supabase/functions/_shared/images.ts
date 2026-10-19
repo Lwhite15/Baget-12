@@ -125,6 +125,26 @@ export async function pageImages(pageUrl: string, fetchFn: FetchFn = fetch, time
   return imageCandidates(await readBytes(got.res, 800_000, true), got.url);
 }
 
+/** Reads whether a product page says it's in stock: schema.org "availability" (what stores publish for Google Shopping),
+ *  then product:availability meta tags. Returns null when the page doesn't say, so nobody gets a false alarm. */
+export function stockFromHtml(html: string): "in" | "out" | null {
+  const states = [...html.matchAll(/"availability"\s*:\s*"(?:https?:\/\/schema\.org\/)?([A-Za-z]+)"/g)].map((m) => m[1].toLowerCase());
+  for (const m of html.matchAll(/<meta[^>]+(?:property|name)=["'](?:product:availability|og:availability)["'][^>]*>/gi)) {
+    const c = attrs(m[0]).content?.toLowerCase().replace(/[^a-z]/g, "") ?? "";
+    if (c) states.push(c);
+  }
+  if (states.some((x) => ["instock", "limitedavailability", "onlineonly", "instoreonly", "available"].includes(x))) return "in";
+  if (states.some((x) => ["outofstock", "soldout", "discontinued", "oos"].includes(x))) return "out";
+  return null;
+}
+
+export async function pageStock(pageUrl: string, fetchFn: FetchFn = fetch, timeoutMs = 8000): Promise<"in" | "out" | null> {
+  const got = await safeGet(pageUrl, "text/html,application/xhtml+xml", fetchFn, timeoutMs).catch(() => null);
+  if (!got) return null;
+  if (!(got.res.headers.get("content-type") ?? "text/html").includes("html")) { await got.res.body?.cancel(); return null; }
+  return stockFromHtml(await readBytes(got.res, 1_500_000));
+}
+
 /** Back-compat: the top candidate without verification. */
 export async function findImage(pageUrl: string, fetchFn: FetchFn = fetch, timeoutMs = 5000): Promise<string | null> {
   return (await pageImages(pageUrl, fetchFn, timeoutMs))[0] ?? null;

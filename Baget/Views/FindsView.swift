@@ -463,7 +463,15 @@ struct FindCard: View {
                 }
                 chip("xmark", "Pass") { askingWhy = true }
             }
-            if let link {
+            if store.isSoldOut(item) && !item.isSample {
+                // Sold out: offer to watch the store's page and text when it's back.
+                let on = find.watching
+                chip(on ? "bell.fill" : "bell", on ? "Watching" : "Notify me", tint: on ? Theme.warn : nil) {
+                    store.toggleWatch(find.id)
+                    router.say(on ? "Stopped watching this one" : "I'll check \(item.source) and text you the moment it's back")
+                }
+                .accessibilityLabel(on ? "Watching for a restock. Tap to stop" : "Notify me when it's back in stock")
+            } else if let link {
                 chip("arrow.up.right", "Buy") {
                     Analytics.track(.checkoutOpened, ["category": item.category.rawValue, "toStore": true, "from": "find"])
                     router.buyOpened = find.id

@@ -1139,4 +1139,29 @@ await test("setup: interests beyond the built-in categories become their own sco
   assert.deepEqual(inserted.map((a) => a.mission_custom), ["tech and gadgets", "vinyl & music"], "the one Claude skipped still gets a scout");
 });
 
+await test("watched sold-out finds: the store page is checked and watchers get a restock text", async () => {
+  const I2 = await import("../functions/_shared/images.ts");
+  assert.equal(I2.stockFromHtml('<script type="application/ld+json">{"offers":{"availability":"https://schema.org/InStock"}}</script>'), "in");
+  assert.equal(I2.stockFromHtml('{"availability": "http://schema.org/OutOfStock"}'), "out");
+  assert.equal(I2.stockFromHtml('<meta property="product:availability" content="out of stock">'), "out");
+  assert.equal(I2.stockFromHtml("<p>Sold out</p>"), null, "a page that doesn't say isn't guessed at");
+  const daily = await import("../functions/_shared/daily.ts");
+  const notes: any[] = [], updates: any[] = [];
+  reset([
+    [/GET .*rest\/v1\/finds/, (u) => { assert.match(decodeURIComponent(u.search), /listing\.sold_out=eq\.true/); return ok([
+      { id: "f1", user_id: "u1", agent_id: "a1", agent: { name: "Sneaker Scout" }, listing: { id: "l1", title: "Air Bakin High SP", source: "Slam Jam", url: "https://www.slamjam.com/p/air-bakin", sold_out: true, stock_checked_at: null } },
+      { id: "f2", user_id: "u2", agent_id: "a2", agent: { name: "Kicks" }, listing: { id: "l1", title: "Air Bakin High SP", source: "Slam Jam", url: "https://www.slamjam.com/p/air-bakin", sold_out: true, stock_checked_at: null } },
+      { id: "f3", user_id: "u3", agent_id: "a3", agent: null, listing: { id: "l2", title: "Checked recently", source: "X", url: "https://x.com/p", sold_out: true, stock_checked_at: new Date().toISOString() } }]); }],
+    [/GET https:\/\/www\.slamjam\.com/, () => new Response('<script type="application/ld+json">{"availability":"https://schema.org/InStock"}</script>', { headers: { "content-type": "text/html" } })],
+    [/PATCH .*rest\/v1\/listings/, (u, _i, b) => { updates.push({ q: u.search, b }); return ok([]); }],
+    [/rest\/v1\/profiles/, () => ok([{ display_name: "Larry White" }])],
+    [/POST .*rest\/v1\/notes/, (_u, _i, b) => { notes.push(b); return new Response(null, { status: 201 }); }],
+  ]);
+  assert.deepEqual(await daily.restockCheck(15, new Date(), fetch as never), { checked: 1, restocked: 1 }, "one page fetch per product; recently checked ones wait");
+  assert.equal(updates[0].b.sold_out, false);
+  assert.equal(notes.length, 2, "everyone watching it hears");
+  assert.equal(notes[0].kind, "restock");
+  assert.match(notes[0].body, /^Larry, the Air Bakin High SP is back in stock at Slam Jam/);
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
