@@ -1193,6 +1193,7 @@ await test("pulse: keeps only what the store's own page confirms and what fits t
     [/blog\.com/, () => pageFor("Air Jordan 1 Low Fragment", "InStock")],
     [/rpc\/upsert_listings/, (_u, _i, b) => { saved = b.p_listings; return ok(b.p_listings.map((_: any, i: number) => ({ id: `l${i}`, fingerprint: "f", already_found: false }))); }],
     [/rest\/v1\/listing_seen/, () => new Response(null, { status: 201 })],
+    [/GET .*rest\/v1\/listings/, () => ok([])],
   ]);
   const r = await sweep.pulseAgent({ ...jumpman, tz: "UTC", settings: {}, last_swept_at: "2026-10-19T00:00:00Z" } as never, new Date(), fetch as never);
   assert.equal(r.kept, 1, "sold out, no photo, a page that isn't the named product, and search pages are all dropped");
@@ -1219,6 +1220,30 @@ await test("refresh: open finds get the store's current price, sold out, or come
   const l1 = patches.find((p) => p.path.includes("listings") && p.path.includes("l1")).b;
   assert.equal(l1.price, 180); assert.equal(l1.sold_out, true);
   assert.ok(patches.some((p) => p.path.includes("finds") && p.path.includes("l2") && p.b.status === "removed"));
+});
+
+await test("pulse: a famous brand at a fraction of its usual price, or a dupe, isn't kept", async () => {
+  process.env.SERPER_API_KEY = "serper-test";
+  const scent = { ...jumpman, name: "Scent Hunter", mission_category: "fragrance", keywords: ["amouage"], makers: ["Amouage"], traits: [], size: "", tz: "UTC", settings: {}, last_swept_at: "2026-10-19T00:00:00Z" };
+  const page = (name: string, price: string) => new Response(`<meta property="og:image" content="https://cdn.x.com/a.jpg">
+    <script type="application/ld+json">{"@type":"Product","name":"${name}","brand":"Amouage","offers":{"price":"${price}","priceCurrency":"USD","availability":"https://schema.org/InStock"}}</script>`, { headers: { "content-type": "text/html" } });
+  let saved: any[] = [];
+  reset([
+    [/google\.serper\.dev\/search/, () => ok({ organic: [
+      { title: "Amouage Oud Zuhal EDP", link: "https://venba.com/products/oud-zuhal", snippet: "" },
+      { title: "Amouage Interlude Man inspired perfume", link: "https://dupes.com/products/interlude", snippet: "" },
+      { title: "Amouage Reflection Man EDP 100ml", link: "https://luckyscent.com/products/reflection", snippet: "" }] })],
+    [/venba\.com/, () => page("Amouage Oud Zuhal EDP", "29.99")],
+    [/dupes\.com/, () => page("Amouage Interlude Man inspired perfume", "39")],
+    [/luckyscent\.com/, () => page("Amouage Reflection Man EDP 100ml", "350")],
+    [/GET .*rest\/v1\/listings/, () => ok([300, 320, 350, 365, 390, 410].map((price) => ({ price })))],
+    [/rpc\/upsert_listings/, (_u, _i, b) => { saved = b.p_listings; return ok([{ id: "l1" }]); }],
+    [/rest\/v1\/listing_seen/, () => new Response(null, { status: 201 })],
+  ]);
+  const r = await sweep.pulseAgent(scent as never, new Date(), fetch as never);
+  assert.equal(r.kept, 1);
+  assert.equal(saved[0].title, "Amouage Reflection Man EDP 100ml");
+  delete process.env.SERPER_API_KEY;
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

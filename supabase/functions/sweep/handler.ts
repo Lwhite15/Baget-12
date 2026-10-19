@@ -515,6 +515,18 @@ export async function repriceOld(limit: number) {
 
 const pwords = (x: string) => norm(x).split(/[^a-z0-9]+/).filter((w) => w.length > 2);
 
+/** The typical (median) price Baget has seen a brand sell for, from at least 5 listings; null when it doesn't know. */
+const medians = new Map<string, number | null>();
+async function brandMedian(brand: string): Promise<number | null> {
+  if (medians.has(brand)) return medians.get(brand)!;
+  const rows = await db.select<{ price: number }>("listings",
+    `select=price&brand=ilike.${encodeURIComponent(brand)}&price=gt.0&order=last_seen_at.desc&limit=60`).catch(() => []);
+  const ps = rows.map((r) => Number(r.price)).filter((x) => x > 0).sort((a, b) => a - b);
+  const m = ps.length >= 5 ? ps[Math.floor(ps.length / 2)] : null;
+  medians.set(brand, m);
+  return m;
+}
+
 /** One scout's quick pulse: one web search from its brief, then each product page is opened and kept only when the
  *  store's own page confirms the product, a US-dollar price, that it's in stock, and a photo, and it fits the scout's
  *  brief as well as a hunt's finds must. Kept products feed For You; nothing is texted. */
@@ -538,6 +550,14 @@ export async function pulseAgent(a: Candidate, now = new Date(), fetchFn: typeof
       source: (p.site ?? host).slice(0, 80), url: hits[i].link.slice(0, 1000), image_url: p.image.slice(0, 500), drop_at: null,
       sold_out: false, creator: null, traits: [] as string[], tags: ["pulse"], sizes_in_stock: null, sku: "",
     };
+    // No copies, samples or "inspired by" versions passed off as the real thing.
+    if (/\b(inspired|dupe|clone|impression|alternative to|version of|decant|sample|tester|replica|knock ?off)\b/i.test(`${p.name} ${hits[i].title}`)) continue;
+    // A known brand at a fraction of what Baget has seen it sell for, from a store that isn't the brand's own: skip it.
+    const brandKey = norm(p.brand ?? "");
+    if (brandKey && !host.includes(brandKey.replace(/[^a-z0-9]/g, ""))) {
+      const typical = await brandMedian(brandKey);
+      if (typical && p.price < typical * 0.35) continue;
+    }
     // Same bar as a hunt's finds: it has to fit this scout's brief.
     const m = match(a, l as unknown as Listing, []);
     if (!m || m.notInSize || m.score < 45) continue;
