@@ -106,12 +106,17 @@ extension AppStore {
 
     /// First-run setup: interests, an optional sentence and up to three photos -> a squad, already searching.
     func onboard(categories: [Category], text: String, photos: [UIImage], liked: [String] = [], passed: [String] = [],
-                 vibes: [Category: [String]] = [:], budget: Int? = nil, brands: [Category: [String]] = [:]) async -> [String] {
+                 vibes: [Category: [String]] = [:], budget: Int? = nil, brands: [Category: [String]] = [:],
+                 interests: [String] = []) async -> [String] {
         Analytics.track(.onboardingDone, ["categories": categories.count, "photos": photos.count, "text": !text.isEmpty, "rated": liked.count + passed.count])
         guard isCloud else {
             for c in categories {
                 deploy(Agent(id: UUID().uuidString.lowercased(), name: "\(c.info.label) Scout", mission: .category(c), keywords: [],
                              style: StyleProfile(traits: [], makers: [], creators: []), size: "", mode: .ask, voice: .chill))
+            }
+            for i in interests {
+                deploy(Agent(id: UUID().uuidString.lowercased(), name: "\(i.components(separatedBy: " ").first ?? i) Scout", mission: .custom(i.lowercased()),
+                             keywords: [], style: StyleProfile(traits: [], makers: [], creators: []), size: "", mode: .ask, voice: .chill))
             }
             return state.agents.map(\.id)
         }
@@ -124,6 +129,7 @@ extension AppStore {
                                        "liked": liked, "passed": passed,
                                        "vibes": Dictionary(uniqueKeysWithValues: vibes.filter { !$0.value.isEmpty }.map { ($0.key.rawValue, $0.value) })]
             if let budget { body["budget"] = budget }
+            if !interests.isEmpty { body["interests"] = interests }
             let picks = brands.filter { !$0.value.isEmpty }
             if !picks.isEmpty { body["brands"] = Dictionary(uniqueKeysWithValues: picks.map { ($0.key.rawValue, $0.value) }) }
             let r: OnboardReply = try await api.function("hunt", body)

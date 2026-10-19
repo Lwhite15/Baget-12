@@ -1118,4 +1118,23 @@ await test("on-demand Claude features are limited per account", async () => {
   assert.equal(calls.filter((c) => c.url.includes("anthropic")).length, 0, "Claude isn't called");
 });
 
+await test("setup: interests beyond the built-in categories become their own scouts", async () => {
+  const inserted: any[] = [];
+  let sent = "";
+  reset([
+    [/auth\/v1\/user/, () => ok({ id: jumpman.user_id })],
+    [/api\.anthropic\.com/, (_u, _i, b) => { sent = JSON.stringify(b); return ok({ stop_reason: "end_turn", content: [{ type: "text", text: JSON.stringify({ agents: [
+      { name: "Gadget Scout", category: null, custom: "tech and gadgets" }] }) }] }); }],
+    [/profiles\?select=plan/, () => ok([{ plan: "pro", pro_until: "2099-01-01T00:00:00Z" }])],
+    [/GET .*rest\/v1\/agents/, () => ok([])],
+    [/rest\/v1\/agents/, (_u, _i, b) => { inserted.push(b); return ok([{ id: `a${inserted.length}` }]); }],
+    [/rest\/v1\/profiles/, () => ok([{ display_name: "" }])],
+    [/rest\/v1\/notes/, () => new Response(null, { status: 201 })],
+  ]);
+  const res = await hunt.handler(post("hunt", { categories: [], interests: ["Tech & gadgets", "Vinyl & music"], text: "" }, { Authorization: "Bearer user-jwt" }));
+  assert.equal(res.status, 200);
+  assert.match(sent, /Tech & gadgets, Vinyl & music/);
+  assert.deepEqual(inserted.map((a) => a.mission_custom), ["tech and gadgets", "vinyl & music"], "the one Claude skipped still gets a scout");
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

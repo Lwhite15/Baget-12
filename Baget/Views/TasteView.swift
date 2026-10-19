@@ -83,6 +83,7 @@ struct OnboardingView: View {
     @AppStorage("baget.onboarded") private var onboarded = false
     @State private var step = 0
     @State private var picked: Set<Category> = []
+    @State private var extras: Set<String> = []
     @State private var text = ""
     @State private var pickerItems: [PhotosPickerItem] = []
     @State private var tileMenu: Int?
@@ -139,35 +140,65 @@ struct OnboardingView: View {
 
     // MARK: 1. Interests
 
+    /// Interests beyond the built-in categories. Each becomes its own scout with a custom mission.
+    static let moreInterests = ["Tech & gadgets", "Home decor", "Bags", "Jewelry", "Beauty & skincare", "Vinyl & music",
+                                "Art & prints", "Outdoor gear", "Toys & games", "Books", "Vintage", "Gifts"]
+
+    private var pickedCount: Int { picked.count + extras.count }
+    private var full: Bool { pickedCount >= store.scoutLimit }
+
     private var interests: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("What are you into?").font(.system(size: 30, weight: .heavy)).foregroundStyle(Theme.ink)
             Text(store.scoutLimit >= 5 ? "Pick a few. You'll get a personal scout for each, hunting drops, restocks and deals."
                                        : "Pick up to \(store.scoutLimit). You'll get a personal scout for each, hunting drops, restocks and deals.")
                 .font(.subheadline).foregroundStyle(Theme.muted)
-            FlowRow {
-                ForEach(Category.allCases.filter { $0 != .other }) { c in
-                    Button {
-                        if picked.contains(c) { picked.remove(c) }
-                        else if picked.count < store.scoutLimit { picked.insert(c) }
-                    } label: { Pill(text: c.info.label, selected: picked.contains(c)) }
-                        .opacity(!picked.contains(c) && picked.count >= store.scoutLimit ? 0.4 : 1)
-                        .buttonStyle(.plain)
+                .fixedSize(horizontal: false, vertical: true)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    FlowRow {
+                        ForEach(Category.allCases.filter { $0 != .other }) { c in
+                            Button {
+                                if picked.contains(c) { picked.remove(c) }
+                                else if !full { picked.insert(c) }
+                            } label: { Pill(text: c.info.label, selected: picked.contains(c)) }
+                                .opacity(!picked.contains(c) && full ? 0.4 : 1)
+                                .buttonStyle(.plain)
+                                .accessibilityAddTraits(picked.contains(c) ? .isSelected : [])
+                        }
+                        ForEach(Self.moreInterests, id: \.self) { i in
+                            Button {
+                                if extras.contains(i) { extras.remove(i) }
+                                else if !full { extras.insert(i) }
+                            } label: { Pill(text: i, selected: extras.contains(i)) }
+                                .opacity(!extras.contains(i) && full ? 0.4 : 1)
+                                .buttonStyle(.plain)
+                                .accessibilityAddTraits(extras.contains(i) ? .isSelected : [])
+                        }
+                    }
+                    if full && store.isCloud && !store.isPro {
+                        Text("Free includes 2 scouts. You can go Pro any time for up to 5, hunting around the clock.")
+                            .font(.caption).foregroundStyle(Theme.muted)
+                    }
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Don't see it? Describe anything")
+                            .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
+                        Text("A first-edition book, a vintage Rolex, a gift for your mom. Say it in your own words and your scouts will find it.")
+                            .font(.caption).foregroundStyle(Theme.muted)
+                            .fixedSize(horizontal: false, vertical: true)
+                        TextField("Describe what you're looking for", text: $text, axis: .vertical)
+                            .lineLimit(1...4)
+                            .padding(12)
+                            .background(Theme.bg.opacity(0.6), in: RoundedRectangle(cornerRadius: 14))
+                            .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Theme.line))
+                    }
+                    .padding(.top, 4)
                 }
             }
-            if picked.count >= store.scoutLimit && store.isCloud && !store.isPro {
-                Text("Free includes 2 scouts. You can go Pro any time for up to 5, hunting around the clock.")
-                    .font(.caption).foregroundStyle(Theme.muted)
-            }
-            TextField("Anything specific? e.g. Jordan 1s in mocha, size 10.5", text: $text, axis: .vertical)
-                .lineLimit(1...3)
-                .padding(12)
-                .background(Theme.bg.opacity(0.6), in: RoundedRectangle(cornerRadius: 14))
-                .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Theme.line))
-            Spacer()
+            .scrollDismissesKeyboard(.interactively)
             Button("Next") { if picked.isEmpty { startQuiz() } else { withAnimation { step = 1 } } }
                 .buttonStyle(PrimaryButton())
-                .disabled(picked.isEmpty && text.trimmingCharacters(in: .whitespaces).isEmpty)
+                .disabled(pickedCount == 0 && text.trimmingCharacters(in: .whitespaces).isEmpty)
             Button("Skip setup") { finish() }.font(.footnote).foregroundStyle(Theme.muted).frame(maxWidth: .infinity)
         }
     }
@@ -376,7 +407,7 @@ struct OnboardingView: View {
             let ids = await store.onboard(categories: Array(picked), text: text.trimmingCharacters(in: .whitespacesAndNewlines), photos: photos,
                                           liked: liked, passed: passed,
                                           vibes: vibes.mapValues { Array($0) }, budget: budget.flatMap { $0 > 0 ? $0 : nil },
-                                          brands: brands.mapValues { Array($0) })
+                                          brands: brands.mapValues { Array($0) }, interests: Array(extras))
             working = false
             made = ids.count
             pushOn = await store.pushAllowed

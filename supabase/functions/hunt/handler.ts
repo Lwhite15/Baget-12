@@ -92,6 +92,12 @@ async function introNotes(userId: string, agents: { agent_id: string; name: stri
 }
 
 /** Plain-language vibes picked in setup, per category ("fragrance": ["fresh & clean", "date night"]). */
+const words = (x: string) => x.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length > 2);
+
+/** Interests tapped in setup that aren't one of the built-in categories ("Tech & gadgets", "Vinyl & music"). */
+export const cleanInterests = (v: unknown) => Array.isArray(v)
+  ? [...new Set(v.filter((x) => typeof x === "string").map((x) => (x as string).trim().slice(0, 40)).filter(Boolean))].slice(0, 6) : [];
+
 export function cleanVibes(v: unknown, lower = true): Record<string, string[]> {
   const out: Record<string, string[]> = {};
   if (!v || typeof v !== "object" || Array.isArray(v)) return out;
@@ -108,12 +114,13 @@ export const cleanBudget = (v: unknown) => typeof v === "number" && v >= 10 && v
 
 async function onboard(userId: string, categories: string[], text: string, size: string | undefined, images: Img[],
                        liked: string[] = [], passed: string[] = [], vibes: Record<string, string[]> = {}, budget: number | null = null,
-                       brands: Record<string, string[]> = {}) {
+                       brands: Record<string, string[]> = {}, interests: string[] = []) {
   const cats = [...new Set(categories.filter((c) => (CATEGORIES as string[]).includes(c) && c !== "other"))].slice(0, 6);
-  if (!cats.length && !text) throw new HttpError(400, "Pick at least one thing you're into");
+  if (!cats.length && !interests.length && !text) throw new HttpError(400, "Pick at least one thing you're into");
+  const picked = [...cats, ...interests];
   const content: Record<string, unknown>[] = images.map((im) => ({ type: "image", source: { type: "base64", media_type: im.media_type, data: im.data } }));
   content.push({ type: "text", text: `Someone is setting up their shopping scout app.
-They picked these interests: ${cats.length ? cats.join(", ") : "(none)"}.
+They picked these interests: ${picked.length ? picked.join(", ") : "(none)"}.
 ${text ? `They also said: "${text}".` : ""}
 ${images.length ? `The ${images.length === 1 ? "photo shows" : `${images.length} photos show`} things they love. Read their taste from them (brands, styles, materials, colors, eras) and use it in the briefs where it fits.` : ""}
 ${liked.length ? `In a quick taste check they hearted: ${liked.join("; ")}. Use the makers, styles and materials these share.` : ""}
@@ -123,7 +130,8 @@ Turn these vibes into concrete traits the scout can search for (for fragrance: t
 scent families that give that vibe, e.g. "fresh & clean" → citrus, aquatic, musk; "sweet & cozy" → vanilla, tonka, amber).` : ""}
 ${Object.keys(brands).length ? `Brands they picked: ${Object.entries(brands).map(([c, xs]) => `${c}: ${xs.join(", ")}`).join("; ")}. Put these in that category's makers.` : ""}
 ${budget ? `They usually spend up to $${budget} on one item.` : ""}
-Make one agent brief per picked interest${text && !cats.length ? " (or one for what they said)" : ""}${text && cats.length ? ", plus one more if what they said is a separate hunt" : ""}.
+Make one agent brief per picked interest${text && !picked.length ? " (or one for what they said)" : ""}${text && picked.length ? ", plus one more if what they said is a separate hunt" : ""}.
+For an interest that isn't one of the categories, set category null and write it as "custom" (e.g. "Tech & gadgets" → custom "tech and gadgets").
 Reply with only JSON: {"agents": [${BRIEF_FIELDS}, ...]}
 Use only what they said, picked or showed. Keep every list item short (1-4 words).` });
   const res = await claude({ purpose: "onboarding", max_tokens: 6000, messages: [{ role: "user", content }] });
@@ -131,6 +139,9 @@ Use only what they said, picked or showed. Keep every list item short (1-4 words
   const plans = raw.map((r) => cleanPlan(r, text || "Anything I'd love", size));
   // Make sure every picked category got an agent, even if Claude skipped one.
   for (const c of cats) if (!plans.some((p) => p.category === c)) plans.push(cleanPlan({ category: c, name: `${c[0].toUpperCase()}${c.slice(1)} Scout` }, c, size));
+  // Same for the other interests they tapped (as custom missions).
+  const covered = (i: string) => plans.some((p) => p.custom && words(p.custom).some((w) => words(i).includes(w)));
+  for (const i of interests) if (!covered(i)) plans.push(cleanPlan({ custom: i.toLowerCase(), name: `${i.split(/[ &]/)[0]} Scout` }, i, size));
   // The vibes they picked always reach the scout, in their own words, alongside what Claude translated them into.
   for (const p of plans) {
     const v = p.category ? vibes[p.category] ?? [] : [];
@@ -155,7 +166,7 @@ export const handler = handle(async (req) => {
   const user = await requireUser(req);
   await quota(user.id, "hunt", 20, 50);
   const body = await req.json().catch(() => ({})) as { text?: string; size?: string; categories?: string[]; images?: Img[]; liked?: string[]; passed?: string[];
-    vibes?: unknown; budget?: unknown; brands?: unknown };
+    vibes?: unknown; budget?: unknown; brands?: unknown; interests?: unknown };
   const text = (body.text ?? "").trim().slice(0, 300);
   if (Array.isArray(body.categories)) {
     const images = (Array.isArray(body.images) ? body.images : [])
@@ -163,7 +174,7 @@ export const handler = handle(async (req) => {
     const titles = (v: unknown) => Array.isArray(v)
       ? v.filter((x) => typeof x === "string" && x.trim()).map((x) => (x as string).trim().slice(0, 80)).slice(0, 12) : [];
     return json(await onboard(user.id, body.categories, text, body.size, images, titles(body.liked), titles(body.passed),
-      cleanVibes(body.vibes), cleanBudget(body.budget), cleanVibes(body.brands, false)));
+      cleanVibes(body.vibes), cleanBudget(body.budget), cleanVibes(body.brands, false), cleanInterests(body.interests)));
   }
   if (text.length < 2) throw new HttpError(400, "Tell me what to hunt for");
 
