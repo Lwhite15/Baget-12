@@ -58,7 +58,6 @@ struct PaywallView: View {
             row("", "Free", "Pro", head: true)
             row("Scouts", "2", "Up to 5")
             row("Hunting", "4 hours a day", "Around the clock")
-            row("When", store.plan?.windowLabel ?? "9am to 1pm", "Any time")
             row("Hunts", "1 a day each", "Every 6 hours")
             row("Search depth", "Standard", "Deep: 12 searches, checks each page")
             row("Everything else", "Included", "Included")
