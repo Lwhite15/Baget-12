@@ -576,7 +576,6 @@ export async function maintain() {
   }
   out.restocks = await restockCheck(num("RESTOCK_CHECKS", 15)).catch((e) => { console.error("restocks", e); return null; });
   out.refreshed = await refreshFinds(num("REFRESH_CHECKS", 40)).catch((e) => { console.error("refresh", e); return null; });
-  out.photos = await shrinkStored(num("SHRINK_BATCH", 15)).catch((e) => { console.error("shrink", e); return null; });
   out.prices = await repriceOld(num("PRICE_BACKFILL", 10)).catch((e) => { console.error("prices", e); return null; });
   return out;
 }
