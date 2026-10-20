@@ -1,0 +1,25 @@
+# Permanently deletes one account by handle (photos, then the login; everything else is removed with it). Prints counts only.
+name: Delete account
+on:
+  workflow_dispatch:
+    inputs:
+      handle:
+        description: "Handle to delete, e.g. baget57498"
+        required: true
+      confirm:
+        description: "Type the handle again to confirm"
+        required: true
+permissions:
+  contents: read
+jobs:
+  delete:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      HANDLE: ${{ inputs.handle }}
+      CONFIRM: ${{ inputs.confirm }}
+    steps:
+      - uses: actions/checkout@v5
+      - run: pip install -q requests
+      - run: python3 scripts/delete_account.py
