@@ -1,7 +1,7 @@
 import Foundation
 
 /// One pick in the Today screen's "For You" feed.
-struct ForYouItem: Identifiable, Hashable {
+struct ForYouItem: Identifiable, Hashable, Codable {
     /// The listing (also the Catalog item id).
     let id: String
     let reason: String
@@ -42,6 +42,7 @@ extension AppStore {
             forYouLoadedAt = .now
             return
         }
+        guard !forYouLoading else { return }
         forYouLoading = true
         defer { forYouLoading = false }
         do {
@@ -49,9 +50,16 @@ extension AppStore {
             async let tasteQ: [TasteFeature] = api.rpc("taste_top", ["p_limit": 10])
             let (rows, taste) = try await (rowsQ, tasteQ)
             for r in rows { Catalog.cloud[r.listing.id] = r.listing.item }
-            forYou = rows.map { ForYouItem(id: $0.listing.id, reason: $0.reason, kind: $0.kind, findID: $0.findId) }
+            let items = rows.map { ForYouItem(id: $0.listing.id, reason: $0.reason, kind: $0.kind, findID: $0.findId) }
+            if items != forYou { forYou = items }   // no redraw when nothing changed
             tasteTop = taste
             forYouLoadedAt = .now
+            // Kept on the phone, with its products, so the next open shows it instantly.
+            let known = Set(state.listings.map(\.id))
+            state.listings.append(contentsOf: rows.map(\.listing.item).filter { !known.contains($0.id) })
+            state.forYou = items
+            state.forYouAt = .now
+            save()
         } catch {
             // Keep what's on screen; if there's nothing, fall back to your own finds so the section is never blank.
             if forYou.isEmpty { forYou = ownFindsFeed(limit: limit) }

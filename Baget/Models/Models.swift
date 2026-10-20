@@ -487,6 +487,9 @@ struct AppState: Codable {
     /// The person chose to look around with sample data instead of signing in.
     var exploringSamples = false
     var avatar = Avatar()
+    /// The last For You feed and when it loaded, so Today shows it instantly on open and refreshes quietly.
+    var forYou: [ForYouItem] = []
+    var forYouAt: Date? = nil
 
     init() {}
 
@@ -516,6 +519,8 @@ struct AppState: Codable {
         lastSynced = try? c.decode(Date.self, forKey: .lastSynced)
         exploringSamples = (try? c.decode(Bool.self, forKey: .exploringSamples)) ?? false
         avatar = (try? c.decode(Avatar.self, forKey: .avatar)) ?? Avatar()
+        forYou = (try? c.decode([ForYouItem].self, forKey: .forYou)) ?? []
+        forYouAt = try? c.decode(Date.self, forKey: .forYouAt)
     }
 }
 

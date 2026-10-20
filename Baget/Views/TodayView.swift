@@ -144,14 +144,13 @@ struct ForYouSection: View {
             HStack(alignment: .firstTextBaseline) {
                 Text("For You").font(.title3.weight(.heavy)).foregroundStyle(Theme.ink)
                 Spacer()
-                if store.forYouLoading { ProgressView().controlSize(.small).tint(Theme.cyan) }
             }
             Text("Picked from everything Baget's agents have found, ranked by your taste. Every ♥ and ✕ sharpens it.")
                 .font(.caption).foregroundStyle(Theme.muted)
             if !store.tasteTop.isEmpty { tasteStrip }
 
             if picks.isEmpty {
-                if store.forYouLoading || store.forYouLoadedAt == nil {
+                if store.forYouLoadedAt == nil {
                     LazyVGrid(columns: columns, spacing: 12) {
                         ForEach(0..<4, id: \.self) { _ in
                             RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Theme.glass).frame(height: 230)
@@ -176,7 +175,7 @@ struct ForYouSection: View {
             }
         }
         .task {
-            if store.forYouLoadedAt == nil || store.forYouLoadedAt! < .now.addingTimeInterval(-600) || store.forYou.isEmpty {
+            if store.forYouLoadedAt == nil || store.forYouLoadedAt! < .now.addingTimeInterval(-180) || store.forYou.isEmpty {
                 await store.loadForYou(limit: limit)
             }
         }

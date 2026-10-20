@@ -77,7 +77,7 @@ export async function deliver(noteId: string): Promise<number> {
   const payload = {
     ...(info.image ? { image: info.image } : {}),
     aps: { alert: { title: n.sender_name || "Baget", ...(subtitle ? { subtitle } : {}), body: n.body },
-           ...(info.image ? { "mutable-content": 1 } : {}), sound: "default", badge: unread.length, "thread-id": n.kind === "friend" ? "friends" : "finds" },
+           ...(info.image ? { "mutable-content": 1 } : {}), "content-available": 1, sound: "default", badge: unread.length, "thread-id": n.kind === "friend" ? "friends" : "finds" },
     noteID: n.id,
     findID: n.find_id,
   };

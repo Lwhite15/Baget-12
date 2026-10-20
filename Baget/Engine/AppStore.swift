@@ -39,6 +39,7 @@ final class AppStore {
     var tasteTop: [TasteFeature] = []
     var forYouLoading = false
     var forYouLoadedAt: Date?
+    @ObservationIgnored private var saveGeneration = 0
     /// Sample-mode "not for me" picks (signed in, the server remembers them).
     var forYouDismissed: Set<String> = []
     /// Free or Pro, and (Free) whether the scouts are in their hunting window. Nil until loaded or when not signed in.
@@ -75,6 +76,8 @@ final class AppStore {
             }
             Catalog.cloud = Dictionary(state.listings.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
             Catalog.useCloud = true
+            forYou = state.forYou
+            forYouLoadedAt = state.forYouAt
         } else {
             if state.accountID != nil { state = AppState() }      // session ended
             Catalog.useCloud = false
@@ -87,9 +90,27 @@ final class AppStore {
     /// Whether to show the welcome screen (sign in, or look around with samples).
     var needsWelcome: Bool { Backend.shared.isConfigured && !isCloud && !state.exploringSamples }
 
+    /// Saves to the phone in the background: a burst of changes becomes one write, and the screen never waits on it.
     func save() {
-        if let data = try? JSONEncoder().encode(state) { try? data.write(to: Self.fileURL, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication]) }
         syncSettingsIfChanged()
+        saveGeneration &+= 1
+        let gen = saveGeneration
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(400))
+            guard gen == self.saveGeneration else { return }   // a newer save is coming
+            self.saveNow()
+        }
+    }
+
+    /// Writes right away (used when the app goes to the background).
+    func saveNow() {
+        let snapshot = state
+        let url = Self.fileURL
+        Task.detached(priority: .utility) {
+            if let data = try? JSONEncoder().encode(snapshot) {
+                try? data.write(to: url, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+            }
+        }
     }
 
     // MARK: - Availability
@@ -228,6 +249,8 @@ final class AppStore {
             let hadSynced = state.lastSynced != nil
             let before = Set(state.notes.map(\.id))
             await pull()
+            await loadForYou()
+            await prefetchPhotos()
             if hadSynced && !pushRegistered {
                 for n in state.notes where !before.contains(n.id) && !n.read && !n.heldForMorning { Notifier.post(n, title: noteSender(n)) }
             }
@@ -241,11 +264,30 @@ final class AppStore {
         save()
     }
 
+    /// Downloads and prepares photos for the newest finds and For You, so they appear instantly when the app opens.
+    func prefetchPhotos(limit: Int = 24) async {
+        let finds = state.finds.filter { $0.status == .open }.sorted { $0.foundAt > $1.foundAt }.prefix(limit).map(\.itemID)
+        let ids = Array(finds) + forYou.prefix(limit).map(\.id)
+        let urls = ids.compactMap { Catalog.item($0)?.imageURL }.compactMap(URL.init(string:))
+        await withTaskGroup(of: Void.self) { g in
+            for u in urls.prefix(40) { g.addTask { _ = await ImageCache.shared.load(u) } }
+        }
+    }
+
+    /// While the app is open: a quiet refresh every few minutes. Nothing on screen waits for it or shows a spinner.
+    func refreshQuietly() async {
+        guard isCloud, !pulling else { return }
+        await pull()
+        await loadForYou()
+        await prefetchPhotos(limit: 12)
+    }
+
     /// When the app opens: the sample tour simulates missed sweeps; signed in, it pulls what the server found.
     func cameBack(afterMinutes gone: Double) async {
         if isCloud {
             let since = state.lastSeen
             await pull()
+            Task { @MainActor in await self.loadForYou(); await self.prefetchPhotos(limit: 12) }
             let found = state.finds.filter { $0.foundAt > since }.count
             let notes = state.notes.filter { $0.date > since }.count
             if gone >= 15 && (found > 0 || notes > 0) {

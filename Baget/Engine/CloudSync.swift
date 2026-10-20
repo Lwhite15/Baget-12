@@ -279,6 +279,7 @@ extension AppStore {
             for f in finds { if let l = f.listing { catalog[l.id] = l.item } }
             for s in suggestions { if let l = s.listing { catalog[l.id] = l.item } }
             for s in shares { if let l = s.listing { catalog[l.id] = l.item } }
+            for p in forYou { if catalog[p.id] == nil, let it = Catalog.cloud[p.id] { catalog[p.id] = it } }
             Catalog.cloud = catalog
             Catalog.useCloud = true
             state.listings = Array(catalog.values)

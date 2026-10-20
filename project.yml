@@ -58,6 +58,7 @@ targets:
         # Background sweeps: iOS wakes the app to run them.
         UIBackgroundModes:
           - fetch
+          - remote-notification
         BGTaskSchedulerPermittedIdentifiers:
           - app.baget.sweep
         ITSAppUsesNonExemptEncryption: false

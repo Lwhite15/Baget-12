@@ -11,6 +11,16 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
         Task { @MainActor in AppStore.shared.pushRegistered = false }
     }
+
+    /// A text from a scout wakes the app in the background for a moment: it syncs and prepares the photos,
+    /// so the find is already there when the person opens Baget.
+    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+                     fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        Task { @MainActor in
+            await AppStore.shared.backgroundRefresh()
+            completionHandler(.newData)
+        }
+    }
 }
 
 @main
@@ -41,6 +51,11 @@ struct BagetApp: App {
                     store.listenForProUpdates()
                     await store.syncProEntitlements()
                     await store.loadPlan()
+                    // While the app is open, keep everything fresh in the background, every 3 minutes.
+                    while !Task.isCancelled {
+                        try? await Task.sleep(for: .seconds(180))
+                        if UIApplication.shared.applicationState == .active { await store.refreshQuietly() }
+                    }
                 }
         }
         .onChange(of: scenePhase) { _, phase in
@@ -57,7 +72,7 @@ struct BagetApp: App {
                 Analytics.flush()
             case .background:
                 store.state.lastSeen = .now
-                store.save()
+                store.saveNow()
                 Notifier.setBadge(store.unreadCount)
                 Notifier.scheduleRefresh(everyMinutes: store.state.settings.sweepMinutes)
                 Analytics.flush()
