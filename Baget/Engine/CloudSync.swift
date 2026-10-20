@@ -262,21 +262,20 @@ extension AppStore {
         do {
             async let agentsQ: [AgentRow] = api.select("agents", "select=*&order=created_at.asc")
             async let photosQ: [TastePhotoRow] = api.select("taste_photos", "select=*&order=created_at.desc")
-            async let findsQ: [FindRow] = api.select("finds", "select=*,listing:listings(*)&order=created_at.desc&limit=300")
+            // Removed finds aren't shown anywhere, so they aren't downloaded (a third of most accounts' finds).
+            async let findsQ: [FindRow] = api.select("finds", "select=*,listing:listings(*)&status=neq.removed&order=created_at.desc&limit=300")
             async let purchasesQ: [PurchaseRow] = api.select("purchases", "select=*&order=purchased_at.desc&limit=500")
             async let notesQ: [NoteRow] = api.select("notes", "select=*&order=created_at.desc&limit=100")
             async let friendsQ: [FriendRow] = api.rpc("my_friends")
             async let suggestionsQ: [SuggestionRow] = api.select("suggestions", "select=*,listing:listings(*)&to_user=eq.\(uid)&order=created_at.desc&limit=100")
             async let sharesQ: [ShareRow] = api.select("shares", "select=*,listing:listings(*),replies:share_replies(*)&from_user=eq.\(uid)&order=created_at.desc&limit=100")
-            async let listingsQ: [ListingRow] = api.select("listings", "select=*&order=last_seen_at.desc&limit=150")
             async let profileQ: Data = api.raw("GET", "/rest/v1/profiles", query: [URLQueryItem(name: "select", value: "*"), URLQueryItem(name: "id", value: "eq.\(uid)")])
 
             let (agents, photos, finds, purchases, notes) = try await (agentsQ, photosQ, findsQ, purchasesQ, notesQ)
-            let (friends, suggestions, shares, listings, profileData) = try await (friendsQ, suggestionsQ, sharesQ, listingsQ, profileQ)
+            let (friends, suggestions, shares, profileData) = try await (friendsQ, suggestionsQ, sharesQ, profileQ)
             guard isCloud else { return }   // signed out while loading
 
             var catalog: [String: Item] = [:]
-            for l in listings { catalog[l.id] = l.item }
             for f in finds { if let l = f.listing { catalog[l.id] = l.item } }
             for s in suggestions { if let l = s.listing { catalog[l.id] = l.item } }
             for s in shares { if let l = s.listing { catalog[l.id] = l.item } }
