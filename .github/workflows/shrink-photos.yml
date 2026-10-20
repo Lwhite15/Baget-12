@@ -1,0 +1,19 @@
+# Every 30 minutes: product photos over 250 KB get a phone-sized copy written over them (same address).
+name: Shrink photos
+on:
+  schedule:
+    - cron: "17,47 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  shrink:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      LIMIT: "80"
+    steps:
+      - uses: actions/checkout@v5
+      - run: pip install -q pillow requests
+      - run: python3 scripts/shrink_photos.py
