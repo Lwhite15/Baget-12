@@ -40,6 +40,7 @@ struct SquadView: View {
             .padding(.bottom, 24)
         }
         .scrollIndicators(.hidden)
+        .dismissKeyboardOnTap()
     }
 }
 

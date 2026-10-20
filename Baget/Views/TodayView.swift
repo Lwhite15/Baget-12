@@ -26,6 +26,7 @@ struct TodayView: View {
             .padding(.bottom, 24)
         }
         .scrollIndicators(.hidden)
+        .dismissKeyboardOnTap()
         .refreshable { await store.refreshNow(router: router) }
         .onAppear { Analytics.track(.todayViewed, ["picks": picks.count, "toSwipe": queue]) }
     }
@@ -300,6 +301,13 @@ struct HuntBox: View {
                     .focused($focused)
                     .onSubmit(go)
                     .disabled(working)
+                    // Return starts the hunt (a multi-line field would otherwise just add a new line).
+                    .onChange(of: text) { _, t in
+                        if t.contains("\n") {
+                            text = t.replacingOccurrences(of: "\n", with: " ").trimmingCharacters(in: .whitespaces)
+                            if text.count >= 2 { go() } else { focused = false }
+                        }
+                    }
                 if working {
                     ProgressView().tint(Theme.cyan)
                 } else if !text.trimmingCharacters(in: .whitespaces).isEmpty {
@@ -313,6 +321,13 @@ struct HuntBox: View {
             .padding(12)
             .background(Theme.bg.opacity(0.6), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(focused ? Theme.accent.opacity(0.7) : Theme.line))
+            if focused && !working {
+                HStack {
+                    Spacer()
+                    Button("Cancel") { text = ""; focused = false }
+                        .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.accent)
+                }
+            }
             if let r = result, let a = store.agent(r.agentID) {
                 HStack(alignment: .top, spacing: 10) {
                     AgentAvatarView(agent: a, size: 34)
@@ -363,5 +378,16 @@ extension AppStore {
             Analytics.track(.sweepRun, ["found": res.found, "manual": true])
             router.say(res.found > 0 ? "\(res.found) new find\(res.found == 1 ? "" : "s")" : "Nothing new fits you right now")
         }
+    }
+}
+
+
+extension View {
+    /// Scrolling, or a tap anywhere outside a text field, puts the keyboard away.
+    func dismissKeyboardOnTap() -> some View {
+        self.scrollDismissesKeyboard(.immediately)
+            .simultaneousGesture(TapGesture().onEnded {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            })
     }
 }
