@@ -4,7 +4,7 @@
 // Cost guards: agents per run, searches per agent, and sweeps per user per day are all capped (see env below).
 import { type Agent, CATEGORIES, GROUP_OF, type Listing, firstName, friendLine, localHour, heldForMorning, kindFor, match, missionLabel, norm } from "../_shared/match.ts";
 import { type Block, type ClaudeMessage, HttpError, MODEL, batchResults, batchStatus, claude, db, env, handle, isScheduler, json, logBatchUsage, parseJSON, requireUser, submitBatch, textOf } from "../_shared/platform.ts";
-import { addImages, linkIsDead, pageProduct, traceImage } from "../_shared/images.ts";
+import { addImages, linkIsDead, pageProduct, smaller, traceImage } from "../_shared/images.ts";
 import { setupDemo, setupShots } from "./demo.ts";
 import { restockCheck } from "../_shared/daily.ts";
 import { SEARCH_TOOL, hitsText, serperSearch, serperUsable } from "../_shared/search.ts";
@@ -576,6 +576,7 @@ export async function maintain() {
   }
   out.restocks = await restockCheck(num("RESTOCK_CHECKS", 15)).catch((e) => { console.error("restocks", e); return null; });
   out.refreshed = await refreshFinds(num("REFRESH_CHECKS", 40)).catch((e) => { console.error("refresh", e); return null; });
+  out.photos = await shrinkStored(num("SHRINK_BATCH", 15)).catch((e) => { console.error("shrink", e); return null; });
   out.prices = await repriceOld(num("PRICE_BACKFILL", 10)).catch((e) => { console.error("prices", e); return null; });
   return out;
 }
@@ -690,6 +691,30 @@ export async function refreshFinds(limit: number, now = new Date(), fetchFn: typ
     }));
   }
   return { checked: list.length, repriced: updated, sold_out: soldOut, gone };
+}
+
+/** Already-stored product photos over 250 KB: written over with a phone-sized copy at the same address. Each photo is
+ *  tried once (a photo that can't be made smaller is left as it is). */
+export async function shrinkStored(limit: number) {
+  const rows = await db.rpc<{ name: string; mimetype: string; size: number }[]>("large_photos", { p_limit: limit });
+  let shrunk = 0, saved = 0;
+  for (const r of rows) {
+    try {
+      const got = await fetch(`${env("SUPABASE_URL")}/storage/v1/object/public/product-photos/${r.name}`);
+      if (got.ok) {
+        const raw = new Uint8Array(await got.arrayBuffer());
+        const out = await smaller(raw, r.mimetype);
+        if (out.bytes.length < raw.length && out.type === r.mimetype) {
+          const up = await db.raw(`/storage/v1/object/product-photos/${r.name}`, { method: "PUT", body: out.bytes,
+            headers: { "Content-Type": r.mimetype, "x-upsert": "true", "cache-control": "max-age=31536000" } });
+          if (up.ok) { shrunk++; saved += raw.length - out.bytes.length; }
+          else await up.text();
+        }
+      } else await got.body?.cancel();
+    } catch (e) { console.error("shrink stored", (e as Error).message); }
+    await db.insert("photo_shrink_done", { name: r.name }, false).catch(() => {});
+  }
+  return { checked: rows.length, shrunk, saved_kb: Math.round(saved / 1024) };
 }
 
 /** Free plan, outside the hunting window: says when the scouts are back. Null when they're allowed to hunt. */

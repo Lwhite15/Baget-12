@@ -1299,4 +1299,16 @@ await test("background writing goes through batches: sent once, applied when Ant
   assert.match(usage[0].model, /\(batch\)$/, "logged at the batch price");
 });
 
+await test("photos: stored phone-sized when a smaller copy can be made, original otherwise", async () => {
+  const I4 = await import("../functions/_shared/images.ts");
+  const big = new Uint8Array(400_000);
+  assert.equal((await I4.smaller(big, "image/jpeg")).bytes.length, 400_000, "no resizer (tests): unchanged");
+  I4.setResizer(async (_b, t) => ({ bytes: new Uint8Array(90_000), type: t }));
+  assert.equal((await I4.smaller(big, "image/jpeg")).bytes.length, 90_000);
+  assert.equal((await I4.smaller(new Uint8Array(100_000), "image/jpeg")).bytes.length, 100_000, "small photos are left alone");
+  I4.setResizer(async () => { throw new Error("bad image"); });
+  assert.equal((await I4.smaller(big, "image/png")).bytes.length, 400_000, "a photo that can't be read is stored as is");
+  I4.setResizer(async () => null);
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

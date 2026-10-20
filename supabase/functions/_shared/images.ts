@@ -364,13 +364,31 @@ async function sha(text: string): Promise<string> {
 }
 
 /** Keeps a copy in the public product-photos bucket and returns its URL (or the original if the upload fails). */
-export async function storePhoto(key: string, img: ChosenImage): Promise<string> {
-  const ext = img.media_type.split("/")[1].replace("jpeg", "jpg");
-  const path = `${await sha(key)}.${ext}`;
+type Resizer = (bytes: Uint8Array, type: string) => Promise<{ bytes: Uint8Array; type: string } | null>;
+let resizer: Resizer | null = null;
+/** Set by the server functions at startup (see _shared/resize.ts). Without it, photos are stored as they come. */
+export function setResizer(f: Resizer) { resizer = f; }
+
+/** A smaller copy for phones, when that's possible and actually smaller; otherwise the original. */
+export async function smaller(bytes: Uint8Array, type: string): Promise<{ bytes: Uint8Array; type: string }> {
+  if (!resizer || bytes.length < 150_000 || !["image/jpeg", "image/png", "image/webp"].includes(type)) return { bytes, type };
   try {
-    const bytes = Uint8Array.from(atob(img.data), (c) => c.charCodeAt(0));
+    const out = await resizer(bytes, type);
+    return out && out.bytes.length < bytes.length ? out : { bytes, type };
+  } catch (e) {
+    console.error("shrink", (e as Error).message);
+    return { bytes, type };
+  }
+}
+
+export async function storePhoto(key: string, img: ChosenImage): Promise<string> {
+  try {
+    const raw = Uint8Array.from(atob(img.data), (c) => c.charCodeAt(0));
+    const { bytes, type } = await smaller(raw, img.media_type);
+    const ext = type.split("/")[1].replace("jpeg", "jpg");
+    const path = `${await sha(key)}.${ext}`;
     const r = await db.raw(`/storage/v1/object/product-photos/${path}`, {
-      method: "POST", body: bytes, headers: { "Content-Type": img.media_type, "x-upsert": "true", "cache-control": "max-age=31536000" },
+      method: "POST", body: bytes, headers: { "Content-Type": type, "x-upsert": "true", "cache-control": "max-age=31536000" },
     });
     if (!r.ok) { console.error("store photo", r.status, (await r.text()).slice(0, 200)); return img.source; }
     return `${SUPABASE_URL()}/storage/v1/object/public/product-photos/${path}`;
