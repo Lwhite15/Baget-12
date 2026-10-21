@@ -1312,4 +1312,86 @@ await test("photos: stored phone-sized when a smaller copy can be made, original
   I4.setResizer(async () => null);
 });
 
+await test("store map: non-store pages never become finds", async () => {
+  const St = await import("../functions/_shared/stores.ts");
+  const b = new Set(["supremecommunity.com", "fragrantica.com"]);
+  assert.ok(St.notAProduct("https://supremecommunity.com/season/fall-winter2026/droplist/2026-10-23/", b));
+  assert.ok(St.notAProduct("https://www.fragrantica.com/perfume/Creed/Aventus-9828.html", b));
+  assert.ok(St.notAProduct("https://www.edmunds.com/used-porsche-911/", b), "a dealer search page");
+  assert.ok(!St.notAProduct("https://www.edmunds.com/inventory/vin.html?vin=WP0AB2A9", b));
+  assert.ok(St.notAProduct("https://www.kbb.com/porsche/911/", b));
+  assert.ok(!St.notAProduct("https://www.kbb.com/cars-for-sale/vehicle/712345678", b));
+  assert.ok(!St.notAProduct("https://kith.com/products/nb-990v6-grey", b));
+});
+
+await test("store map: a Shopify product becomes a listing in the right category, with sizes in stock", async () => {
+  const St = await import("../functions/_shared/stores.ts");
+  const shoe = { title: "New Balance 990v6 Grey", handle: "nb-990v6-grey", vendor: "New Balance", product_type: "Footwear", tags: ["Mens", "Made in USA"],
+    images: [{ src: "https://cdn.shopify.com/a.jpg" }],
+    variants: [{ option1: "9", price: "199.99", available: false }, { option1: "10", price: "199.99", available: true }, { option1: "10.5", price: "199.99", available: true }] };
+  const l = St.shopifyListing(shoe, "kith.com", "Kith", ["sneakers", "apparel"])!;
+  assert.equal(l.category, "sneakers");
+  assert.equal(l.price, 199.99);
+  assert.deepEqual(l.sizes_in_stock, ["10", "10.5"]);
+  assert.equal(l.url, "https://kith.com/products/nb-990v6-grey");
+  assert.ok(l.traits.includes("made in usa"));
+  const hoodie = { ...shoe, title: "Kith Williams Hoodie", handle: "williams", product_type: "Hoodie", tags: [], vendor: "Kith" };
+  assert.equal(St.shopifyListing(hoodie, "kith.com", "Kith", ["sneakers", "apparel"])!.category, "apparel");
+  assert.equal(St.shopifyListing(hoodie, "kith.com", "Kith", ["sneakers"]), null, "not in the store's categories");
+  assert.equal(St.shopifyListing({ ...shoe, variants: [{ option1: "9", price: "199.99", available: false }] }, "kith.com", "Kith", ["sneakers"]), null, "sold out");
+  assert.equal(St.shopifyListing({ ...shoe, title: "Gift Card" }, "kith.com", "Kith", ["sneakers"]), null);
+});
+
+await test("store map: catalogs feed matching scouts' For You; non-Shopify stores are marked and skipped", async () => {
+  const St = await import("../functions/_shared/stores.ts");
+  const upserts: any[] = [], seen: any[] = [], patches: any[] = [];
+  const scout = { id: "a1", user_id: "u1", name: "Jumpman", mission_category: "sneakers", mission_custom: null, keywords: ["990"], traits: [],
+    makers: ["New Balance"], creators: [], size: "10", mode: "ask", voice: "chill", learned: {}, price_note: 0 };
+  reset([
+    [/rpc\/claim_feeds/, () => ok([{ domain: "kith.com", categories: ["sneakers"], shopify: null }, { domain: "nike.com", categories: ["sneakers"], shopify: null }])],
+    [/rest\/v1\/stores\?select=domain,name/, () => ok([{ domain: "kith.com", name: "Kith" }, { domain: "nike.com", name: "Nike" }])],
+    [/rpc\/feed_scouts/, () => ok([scout])],
+    [/kith\.com\/cart\.js/, () => ok({ currency: "USD" })],
+    [/kith\.com\/products\.json/, () => ok({ products: [
+      { title: "New Balance 990v6 Grey", handle: "nb-990", vendor: "New Balance", product_type: "Footwear", tags: [], images: [{ src: "https://cdn.shopify.com/a.jpg" }],
+        variants: [{ option1: "10", price: "199.99", available: true }] },
+      { title: "Puma Speedcat", handle: "speedcat", vendor: "Puma", product_type: "Footwear", tags: [], images: [{ src: "https://cdn.shopify.com/b.jpg" }],
+        variants: [{ option1: "10", price: "99.99", available: true }] }] })],
+    [/nike\.com\/cart\.js/, () => new Response("<html>", { status: 404 })],
+    [/PATCH .*rest\/v1\/stores/, (u, _i, b) => { patches.push({ q: u.search, b }); return ok([]); }],
+    [/rpc\/upsert_listings/, (_u, _i, b) => { upserts.push(b); return ok(b.p_listings.map((_: unknown, i: number) => ({ id: `l${i}` }))); }],
+    [/rest\/v1\/listing_seen/, (_u, _i, b) => { seen.push(...b); return ok([]); }],
+  ]);
+  const r = await St.storeFeeds(6);
+  assert.deepEqual(r, { stores: 2, read: 1, kept: 1 });
+  assert.equal(upserts[0].p_user, "u1");
+  assert.deepEqual(upserts[0].p_listings.map((l: any) => l.title), ["New Balance 990v6 Grey"], "only what fits the scout");
+  assert.equal(seen[0].user_id, "u1");
+  assert.ok(patches.some((p) => p.q.includes("nike.com") && p.b.shopify === false), "nike isn't a Shopify catalog");
+  assert.ok(patches.some((p) => p.q.includes("kith.com") && p.b.shopify === true));
+});
+
+await test("store map: each hunt searches its rotation of stores directly", async () => {
+  const St = await import("../functions/_shared/stores.ts");
+  process.env.SERPER_API_KEY = "serp";
+  St.resetBlocks(new Set(["sneakernews.com"]));
+  const qs: string[] = [];
+  reset([
+    [/rpc\/claim_stores/, (_u, _i, b) => { assert.equal(b.p_category, "sneakers"); assert.deepEqual(b.p_prefer, ["New Balance"]); return ok([{ domain: "newbalance.com", name: "New Balance" }, { domain: "kith.com", name: "Kith" }]); }],
+    [/google\.serper\.dev/, (_u, _i, b) => { qs.push(b.q); return ok({ organic: b.q.includes("kith") ? [] : [
+      { title: "990v6 Made in USA", link: "https://www.newbalance.com/pd/990v6/M990GL6.html", snippet: "$199.99" },
+      { title: "elsewhere", link: "https://sneakernews.com/990", snippet: "" }] }); }],
+  ]);
+  const scout = { id: "a1", user_id: "u1", name: "Jumpman", mission_category: "sneakers", mission_custom: null, keywords: ["990"], traits: [],
+    makers: ["New Balance"], creators: [], size: "10", mode: "ask", voice: "chill", learned: {}, price_note: 0 } as any;
+  const r = await St.storeLeads(scout, 2, new Date("2026-10-21T12:00:00Z"));
+  assert.equal(r.searches, 2);
+  assert.ok(qs.every((q) => q.startsWith("site:")));
+  assert.match(r.text, /newbalance\.com\/pd\/990v6/);
+  assert.doesNotMatch(r.text, /sneakernews/);
+  assert.match(r.text, /Kith \(kith\.com\): nothing matching/);
+  St.resetBlocks();
+  delete process.env.SERPER_API_KEY;
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

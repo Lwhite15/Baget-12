@@ -396,3 +396,20 @@ delete from auth.users where id = 'aaaaaaaa-0000-0000-0000-000000000001';
 select t.ok((select count(*) = 0 from public.agents where user_id = 'aaaaaaaa-0000-0000-0000-000000000001'), 'deleting an account removes its agents');
 select t.ok((select count(*) = 0 from public.friendships), 'and its friendships');
 select t.ok((select count(*) = 0 from public.purchases), 'and its purchases');
+
+-- Store map
+set role service_role;
+select t.ok((select count(*) from public.stores) > 200, 'the store map is seeded');
+select t.ok((select count(*) from public.claim_stores('sneakers', 3, array['New Balance'])) = 3, 'a hunt gets its slice of stores');
+select t.ok(exists (select 1 from public.stores where domain = 'newbalance.com' and category = 'sneakers' and last_searched_at is not null), 'a favorite brand''s own store comes first');
+select t.ok((select count(*) from public.claim_stores('sneakers', 3)) = 3, 'the next hunt gets its slice');
+select t.ok((select count(*) from public.stores where category = 'sneakers' and last_searched_at is not null) = 6, 'and different stores');
+select t.ok((select count(*) from public.claim_feeds(5)) = 5, 'catalog reads are handed out');
+select t.ok((select count(*) from public.claim_feeds(500)) < (select count(distinct domain) from public.stores), 'and not twice within 3 hours');
+select t.ok(public.learn_stores() >= 0, 'stores are learned');
+select t.ok((select count(*) from public.store_coverage()) >= 8, 'coverage by category');
+reset role;
+set role authenticated;
+select t.err($$select * from public.stores$$, 'the store map is private');
+select t.err($$select public.claim_stores('sneakers', 3)$$, 'people cannot claim stores');
+reset role;
