@@ -58,8 +58,10 @@ if not rs:
     rs = call("POST", "/reviewSubmissions", {"data": {"type": "reviewSubmissions", "attributes": {"platform": "IOS"},
               "relationships": {"app": {"data": {"type": "apps", "id": aid}}}}})["data"]
 rid = rs["id"]
-items = call("GET", f"/reviewSubmissions/{rid}/items")["data"]
-if not items:
+items = call("GET", f"/reviewSubmissions/{rid}/items?include=appStoreVersion")["data"]
+has_version = any((i.get("relationships", {}).get("appStoreVersion", {}).get("data") or {}).get("id") == vid for i in items)
+note(f"Review submission has {len(items)} item(s); version included: {has_version}")
+if not has_version:
     try:
         call("POST", "/reviewSubmissionItems", {"data": {"type": "reviewSubmissionItems", "relationships": {
              "reviewSubmission": {"data": {"type": "reviewSubmissions", "id": rid}},
@@ -67,8 +69,6 @@ if not items:
         note("Version added to the review submission")
     except Exception as e:
         sys.exit(f"::error::Couldn't add the version: {e}")
-else:
-    note(f"Review submission already has {len(items)} item(s)")
 
 try:
     r = call("PATCH", f"/reviewSubmissions/{rid}", {"data": {"type": "reviewSubmissions", "id": rid, "attributes": {"submitted": True}}})
