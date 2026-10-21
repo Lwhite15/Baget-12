@@ -88,5 +88,35 @@ class MainActivity : ComponentActivity() {
     /** A tapped notification carries the note it's about. */
     private fun handle(intent: Intent?) {
         intent?.getStringExtra("noteID")?.let { AppStore.openNoteFromSystem = it }
+        intent?.getStringExtra("go")?.let { go(it) }
+    }
+
+    /** Navigation for the cloud launch test (adb shell am start ... --es go finds). It only moves between screens. */
+    private fun go(to: String) {
+        val store = AppStore
+        when (to) {
+            "tour" -> if (!store.isCloud) store.exploreSamples()
+            "live" -> { Router.closeAll(); Router.tab = app.baget.ui.AppTab.LIVE }
+            "finds" -> { Router.closeAll(); Router.tab = app.baget.ui.AppTab.FINDS }
+            "squad" -> { Router.closeAll(); Router.tab = app.baget.ui.AppTab.SQUAD }
+            "friends" -> { Router.closeAll(); Router.tab = app.baget.ui.AppTab.FRIENDS }
+            "close" -> Router.closeAll()
+            else -> if (to.startsWith("sheet:")) {
+                val s = when (to.removePrefix("sheet:")) {
+                    "profile" -> app.baget.ui.Sheet.Profile
+                    "inbox" -> app.baget.ui.Sheet.Inbox
+                    "swipe" -> app.baget.ui.Sheet.Swipe
+                    "deploy" -> app.baget.ui.Sheet.Deploy
+                    "taste" -> app.baget.ui.Sheet.Taste
+                    "pro" -> app.baget.ui.Sheet.Pro
+                    "customize" -> app.baget.ui.Sheet.CustomizeBar
+                    "feedback" -> app.baget.ui.Sheet.Feedback
+                    "chat" -> store.state.agents.firstOrNull()?.let { app.baget.ui.Sheet.Chat(it.id) }
+                    "checkout" -> store.state.finds.firstOrNull()?.let { app.baget.ui.Sheet.Checkout(it.id) }
+                    else -> null
+                }
+                s?.let { Router.closeAll(); Router.open(it) }
+            }
+        }
     }
 }

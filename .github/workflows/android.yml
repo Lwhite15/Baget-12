@@ -124,40 +124,30 @@ jobs:
             adb shell pidof "$PKG" >/dev/null || { echo "::error::Baget stopped running ($1)"; exit 1; }
           }
           shot() {   # a small screenshot, posted as a notice so it can be looked at without downloading anything
-            adb exec-out screencap -p > "shots/$1.png"
+            adb shell screencap -p /sdcard/shot.png && adb pull /sdcard/shot.png "shots/$1.png" >/dev/null
             python3 -c "import sys; from PIL import Image; i=Image.open(sys.argv[1]).convert('RGB'); i.thumbnail((300,1000)); i.save(sys.argv[2], quality=45)" "shots/$1.png" "shots/$1.jpg"
             echo "::notice title=shot-$1::$(base64 -w0 "shots/$1.jpg")"
           }
-          tap() {    # taps the first on-screen element whose text or description contains $1
-            adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 || true
-            adb pull /sdcard/ui.xml ui.xml >/dev/null 2>&1 || true
-            XY=$(python3 - "$1" <<'PY'
-          import re, sys, xml.etree.ElementTree as ET
-          want = sys.argv[1].lower()
-          for n in ET.parse("ui.xml").iter("node"):
-              if want in (n.get("text", "") + " " + n.get("content-desc", "")).lower():
-                  a, b, c, d = map(int, re.findall(r"\d+", n.get("bounds")))
-                  print((a + c) // 2, (b + d) // 2); break
-          PY
-            )
-            if [ -z "$XY" ]; then echo "::warning::Couldn't find \"$1\" on screen"; return 0; fi
-            adb shell input tap $XY; sleep 3
-          }
+          go() { adb shell am start -n "$PKG/app.baget.MainActivity" --es go "$1" >/dev/null; sleep 4; crashed "$1"; shot "$2"; }
           adb install -r "$APK"
           adb shell pm grant "$PKG" android.permission.POST_NOTIFICATIONS || true
           adb logcat -c
           adb shell am start -W -n "$PKG/app.baget.MainActivity"
           sleep 12; crashed launch; shot welcome
-          tap "Take a look first"; sleep 4; crashed tour; shot today
-          tap "Finds"; crashed finds; shot finds
-          tap "Squad"; crashed squad; shot squad
-          tap "Friends"; crashed friends; shot friends
-          tap "Today"; tap "Swipe through"; crashed swipe; shot swipe
-          adb shell input keyevent KEYCODE_BACK; sleep 2
-          tap "Notifications"; crashed inbox; shot inbox
-          adb shell input keyevent KEYCODE_BACK; sleep 2
-          crashed final
-          echo "::notice::Launch test passed: Baget opened, the sample tour ran and every tab opened"
+          go tour today
+          go finds finds
+          go squad squad
+          go friends friends
+          go sheet:swipe swipe
+          go sheet:inbox inbox
+          go sheet:profile profile
+          go sheet:deploy deploy
+          go sheet:taste taste
+          go sheet:checkout checkout
+          go sheet:customize customize
+          go sheet:pro pro
+          go close live
+          echo "::notice::Launch test passed: Baget opened, the sample tour ran, and every tab and sheet opened"
           SH
       - name: Launch on an emulator
         uses: reactivecircus/android-emulator-runner@v2
