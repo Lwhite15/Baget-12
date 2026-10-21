@@ -106,6 +106,7 @@ struct OnboardingView: View {
     // First hunt
     @State private var pushOn = false
     @State private var watching = false
+    @State private var showPro = false
 
     private let steps = 5
 
@@ -413,6 +414,7 @@ struct OnboardingView: View {
             pushOn = await store.pushAllowed
             withAnimation { step = 4 }
             Task { await store.loadForYou() }
+            Task { await store.loadProProducts() }
             watchFirstHunt()
         }
     }
@@ -431,6 +433,7 @@ struct OnboardingView: View {
                 ScrollView { scoutList }.scrollIndicators(.hidden)
             }
             if made > 0 { whatsNext }
+            if made > 0, store.isCloud, !store.isPro, let t = store.proTrial { trialCard(t) }
             if !newest.isEmpty {
                 HStack(spacing: 8) {
                     ForEach(Array(newest)) { f in if let item = Catalog.item(f.itemID) { ProductThumb(item: item, size: 70) } }
@@ -477,6 +480,31 @@ struct OnboardingView: View {
                     .background(Theme.glass, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
             }
+    }
+
+    /// End of setup: the free trial, for people who can still take it.
+    private func trialCard(_ t: String) -> some View {
+        Button { showPro = true } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "bolt.fill").font(.system(size: 15, weight: .bold)).foregroundStyle(Theme.accentInk)
+                    .frame(width: 34, height: 34).background(Theme.gradient, in: Circle())
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Try Pro free for \(AppStore.spoken(t))").font(.subheadline.weight(.bold)).foregroundStyle(Theme.ink)
+                    Text("Up to 5 scouts, hunting every 6 hours and twice as deep").font(.caption).foregroundStyle(Theme.muted)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right").font(.caption.weight(.bold)).foregroundStyle(Theme.accent)
+            }
+            .padding(12)
+            .background(Theme.accent.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.accent.opacity(0.4)))
+        }
+        .buttonStyle(.plain)
+        .sheet(isPresented: $showPro) {
+            PaywallView().environment(store).environment(Router())
+                .preferredColorScheme(.dark).presentationBackground(Theme.panel)
+        }
     }
 
     /// What happens from here, so the wait for the first finds feels like part of the plan.

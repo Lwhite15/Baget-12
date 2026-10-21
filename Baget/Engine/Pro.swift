@@ -49,10 +49,35 @@ extension AppStore {
     }
 
     func loadProProducts() async {
-        guard proProducts.isEmpty else { return }
-        let products = (try? await Product.products(for: Self.proProductIDs)) ?? []
-        proProducts = products.sorted { ($0.subscription?.subscriptionPeriod.unit == .month ? 0 : 1) < ($1.subscription?.subscriptionPeriod.unit == .month ? 0 : 1) }
+        if proProducts.isEmpty {
+            let products = (try? await Product.products(for: Self.proProductIDs)) ?? []
+            proProducts = products.sorted { ($0.subscription?.subscriptionPeriod.unit == .month ? 0 : 1) < ($1.subscription?.subscriptionPeriod.unit == .month ? 0 : 1) }
+        }
+        if let sub = proProducts.first?.subscription { proTrialEligible = await sub.isEligibleForIntroOffer }
     }
+
+    /// "7-day" when this product has a free trial this person can still start; nil otherwise.
+    func trialLength(_ product: Product?) -> String? {
+        guard proTrialEligible, !isPro, let o = product?.subscription?.introductoryOffer, o.paymentMode == .freeTrial else { return nil }
+        let n = o.period.value * o.periodCount
+        switch o.period.unit {
+        case .day: return "\(n)-day"
+        case .week: return "\(n * 7)-day"
+        case .month: return n == 1 ? "1-month" : "\(n)-month"
+        case .year: return "1-year"
+        @unknown default: return nil
+        }
+    }
+
+    /// "7-day" → "7 days", "1-month" → "1 month".
+    static func spoken(_ t: String) -> String {
+        let parts = t.split(separator: "-")
+        guard parts.count == 2, let n = Int(parts[0]) else { return t }
+        return "\(n) \(parts[1])\(n == 1 ? "" : "s")"
+    }
+
+    /// The trial on offer for the yearly plan (what the setup screen and badges talk about).
+    var proTrial: String? { trialLength(proProducts.first { $0.id == "baget.pro.yearly" } ?? proProducts.first) }
 
     /// Buys Pro. The purchase is tied to this Baget account, checked by the server with Apple, then Pro turns on.
     @discardableResult
