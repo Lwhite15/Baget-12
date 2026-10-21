@@ -161,6 +161,7 @@ struct FindsView: View {
         case .all: return "Clear all"
         case .new: return "Clear new"
         case .liked: return "Clear liked"
+        case .intel: return "Clear intel"
         }
     }
 
@@ -170,6 +171,7 @@ struct FindsView: View {
         case .new: return "You're all caught up. Your squad keeps hunting in the background."
         case .liked: return "Nothing liked yet. Tap ♥ on a find you love and your agents will find more like it."
         case .all: return "Nothing here yet. Tap Sweep now, or pull down on Live."
+        case .intel: return "No intel right now. Droplists, release calendars and news your scouts come across land here."
         }
     }
 
