@@ -115,10 +115,28 @@ export function sizeFit(a: Agent, l: Listing): boolean | null {
 }
 
 // ── matching ──
+/** Words that say little about WHAT someone wants (colors, sizes, conditions): they can't carry a match alone. */
+const GENERIC = new Set(["black", "white", "red", "blue", "green", "grey", "gray", "brown", "pink", "purple", "orange", "yellow", "gold",
+  "silver", "beige", "cream", "tan", "navy", "dark", "light", "new", "used", "vintage", "rare", "cheap", "best", "good", "nice", "small",
+  "large", "big", "mini", "size", "men", "women", "mens", "womens", "man", "woman", "kid", "kids", "pair", "set", "deal", "sale", "find",
+  "finds", "classic", "original", "authentic", "limited", "edition", "style", "look", "like", "cool"].map((w) => w.endsWith("s") && w.length > 2 ? w.slice(0, -1) : w));
+
+/** A typed-in mission covers a product only when its distinctive words are in the product, whole words only:
+ *  both of them for a one- or two-word mission ("Dior glasses"), at least two for longer ones. */
+const tokens = (s: string) => words(norm(s).replace(/[^a-z0-9.]+/g, " "));
+export function missionCovers(mission: string, hay: string): boolean {
+  const all = tokens(mission);
+  const sig = all.filter((w) => !GENERIC.has(w));
+  const have = new Set(tokens(hay));
+  const use = sig.length ? sig : all;
+  if (!use.length) return false;
+  const hits = use.filter((w) => have.has(w)).length;
+  return hits >= Math.min(use.length, 2);
+}
+
 export function covers(a: Agent, l: Listing): boolean {
   if (a.mission_category) return a.mission_category === l.category;
-  const hay = haystack(l);
-  return words(a.mission_custom ?? "").some((w) => hay.includes(w));
+  return missionCovers(a.mission_custom ?? "", haystack(l));
 }
 export function intel(a: Agent): number {
   let k = 26 + Math.min(a.keywords.length, 5) * 6 + ((a.size || !sizeRequired(a)) ? 10 : 0) +

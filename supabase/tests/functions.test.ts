@@ -1494,4 +1494,13 @@ await test("store map: stores outside the US stay in, priced in dollars with the
   St.resetRates();
 });
 
+await test("typed-in missions: a color word alone doesn't make a match", async () => {
+  assert.equal(M.missionCovers("Dior glasses black", "tudor black bay 58 39mm watches diver steel"), false);
+  assert.equal(M.missionCovers("Dior glasses black", "dior blacktie s1i black glasses sunglasses"), true);
+  assert.equal(M.missionCovers("Dior glasses black", "dior sauvage eau de parfum fragrance"), false, "Dior alone isn't Dior glasses");
+  assert.equal(M.missionCovers("AR-platform pistols from licensed dealers", "ar platform pistol 10.5 inch"), true);
+  assert.equal(M.missionCovers("vinyl records", "radiohead in rainbows vinyl record lp"), true);
+  assert.equal(M.missionCovers("vinyl records", "carpet vinyl flooring"), false);
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

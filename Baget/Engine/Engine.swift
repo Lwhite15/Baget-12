@@ -33,6 +33,28 @@ enum TextMatch {
             .map { $0.hasSuffix("s") && $0.count > 2 ? String($0.dropLast()) : $0 }
     }
 
+    /// Words that say little about what someone wants (colors, sizes, conditions): they can't carry a match alone.
+    static let generic: Set<String> = Set(["black", "white", "red", "blue", "green", "grey", "gray", "brown", "pink", "purple", "orange", "yellow",
+        "gold", "silver", "beige", "cream", "tan", "navy", "dark", "light", "new", "used", "vintage", "rare", "cheap", "best", "good", "nice",
+        "small", "large", "big", "mini", "size", "men", "women", "mens", "womens", "man", "woman", "kid", "kids", "pair", "set", "deal", "sale",
+        "find", "finds", "classic", "original", "authentic", "limited", "edition", "style", "look", "like", "cool"]
+        .map { $0.hasSuffix("s") && $0.count > 2 ? String($0.dropLast()) : $0 })
+
+    /// A typed-in mission covers a product only when its distinctive words are in it, whole words only: both for a one-
+    /// or two-word mission ("Dior glasses"), at least two for longer ones.
+    private static func tokens(_ s: String) -> [String] {
+        words(norm(s).map { $0.isLetter || $0.isNumber || $0 == "." ? String($0) : " " }.joined())
+    }
+
+    static func missionCovers(_ mission: String, _ hay: String) -> Bool {
+        let all = tokens(mission)
+        let sig = all.filter { !generic.contains($0) }
+        let use = sig.isEmpty ? all : sig
+        guard !use.isEmpty else { return false }
+        let have = Set(tokens(hay))
+        return use.filter { have.contains($0) }.count >= min(use.count, 2)
+    }
+
     static func list(_ s: String) -> [String] {
         s.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
     }
@@ -121,9 +143,7 @@ enum Matcher {
     static func covers(_ a: Agent, _ item: Item) -> Bool {
         switch a.mission {
         case .category(let c): return c == item.category
-        case .custom(let text):
-            let hay = TextMatch.haystack(item)
-            return TextMatch.words(text).contains { hay.contains($0) }
+        case .custom(let text): return TextMatch.missionCovers(text, TextMatch.haystack(item))
         }
     }
 
