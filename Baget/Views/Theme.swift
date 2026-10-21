@@ -291,19 +291,25 @@ struct BrandTag: View {
     var live = false
 
     var body: some View {
+        // The whole name always shows: long names get tighter spacing, shrink a little, then wrap to a second line.
+        let long = text.count > 14
+        let shape = RoundedRectangle(cornerRadius: 11, style: .continuous)
         let t = Text(text.uppercased())
             .font(.system(size: 10.5, weight: .black, design: .rounded))
-            .tracking(1.4)
-            .lineLimit(1)
+            .tracking(long ? 0.6 : 1.4)
+            .lineLimit(2)
+            .minimumScaleFactor(0.75)
+            .multilineTextAlignment(.leading)
+            .fixedSize(horizontal: false, vertical: true)
             .padding(.horizontal, 9).padding(.vertical, 5)
         if live {
             t.foregroundStyle(.white)
-                .background(Capsule().fill(Theme.hot))
+                .background(shape.fill(Theme.hot))
                 .shadow(color: Theme.hot.opacity(0.5), radius: 8)
         } else {
             t.gradientText()
-                .background(Capsule().fill(Theme.bg.opacity(0.9)))
-                .overlay(Capsule().strokeBorder(Theme.gradient, lineWidth: 1))
+                .background(shape.fill(Theme.bg.opacity(0.9)))
+                .overlay(shape.strokeBorder(Theme.gradient, lineWidth: 1))
                 .shadow(color: Theme.cyan.opacity(0.35), radius: 7)
         }
     }
