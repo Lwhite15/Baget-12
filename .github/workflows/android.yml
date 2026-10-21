@@ -127,7 +127,7 @@ jobs:
           }
           shot() {   # a small screenshot, posted as a notice so it can be looked at without downloading anything
             adb shell screencap -p /sdcard/shot.png && adb pull /sdcard/shot.png "shots/$1.png" >/dev/null
-            python3 -c "import sys; from PIL import Image; i=Image.open(sys.argv[1]).convert('RGB'); i.thumbnail((300,1000)); i.save(sys.argv[2], quality=45)" "shots/$1.png" "shots/$1.jpg"
+            python3 -c "import sys; from PIL import Image; i=Image.open(sys.argv[1]).convert('RGB'); i.thumbnail((540,2000)); i.save(sys.argv[2], quality=75)" "shots/$1.png" "shots/$1.jpg"
           }
           go() { adb shell am start -n "$PKG/app.baget.MainActivity" --es go "$1" >/dev/null; sleep 4; crashed "$1"; shot "$2"; }
           adb install -r "$APK"
