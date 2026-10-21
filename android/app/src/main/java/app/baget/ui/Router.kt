@@ -141,7 +141,7 @@ fun AgentAvatar(agent: Agent?, size: Dp = 36.dp, preview: Avatar? = null, previe
         else {
             val auto = if (agent != null && nameOverride == null) AgentEmoji.pick(agent)
                        else AgentEmoji.pick(name, agent?.mission ?: mission, agent?.keywords ?: emptyList())
-            Txt(if (icon?.style == Avatar.Style.EMOJI) icon.emoji else auto, size = (size.value * 0.5f).sp, maxLines = 1)
+            Txt(if (icon?.style == Avatar.Style.EMOJI) icon.emoji.ifEmpty { auto } else auto, size = (size.value * 0.5f).sp, maxLines = 1)
         }
     }
 }

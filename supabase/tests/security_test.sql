@@ -45,6 +45,10 @@ select t.ok(t.n($$select * from public.agents where paused and alerts = 'quiet'$
 select t.err($$update public.agents set alerts = 'loud'$$, 'alerts must be normal, quiet or off');
 select t.err($$select * from public.device_tokens$$, 'device tokens not readable directly');
 select public.register_device(repeat('ab', 32), 'sandbox');
+select public.register_device('fcm_Token:APA91b' || repeat('Xy-_', 30), 'production', 'android');
+select t.err($$select public.register_device('not a token!', 'production', 'android')$$, 'android tokens must look like FCM tokens');
+select t.err($$select public.register_device('fcm_Token:APA91bXyz', 'production', 'ios')$$, 'iphone tokens must be hex');
+select t.err($$select * from public.play_subscriptions$$, 'play subscriptions not readable directly');
 update public.profiles set handle = 'larry.w', settings = '{"sweepMinutes":180}' where id = auth.uid();
 select t.ok((select handle = 'larry.w' from public.profiles where id = auth.uid()), 'can change own handle');
 select t.err($$update public.profiles set handle = 'BAD HANDLE!' where id = auth.uid()$$, 'handle format enforced');

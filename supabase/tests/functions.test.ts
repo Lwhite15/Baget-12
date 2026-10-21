@@ -927,6 +927,75 @@ await test("Pro: verified App Store purchases unlock it; forged, foreign or shar
   assert.ok(Date.parse(patches[0].pro_until) < Date.now(), "a refund from Apple ends Pro");
 });
 
+await test("Pro on Android: a Google Play purchase unlocks it; someone else's doesn't", async () => {
+  const sub = await import("../functions/subscription/handler.ts");
+  const later = new Date(Date.now() + 30 * 86400_000).toISOString();
+  let current: any = { subscriptionState: "SUBSCRIPTION_STATE_ACTIVE", externalAccountIdentifiers: { obfuscatedExternalAccountId: jumpman.user_id },
+    lineItems: [{ productId: "baget.pro.yearly", expiryTime: later }] };
+  const handler = sub.makeHandler(async () => { throw new Error("not apple"); }, async (pkg: string, token: string) => {
+    assert.equal(pkg, "app.baget"); assert.equal(token, "play-token-123456"); return current;
+  });
+  const patches: any[] = [];
+  let held: any[] = [];
+  reset([
+    [/auth\/v1\/user/, () => ok({ id: jumpman.user_id })],
+    [/GET .*rest\/v1\/play_subscriptions/, () => ok(held)],
+    [/POST .*rest\/v1\/play_subscriptions/, () => new Response(null, { status: 201 })],
+    [/PATCH .*rest\/v1\/play_subscriptions/, () => new Response(null, { status: 204 })],
+    [/GET .*rest\/v1\/profiles\?select=plan/, () => ok([{ plan: "free", pro_until: null }])],
+    [/PATCH .*rest\/v1\/profiles/, (_u: any, _i: any, b: any) => { patches.push(b); return new Response(null, { status: 204 }); }],
+    [/rest\/v1\/function_errors/, () => new Response(null, { status: 201 })],
+  ]);
+  const body = { platform: "android", product_id: "baget.pro.yearly", purchase_token: "play-token-123456" };
+  let r = await handler(post("subscription", body, { Authorization: "Bearer user-jwt" }));
+  let out = await r.json();
+  assert.equal(r.status, 200, JSON.stringify(out));
+  assert.equal(out.pro, true);
+  assert.equal(patches[0].plan, "pro");
+  assert.equal(patches[0].pro_until, later);
+
+  current = { ...current, externalAccountIdentifiers: { obfuscatedExternalAccountId: "99999999-0000-0000-0000-000000000000" } };
+  r = await handler(post("subscription", body, { Authorization: "Bearer user-jwt" }));
+  assert.equal(r.status, 409, "a purchase made from another Baget account can't be claimed");
+
+  current = { ...current, externalAccountIdentifiers: {} };
+  held = [{ user_id: "88888888-0000-0000-0000-000000000000" }];
+  r = await handler(post("subscription", body, { Authorization: "Bearer user-jwt" }));
+  assert.equal(r.status, 409, "one subscription, one account");
+
+  held = [];
+  current = { subscriptionState: "SUBSCRIPTION_STATE_EXPIRED", lineItems: [{ productId: "baget.pro.yearly", expiryTime: new Date(Date.now() - 1000).toISOString() }] };
+  r = await handler(post("subscription", body, { Authorization: "Bearer user-jwt" }));
+  out = await r.json();
+  assert.equal(out.pro, false, "an expired Play subscription doesn't unlock Pro");
+});
+
+await test("push: Android phones get a data message through FCM", async () => {
+  const kp = await crypto.subtle.generateKey({ name: "RSASSA-PKCS1-v1_5", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" }, true, ["sign"]);
+  const der = new Uint8Array(await crypto.subtle.exportKey("pkcs8", kp.privateKey));
+  const pem = "-----BEGIN PRIVATE KEY-----\n" + btoa(String.fromCharCode(...der)) + "\n-----END PRIVATE KEY-----\n";
+  process.env.GOOGLE_SERVICE_ACCOUNT = JSON.stringify({ client_email: "push@baget.iam.gserviceaccount.com", private_key: pem, project_id: "baget-app" });
+  const phone = "fcm_Token:APA91b" + "x".repeat(120);
+  reset([
+    [/GET .*rest\/v1\/notes\?select=\*/, () => ok([{ id: "55555555-0000-0000-0000-000000000000", user_id: jumpman.user_id, body: "Found one for you!", sender_name: "Jumpman Scout", kind: "available", find_id: null, held_for_morning: false, pushed_at: null }])],
+    [/rest\/v1\/profiles\?select=settings/, () => ok([{ settings: { pushLevel: "all" } }])],
+    [/rest\/v1\/device_tokens\?select/, () => ok([{ token: phone, environment: "production", platform: "android" }])],
+    [/GET .*rest\/v1\/notes\?select=id/, () => ok([{ id: "x" }])],
+    [/oauth2\.googleapis\.com\/token/, (_u, init) => { assert.match(String(init.body), /assertion=ey/); return ok({ access_token: "ya29.test", expires_in: 3600 }); }],
+    [/fcm\.googleapis\.com\/v1\/projects\/baget-app\/messages:send/, (_u, init) => { assert.equal((init.headers as any).Authorization, "Bearer ya29.test"); return ok({ name: "projects/baget-app/messages/1" }); }],
+    [/PATCH .*rest\/v1\/notes/, () => new Response(null, { status: 204 })],
+  ]);
+  const res = await push.handler(post("push", { note_id: "55555555-0000-0000-0000-000000000000" }, { "x-baget-secret": "s3cret-value" }));
+  assert.deepEqual(await res.json(), { sent: 1 });
+  const msg = calls.find((c) => c.url.includes("fcm.googleapis.com"))!.body.message;
+  assert.equal(msg.token, phone);
+  assert.equal(msg.data.title, "Jumpman Scout");
+  assert.equal(msg.data.body, "Found one for you!");
+  assert.equal(msg.android.priority, "HIGH");
+  assert.ok(!calls.some((c) => c.url.includes("push.apple.com")), "Android tokens never go to Apple");
+  delete process.env.GOOGLE_SERVICE_ACCOUNT;
+});
+
 await test("Free plan: scouts rest outside their 4-hour window", async () => {
   const at = (iso: string) => new Date(iso);
   const prof = (o: Record<string, unknown>) => reset([[/rest\/v1\/profiles/, () => ok([{ plan: "free", pro_until: null, tz: "America/New_York", settings: {}, ...o }])]]);

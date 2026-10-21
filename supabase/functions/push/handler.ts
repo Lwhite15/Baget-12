@@ -1,7 +1,8 @@
-// Delivers notifications to iPhones.
+// Delivers notifications to iPhones (APNs) and Android phones (FCM).
 //  * {note_id}: called by the database the moment a notification is saved.
 //  * {release: true}: called hourly by the scheduler to send notes held overnight by quiet hours.
 import { apnsConfigured, lastApns, pemToDer, sendPush, signJWT } from "../_shared/apns.ts";
+import { fcmConfigured, lastFcm, sendFcm } from "../_shared/google.ts";
 import { HttpError, db, env, handle, isScheduler, json } from "../_shared/platform.ts";
 import { morningDigest, watchCheck } from "../_shared/daily.ts";
 
@@ -69,7 +70,8 @@ export async function deliver(noteId: string): Promise<number> {
     await db.update("notes", `id=eq.${n.id}`, { pushed_at: new Date().toISOString(), push_skipped: true });
     return 0;
   }
-  const tokens = await db.select<{ token: string; environment: string }>("device_tokens", `select=token,environment&user_id=eq.${n.user_id}`);
+  const tokens = (await db.select<{ token: string; environment: string; platform?: string }>("device_tokens", `select=token,environment,platform&user_id=eq.${n.user_id}`))
+    .filter((t) => (t.platform === "android" ? fcmConfigured() : apnsConfigured()));
   if (!tokens.length) return 0;
   const unread = await db.select<{ id: string }>("notes", `select=id&user_id=eq.${n.user_id}&read=eq.false&limit=99`);
   const info = n.find_id ? await findInfo(n.find_id) : { subtitle: "", image: "" };
@@ -82,8 +84,13 @@ export async function deliver(noteId: string): Promise<number> {
     findID: n.find_id,
   };
   let sent = 0, failed = 0;
+  // Android draws the notification itself from these fields (see BagetMessagingService).
+  const data: Record<string, string> = {
+    noteID: n.id, title: n.sender_name || "Baget", body: n.body, thread: n.kind === "friend" ? "friends" : "finds",
+    ...(subtitle ? { subtitle } : {}), ...(info.image ? { image: info.image } : {}), ...(n.find_id ? { findID: n.find_id } : {}),
+  };
   for (const t of tokens) {
-    const r = await sendPush(t.token, t.environment, payload, n.id);
+    const r = t.platform === "android" ? await sendFcm(t.token, data, n.id) : await sendPush(t.token, t.environment, payload, n.id);
     if (r === "sent") sent++;
     if (r === "failed") failed++;
     if (r === "drop-token") await db.remove("device_tokens", `token=eq.${t.token}`);
@@ -102,7 +109,7 @@ async function diagnose() {
     await signJWT(p8, kid, team, Math.floor(Date.now() / 1000));
     out.signs = true;
     // Send one real test notification to each registered device and report what Apple said.
-    const devices = await db.select<{ token: string; environment: string }>("device_tokens", "select=token,environment&limit=3");
+    const devices = await db.select<{ token: string; environment: string }>("device_tokens", "select=token,environment&platform=eq.ios&limit=3");
     out.tests = [];
     for (const d of devices) {
       const r = await sendPush(d.token, d.environment, { aps: { alert: { title: "Baget", body: "Notifications are on. Your squad will text you here." }, sound: "default" } });
@@ -112,12 +119,24 @@ async function diagnose() {
     out.signs = false;
     out.error = String((e as Error).message).slice(0, 200);
   }
+  // Android: send one test notification to each registered Android phone.
+  out.fcm = fcmConfigured();
+  if (fcmConfigured()) {
+    try {
+      const phones = await db.select<{ token: string }>("device_tokens", "select=token&platform=eq.android&limit=3");
+      out.androidTests = [];
+      for (const d of phones) {
+        const r = await sendFcm(d.token, { title: "Baget", body: "Notifications are on. Your squad will text you here.", noteID: crypto.randomUUID() });
+        (out.androidTests as unknown[]).push({ tokenLength: d.token.length, result: r, google: lastFcm });
+      }
+    } catch (e) { out.fcmError = String((e as Error).message).slice(0, 200); }
+  }
   return out;
 }
 
 export const handler = handle(async (req) => {
   if (!isScheduler(req)) throw new HttpError(401, "Not allowed");
-  if (!apnsConfigured()) return json({ sent: 0, note: "APNs not configured" });
+  if (!apnsConfigured() && !fcmConfigured()) return json({ sent: 0, note: "Push not configured" });
   const body = await req.json().catch(() => ({})) as { note_id?: string; release?: boolean; diagnose?: boolean };
   if (body.diagnose) return json(await diagnose());
   if (body.release) {
