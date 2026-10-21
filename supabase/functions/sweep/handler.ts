@@ -70,6 +70,11 @@ export const ANGLES = [
   "what's trending right now in their lane that fits their taste",
 ];
 
+/** Sneakers, clothing and fragrance live on release dates: these hunts always look ahead for upcoming and limited drops. */
+export const DROP_CATEGORIES = new Set(["sneakers", "apparel", "fragrance"]);
+export const UPCOMING_ANGLE = "upcoming releases in the next 60 days and limited releases (release calendars, launch pages, " +
+  "brand and retailer raffles, collabs, numbered or limited-quantity runs)";
+
 export function anglesFor(agentId: string, now: Date): string[] {
   let h = 0;
   for (const c of agentId) h = (h * 31 + c.charCodeAt(0)) >>> 0;
@@ -148,7 +153,13 @@ How to hunt${depth.deep ? " (leave no stone unturned)" : ""}:
   Vary the wording: model names, nicknames, style codes, colorways, misspellings people use in listings, "deadstock", "NOS", "rare".
 - Look past page one and past the obvious big stores: the best finds are often on a small boutique, a forum post, an auction or a marketplace listing.${depth.fetches > 0 ? `
 - Open the most promising product pages with web_fetch to confirm the price, that it's in stock (and in their size), before you include it.` : ""}
-- Things available now, releasing in the next two weeks, or restocking.
+- Things available now, releasing soon, or restocking.${DROP_CATEGORIES.has(a.mission_category ?? "") ? `
+- Upcoming and limited releases matter most here. Check release calendars and launch pages (Nike SNKRS upcoming, adidas
+  Confirmed, New Balance and Jordan launch pages, retailer raffles like END. Launches and Kith, streetwear droplists, fragrance
+  houses' new launches) for products releasing in the next 60 days, and for limited, numbered or collab releases.
+  Include upcoming ones even with no price yet: set drop_at to the release date and time (with the timezone if the page gives
+  one) and use the brand's or a retailer's launch or product page for that release as the url (not a news article).
+- Set "limited": true for limited, numbered, collab or raffle-only releases.` : ""}
 - Take initiative: include at least two discovery picks the person never named (a maker, model, note, collab or era that fits their taste), and mark them "discovery": true.${r.liked.length || r.bought.length ? `
 - Their likes and buys are the strongest signal: find more in that spirit (same makers, materials, notes, silhouettes, eras), but not the same items again.` : ""}${r.passed.length ? `
 - Steer away from what they passed on as not their style.` : ""}${r.seen?.length ? `
@@ -179,7 +190,7 @@ Rules:
 - Up to 8 products. Aim for 5 or more strong ones; never pad with weak ones.
 
 End your reply with only this JSON in a \`\`\`json block:
-{"listings":[{"title":"","brand":"","category":"${a.mission_category ?? "other"}","price":null,"market":null,"source":"store name","url":"https://...","image_url":null,"drop_at":null,"sold_out":false,"creator":null,"traits":[],"sizes_in_stock":null,"sku":"","discovery":false,"about":"","pitch":"","text":""}]}`;
+{"listings":[{"title":"","brand":"","category":"${a.mission_category ?? "other"}","price":null,"market":null,"source":"store name","url":"https://...","image_url":null,"drop_at":null,"sold_out":false,"creator":null,"traits":[],"sizes_in_stock":null,"sku":"","discovery":false,"limited":false,"about":"","pitch":"","text":""}]}`;
 }
 
 /** Cleans what Claude returned. Anything without a real web address is dropped. */
@@ -227,7 +238,7 @@ export function cleanListings(raw: unknown, fallbackCategory: string): (Listing 
       sold_out: r.sold_out === true,
       creator: typeof r.creator === "string" && r.creator.trim() ? r.creator.trim().slice(0, 80) : null,
       traits: strs(r.traits, 10).map((t) => t.toLowerCase()),
-      tags: [],
+      tags: r.limited === true ? ["limited"] : [],
       sizes_in_stock: sizes && sizes.length ? sizes : null,
       sku: typeof r.sku === "string" ? r.sku.trim().slice(0, 60) : "",
       discovery: r.discovery === true,
@@ -258,7 +269,7 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
       ebaySearch(a, queries).catch(() => [] as Record<string, unknown>[]),
     ]);
     const depth = depthFor(a.pro !== false);
-    const messages: ClaudeMessage[] = [{ role: "user", content: sweepPrompt(a, now.toISOString().slice(0, 10), reactions, anglesFor(a.id, now).slice(0, depth.angles), leads,
+    const messages: ClaudeMessage[] = [{ role: "user", content: sweepPrompt(a, now.toISOString().slice(0, 10), reactions, (DROP_CATEGORIES.has(a.mission_category ?? "") ? [UPCOMING_ANGLE, ...anglesFor(a.id, now)] : anglesFor(a.id, now)).slice(0, depth.angles), leads,
       firstName(a.display_name), sourcesFor(a.mission_category, a.id, now, depth.sources), depth) }];
     // Searching: through Serper (Google, ~10x cheaper) when it's working, else Claude's built-in web search.
     const useSerper = opts.provider ? opts.provider === "serper" : await serperUsable();
@@ -819,11 +830,13 @@ export const handler = handle(async (req) => {
     trigger = "scheduled";
     // Dispatcher: claim the next scouts due and start each hunt in its own worker, so one slow hunt can't hold up or
     // crash the rest. Every 5 minutes × SWEEP_BATCH (20) = up to 5,760 hunts a day.
+    // Release reminders people set are due on the minute they picked, so they're checked every tick.
+    const reminders = await db.rpc<number>("send_release_reminders", {}).catch((e) => { console.error("reminders", e); return 0; });
     const due = await db.rpc<Candidate[]>("claim_sweeps", { p_limit: num("SWEEP_BATCH", 20), p_daily_cap: dailyCap });
     const results = await Promise.allSettled(due.map((a) => dispatchOne(a)));
     const failed = results.filter((r) => r.status === "rejected").length;
     if (failed) console.error("dispatch", `${failed} of ${due.length} hunts didn't start`);
-    return json({ dispatched: due.length, failed });
+    return json({ dispatched: due.length, failed, reminders });
   } else {
     const user = await requireUser(req);
     trigger = "manual";

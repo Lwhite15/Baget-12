@@ -8,7 +8,7 @@ import { morningDigest, watchCheck } from "../_shared/daily.ts";
 interface Note { id: string; user_id: string; body: string; sender_name: string; kind: string; agent_id?: string | null; find_id: string | null; held_for_morning: boolean; pushed_at: string | null }
 
 /** Kinds that always text: things you asked for or that can't wait. */
-const ALWAYS = new Set(["friend", "digest", "drop", "restock", "bought", "feedback"]);
+const ALWAYS = new Set(["friend", "digest", "drop", "restock", "bought", "feedback", "reminder"]);
 export const BEST_MIN_SCORE = 85;
 export const BEST_DAILY_CAP = 6;
 /** An agent set to "Quiet" texts only finds this strong. */

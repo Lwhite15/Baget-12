@@ -171,10 +171,11 @@ await test("scheduler claims due scouts and starts each hunt in its own worker",
   const started: any[] = [];
   reset([
     [/rpc\/claim_sweeps/, (_u, _i, b) => { assert.equal(b.p_limit, 20); return ok([{ ...jumpman, id: "a1" }, { ...jumpman, id: "a2" }]); }],
+    [/rpc\/send_release_reminders/, () => ok(2)],
     [/POST .*functions\/v1\/sweep/, (_u, init, b) => { started.push({ b, secret: (init.headers as any)["x-baget-secret"] }); return ok({ swept: 1, found: 0 }); }],
   ]);
   const res = await sweep.handler(post("sweep", { mode: "scheduled" }, { "x-baget-secret": "s3cret-value" }));
-  assert.deepEqual(await res.json(), { dispatched: 2, failed: 0 });
+  assert.deepEqual(await res.json(), { dispatched: 2, failed: 0, reminders: 2 });
   assert.deepEqual(started.map((x) => x.b.one.id), ["a1", "a2"]);
   assert.ok(started.every((x) => x.secret === "s3cret-value"), "each worker call is signed");
   const one = await sweep.handler(post("sweep", { one: { id: "x" } }, { "x-baget-secret": "wrong" }));

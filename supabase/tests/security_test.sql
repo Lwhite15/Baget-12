@@ -365,6 +365,29 @@ set role service_role;
 select t.ok(t.n($$select * from public.sweep_candidates(20, 30, 'bbbbbbbb-0000-0000-0000-000000000002', null)$$) = 0, 'Free: no extra hunts by refreshing the same day');
 reset role;
 
+-- Release reminders
+reset role;
+insert into public.listings (fingerprint, title, source, url, drop_at, category)
+  values ('test-upcoming', 'Test Runner OG', 'Nike', 'https://example.com/launch', now() + interval '3 days', 'sneakers');
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-0000-0000-000000000002', false);
+select t.ok(public.set_release_reminder((select id from public.listings where fingerprint = 'test-upcoming'), null, 60) is not null, 'you can ask to be reminded an hour before the drop');
+select t.ok(t.n('select * from public.release_reminders') = 1, 'and see your reminder');
+select t.ok((select abs(extract(epoch from (r.remind_at - (l.drop_at - interval '1 hour')))) < 1 from public.release_reminders r join public.listings l on l.id = r.listing_id), 'set for an hour before');
+select t.err($$select public.set_release_reminder((select id from public.listings where fingerprint = 'test-upcoming'), null, null, now() - interval '1 day')$$, 'not in the past');
+select t.err($$insert into public.release_reminders (user_id, listing_id, remind_at) values ('aaaaaaaa-0000-0000-0000-000000000001', (select id from public.listings where fingerprint = 'test-upcoming'), now())$$, 'not for someone else');
+select t.err($$select public.send_release_reminders()$$, 'people cannot fire reminders');
+select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
+select t.ok(t.n('select * from public.release_reminders') = 0, 'reminders are private');
+reset role;
+update public.listings set drop_at = now() + interval '30 minutes' where fingerprint = 'test-upcoming';
+select t.ok((select remind_at < now() from public.release_reminders where listing_id = (select id from public.listings where fingerprint = 'test-upcoming')), 'a moved release date moves the reminder');
+set role service_role;
+select t.ok(public.send_release_reminders() = 1, 'due reminders go out');
+select t.ok(public.send_release_reminders() = 0, 'once');
+reset role;
+select t.ok(t.n($$select * from public.notes where kind = 'reminder' and user_id = 'bbbbbbbb-0000-0000-0000-000000000002' and body like 'Reminder: the Test Runner OG releases %'$$) = 1, 'as a text naming the product and time');
+
 -- morning release and account deletion
 set role service_role;
 select t.ok(t.n('select * from public.release_held_notes()') >= 0, 'release runs');
