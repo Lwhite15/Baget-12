@@ -15,6 +15,8 @@ A native iPhone app (SwiftUI, iOS 17+) with a Supabase backend where the agents 
 | `supabase/tests/` | 54 database security checks and 18 server function tests |
 | `.github/workflows/backend.yml` | Tests, then deploys the backend to Supabase |
 | `.github/workflows/ios.yml` | Compiles the app on GitHub's Macs, then signs it and uploads it to TestFlight |
+| `android/` | The Android app (Kotlin, Jetpack Compose), same backend and features as the iPhone app |
+| `.github/workflows/android.yml` | Builds the Android app (APK and Play bundle) and launch-tests it on an emulator |
 
 ## How it works
 
@@ -104,6 +106,27 @@ On Mac or Linux: `base64 -i AuthKey_XXXX.p8 | pbcopy` or `base64 -w0 AuthKey_XXX
 
 Every push to `main` re-runs the checks. Backend changes redeploy automatically; run the iOS workflow
 whenever you want a new build on your phone.
+
+## Android
+
+The Android app lives in `android/`. GitHub builds it on every change (Actions > Android), checks it opens on an emulator,
+and keeps the installable APK and the Google Play bundle (`.aab`) under the run's Artifacts. No Android Studio needed.
+Without any of the secrets below it still builds and runs, with sample data only.
+
+1. **Signing key.** Add the `ANDROID_SIGNING` secret (one line of text Claude generated for you; keep a private backup).
+   Every build is then signed the same way, so new builds install over old ones.
+2. **Server.** It uses the same `SUPABASE_PROJECT_REF` and `SUPABASE_ANON_KEY` secrets as the iPhone build.
+3. **Sign in with Google.** In Google Cloud Console (APIs & Services > Credentials), create an OAuth client of type
+   *Web application* and one of type *Android* (package `app.baget`, plus the signing SHA-1 shown on each Android
+   build). Add the web client's ID as the `GOOGLE_WEB_CLIENT_ID` secret; the backend deploy turns Google on in Supabase.
+4. **Push notifications.** Create a Firebase project, add an Android app with package `app.baget`, download
+   `google-services.json` and add its contents as the `GOOGLE_SERVICES_JSON` secret. In Firebase > Project settings >
+   Service accounts, generate a private key and add the JSON as the `GOOGLE_SERVICE_ACCOUNT` secret.
+5. **Baget Pro on Google Play.** In Play Console, create subscriptions `baget.pro.monthly` ($14.99) and `baget.pro.yearly`
+   ($99.99). Under Users and permissions, invite the same service account's email with "View financial data" and
+   "Manage orders and subscriptions", so the server can confirm purchases.
+6. **Google Play.** New personal developer accounts must run a closed test with at least 12 testers for 14 days before
+   the app can go public. Upload the `.aab` from a build to the closed test track.
 
 ## Product photos
 
