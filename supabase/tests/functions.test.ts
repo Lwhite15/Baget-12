@@ -1474,4 +1474,24 @@ await test("intel: droplists and news are kept as intel, dealer results pages as
   assert.deepEqual(cl[0].tags, ["intel"]);
 });
 
+await test("store map: stores outside the US stay in, priced in dollars with their own price kept", async () => {
+  const St = await import("../functions/_shared/stores.ts");
+  St.resetRates();
+  const shoe = { title: "Salomon XT-6", handle: "xt6", vendor: "Salomon", product_type: "Footwear", tags: [], images: [{ src: "https://cdn.shopify.com/a.jpg" }],
+    variants: [{ option1: "42", price: "180.00", available: true }] };
+  const l: any = St.shopifyListing(shoe, "slamjam.com", "Slam Jam", ["sneakers"], "EUR", 1.08);
+  assert.equal(l.price, 194.4);
+  assert.equal(l.orig_price, 180);
+  assert.equal(l.orig_currency, "EUR");
+  assert.ok(l.tags.includes("intl"));
+  reset([
+    [/rest\/v1\/fx_rates\?select/, () => ok([])],
+    [/frankfurter/, () => ok({ rates: { USD: 1.08 } })],
+    [/POST .*rest\/v1\/fx_rates/, () => ok([])],
+  ]);
+  assert.equal(await St.usdRate("EUR"), 1.08);
+  assert.equal(await St.usdRate("USD"), 1);
+  St.resetRates();
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

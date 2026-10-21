@@ -79,23 +79,45 @@ const SHOE = /\b(shoe|shoes|sneaker|sneakers|footwear|trainer|trainers|boot|boot
 const SCENT = /\b(fragrance|parfum|perfume|cologne|eau de|edp|edt|extrait|scent)\b/i;
 const SIZE = /^(\d{1,2}(\.5)?|x{0,3}s|m|x{0,3}l|one size|os)$/i;
 
-/** Reads a Shopify store's newest products. null = not a Shopify catalog (or not in US dollars). */
-export async function shopifyProducts(domain: string, checkCurrency: boolean, fetchFn: FetchFn = fetch): Promise<ShopifyProduct[] | null> {
+/** Reads a Shopify store's newest products and the currency it prices in. null = not a Shopify catalog. */
+export async function shopifyProducts(domain: string, knownCurrency: string | null, fetchFn: FetchFn = fetch): Promise<{ products: ShopifyProduct[]; currency: string } | null> {
   const headers = { "User-Agent": "Mozilla/5.0 (compatible; BagetBot/1.0; +https://github.com/Lwhite15/Baget-12)", Accept: "application/json" };
-  if (checkCurrency) {
+  let currency = knownCurrency;
+  if (!currency) {
     const c = await fetchFn(`https://${domain}/cart.js`, { headers, signal: AbortSignal.timeout(8000) }).catch(() => null);
     if (!c?.ok) return null;
     const cart = await c.json().catch(() => null) as { currency?: string } | null;
-    if (cart?.currency !== "USD") return null;
+    if (!cart?.currency || !/^[A-Z]{3}$/.test(cart.currency)) return null;
+    currency = cart.currency;
   }
   const r = await fetchFn(`https://${domain}/products.json?limit=120`, { headers, signal: AbortSignal.timeout(10000) }).catch(() => null);
   if (!r?.ok || !(r.headers.get("content-type") ?? "").includes("json")) return null;
   const j = await r.json().catch(() => null) as { products?: ShopifyProduct[] } | null;
-  return Array.isArray(j?.products) ? j!.products : null;
+  return Array.isArray(j?.products) ? { products: j!.products, currency } : null;
 }
 
+// ── Currencies ──
+
+const rates = new Map<string, number>();
+/** US dollars per one unit of `cur` (1 for USD), from the European Central Bank's daily rates; null if unknown. */
+export async function usdRate(cur: string, fetchFn: FetchFn = fetch): Promise<number | null> {
+  if (cur === "USD") return 1;
+  if (rates.has(cur)) return rates.get(cur)!;
+  const [row] = await db.select<{ usd: number; updated_at: string }>("fx_rates", `select=usd,updated_at&currency=eq.${cur}`).catch(() => []);
+  if (row && Date.now() - Date.parse(row.updated_at) < 36 * 3600_000) { rates.set(cur, Number(row.usd)); return Number(row.usd); }
+  const r = await fetchFn(`https://api.frankfurter.app/latest?from=${cur}&to=USD`, { signal: AbortSignal.timeout(8000) }).catch(() => null);
+  const j = r?.ok ? await r.json().catch(() => null) as { rates?: { USD?: number } } | null : null;
+  const usd = j?.rates?.USD;
+  if (!usd || !(usd > 0)) return row ? Number(row.usd) : null;   // a day-old rate beats none
+  rates.set(cur, usd);
+  await db.raw("/rest/v1/fx_rates", { method: "POST", headers: { Prefer: "return=minimal,resolution=merge-duplicates" },
+    body: JSON.stringify({ currency: cur, usd, updated_at: new Date().toISOString() }) }).catch(() => {});
+  return usd;
+}
+export function resetRates() { rates.clear(); }
+
 /** A Shopify product as a listing in one of the store's categories, or null if it isn't for sale or doesn't fit. */
-export function shopifyListing(p: ShopifyProduct, domain: string, storeName: string, categories: string[]) {
+export function shopifyListing(p: ShopifyProduct, domain: string, storeName: string, categories: string[], currency = "USD", rate = 1) {
   const title = (p.title ?? "").trim();
   const variants = p.variants ?? [];
   const avail = variants.filter((v) => v.available);
@@ -113,14 +135,17 @@ export function shopifyListing(p: ShopifyProduct, domain: string, storeName: str
   if (/\b(gift card|e-gift|sample|tester|decant|sticker|shipping protection|insurance)\b/i.test(title)) return null;
   const sizes = [...new Set(avail.map((v) => (v.option1 ?? v.title ?? "").trim()).filter((s) => SIZE.test(s)))].slice(0, 40);
   const host = domain.replace(/^www\./, "");
+  const local = Math.min(...prices);
+  const intl = currency !== "USD";
   return {
     fingerprint: `${host}|${norm(title).replace(/[^a-z0-9]+/g, " ").trim()}`.slice(0, 300),
     title: title.slice(0, 200), brand: (p.vendor ?? "").trim().slice(0, 80), category,
-    price: Math.min(...prices), market: null, source: storeName.slice(0, 80) || host,
+    price: intl ? Math.round(local * rate * 100) / 100 : local, market: null, source: storeName.slice(0, 80) || host,
+    ...(intl ? { orig_price: local, orig_currency: currency } : {}),
     url: `https://${domain}/products/${p.handle}`.slice(0, 1000), image_url: image.startsWith("//") ? `https:${image}` : image.slice(0, 500),
     drop_at: null, sold_out: false, creator: null,
     traits: [...new Set([...(p.product_type ? [p.product_type.toLowerCase()] : []), ...tags])].slice(0, 10),
-    tags: ["catalog"], sizes_in_stock: sizes.length ? sizes : null, sku: "",
+    tags: intl ? ["catalog", "intl"] : ["catalog"], sizes_in_stock: sizes.length ? sizes : null, sku: "",
   };
 }
 
@@ -130,20 +155,25 @@ type Scout = Agent & { pro?: boolean };
 export async function storeFeeds(limit: number, now = new Date(), fetchFn: FetchFn = fetch) {
   const due = await db.rpc<{ domain: string; categories: string[]; shopify: boolean | null }[]>("claim_feeds", { p_n: limit });
   if (!due.length) return { stores: 0, read: 0, kept: 0 };
-  const names = new Map((await db.select<{ domain: string; name: string }>("stores",
-    `select=domain,name&domain=in.(${due.map((d) => `"${d.domain}"`).join(",")})`).catch(() => [])).map((r) => [r.domain, r.name]));
+  const storeRows = await db.select<{ domain: string; name: string; currency: string | null }>("stores",
+    `select=domain,name,currency&domain=in.(${due.map((d) => `"${d.domain}"`).join(",")})`).catch(() => []);
+  const names = new Map(storeRows.map((r) => [r.domain, r.name]));
+  const currencies = new Map(storeRows.filter((r) => r.currency).map((r) => [r.domain, r.currency!]));
   const cats = [...new Set(due.flatMap((d) => d.categories))];
   const scouts = await db.rpc<Scout[]>("feed_scouts", { p_categories: cats }).catch(() => [] as Scout[]);
   let read = 0, kept = 0;
   for (const d of due) {
-    const products = await shopifyProducts(d.domain, d.shopify !== true, fetchFn).catch(() => null);
-    if (!products) {
+    const got = await shopifyProducts(d.domain, d.shopify === true ? currencies.get(d.domain) ?? null : null, fetchFn).catch(() => null);
+    if (!got) {
       if (d.shopify !== false) await db.update("stores", `domain=eq.${d.domain}`, { shopify: false }).catch(() => {});
       continue;
     }
+    // Stores outside the US: prices converted to dollars, the store's own price kept alongside.
+    const rate = await usdRate(got.currency, fetchFn).catch(() => null);
+    await db.update("stores", `domain=eq.${d.domain}`, { shopify: true, feed_products: got.products.length, currency: got.currency }).catch(() => {});
+    if (!rate) continue;
     read++;
-    await db.update("stores", `domain=eq.${d.domain}`, { shopify: true, feed_products: products.length }).catch(() => {});
-    const listings = products.map((p) => shopifyListing(p, d.domain, names.get(d.domain) ?? d.domain, d.categories)).filter((x) => x !== null);
+    const listings = got.products.map((p) => shopifyListing(p, d.domain, names.get(d.domain) ?? d.domain, d.categories, got.currency, rate)).filter((x) => x !== null);
     if (!listings.length) continue;
     // Each scout keeps its 5 strongest matches from this store.
     const byUser = new Map<string, typeof listings>();
@@ -157,8 +187,12 @@ export async function storeFeeds(limit: number, now = new Date(), fetchFn: Fetch
       byUser.set(a.user_id, list);
     }
     for (const [user, list] of byUser) {
-      const saved = await db.rpc<{ id: string }[]>("upsert_listings", { p_user: user, p_listings: list }).catch(() => []);
+      const saved = await db.rpc<{ id: string; fingerprint: string }[]>("upsert_listings", { p_user: user, p_listings: list }).catch(() => []);
       if (!saved.length) continue;
+      for (const s of saved) {
+        const l = list.find((x) => x.fingerprint === s.fingerprint) as { orig_price?: number; orig_currency?: string; price: number } | undefined;
+        if (l?.orig_currency) await db.update("listings", `id=eq.${s.id}`, { orig_price: l.orig_price, orig_currency: l.orig_currency, price: l.price }).catch(() => {});
+      }
       kept += saved.length;
       await db.raw("/rest/v1/listing_seen", { method: "POST", headers: { Prefer: "return=minimal,resolution=merge-duplicates" },
         body: JSON.stringify(saved.map((x) => ({ user_id: user, listing_id: x.id, seen_at: now.toISOString() }))) }).catch((e) => console.error("feed seen", e));
