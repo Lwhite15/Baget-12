@@ -284,6 +284,7 @@ struct FindCard: View {
     var highlighted = false
     @Binding var expanded: Bool
     @State private var askingWhy = false
+    @State private var reminding = false
     @Environment(\.openURL) private var openURL
 
     var body: some View {
@@ -302,6 +303,13 @@ struct FindCard: View {
             .contentShape(.contextMenuPreview, RoundedRectangle(cornerRadius: 18, style: .continuous))
             .contextMenu {
                 Button(role: .destructive) { remove() } label: { Label("Remove", systemImage: "trash") }
+            }
+            .sheet(isPresented: $reminding) {
+                ReminderSheet(item: item, findID: find.id)
+                    .environment(store).environment(router)
+                    .presentationDetents([.medium, .large])
+                    .presentationBackground(Theme.panel)
+                    .preferredColorScheme(.dark)
             }
             .confirmationDialog("What was off? \(agent?.name ?? "Your agent") will learn from it.", isPresented: $askingWhy, titleVisibility: .visible) {
                 ForEach(AppStore.PassReason.allCases) { r in
@@ -332,6 +340,8 @@ struct FindCard: View {
                     if isNew { badge("NEW", Theme.accent) }
                     if store.isSoldOut(item) { badge("SOLD OUT", Theme.warn) }
                     else if !store.isLive(item) { badge(store.whenLabel(item), Theme.blue) }
+                    if item.tags.contains("limited") { badge("LIMITED", Theme.hot) }
+                    if store.reminder(for: item) != nil { Image(systemName: "bell.fill").font(.caption2).foregroundStyle(Theme.blue).accessibilityLabel("Reminder set") }
                     if find.status == .liked { Image(systemName: "heart.fill").font(.caption).foregroundStyle(Theme.hot) }
                     Spacer(minLength: 0)
                     Text("\(find.score)%")
@@ -373,6 +383,7 @@ struct FindCard: View {
         let diff = known && item.market > 0 ? item.market - item.price : 0
         let pct = known && item.market > 0 ? Int(safe: (diff / item.price * 100).rounded()) : 0
         VStack(alignment: .leading, spacing: 10) {
+            if ReminderSheet.upcoming(item) { releaseRow(item) }
             if let v = DealVerdict.of(item) {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text(v.emoji)
@@ -440,6 +451,24 @@ struct FindCard: View {
         .transition(.opacity.combined(with: .move(edge: .top)))
     }
 
+    /// Not out yet: when it releases, and a reminder you time yourself.
+    private func releaseRow(_ item: Item) -> some View {
+        let r = store.reminder(for: item)
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Image(systemName: "calendar").foregroundStyle(Theme.blue)
+                Text("Releases \(ReminderSheet.fmt(item.dropAt!))").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
+                if item.tags.contains("limited") { Text("· Limited").font(.footnote.weight(.semibold)).foregroundStyle(Theme.hot) }
+            }
+            chip(r == nil ? "bell" : "bell.fill", r == nil ? "Remind me" : "Reminder · \(ReminderSheet.short(r!.remindAt))",
+                 primary: r == nil, tint: r == nil ? nil : Theme.blue) { reminding = true }
+                .accessibilityLabel(r == nil ? "Set a release reminder" : "Release reminder set. Tap to change")
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.blue.opacity(0.10), in: RoundedRectangle(cornerRadius: 12))
+    }
+
     private func priceCell(_ label: String, _ value: String, _ tint: Color?) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label).font(.system(size: 9, weight: .semibold)).tracking(1).foregroundStyle(Theme.muted)
@@ -471,6 +500,10 @@ struct FindCard: View {
                     router.say(on ? "Stopped watching this one" : "I'll check \(item.source) and text you the moment it's back")
                 }
                 .accessibilityLabel(on ? "Watching for a restock. Tap to stop" : "Notify me when it's back in stock")
+            } else if ReminderSheet.upcoming(item) {
+                let r = store.reminder(for: item)
+                chip(r == nil ? "bell" : "bell.fill", r == nil ? "Remind me" : "Reminder set", tint: r == nil ? nil : Theme.blue) { reminding = true }
+                    .accessibilityLabel(r == nil ? "Set a release reminder" : "Release reminder set. Tap to change")
             } else if let link {
                 chip("arrow.up.right", "Buy") {
                     Analytics.track(.checkoutOpened, ["category": item.category.rawValue, "toStore": true, "from": "find"])

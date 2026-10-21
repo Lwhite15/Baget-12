@@ -418,6 +418,35 @@ final class AppStore {
         save()
     }
 
+    // MARK: Release reminders
+
+    func reminder(for item: Item) -> ReleaseReminder? {
+        guard let r = state.reminders[item.id], r.remindAt > .now.addingTimeInterval(-60) else { return nil }
+        return r
+    }
+
+    /// Remind me `offsetMinutes` before the drop, or at an exact time. Returns false if that moment has passed.
+    @discardableResult
+    func setReminder(_ item: Item, findID: String?, offsetMinutes: Int? = nil, at: Date? = nil) -> Bool {
+        let when: Date
+        if let m = offsetMinutes, let drop = item.dropAt { when = drop.addingTimeInterval(-Double(m) * 60) }
+        else if let at { when = at } else { return false }
+        guard when > .now else { return false }
+        state.reminders[item.id] = ReleaseReminder(remindAt: when, offsetMinutes: offsetMinutes)
+        var args: [String: Any] = ["p_listing": item.id, "p_find": findID.map { $0 as Any } ?? NSNull()]
+        if let m = offsetMinutes { args["p_offset_minutes"] = m } else { args["p_remind_at"] = ISO8601DateFormatter().string(from: when) }
+        push { api in try await api.rpcVoid("set_release_reminder", args) }
+        Analytics.track(.reminderSet, ["category": item.category.rawValue, "offset": offsetMinutes ?? -1])
+        save()
+        return true
+    }
+
+    func removeReminder(_ item: Item) {
+        state.reminders[item.id] = nil
+        push { api in try await api.delete("release_reminders", "listing_id=eq.\(item.id)") }
+        save()
+    }
+
     func watch(_ findID: String) {
         guard let fi = state.finds.firstIndex(where: { $0.id == findID }), let item = Catalog.item(state.finds[fi].itemID) else { return }
         state.finds[fi].watching = true

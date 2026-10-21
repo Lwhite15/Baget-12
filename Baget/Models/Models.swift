@@ -322,6 +322,14 @@ enum NoteKind: String, Codable {
     case digest, drop
     /// A tester sent feedback (owner accounts only).
     case feedback
+    /// A release reminder the person set on an upcoming find.
+    case reminder
+}
+
+/// "Remind me" on an upcoming release: some minutes before the drop (follows the date if it moves), or an exact time.
+struct ReleaseReminder: Codable, Hashable {
+    var remindAt: Date
+    var offsetMinutes: Int?
 }
 
 enum NoteGroup: String, Codable, CaseIterable, Identifiable {
@@ -341,7 +349,7 @@ enum NoteGroup: String, Codable, CaseIterable, Identifiable {
 extension NoteKind {
     var group: NoteGroup? {
         switch self {
-        case .release, .available: return .finds
+        case .release, .available, .reminder: return .finds
         case .watch, .restock: return .restocks
         case .steal, .drop: return .steals
         case .digest: return .finds
@@ -490,6 +498,8 @@ struct AppState: Codable {
     /// The last For You feed and when it loaded, so Today shows it instantly on open and refreshes quietly.
     var forYou: [ForYouItem] = []
     var forYouAt: Date? = nil
+    /// Release reminders you've set, by listing id.
+    var reminders: [String: ReleaseReminder] = [:]
 
     init() {}
 
@@ -521,6 +531,7 @@ struct AppState: Codable {
         avatar = (try? c.decode(Avatar.self, forKey: .avatar)) ?? Avatar()
         forYou = (try? c.decode([ForYouItem].self, forKey: .forYou)) ?? []
         forYouAt = try? c.decode(Date.self, forKey: .forYouAt)
+        reminders = (try? c.decode([String: ReleaseReminder].self, forKey: .reminders)) ?? [:]
     }
 }
 

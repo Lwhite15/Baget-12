@@ -110,6 +110,12 @@ struct PurchaseRow: Decodable {
     let purchasedAt: Date
 }
 
+struct ReminderRow: Decodable {
+    let listingId: String
+    let remindAt: Date
+    let offsetMinutes: Int?
+}
+
 struct NoteRow: Decodable {
     let id: String
     let agentId: String?
@@ -269,11 +275,15 @@ extension AppStore {
             async let friendsQ: [FriendRow] = api.rpc("my_friends")
             async let suggestionsQ: [SuggestionRow] = api.select("suggestions", "select=*,listing:listings(*)&to_user=eq.\(uid)&order=created_at.desc&limit=100")
             async let sharesQ: [ShareRow] = api.select("shares", "select=*,listing:listings(*),replies:share_replies(*)&from_user=eq.\(uid)&order=created_at.desc&limit=100")
+            async let remindersQ: [ReminderRow] = api.select("release_reminders", "select=listing_id,remind_at,offset_minutes&sent_at=is.null")
             async let profileQ: Data = api.raw("GET", "/rest/v1/profiles", query: [URLQueryItem(name: "select", value: "*"), URLQueryItem(name: "id", value: "eq.\(uid)")])
 
             let (agents, photos, finds, purchases, notes) = try await (agentsQ, photosQ, findsQ, purchasesQ, notesQ)
             let (friends, suggestions, shares, profileData) = try await (friendsQ, suggestionsQ, sharesQ, profileQ)
+            let reminders = (try? await remindersQ) ?? []
             guard isCloud else { return }   // signed out while loading
+            state.reminders = Dictionary(reminders.map { ($0.listingId, ReleaseReminder(remindAt: $0.remindAt, offsetMinutes: $0.offsetMinutes)) },
+                                         uniquingKeysWith: { a, _ in a })
 
             var catalog: [String: Item] = [:]
             for f in finds { if let l = f.listing { catalog[l.id] = l.item } }
