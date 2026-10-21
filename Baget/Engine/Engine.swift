@@ -262,6 +262,7 @@ enum FriendVoice {
         case (.digest, _): return extra.isEmpty ? "Today's Drop is ready: your squad's best picks." : extra
         case (.drop, _): return "Price drop: the \(t) is now \(price) at \(src)."
         case (.feedback, _): return extra
+        case (.reminder, _): return "Reminder: the \(t) releases \(when) at \(src)."
         }
     }
 
