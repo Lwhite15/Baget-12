@@ -271,8 +271,22 @@ set role authenticated;
 select set_config('request.jwt.claim.sub', 'cccccccc-0000-0000-0000-000000000003', false);
 select t.ok(t.n('select * from public.for_you(10)') = 0, 'a new account with no scouts has a blank For You');
 select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
-select t.ok((select x ->> 'kind' = 'match' and x -> 'listing' ->> 'title' = 'Air Jordan 1 Low Mocha' from public.for_you(10) x limit 1), 'the best taste match comes first');
+select t.ok((select x -> 'listing' ->> 'title' = 'Air Jordan 1 Low Mocha' from public.for_you(10) x where x ->> 'kind' in ('match', 'similar') limit 1), 'the best taste match comes first after their own finds');
+
 select t.ok(not exists (select 1 from public.for_you(10) x where x -> 'listing' ->> 'title' = 'Jordan 4 Mystery'), 'no photo, not shown');
+reset role;
+insert into public.listings (fingerprint, title, brand, category, url, image_url, traits, price)
+  values ('fy|seed', 'Seed Runner Suede', 'Seedco', 'sneakers', 'https://seed.example/p/1', 'https://img.example/s1.jpg', '{suede,gum sole}', 150),
+         ('fy|twin', 'Seedco Trail Suede', 'Seedco', 'sneakers', 'https://seed.example/p/2', 'https://img.example/s2.jpg', '{suede}', 160);
+insert into public.listing_seen (user_id, listing_id) select 'aaaaaaaa-0000-0000-0000-000000000001', id from public.listings where fingerprint = 'fy|twin';
+insert into public.finds (user_id, agent_id, listing_id, score, why, status)
+  select 'aaaaaaaa-0000-0000-0000-000000000001', (select id from public.agents where user_id = 'aaaaaaaa-0000-0000-0000-000000000001' and mission_category = 'sneakers' limit 1),
+         id, 80, '{}', 'liked' from public.listings where fingerprint = 'fy|seed';
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
+select t.ok(exists (select 1 from public.for_you(24) x where x ->> 'kind' = 'similar' and x -> 'listing' ->> 'title' = 'Seedco Trail Suede' and x ->> 'reason' like 'Like your Seed Runner%'), 'comparable to a scout find: same brand, shared details, similar price');
+select t.ok(exists (select 1 from public.for_you(24) x where x ->> 'kind' = 'yours' and x -> 'listing' ->> 'title' = 'Seed Runner Suede'), 'and the find itself is there');
+select t.ok((select x ->> 'kind' = 'yours' from public.for_you(24) x limit 1), 'their scouts'' finds lead');
 do $d$ declare r record; begin for r in select x ->> 'kind' k, x -> 'listing' ->> 'title' t, x ->> 'reason' re from public.for_you(10) x loop raise notice 'FY % | % | %', r.k, r.t, r.re; end loop; end $d$;
 select t.ok(exists (select 1 from public.for_you(10) x where x -> 'listing' ->> 'title' = 'Gel-Kayano 14 Silver'), 'something new in what they hunt is mixed in');
 select t.ok(not exists (select 1 from public.for_you(10) x where x -> 'listing' ->> 'title' = 'Arc Floor Lamp'), 'but only within what their scouts hunt');
