@@ -1,0 +1,14 @@
+{
+  "subtitle": "AI scouts that shop for you",
+  "promotionalText": "Your own squad of AI scouts hunts drops, restocks and deals across the web, learns your taste, and texts you when they find something you'll love.",
+  "keywords": "sneakers,fragrance,watches,vintage,gifts,furniture,collectibles,vinyl,drops,restock,deals,resale",
+  "supportUrl": "https://github.com/Lwhite15/Baget-12/blob/main/SUPPORT.md",
+  "privacyPolicyUrl": "https://github.com/Lwhite15/Baget-12/blob/main/PRIVACY.md",
+  "primaryCategory": "SHOPPING",
+  "secondaryCategory": "LIFESTYLE",
+  "copyright": "2026 Larry White",
+  "releaseType": "MANUAL",
+  "build": "118",
+  "reviewNotes": "Sign in: tap 'Continue with email', then 'Sign in', and use the demo account below. The account has three scouts with real finds. Baget Pro is an auto-renewing subscription (monthly or yearly) on the Pro screen, reachable from Settings > Go Pro.",
+  "demoAccountName": "appreview@example.com"
+}

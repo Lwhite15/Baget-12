@@ -1,0 +1,37 @@
+# Fills the App Store listing (version 1.0) from appstore/ and the latest store screenshots. Doesn't submit for review.
+name: Fill App Store listing
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  fill:
+    runs-on: ubuntu-latest
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      BUNDLE_ID: ${{ secrets.BUNDLE_ID }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Get the store screenshots
+        run: |
+          git fetch -q origin shots && mkdir -p "$RUNNER_TEMP/shots"
+          for f in $(git ls-tree -r --name-only origin/shots | grep '^store/[0-9].*\.png$'); do git show "origin/shots:$f" > "$RUNNER_TEMP/shots/$(basename $f)"; done
+          ls "$RUNNER_TEMP/shots"
+      - name: Write key
+        env:
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/keys"
+          if printf '%s' "$ASC_KEY_P8_BASE64" | grep -q "BEGIN"; then printf '%s\n' "$ASC_KEY_P8_BASE64" > "$RUNNER_TEMP/keys/k.p8"
+          else echo "$ASC_KEY_P8_BASE64" | base64 --decode > "$RUNNER_TEMP/keys/k.p8"; fi
+          chmod 600 "$RUNNER_TEMP/keys/k.p8"
+      - name: Fill
+        env:
+          ASC_KEY_PATH: ${{ runner.temp }}/keys/k.p8
+          SHOTS_DIR: ${{ runner.temp }}/shots
+        run: |
+          pip install -q pyjwt cryptography requests
+          python3 scripts/fill_listing.py
+      - name: Remove key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/keys"
