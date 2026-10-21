@@ -186,7 +186,7 @@ struct Plate: View {
                     .scaledToFit()
                     .shadow(color: photo.lifted ? .black.opacity(0.45) : .clear, radius: 14, y: 8)
                     .padding(.horizontal, photo.lifted ? 18 : 10)
-                    .padding(.top, 30)
+                    .padding(.top, 50)
                     .padding(.bottom, 24)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .accessibilityLabel(item.title)
@@ -291,26 +291,20 @@ struct BrandTag: View {
     var live = false
 
     var body: some View {
-        // The whole name always shows: long names get tighter spacing, shrink a little, then wrap to a second line.
-        let long = text.count > 14
-        let shape = RoundedRectangle(cornerRadius: 11, style: .continuous)
-        let t = Text(text.uppercased())
-            .font(.system(size: 10.5, weight: .black, design: .rounded))
-            .tracking(long ? 0.6 : 1.4)
+        // The brand in Apple's serif (New York), plain white like a boutique label. The whole name always shows.
+        let t = Text(text)
+            .font(.system(size: 17, weight: .regular, design: .serif))
             .lineLimit(2)
-            .minimumScaleFactor(0.75)
+            .minimumScaleFactor(0.8)
             .multilineTextAlignment(.leading)
             .fixedSize(horizontal: false, vertical: true)
-            .padding(.horizontal, 9).padding(.vertical, 5)
         if live {
             t.foregroundStyle(.white)
-                .background(shape.fill(Theme.hot))
-                .shadow(color: Theme.hot.opacity(0.5), radius: 8)
+                .padding(.horizontal, 9).padding(.vertical, 4)
+                .background(Capsule().fill(Theme.hot))
         } else {
-            t.gradientText()
-                .background(shape.fill(Theme.bg.opacity(0.9)))
-                .overlay(shape.strokeBorder(Theme.gradient, lineWidth: 1))
-                .shadow(color: Theme.cyan.opacity(0.35), radius: 7)
+            t.foregroundStyle(.white)
+                .shadow(color: .black.opacity(0.55), radius: 6, y: 1)
         }
     }
 }
