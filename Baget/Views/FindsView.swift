@@ -11,7 +11,7 @@ private struct FindGroup: Identifiable {
 }
 
 enum FindsShow: String, CaseIterable, Identifiable {
-    case all = "All", new = "New", liked = "Liked"
+    case all = "All", new = "New", liked = "Liked", intel = "Intel"
     var id: String { rawValue }
 }
 
@@ -30,11 +30,12 @@ struct FindsView: View {
     /// Passed and bought finds leave the screen; the agents still learn from them and never show them again.
     private var visible: [Find] {
         store.state.finds.filter { f in
-            guard f.status == .open || f.status == .liked, Catalog.item(f.itemID)?.showable == true else { return false }
+            guard f.status == .open || f.status == .liked, Catalog.item(f.itemID)?.showsInFinds == true else { return false }
             switch show {
             case .all: return true
             case .new: return f.status == .open
             case .liked: return f.status == .liked
+            case .intel: return Catalog.item(f.itemID)?.isProduct == false
             }
         }
     }
@@ -79,8 +80,9 @@ struct FindsView: View {
 
     var body: some View {
         let groups = self.groups
-        let newTotal = store.state.finds.filter { $0.status == .open && Catalog.item($0.itemID)?.showable == true }.count
-        let likedTotal = store.state.finds.filter { $0.status == .liked && Catalog.item($0.itemID)?.showable == true }.count
+        let newTotal = store.state.finds.filter { $0.status == .open && Catalog.item($0.itemID)?.showsInFinds == true }.count
+        let likedTotal = store.state.finds.filter { $0.status == .liked && Catalog.item($0.itemID)?.showsInFinds == true }.count
+        let intelTotal = store.state.finds.filter { ($0.status == .open || $0.status == .liked) && Catalog.item($0.itemID).map { !$0.isProduct && $0.showsInFinds } == true }.count
 
         ScrollViewReader { proxy in
             ScrollView {
@@ -91,6 +93,7 @@ struct FindsView: View {
                         Text("All").tag(FindsShow.all)
                         Text(newTotal > 0 ? "New · \(newTotal)" : "New").tag(FindsShow.new)
                         Text(likedTotal > 0 ? "♥ Liked · \(likedTotal)" : "♥ Liked").tag(FindsShow.liked)
+                        if intelTotal > 0 { Text("Intel · \(intelTotal)").tag(FindsShow.intel) }
                     }
                     .pickerStyle(.segmented)
 
@@ -268,8 +271,13 @@ struct ProductThumb: View {
             } else {
                 Theme.glass
                 RadialGradient(colors: [Theme.blue.opacity(0.35), .clear], center: .topLeading, startRadius: 0, endRadius: size)
-                Text(item.brand.split(separator: " ").compactMap { $0.first }.prefix(2).map { String($0) }.joined().uppercased())
-                    .font(.system(size: size * 0.3, weight: .heavy)).foregroundStyle(Theme.ink)
+                if item.isProduct {
+                    Text(item.brand.split(separator: " ").compactMap { $0.first }.prefix(2).map { String($0) }.joined().uppercased())
+                        .font(.system(size: size * 0.3, weight: .heavy)).foregroundStyle(Theme.ink)
+                } else {
+                    Image(systemName: item.isIntel ? "newspaper.fill" : "list.bullet.rectangle.fill")
+                        .font(.system(size: size * 0.32, weight: .semibold)).foregroundStyle(Theme.cyan)
+                }
             }
         }
         .frame(width: size, height: size)
@@ -348,6 +356,8 @@ struct FindCard: View {
                     if store.isSoldOut(item) { badge("SOLD OUT", Theme.warn) }
                     else if !store.isLive(item) { badge(store.whenLabel(item), Theme.blue) }
                     if item.tags.contains("limited") { badge("LIMITED", Theme.hot) }
+                    if item.isIntel { badge("INTEL", Theme.cyan) }
+                    if item.isSearchLink { badge("SEARCH", Theme.cyan) }
                     if store.reminder(for: item) != nil { Image(systemName: "bell.fill").font(.caption2).foregroundStyle(Theme.blue).accessibilityLabel("Reminder set") }
                     if find.status == .liked { Image(systemName: "heart.fill").font(.caption).foregroundStyle(Theme.hot) }
                     Spacer(minLength: 0)
@@ -391,14 +401,15 @@ struct FindCard: View {
         let pct = known && item.market > 0 ? Int(safe: (diff / item.price * 100).rounded()) : 0
         VStack(alignment: .leading, spacing: 10) {
             if ReminderSheet.upcoming(item) { releaseRow(item) }
-            if let v = DealVerdict.of(item) {
+            if !item.isProduct { infoRow(item) }
+            if item.isProduct, let v = DealVerdict.of(item) {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text(v.emoji)
                     Text(v.title).font(.subheadline.weight(.bold)).foregroundStyle(v.tint)
                     Text(v.detail).font(.footnote).foregroundStyle(Theme.ink)
                 }
             }
-            if let offers = item.offers, !offers.isEmpty {
+            if item.isProduct, let offers = item.offers, !offers.isEmpty {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("OTHER STORES").font(.system(size: 9, weight: .semibold)).tracking(1).foregroundStyle(Theme.muted)
                     ForEach(offers.prefix(4), id: \.self) { o in
@@ -410,6 +421,7 @@ struct FindCard: View {
                     }
                 }
             }
+            if item.isProduct {
             HStack {
                 priceCell("PRICE", known ? Fmt.money(item.price) : "See store", nil)
                 priceCell("MARKET", known && item.market > 0 ? Fmt.money(item.market) : "—", nil)
@@ -418,6 +430,7 @@ struct FindCard: View {
             .padding(.vertical, 8)
             .overlay(alignment: .top) { Divider().overlay(Theme.line) }
             .overlay(alignment: .bottom) { Divider().overlay(Theme.line) }
+            }
 
             let traits = item.traits + (item.creator.map { [$0] } ?? [])
             if !traits.isEmpty {
@@ -456,6 +469,22 @@ struct FindCard: View {
             }
         }
         .transition(.opacity.combined(with: .move(edge: .top)))
+    }
+
+    /// Intel or a results page: what it is, and a way to read it.
+    private func infoRow(_ item: Item) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label(item.isIntel ? "Intel from \(item.source): worth knowing, not a product to buy" : "A page of listings on \(item.source), not a single item",
+                  systemImage: item.isIntel ? "newspaper" : "list.bullet.rectangle")
+                .font(.footnote).foregroundStyle(Theme.ink)
+            if let url = item.url.flatMap(URL.init(string:)) {
+                chip("arrow.up.right", item.isIntel ? "Read it" : "See listings") { openURL(url) }
+                    .accessibilityLabel(item.isIntel ? "Read it on \(item.source)" : "See the listings on \(item.source)")
+            }
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.cyan.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
     }
 
     /// Not out yet: when it releases, and a reminder you time yourself.
@@ -499,7 +528,7 @@ struct FindCard: View {
                 }
                 chip("xmark", "Pass") { askingWhy = true }
             }
-            if store.isSoldOut(item) && !item.isSample {
+            if item.isProduct && store.isSoldOut(item) && !item.isSample {
                 // Sold out: offer to watch the store's page and text when it's back.
                 let on = find.watching
                 chip(on ? "bell.fill" : "bell", on ? "Watching" : "Notify me", tint: on ? Theme.warn : nil) {
@@ -511,6 +540,9 @@ struct FindCard: View {
                 let r = store.reminder(for: item)
                 chip(r == nil ? "bell" : "bell.fill", r == nil ? "Remind me" : "Reminder set", tint: r == nil ? nil : Theme.blue) { reminding = true }
                     .accessibilityLabel(r == nil ? "Set a release reminder" : "Release reminder set. Tap to change")
+            } else if !item.isProduct, let url = item.url.flatMap(URL.init(string:)) {
+                chip("arrow.up.right", item.isIntel ? "Read" : "See listings") { openURL(url) }
+                    .accessibilityLabel(item.isIntel ? "Read it on \(item.source)" : "See the listings on \(item.source)")
             } else if let link {
                 chip("arrow.up.right", "Buy") {
                     Analytics.track(.checkoutOpened, ["category": item.category.rawValue, "toStore": true, "from": "find"])

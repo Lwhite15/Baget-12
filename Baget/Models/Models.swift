@@ -593,4 +593,12 @@ struct AwayReport: Codable, Hashable {
 extension Item {
     /// Shown in Finds, Swipe and Today's Drop only once Baget has its real photo (the sample tour has none, so it always shows).
     var showable: Bool { isSample || (imageURL?.hasPrefix("https://") ?? false) }
+    /// Not one product: "intel" (a droplist, release calendar, news or reference page) or "search" (a results page).
+    var isIntel: Bool { tags.contains("intel") }
+    var isSearchLink: Bool { tags.contains("search") }
+    var isProduct: Bool { !isIntel && !isSearchLink }
+    /// Today's Drop and the swipe deck: products with a photo.
+    var showsInDeals: Bool { showable && isProduct }
+    /// Finds: products with a photo, and intel and searches (which may not have one).
+    var showsInFinds: Bool { showable || (!isProduct && url != nil) }
 }
