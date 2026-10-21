@@ -7,6 +7,7 @@ import { type Block, type ClaudeMessage, HttpError, MODEL, batchResults, batchSt
 import { addImages, linkIsDead, pageProduct, smaller, traceImage } from "../_shared/images.ts";
 import { setupDemo, setupShots } from "./demo.ts";
 import { restockCheck } from "../_shared/daily.ts";
+import { blockedDomains, notAProduct, storeFeeds, storeLeads } from "../_shared/stores.ts";
 import { SEARCH_TOOL, hitsText, serperSearch, serperUsable } from "../_shared/search.ts";
 export { firstName };
 import { type Lead, attachOffers, ebayConfigured, ebaySearch, queriesFor, shoppingLeads, shoppingOffers } from "../_shared/sources.ts";
@@ -269,7 +270,9 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
       ebaySearch(a, queries).catch(() => [] as Record<string, unknown>[]),
     ]);
     const depth = depthFor(a.pro !== false);
-    const messages: ClaudeMessage[] = [{ role: "user", content: sweepPrompt(a, now.toISOString().slice(0, 10), reactions, (DROP_CATEGORIES.has(a.mission_category ?? "") ? [UPCOMING_ANGLE, ...anglesFor(a.id, now)] : anglesFor(a.id, now)).slice(0, depth.angles), leads,
+    const rotation = await storeLeads(a, a.pro !== false ? num("STORE_SEARCHES_PRO", 4) : num("STORE_SEARCHES_FREE", 2), now).catch(() => ({ text: "", searches: 0, stores: [] as string[] }));
+    run.searches += rotation.searches;
+    const messages: ClaudeMessage[] = [{ role: "user", content: (rotation.text ? rotation.text + "\n\n" : "") + sweepPrompt(a, now.toISOString().slice(0, 10), reactions, (DROP_CATEGORIES.has(a.mission_category ?? "") ? [UPCOMING_ANGLE, ...anglesFor(a.id, now)] : anglesFor(a.id, now)).slice(0, depth.angles), leads,
       firstName(a.display_name), sourcesFor(a.mission_category, a.id, now, depth.sources), depth) }];
     // Searching: through Serper (Google, ~10x cheaper) when it's working, else Claude's built-in web search.
     const useSerper = opts.provider ? opts.provider === "serper" : await serperUsable();
@@ -319,7 +322,8 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
         messages.push({ role: "user", content: "Time's up for this run. Don't search any more: reply now with the JSON for the best products you've confirmed so far." });
       }
     }
-    let listings = cleanListings(parseJSON(textOf(final)), a.mission_category ?? "other");
+    const blocked = await blockedDomains();
+    let listings = cleanListings(parseJSON(textOf(final)), a.mission_category ?? "other").filter((l) => !notAProduct(l.url, blocked));
     lastHunt.splice(0, lastHunt.length, ...listings.map((l) => `${l.title} | ${l.source} | ${l.price ?? "?"} | ${l.url}`.slice(0, 220)));
     // Made-up links (404) go; then each real one gets a verified product photo.
     const dead = await Promise.all(listings.map((l) => linkIsDead(l.url)));
@@ -588,6 +592,7 @@ export async function maintain() {
   out.restocks = await restockCheck(num("RESTOCK_CHECKS", 15)).catch((e) => { console.error("restocks", e); return null; });
   out.refreshed = await refreshFinds(num("REFRESH_CHECKS", 40)).catch((e) => { console.error("refresh", e); return null; });
   out.prices = await repriceOld(num("PRICE_BACKFILL", 10)).catch((e) => { console.error("prices", e); return null; });
+  out.stores = await db.rpc<number>("learn_stores", {}).catch((e) => { console.error("stores", e); return null; });
   return out;
 }
 
@@ -628,6 +633,7 @@ export async function pulseAgent(a: Candidate, now = new Date(), fetchFn: typeof
   for (let i = 0; i < hits.length; i++) {
     const p = pages[i];
     if (!p || p === "gone" || !p.name || !p.price || p.stock !== "in" || !p.image) continue;
+    if (notAProduct(hits[i].link, await blockedDomains())) continue;
     // The page's product is the one the search result named.
     const named = pwords(p.name), result = new Set(pwords(hits[i].title));
     if (!named.length || named.filter((w) => result.has(w)).length / named.length < 0.6) continue;
@@ -808,7 +814,12 @@ export const handler = handle(async (req) => {
   }
   // Upkeep, on its own schedule: photos, then descriptions, then brand blurbs.
   if (isScheduler(req) && body.maintain) return json(await maintain());
-  if (isScheduler(req) && body.pulse) return json(await pulseAll());
+  if (isScheduler(req) && body.pulse) {
+    const pulses = await pulseAll();
+    // Shopify catalogs ride along with the pulse tick: a few stores each time, every store about every 3 hours.
+    const feeds = await storeFeeds(num("FEED_BATCH", 6)).catch((e) => { console.error("feeds", e); return null; });
+    return json({ ...pulses, feeds });
+  }
   if (isScheduler(req) && typeof body.shots === "object" && body.shots) {
     return json(await setupShots(String((body.shots as { password_hash?: string }).password_hash ?? "")));
   }
