@@ -53,6 +53,13 @@ aid = call("GET", f"/apps?filter[bundleId]={os.environ['BUNDLE_ID']}")["data"][0
 vid = call("GET", f"/apps/{aid}/appStoreVersions?filter[platform]=IOS&limit=1")["data"][0]["id"]
 attrs = {"demoAccountName": EMAIL, "demoAccountPassword": pw, "demoAccountRequired": True}
 cur = call("GET", f"/appStoreVersions/{vid}/appStoreReviewDetail").get("data")
+CONTACT = ("contactFirstName", "contactLastName", "contactEmail", "contactPhone")
+have = (cur or {}).get("attributes") or {}
+missing = [k for k in CONTACT if not have.get(k)]
+if missing:
+    sys.exit("::error::Apple needs the App Review contact (first name, last name, email, phone) filled in App Store Connect "
+             "first, then run this again. Missing: " + ", ".join(missing))
+attrs.update({k: have[k] for k in CONTACT})
 if cur:
     call("PATCH", f"/appStoreReviewDetails/{cur['id']}", {"data": {"type": "appStoreReviewDetails", "id": cur["id"], "attributes": attrs}})
 else:
