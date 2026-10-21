@@ -24,6 +24,8 @@ struct FindsView: View {
     @State private var highlighted: String?
     @State private var sweeping = false
     @State private var confirmClear = false
+    /// First-run tips: 0-2 showing, 3 done. Shown once, on your first real finds.
+    @AppStorage("baget.findsTips") private var tipStep = 0
 
     /// Passed and bought finds leave the screen; the agents still learn from them and never show them again.
     private var visible: [Find] {
@@ -104,6 +106,11 @@ struct FindsView: View {
 
                     if groups.isEmpty {
                         EmptyCard(text: emptyText)
+                    }
+
+                    if tipStep < FindsTip.all.count && !visible.isEmpty {
+                        FindsTipCard(step: $tipStep)
+                            .transition(.opacity.combined(with: .move(edge: .top)))
                     }
 
                     ForEach(groups) { g in
@@ -694,5 +701,70 @@ struct CheckoutView: View {
             Text(label.uppercased()).font(.system(size: 9, weight: .semibold)).tracking(1).foregroundStyle(Theme.muted)
             Text(value).font(.system(.subheadline, design: .monospaced).weight(.semibold)).foregroundStyle(Theme.ink)
         }
+    }
+}
+
+
+// MARK: - First-run tips
+
+struct FindsTip {
+    let icon: String
+    let tint: Color
+    let title: String
+    let body: String
+    static let all: [FindsTip] = [
+        FindsTip(icon: "heart.fill", tint: Theme.hot, title: "Like teaches your scout",
+                 body: "Tap Like on anything that's your taste. Your scout leans into that brand and style and finds more like it."),
+        FindsTip(icon: "xmark", tint: Theme.accent, title: "Pass, and say why",
+                 body: "Too pricey, wrong style, not your brand: every reason sharpens the next hunt. The more you react, the better it gets."),
+        FindsTip(icon: "bell.fill", tint: Theme.warn, title: "Never miss a drop",
+                 body: "On something not out yet, tap Remind me and pick when. On something sold out, tap Notify me and you'll get a text when it's back."),
+    ]
+}
+
+/// Three quick tips above your first finds, one at a time.
+struct FindsTipCard: View {
+    @Binding var step: Int
+
+    var body: some View {
+        let i = min(step, FindsTip.all.count - 1)
+        let tip = FindsTip.all[i]
+        let last = i == FindsTip.all.count - 1
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: tip.icon)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(tip.tint)
+                    .frame(width: 38, height: 38)
+                    .background(tip.tint.opacity(0.16), in: Circle())
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(tip.title).font(.subheadline.weight(.bold)).foregroundStyle(Theme.ink)
+                    Text(tip.body).font(.footnote).foregroundStyle(Theme.muted).fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            HStack(spacing: 6) {
+                ForEach(0..<FindsTip.all.count, id: \.self) { d in
+                    Capsule().fill(d == i ? AnyShapeStyle(Theme.gradient) : AnyShapeStyle(Theme.line)).frame(width: d == i ? 16 : 6, height: 6)
+                }
+                Spacer()
+                if !last {
+                    Button("Skip") { withAnimation(.snappy) { step = FindsTip.all.count } }
+                        .font(.footnote).foregroundStyle(Theme.muted)
+                }
+                Button(last ? "Got it" : "Next") { withAnimation(.snappy) { step = i + 1 } }
+                    .font(.footnote.weight(.bold))
+                    .foregroundStyle(Theme.accentInk)
+                    .padding(.horizontal, 14).padding(.vertical, 7)
+                    .background(Theme.accent, in: Capsule())
+            }
+            if i < 2 {
+                Label("Try it on a find below", systemImage: "arrow.down").font(.caption2.weight(.semibold)).foregroundStyle(Theme.accent)
+            }
+        }
+        .padding(14)
+        .background(Theme.accent.opacity(0.08), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Theme.accent.opacity(0.35)))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Tip \(i + 1) of \(FindsTip.all.count): \(tip.title)")
     }
 }

@@ -423,26 +423,14 @@ struct OnboardingView: View {
         let newest = store.state.finds.filter { $0.status == .open }.sorted { $0.foundAt > $1.foundAt }.prefix(3)
         return VStack(alignment: .leading, spacing: 14) {
             Text(newest.isEmpty ? "Your squad is hunting" : "First finds are in").font(.system(size: 30, weight: .heavy)).foregroundStyle(Theme.ink)
-            Text(made > 0 ? "They're searching stores, release calendars and resale sites for you right now. First finds usually land in a few minutes."
+            Text(made > 0 ? "They're searching stores, release calendars and resale sites for you right now."
                           : "Tell Baget what you're hunting on Today and a scout starts right away.")
                 .font(.subheadline).foregroundStyle(Theme.muted)
-            VStack(spacing: 8) {
-                ForEach(store.state.agents) { a in
-                    let n = store.state.finds.filter { $0.agentID == a.id }.count
-                    HStack(spacing: 10) {
-                        AgentAvatarView(agent: a, size: 32)
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text(a.name).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
-                            Text(n > 0 ? "Found \(n)" : "Searching…").font(.caption).foregroundStyle(n > 0 ? Theme.green : Theme.muted)
-                        }
-                        Spacer()
-                        if n > 0 { Image(systemName: "checkmark.circle.fill").foregroundStyle(Theme.green) }
-                        else { ProgressView().controlSize(.small).tint(Theme.cyan) }
-                    }
-                    .padding(10)
-                    .background(Theme.glass, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                }
+            ViewThatFits(in: .vertical) {
+                scoutList
+                ScrollView { scoutList }.scrollIndicators(.hidden)
             }
+            if made > 0 { whatsNext }
             if !newest.isEmpty {
                 HStack(spacing: 8) {
                     ForEach(Array(newest)) { f in if let item = Catalog.item(f.itemID) { ProductThumb(item: item, size: 70) } }
@@ -466,6 +454,48 @@ struct OnboardingView: View {
                 if pushOn { Label("Texts are on", systemImage: "checkmark.circle.fill").font(.footnote).foregroundStyle(Theme.green) }
                 Button(newest.isEmpty ? "Show me Today" : "See my finds") { finish() }.buttonStyle(PrimaryButton())
             }
+        }
+    }
+
+    private var scoutList: some View {
+        VStack(spacing: 8) {
+            ForEach(store.state.agents) { a in
+                    let n = store.state.finds.filter { $0.agentID == a.id }.count
+                    HStack(spacing: 10) {
+                        AgentAvatarView(agent: a, size: 32)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(a.name).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
+                            (Text(n > 0 ? "Found \(n)" : "Searching").foregroundStyle(n > 0 ? Theme.green : Theme.cyan)
+                             + Text(" · \(a.mission.label.lowercased())").foregroundStyle(Theme.muted))
+                                .font(.caption).lineLimit(1)
+                        }
+                        Spacer()
+                        if n > 0 { Image(systemName: "checkmark.circle.fill").foregroundStyle(Theme.green) }
+                        else { ProgressView().controlSize(.small).tint(Theme.cyan) }
+                    }
+                    .padding(10)
+                    .background(Theme.glass, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                }
+            }
+    }
+
+    /// What happens from here, so the wait for the first finds feels like part of the plan.
+    private var whatsNext: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("WHAT HAPPENS NEXT").font(.system(size: 10, weight: .semibold)).tracking(1).foregroundStyle(Theme.muted)
+            nextRow("clock", "First finds land in a few minutes, right in Finds")
+            nextRow("arrow.triangle.2.circlepath", store.isPro ? "Then they hunt every 6 hours, around the clock" : "Then they hunt every day and keep your finds fresh")
+            nextRow("heart", "Like or pass what they bring, and they learn your taste fast")
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.glass, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    private func nextRow(_ icon: String, _ text: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Image(systemName: icon).font(.caption).foregroundStyle(Theme.accent).frame(width: 16)
+            Text(text).font(.footnote).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
         }
     }
 
