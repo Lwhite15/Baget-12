@@ -16,7 +16,7 @@ def call(method, path, body=None, ok=(200, 201, 204)):
     if r.status_code not in ok:
         errs = r.json().get("errors", []) if r.content else []
         raise RuntimeError(f"{method} {path.split('?')[0]} -> {r.status_code}: " + "; ".join(
-            f"{e.get('title')}: {e.get('detail')}" + (f" [{json.dumps(e.get('meta', {}).get('associatedErrors'))[:600]}]" if e.get("meta") else "") for e in errs)[:1500])
+            f"{e.get('title')}: {e.get('detail')}" + (f" [{json.dumps(e.get('meta', {}).get('associatedErrors'))[:4000]}]" if e.get("meta") else "") for e in errs)[:6000])
     return r.json() if r.content else {}
 
 def note(m): print(f"::notice::{m}")
@@ -68,7 +68,9 @@ if not has_version:
              "appStoreVersion": {"data": {"type": "appStoreVersions", "id": vid}}}}})
         note("Version added to the review submission")
     except Exception as e:
-        sys.exit(f"::error::Couldn't add the version: {e}")
+        msg = str(e)
+        for k in range(0, len(msg), 900): print(f"::error::Couldn't add the version ({k // 900 + 1}): {msg[k:k + 900]}")
+        sys.exit(1)
 
 try:
     r = call("PATCH", f"/reviewSubmissions/{rid}", {"data": {"type": "reviewSubmissions", "id": rid, "attributes": {"submitted": True}}})
