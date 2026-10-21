@@ -292,7 +292,7 @@ struct BrandTag: View {
 
     var body: some View {
         let t = Text(text.uppercased())
-            .font(.system(size: 9.5, weight: .heavy, design: .rounded))
+            .font(.system(size: 10.5, weight: .black, design: .rounded))
             .tracking(1.4)
             .lineLimit(1)
             .padding(.horizontal, 9).padding(.vertical, 5)
