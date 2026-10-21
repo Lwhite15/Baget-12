@@ -56,7 +56,7 @@ fun DeploySheet(prefill: Mission?) {
     var iconPhoto by remember { mutableStateOf<Bitmap?>(null) }
     LaunchedEffect(Unit) {
         when (prefill) {
-            is Mission.Cat -> category = prefill.category
+            is Mission.Cat -> category = prefill.cat
             is Mission.Custom -> { category = null; customText = prefill.text }
             null -> {}
         }

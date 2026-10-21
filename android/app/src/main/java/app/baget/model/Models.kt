@@ -118,12 +118,12 @@ data class Item(
 
 @Serializable
 sealed class Mission {
-    @Serializable @SerialName("category") data class Cat(val category: Category) : Mission()
+    @Serializable @SerialName("category") data class Cat(@SerialName("category") val cat: Category) : Mission()
     @Serializable @SerialName("custom") data class Custom(val text: String) : Mission()
 
-    val label: String get() = when (this) { is Cat -> category.info.label; is Custom -> text }
-    val info: CategoryInfo get() = when (this) { is Cat -> category.info; is Custom -> customMissionInfo }
-    val category: Category? get() = (this as? Cat)?.category
+    val label: String get() = when (this) { is Cat -> cat.info.label; is Custom -> text }
+    val info: CategoryInfo get() = when (this) { is Cat -> cat.info; is Custom -> customMissionInfo }
+    val category: Category? get() = (this as? Cat)?.cat
 }
 
 @Serializable

@@ -357,7 +357,7 @@ suspend fun AppStore.cloudDeploy(a: Agent): String {
     val row = agentFields(a).toMutableMap()
     row["id"] = JsonPrimitive(a.id)
     when (val m = a.mission) {
-        is Mission.Cat -> row["mission_category"] = JsonPrimitive(m.category.raw)
+        is Mission.Cat -> row["mission_category"] = JsonPrimitive(m.cat.raw)
         is Mission.Custom -> row["mission_custom"] = JsonPrimitive(m.text.take(80))
     }
     try {
