@@ -193,11 +193,7 @@ struct Plate: View {
                     .transition(.opacity)
             }
             VStack(alignment: .leading) {
-                Text(label)
-                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(live ? .white : (photo != nil ? Theme.ink : (lead ? Theme.accentInk : Theme.ink)))
-                    .padding(.horizontal, 8).padding(.vertical, 4)
-                    .background(Capsule().fill(live ? Theme.hot : (photo != nil ? Theme.bg.opacity(0.85) : (lead ? Color.white.opacity(0.25) : Theme.bg.opacity(0.6)))))
+                BrandTag(text: label, live: live)
                 Spacer()
                 if photo == nil {
                     Text(initials)
@@ -284,6 +280,31 @@ struct InlineSave: View {
                 .transition(.opacity.combined(with: .scale))
         case .idle:
             if dirty { Button("Save", action: action).bold() }
+        }
+    }
+}
+
+/// The brand on a product card: a small wordmark in Baget's gradient on dark glass with a glowing gradient edge.
+/// Live drops get a solid hot badge instead.
+struct BrandTag: View {
+    let text: String
+    var live = false
+
+    var body: some View {
+        let t = Text(text.uppercased())
+            .font(.system(size: 9.5, weight: .heavy, design: .rounded))
+            .tracking(1.4)
+            .lineLimit(1)
+            .padding(.horizontal, 9).padding(.vertical, 5)
+        if live {
+            t.foregroundStyle(.white)
+                .background(Capsule().fill(Theme.hot))
+                .shadow(color: Theme.hot.opacity(0.5), radius: 8)
+        } else {
+            t.gradientText()
+                .background(Capsule().fill(Theme.bg.opacity(0.9)))
+                .overlay(Capsule().strokeBorder(Theme.gradient, lineWidth: 1))
+                .shadow(color: Theme.cyan.opacity(0.35), radius: 7)
         }
     }
 }
