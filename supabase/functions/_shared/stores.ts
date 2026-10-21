@@ -23,18 +23,25 @@ export async function blockedDomains(): Promise<Set<string>> {
 }
 export function resetBlocks(set?: Set<string>) { blocks = set ? { at: Date.now(), set } : null; }
 
-/** A page that can't be a find: a blocked site, or a dealer/valuation site's search page rather than one listing. */
-export function notAProduct(url: string, blocked: Set<string>): boolean {
+/** What a page is: a product (one thing you can buy), "intel" (droplists, release calendars, news, reference pages,
+ *  social posts: worth knowing, not buyable), or "search" (a dealer or marketplace results page: many listings). */
+export type PageKind = "product" | "intel" | "search";
+export function pageKind(url: string, blocked: Set<string>): PageKind | null {
   const host = hostOf(url);
-  if (!host) return true;
-  for (const b of blocked) if (host === b || host.endsWith("." + b)) return true;
+  if (!host) return null;
+  for (const b of blocked) if (host === b || host.endsWith("." + b)) return "intel";
   const path = (() => { try { return new URL(url).pathname.toLowerCase(); } catch { return ""; } })();
-  if (host === "edmunds.com" && !path.includes("/inventory/")) return true;
-  if (host === "kbb.com" && !path.startsWith("/cars-for-sale/vehicle/")) return true;
-  if (host === "cars.com" && !path.startsWith("/vehicledetail/")) return true;
-  if (host === "autotrader.com" && !path.includes("/cars-for-sale/vehicle/") && !path.includes("vehicledetails")) return true;
-  if (host === "cargurus.com" && !/listing|inventorylisting|details/.test(url.toLowerCase())) return true;
-  return false;
+  if (host === "edmunds.com" && !path.includes("/inventory/")) return "search";
+  if (host === "kbb.com" && !path.startsWith("/cars-for-sale/vehicle/")) return "search";
+  if (host === "cars.com" && !path.startsWith("/vehicledetail/")) return "search";
+  if (host === "autotrader.com" && !path.includes("/cars-for-sale/vehicle/") && !path.includes("vehicledetails")) return "search";
+  if (host === "cargurus.com" && !/listing|inventorylisting|details/.test(url.toLowerCase())) return "search";
+  return "product";
+}
+
+/** Not one product you can buy (pulses and store searches only want those). */
+export function notAProduct(url: string, blocked: Set<string>): boolean {
+  return pageKind(url, blocked) !== "product";
 }
 
 // ── Rotation: site: searches ──

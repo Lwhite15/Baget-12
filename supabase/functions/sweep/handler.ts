@@ -7,7 +7,7 @@ import { type Block, type ClaudeMessage, HttpError, MODEL, batchResults, batchSt
 import { addImages, linkIsDead, pageProduct, smaller, traceImage } from "../_shared/images.ts";
 import { setupDemo, setupShots } from "./demo.ts";
 import { restockCheck } from "../_shared/daily.ts";
-import { blockedDomains, notAProduct, storeFeeds, storeLeads } from "../_shared/stores.ts";
+import { blockedDomains, notAProduct, pageKind, storeFeeds, storeLeads } from "../_shared/stores.ts";
 import { SEARCH_TOOL, hitsText, serperSearch, serperUsable } from "../_shared/search.ts";
 export { firstName };
 import { type Lead, attachOffers, ebayConfigured, ebaySearch, queriesFor, shoppingLeads, shoppingOffers } from "../_shared/sources.ts";
@@ -161,6 +161,10 @@ How to hunt${depth.deep ? " (leave no stone unturned)" : ""}:
   Include upcoming ones even with no price yet: set drop_at to the release date and time (with the timezone if the page gives
   one) and use the brand's or a retailer's launch or product page for that release as the url (not a news article).
 - Set "limited": true for limited, numbered, collab or raffle-only releases.` : ""}
+- Intel: besides products, you may include up to 3 "intel" items that aren't one product but are worth knowing for them:
+  a droplist, a release-calendar entry, news about an upcoming drop, collab or restock, or a good reference page on something
+  they'd love. Mark them "intel": true, use that page's URL, price null, the release date in drop_at if there is one, and say
+  in "about" what it tells them. Intel never replaces a real product page when you found one.
 - Take initiative: include at least two discovery picks the person never named (a maker, model, note, collab or era that fits their taste), and mark them "discovery": true.${r.liked.length || r.bought.length ? `
 - Their likes and buys are the strongest signal: find more in that spirit (same makers, materials, notes, silhouettes, eras), but not the same items again.` : ""}${r.passed.length ? `
 - Steer away from what they passed on as not their style.` : ""}${r.seen?.length ? `
@@ -180,7 +184,7 @@ ${leads.map((l) => `  • ${l.title} | ${l.store}${l.price ? ` | ${l.price}` : "
 
 Rules:
 - Only include products you actually found on a page during this search, with that page's URL. Never invent a product, price, date or URL.
-- The url must be the product's own page: one item you could add to a cart, or one specific vehicle or marketplace listing
+- Except for intel items, the url must be the product's own page: one item you could add to a cart, or one specific vehicle or marketplace listing
   (eBay /itm/, Grailed /listings/, StockX product page, a dealer's page for that one car). Never a search results,
   category, collection, inventory, editorial or home page. If you only found a search or category page, leave it out.
 - The title is the exact product name as the page shows it, including model, colorway or variant.
@@ -191,7 +195,7 @@ Rules:
 - Up to 8 products. Aim for 5 or more strong ones; never pad with weak ones.
 
 End your reply with only this JSON in a \`\`\`json block:
-{"listings":[{"title":"","brand":"","category":"${a.mission_category ?? "other"}","price":null,"market":null,"source":"store name","url":"https://...","image_url":null,"drop_at":null,"sold_out":false,"creator":null,"traits":[],"sizes_in_stock":null,"sku":"","discovery":false,"limited":false,"about":"","pitch":"","text":""}]}`;
+{"listings":[{"title":"","brand":"","category":"${a.mission_category ?? "other"}","price":null,"market":null,"source":"store name","url":"https://...","image_url":null,"drop_at":null,"sold_out":false,"creator":null,"traits":[],"sizes_in_stock":null,"sku":"","discovery":false,"limited":false,"intel":false,"about":"","pitch":"","text":""}]}`;
 }
 
 /** Cleans what Claude returned. Anything without a real web address is dropped. */
@@ -239,7 +243,7 @@ export function cleanListings(raw: unknown, fallbackCategory: string): (Listing 
       sold_out: r.sold_out === true,
       creator: typeof r.creator === "string" && r.creator.trim() ? r.creator.trim().slice(0, 80) : null,
       traits: strs(r.traits, 10).map((t) => t.toLowerCase()),
-      tags: r.limited === true ? ["limited"] : [],
+      tags: [...(r.limited === true ? ["limited"] : []), ...(r.intel === true ? ["intel"] : [])],
       sizes_in_stock: sizes && sizes.length ? sizes : null,
       sku: typeof r.sku === "string" ? r.sku.trim().slice(0, 60) : "",
       discovery: r.discovery === true,
@@ -323,7 +327,13 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
       }
     }
     const blocked = await blockedDomains();
-    let listings = cleanListings(parseJSON(textOf(final)), a.mission_category ?? "other").filter((l) => !notAProduct(l.url, blocked));
+    // Pages that aren't one product stay, labeled: "intel" (droplists, calendars, news) or "search" (a results page).
+    let listings = cleanListings(parseJSON(textOf(final)), a.mission_category ?? "other").flatMap((l) => {
+      const k = pageKind(l.url, blocked);
+      if (!k) return [];
+      if (k !== "product" && !l.tags.includes(k)) l.tags = [...l.tags.filter((t) => t !== "intel" && t !== "search"), k];
+      return [l];
+    });
     lastHunt.splice(0, lastHunt.length, ...listings.map((l) => `${l.title} | ${l.source} | ${l.price ?? "?"} | ${l.url}`.slice(0, 220)));
     // Made-up links (404) go; then each real one gets a verified product photo.
     const dead = await Promise.all(listings.map((l) => linkIsDead(l.url)));
@@ -345,7 +355,8 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
     }
     const ids = new Map(saved.map((s) => [s.fingerprint, s]));
     // Other stores' prices for new listings, for the deal verdict.
-    await attachOffers(saved.filter((s) => !s.already_found).map((s) => ({ id: s.id, title: listings.find((l) => l.fingerprint === s.fingerprint)?.title ?? "" }))
+    const isProduct = (fp: string) => { const t = listings.find((l) => l.fingerprint === fp)?.tags ?? []; return !t.includes("intel") && !t.includes("search"); };
+    await attachOffers(saved.filter((s) => !s.already_found && isProduct(s.fingerprint)).map((s) => ({ id: s.id, title: listings.find((l) => l.fingerprint === s.fingerprint)?.title ?? "" }))
       .filter((r) => r.title), (id, patch) => db.update("listings", `id=eq.${id}`, patch)).catch(() => 0);
     const photos = await db.select<{ tags: string[] }>("taste_photos", `select=tags&agent_id=eq.${a.id}`);
     const photoTags = photos.flatMap((p) => p.tags);
@@ -358,11 +369,12 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
       const s = ids.get(l.fingerprint);
       if (!s || s.already_found) continue;
       const m = match(a, l, photoTags);
-      // Discovery picks are the agent's own initiative, so they don't need to hit the stated keywords as hard.
-      if (!m || m.notInSize || m.score < (l.discovery ? 35 : 45)) continue;
+      const info = l.tags.includes("intel") || l.tags.includes("search");
+      // Discovery picks and intel are the agent's own initiative, so they don't need to hit the stated keywords as hard.
+      if (!m || (!info && m.notInSize) || m.score < (l.discovery || info ? 35 : 45)) continue;
       const kind = kindFor(l, now.getTime());
-      // No photo, no text: a find only buzzes your phone once Baget has its real photo.
-      const wantNote = (!groups || groups.includes(GROUP_OF[kind])) && !!l.image_url;
+      // No photo, no text: a find only buzzes your phone once Baget has its real photo. Intel and searches never text.
+      const wantNote = !info && (!groups || groups.includes(GROUP_OF[kind])) && !!l.image_url;
       const why = [...(l.pitch ? [l.pitch] : []), ...(l.discovery ? ["Discovery: something new it found for you"] : []), ...m.why].slice(0, 6);
       // The agent's own personal text first; the templates are the fallback.
       const body = l.text ? l.text : l.discovery && l.pitch
@@ -681,7 +693,7 @@ export async function pulseAll(now = new Date()) {
  *  marked sold out). Coming back in stock is left to the restock watcher and the hunts, which text people. */
 export async function refreshFinds(limit: number, now = new Date(), fetchFn: typeof fetch = fetch) {
   const rows = await db.select<{ listing: { id: string; url: string | null; price: number | null; sold_out: boolean; page_checked_at: string | null } | null }>("finds",
-    "select=listing:listings!inner(id,url,price,sold_out,page_checked_at)&status=in.(open,liked)&order=created_at.desc&limit=400");
+    "select=listing:listings!inner(id,url,price,sold_out,page_checked_at)&status=in.(open,liked)&listing.tags=not.ov.{intel,search}&order=created_at.desc&limit=400");
   const due = new Map<string, { id: string; url: string; price: number | null; sold_out: boolean }>();
   for (const r of rows) {
     const l = r.listing;

@@ -1463,4 +1463,15 @@ await test("store map: each hunt searches its rotation of stores directly", asyn
   delete process.env.SERPER_API_KEY;
 });
 
+await test("intel: droplists and news are kept as intel, dealer results pages as search, products as products", async () => {
+  const St = await import("../functions/_shared/stores.ts");
+  const b = new Set(["supremecommunity.com", "fragrantica.com"]);
+  assert.equal(St.pageKind("https://supremecommunity.com/season/fall-winter2026/droplist/2026-10-23/", b), "intel");
+  assert.equal(St.pageKind("https://www.fragrantica.com/perfume/Creed/Aventus-9828.html", b), "intel");
+  assert.equal(St.pageKind("https://www.edmunds.com/used-porsche-911/", b), "search");
+  assert.equal(St.pageKind("https://kith.com/products/nb-990v6-grey", b), "product");
+  const cl = sweep.cleanListings({ listings: [{ title: "Supreme Week 9 droplist", url: "https://supremecommunity.com/droplist/9", intel: true, price: null }] }, "apparel");
+  assert.deepEqual(cl[0].tags, ["intel"]);
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
