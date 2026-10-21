@@ -370,7 +370,7 @@ struct FindCard: View {
                     .lineLimit(2).multilineTextAlignment(.leading)
                 HStack(spacing: 6) {
                     if let v = DealVerdict.of(item) { VerdictChip(verdict: v) }
-                    Text([item.source, known ? Fmt.money(item.price) : nil].compactMap { $0 }.joined(separator: " · "))
+                    Text([item.source, known ? item.priceLabel : nil].compactMap { $0 }.joined(separator: " · "))
                         .font(.caption).foregroundStyle(Theme.muted).lineLimit(1)
                     if find.watching { Image(systemName: "eye.fill").font(.caption2).foregroundStyle(Theme.warn).accessibilityLabel("Watching") }
                 }
@@ -421,9 +421,13 @@ struct FindCard: View {
                     }
                 }
             }
+            if item.isProduct, let local = item.localPriceLabel {
+                Label("\(local). Ships from outside the US, so duties or import fees may apply.", systemImage: "globe")
+                    .font(.caption).foregroundStyle(Theme.muted)
+            }
             if item.isProduct {
             HStack {
-                priceCell("PRICE", known ? Fmt.money(item.price) : "See store", nil)
+                priceCell("PRICE", known ? item.priceLabel : "See store", nil)
                 priceCell("MARKET", known && item.market > 0 ? Fmt.money(item.market) : "—", nil)
                 priceCell("SPREAD", known && item.market > 0 ? "\(diff > 0 ? "+" : "")\(pct)%" : "—", diff > 0 ? Theme.green : diff < 0 ? Theme.hot : nil)
             }
@@ -648,7 +652,7 @@ struct CheckoutView: View {
                 Text([item.source, item.sku].filter { !$0.isEmpty }.joined(separator: " · ")).font(.footnote).foregroundStyle(Theme.muted)
                 if AboutBlock.has(item) { AboutBlock(item: item).glassCard() }
                 Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 12) {
-                    GridRow { cell("Price", item.priceKnown ? Fmt.money(item.price) : "Not listed"); cell("Agent", a?.name ?? "—") }
+                    GridRow { cell("Price", item.priceKnown ? item.priceLabel : "Not listed"); cell("Agent", a?.name ?? "—") }
                     GridRow {
                         cell(item.category.info.sizeRequired ? (item.category.info.sizeLabel ?? "Size") : "Category",
                              item.category.info.sizeRequired ? (a?.size.isEmpty == false ? a!.size : "Any") : item.category.info.label)

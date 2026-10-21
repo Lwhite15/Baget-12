@@ -123,7 +123,7 @@ struct SuggestionCard: View {
                 Text("“\(suggestion.note)”").font(.body.italic()).foregroundStyle(Theme.ink)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.title).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
-                    Text("\(item.category.info.label) · \(Fmt.money(item.price)) at \(item.source)\(notInSize ? " · not in your size" : "")")
+                    Text("\(item.category.info.label) · \(item.priceLabel) at \(item.source)\(notInSize ? " · not in your size" : "")")
                         .font(.caption).foregroundStyle(Theme.muted)
                 }
                 .padding(10).frame(maxWidth: .infinity, alignment: .leading)
@@ -258,7 +258,7 @@ struct ShareView: View {
                     Section {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(item.title).font(.headline)
-                            Text("\(item.category.info.label) · \(Fmt.money(item.price)) at \(item.source)").font(.caption).foregroundStyle(Theme.muted)
+                            Text("\(item.category.info.label) · \(item.priceLabel) at \(item.source)").font(.caption).foregroundStyle(Theme.muted)
                         }
                     }
                 }
@@ -328,7 +328,7 @@ struct SuggestForView: View {
                         } label: {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(item.title).foregroundStyle(Theme.ink)
-                                Text("\(item.category.info.label) · \(Fmt.money(item.price))").font(.caption).foregroundStyle(Theme.muted)
+                                Text("\(item.category.info.label) · \(item.priceLabel)").font(.caption).foregroundStyle(Theme.muted)
                             }
                         }
                     }

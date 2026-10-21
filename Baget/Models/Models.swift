@@ -133,6 +133,9 @@ struct Item: Identifiable, Hashable, Codable {
     var about: String? = nil
     /// Who the brand is, in a sentence or two. Shared by every product from that brand.
     var brandAbout: String? = nil
+    /// Stores outside the US: the price in the store's own currency (`price` is converted to US dollars).
+    var origPrice: Double? = nil
+    var origCurrency: String? = nil
 }
 
 struct Offer: Codable, Hashable {
@@ -597,6 +600,16 @@ extension Item {
     var isIntel: Bool { tags.contains("intel") }
     var isSearchLink: Bool { tags.contains("search") }
     var isProduct: Bool { !isIntel && !isSearchLink }
+    /// Sold by a store outside the US (priced in another currency, ships from abroad).
+    var isIntl: Bool { origCurrency.map { $0 != "USD" } ?? false }
+    /// "$212", or "≈ $212" when converted from another currency.
+    var priceLabel: String { (isIntl ? "≈ " : "") + Fmt.money(price) }
+    /// "€195 at the store" for stores outside the US.
+    var localPriceLabel: String? {
+        guard isIntl, let p = origPrice, let c = origCurrency else { return nil }
+        let f = NumberFormatter(); f.numberStyle = .currency; f.currencyCode = c; f.maximumFractionDigits = p.rounded() == p ? 0 : 2
+        return "\(f.string(from: NSNumber(value: p)) ?? "\(c) \(p)") at the store"
+    }
     /// Today's Drop and the swipe deck: products with a photo.
     var showsInDeals: Bool { showable && isProduct }
     /// Finds: products with a photo, and intel and searches (which may not have one).

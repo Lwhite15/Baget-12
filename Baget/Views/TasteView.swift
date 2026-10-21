@@ -290,7 +290,7 @@ struct OnboardingView: View {
                         .id(item.id)
                         .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity), removal: .opacity))
                     Text(item.title).font(.headline).foregroundStyle(Theme.ink).lineLimit(2)
-                    Text([item.priceKnown && item.price > 0 ? Fmt.money(item.price) : nil, item.source].compactMap { $0 }.joined(separator: " · "))
+                    Text([item.priceKnown && item.price > 0 ? item.priceLabel : nil, item.source].compactMap { $0 }.joined(separator: " · "))
                         .font(.caption).foregroundStyle(Theme.muted)
                     if AboutBlock.has(item) { AboutBlock(item: item, lines: 3) }
                 }

@@ -81,7 +81,7 @@ struct SwipeDeckView: View {
                 Text("\(f.score)% match").font(.caption.monospaced().weight(.bold)).foregroundStyle(f.score >= 80 ? Theme.green : Theme.accent)
             }
             Text(item.title).font(.title3.weight(.heavy)).foregroundStyle(Theme.ink).lineLimit(3)
-            Text([item.source, item.priceKnown && item.price > 0 ? Fmt.money(item.price) : "Price at store"].joined(separator: " · "))
+            Text([item.source, item.priceKnown && item.price > 0 ? item.priceLabel : "Price at store"].joined(separator: " · "))
                 .font(.subheadline).foregroundStyle(Theme.muted)
             if AboutBlock.has(item) { AboutBlock(item: item, lines: 3) }
             if let v = DealVerdict.of(item) { VerdictChip(verdict: v, showDetail: true) }

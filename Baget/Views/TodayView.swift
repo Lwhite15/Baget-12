@@ -117,7 +117,7 @@ struct TodayView: View {
                     Text(item.title).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink).lineLimit(2).multilineTextAlignment(.leading)
                     HStack(spacing: 6) {
                         if let v = DealVerdict.of(item) { VerdictChip(verdict: v) }
-                        Text([item.source, item.priceKnown && item.price > 0 ? Fmt.money(item.price) : nil].compactMap { $0 }.joined(separator: " · "))
+                        Text([item.source, item.priceKnown && item.price > 0 ? item.priceLabel : nil].compactMap { $0 }.joined(separator: " · "))
                             .font(.caption).foregroundStyle(Theme.muted).lineLimit(1)
                     }
                     if let why = f.why.first { Text(why).font(.caption).foregroundStyle(Theme.green.opacity(0.9)).lineLimit(1) }
@@ -215,7 +215,7 @@ struct ForYouSection: View {
             .buttonStyle(.plain)
             Text(item.title).font(.footnote.weight(.semibold)).foregroundStyle(Theme.ink)
                 .lineLimit(2).multilineTextAlignment(.leading).frame(maxWidth: .infinity, minHeight: 34, alignment: .topLeading)
-            Text([known ? Fmt.money(item.price) : nil, item.source].compactMap { $0 }.joined(separator: " · "))
+            Text([known ? item.priceLabel : nil, item.source].compactMap { $0 }.joined(separator: " · "))
                 .font(.caption2).foregroundStyle(Theme.muted).lineLimit(1)
             Text(item.about ?? " ").font(.caption2).foregroundStyle(Theme.ink.opacity(0.8))
                 .lineLimit(2).multilineTextAlignment(.leading).frame(maxWidth: .infinity, minHeight: 26, alignment: .topLeading)
