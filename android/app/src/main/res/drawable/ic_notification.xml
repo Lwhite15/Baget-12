@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Status-bar icon: the "b" silhouette in white (Android tints it). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="100" android:viewportHeight="100">
+    <path android:fillColor="#FFFFFFFF" android:pathData="M29,17 A6,6 0 0 1 35,23 L35,77 A6,6 0 0 1 29,83 A6,6 0 0 1 23,77 L23,23 A6,6 0 0 1 29,17 Z" />
+    <path android:fillColor="#FFFFFFFF" android:fillType="evenOdd" android:pathData="M51,31 A26,26 0 1 1 50.99,31 Z M51,43 A14,14 0 1 0 51.01,43 Z" />
+</vector>
