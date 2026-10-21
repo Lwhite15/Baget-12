@@ -113,19 +113,49 @@ jobs:
           set -e
           APK=$(ls apk/*.apk | head -1)
           PKG=app.baget
+          mkdir -p shots
+          crashed() {
+            if adb logcat -d | grep -q "FATAL EXCEPTION"; then
+              adb logcat -d | grep -A40 "FATAL EXCEPTION" | head -60 | sed 's/^/::error::/'
+              exit 1
+            fi
+            adb shell pidof "$PKG" >/dev/null || { echo "::error::Baget stopped running ($1)"; exit 1; }
+          }
+          shot() {   # a small screenshot, posted as a notice so it can be looked at without downloading anything
+            adb exec-out screencap -p > "shots/$1.png"
+            convert "shots/$1.png" -resize 300x -quality 45 "shots/$1.jpg"
+            echo "::notice title=shot-$1::$(base64 -w0 "shots/$1.jpg")"
+          }
+          tap() {    # taps the first on-screen element whose text or description contains $1
+            adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 || true
+            adb pull /sdcard/ui.xml ui.xml >/dev/null 2>&1 || true
+            XY=$(python3 - "$1" <<'PY'
+          import re, sys, xml.etree.ElementTree as ET
+          want = sys.argv[1].lower()
+          for n in ET.parse("ui.xml").iter("node"):
+              if want in (n.get("text", "") + " " + n.get("content-desc", "")).lower():
+                  a, b, c, d = map(int, re.findall(r"\d+", n.get("bounds")))
+                  print((a + c) // 2, (b + d) // 2); break
+          PY
+            )
+            if [ -z "$XY" ]; then echo "::warning::Couldn't find \"$1\" on screen"; return 0; fi
+            adb shell input tap $XY; sleep 3
+          }
           adb install -r "$APK"
+          adb shell pm grant "$PKG" android.permission.POST_NOTIFICATIONS || true
           adb logcat -c
           adb shell am start -W -n "$PKG/app.baget.MainActivity"
-          sleep 25
-          adb exec-out screencap -p > launch.png
-          if adb logcat -d | grep -q "FATAL EXCEPTION"; then
-            adb logcat -d | grep -A40 "FATAL EXCEPTION" | head -80 | sed 's/^/::error::/'
-            exit 1
-          fi
-          adb shell pidof "$PKG" >/dev/null || { echo "::error::Baget is not running 25 seconds after launch"; exit 1; }
-          # Walk the sample tour: open it, then check it's still alive.
-          adb shell input keyevent KEYCODE_BACK || true
-          echo "::notice::Launch test passed: Baget opened and kept running"
+          sleep 12; crashed launch; shot welcome
+          tap "Take a look first"; sleep 4; crashed tour; shot today
+          tap "Finds"; crashed finds; shot finds
+          tap "Squad"; crashed squad; shot squad
+          tap "Friends"; crashed friends; shot friends
+          tap "Today"; tap "Swipe through"; crashed swipe; shot swipe
+          adb shell input keyevent KEYCODE_BACK; sleep 2
+          tap "Notifications"; crashed inbox; shot inbox
+          adb shell input keyevent KEYCODE_BACK; sleep 2
+          crashed final
+          echo "::notice::Launch test passed: Baget opened, the sample tour ran and every tab opened"
           SH
       - name: Launch on an emulator
         uses: reactivecircus/android-emulator-runner@v2
@@ -140,6 +170,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: android-launch-shot
-          path: launch.png
+          name: android-launch-shots
+          path: shots/
           if-no-files-found: ignore
