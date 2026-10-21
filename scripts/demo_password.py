@@ -45,7 +45,8 @@ H = {"Authorization": f"Bearer {tok}", "Content-Type": "application/json"}
 def call(method, path, body=None):
     r = requests.request(method, API + path, headers=H, data=json.dumps(body) if body else None, timeout=60)
     if r.status_code not in (200, 201, 204):
-        sys.exit(f"::error::{method} {path.split('?')[0]} -> {r.status_code}")
+        errs = r.json().get("errors", []) if r.content else []
+        sys.exit(f"::error::{method} {path.split('?')[0]} -> {r.status_code}: " + "; ".join(f"{e.get('title')}: {e.get('detail')}" for e in errs)[:400].replace(pw, "***"))
     return r.json() if r.content else {}
 
 aid = call("GET", f"/apps?filter[bundleId]={os.environ['BUNDLE_ID']}")["data"][0]["id"]
