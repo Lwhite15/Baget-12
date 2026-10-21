@@ -107,6 +107,8 @@ jobs:
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - name: Image tools
+        run: pip install --quiet pillow
       - name: Write the launch test
         run: |
           cat > launch.sh <<'SH'
@@ -123,7 +125,7 @@ jobs:
           }
           shot() {   # a small screenshot, posted as a notice so it can be looked at without downloading anything
             adb exec-out screencap -p > "shots/$1.png"
-            convert "shots/$1.png" -resize 300x -quality 45 "shots/$1.jpg"
+            python3 -c "import sys; from PIL import Image; i=Image.open(sys.argv[1]).convert('RGB'); i.thumbnail((300,1000)); i.save(sys.argv[2], quality=45)" "shots/$1.png" "shots/$1.jpg"
             echo "::notice title=shot-$1::$(base64 -w0 "shots/$1.jpg")"
           }
           tap() {    # taps the first on-screen element whose text or description contains $1
