@@ -97,6 +97,8 @@ jobs:
   launch-test:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     timeout-minutes: 30
     steps:
       - uses: actions/download-artifact@v4
@@ -126,7 +128,6 @@ jobs:
           shot() {   # a small screenshot, posted as a notice so it can be looked at without downloading anything
             adb shell screencap -p /sdcard/shot.png && adb pull /sdcard/shot.png "shots/$1.png" >/dev/null
             python3 -c "import sys; from PIL import Image; i=Image.open(sys.argv[1]).convert('RGB'); i.thumbnail((300,1000)); i.save(sys.argv[2], quality=45)" "shots/$1.png" "shots/$1.jpg"
-            echo "::notice title=shot-$1::$(base64 -w0 "shots/$1.jpg")"
           }
           go() { adb shell am start -n "$PKG/app.baget.MainActivity" --es go "$1" >/dev/null; sleep 4; crashed "$1"; shot "$2"; }
           adb install -r "$APK"
@@ -158,6 +159,13 @@ jobs:
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: bash launch.sh
+      - name: Publish the screenshots to the android-shots branch
+        if: always()
+        run: |
+          [ -d shots ] || exit 0
+          cd shots && rm -f *.png && git init -q && git checkout -q -b android-shots
+          git -c user.name="Baget CI" -c user.email="ci@baget.invalid" add . && git -c user.name="Baget CI" -c user.email="ci@baget.invalid" commit -qm "Launch test screenshots, run ${{ github.run_number }}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" android-shots
       - name: Keep the launch screenshot
         if: always()
         uses: actions/upload-artifact@v4
