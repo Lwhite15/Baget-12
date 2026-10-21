@@ -33,6 +33,21 @@ if b["attributes"]["version"] != os.environ.get("EXPECT_BUILD", b["attributes"][
     sys.exit(f"::error::Attached build is {b['attributes']['version']}, expected {os.environ['EXPECT_BUILD']}")
 note(f"Build {b['attributes']['version']} attached ({b['attributes'].get('processingState')})")
 
+# Content rights: Larry answered "contains third-party content, and I have the rights" (Oct 20). Apply it if it didn't stick.
+app = call("GET", f"/apps/{aid}")["data"]
+cr = app["attributes"].get("contentRightsDeclaration")
+note(f"Content rights: {cr}")
+if not cr:
+    call("PATCH", f"/apps/{aid}", {"data": {"type": "apps", "id": aid, "attributes": {"contentRightsDeclaration": "USES_THIRD_PARTY_CONTENT"}}})
+    note("Content rights set: uses third-party content, with rights")
+
+# Screenshots: Apple won't take the version while any are still processing.
+loc = [x for x in call("GET", f"/appStoreVersions/{vid}/appStoreVersionLocalizations")["data"] if x["attributes"]["locale"] == "en-US"][0]
+for st in call("GET", f"/appStoreVersionLocalizations/{loc['id']}/appScreenshotSets")["data"]:
+    shots = call("GET", f"/appScreenshotSets/{st['id']}/appScreenshots")["data"]
+    states = [(x["attributes"].get("fileName"), (x["attributes"].get("assetDeliveryState") or {}).get("state")) for x in shots]
+    note(f"Screenshots {st['attributes']['screenshotDisplayType']}: " + ", ".join(f"{n}={s}" for n, s in states))
+
 # Subscriptions ride along with the version (first-time subscriptions must go with an app version).
 for g in call("GET", f"/apps/{aid}/subscriptionGroups")["data"]:
     for s in call("GET", f"/subscriptionGroups/{g['id']}/subscriptions")["data"]:
