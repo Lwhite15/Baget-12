@@ -69,6 +69,7 @@ class MainActivity : ComponentActivity() {
                     val store = AppStore
                     if (store.isCloud) store.registerForPushIfAllowed()
                     Billing.sync()
+                    Billing.loadProducts()
                     store.loadPlan()
                     // While the app is open, keep everything fresh in the background, every 3 minutes.
                     while (true) {

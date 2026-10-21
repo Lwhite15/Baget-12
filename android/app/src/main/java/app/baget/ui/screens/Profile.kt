@@ -253,6 +253,7 @@ fun PaywallSheet() {
     SheetFrame("", leading = "Close", trailing = null) {
         Column(Modifier.verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
             Row { Txt("Baget ", size = 36.sp, weight = FontWeight.Black); GradientText("Pro", 36.sp) }
+            Billing.proTrial?.let { Txt("Try it free for ${Billing.spoken(it)}.", size = T.body, weight = FontWeight.SemiBold, color = T.green) }
             Txt("Your scouts never clock out and dig twice as deep: more searches, more stores and more angles on every hunt.", color = T.muted)
             Column(Modifier.fillMaxWidth().glass()) {
                 listOf(Triple("", "Free", "Pro"), Triple("Scouts", "2", "Up to 5"), Triple("Hunting", "4 hours a day", "Around the clock"),
@@ -281,10 +282,17 @@ fun PaywallSheet() {
                 }
             }
             message?.let { Txt(it, size = T.footnote, color = T.warn) }
-            PrimaryButton("Go Pro", Modifier.fillMaxWidth(), enabled = !store.isPro, busy = store.purchasing) {
+            val chosen = products.firstOrNull { it.productId == selected } ?: products.firstOrNull()
+            val trial = Billing.trial(chosen)
+            PrimaryButton(trial?.let { "Start $it free trial" } ?: "Go Pro", Modifier.fillMaxWidth(), enabled = !store.isPro, busy = store.purchasing) {
                 val p = products.firstOrNull { it.productId == selected } ?: products.firstOrNull()
                 if (p == null) { message = "Plans aren't available right now. Try again in a minute."; return@PrimaryButton }
                 store.scope.launch { message = Billing.buy(context as Activity, p) }
+            }
+            if (trial != null && chosen != null) {
+                val price = chosen.subscriptionOfferDetails?.firstOrNull()?.pricingPhases?.pricingPhaseList?.lastOrNull()?.formattedPrice ?: ""
+                Txt("Free for ${Billing.spoken(trial)}, then $price/${if (chosen.productId.endsWith("yearly")) "year" else "month"}. Cancel any time before the trial ends and you won't be charged.",
+                    size = T.caption, color = T.muted, align = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Txt("Restore purchases", size = T.footnote, weight = FontWeight.SemiBold, color = T.accent,

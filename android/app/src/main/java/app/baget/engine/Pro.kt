@@ -109,6 +109,31 @@ object Billing : PurchasesUpdatedListener {
         return if (done.await()) c else null
     }
 
+    /** "7-day" when this plan has a free trial this Google account can still start; null otherwise (Play only offers eligible trials). */
+    fun trial(p: ProductDetails?): String? {
+        if (p == null || AppStore.isPro) return null
+        val phase = trialOffer(p)?.pricingPhases?.pricingPhaseList?.firstOrNull() ?: return null
+        val m = Regex("^P(\\d+)([DWMY])$").find(phase.billingPeriod) ?: return null
+        val n = m.groupValues[1].toInt() * maxOf(1, phase.billingCycleCount)
+        return when (m.groupValues[2]) {
+            "D" -> "$n-day"; "W" -> "${n * 7}-day"; "M" -> if (n == 1) "1-month" else "$n-month"; else -> "1-year"
+        }
+    }
+
+    private fun trialOffer(p: ProductDetails) = p.subscriptionOfferDetails?.firstOrNull { o ->
+        o.pricingPhases.pricingPhaseList.firstOrNull()?.priceAmountMicros == 0L
+    }
+
+    /** "7-day" -> "7 days". */
+    fun spoken(t: String): String {
+        val parts = t.split("-")
+        val n = parts.getOrNull(0)?.toIntOrNull() ?: return t
+        return "$n ${parts.getOrElse(1) { "" }}${if (n == 1) "" else "s"}"
+    }
+
+    /** The trial on offer for the yearly plan (what setup and the badges talk about). */
+    val proTrial: String? get() = trial(products.firstOrNull { it.productId == "baget.pro.yearly" } ?: products.firstOrNull())
+
     suspend fun loadProducts() {
         if (products.isNotEmpty()) return
         val c = connected() ?: return
@@ -125,7 +150,7 @@ object Billing : PurchasesUpdatedListener {
         val uid = Backend.userID
         if (!store.isCloud || uid == null) return "Sign in to go Pro."
         val c = connected() ?: return "Google Play isn't available right now. Try again in a minute."
-        val offer = product.subscriptionOfferDetails?.firstOrNull()?.offerToken ?: return "That plan isn't available right now."
+        val offer = (trialOffer(product) ?: product.subscriptionOfferDetails?.firstOrNull())?.offerToken ?: return "That plan isn't available right now."
         store.purchasing = true
         try {
             val flow = BillingFlowParams.newBuilder()

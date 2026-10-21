@@ -85,6 +85,17 @@ private fun AgentCard(agent: Agent) {
                 Txt(if (agent.isOff) "OFF" else "ON", size = 9.sp, weight = FontWeight.Bold, tracking = 1.sp, color = if (agent.isOff) T.muted else T.green)
             }
         }
+        // Over the Free limit: the server only sends the first scouts (oldest first, among those switched on), the rest wait.
+        val resting = store.isCloud && !store.isPro && store.plan != null && !agent.isOff &&
+            s.agents.filter { !it.isOff }.indexOfFirst { it.id == agent.id }.let { it >= 0 && it >= store.scoutLimit }
+        if (resting) Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(T.warn.copy(alpha = 0.10f))
+            .clickable { Router.open(Sheet.Pro) }.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Filled.Hotel, null, tint = T.warn, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(8.dp))
+            Column {
+                Txt("Resting on Free, which includes ${store.scoutLimit} scouts.", size = T.footnote)
+                Txt(Billing.proTrial?.let { "Try Pro free for ${Billing.spoken(it)} to wake it" } ?: "Go Pro to wake it", size = T.footnote, weight = FontWeight.Bold, color = T.accent)
+            }
+        }
         if (agent.isOff) Row(Modifier.fillMaxWidth().glass(RoundedCornerShape(12.dp)).padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Filled.Bedtime, null, tint = T.muted, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(6.dp))
             Txt("Off. Not searching or texting until you switch it back on.", size = T.footnote, color = T.muted)

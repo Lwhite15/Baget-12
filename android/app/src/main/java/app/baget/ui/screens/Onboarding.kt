@@ -95,6 +95,7 @@ fun OnboardingScreen(onDone: () -> Unit) {
             pushOn = Notifier.allowed(context)
             step = 4
             store.loadForYou()
+            Billing.loadProducts()
             // Watch for the first finds every few seconds while this screen is up (up to 3 minutes).
             if (store.isCloud) for (i in 0 until 22) {
                 delay(8000)
@@ -256,6 +257,20 @@ fun OnboardingScreen(onDone: () -> Unit) {
                             Txt("↻  " + if (store.isPro) "Then they hunt every 6 hours, around the clock" else "Then they hunt every day and keep your finds fresh", size = T.footnote)
                             Txt("♡  Like or pass what they bring, and they learn your taste fast", size = T.footnote)
                         }
+                        val trial = Billing.proTrial
+                        if (made > 0 && store.isCloud && !store.isPro && trial != null)
+                            Row(Modifier.fillMaxWidth().glass(RoundedCornerShape(14.dp), T.accent.copy(alpha = 0.10f), T.accent.copy(alpha = 0.4f))
+                                .clickable { Router.open(Sheet.Pro) }.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Box(Modifier.size(34.dp).clip(CircleShape).background(T.gradient), contentAlignment = Alignment.Center) {
+                                    Icon(Icons.Filled.Bolt, null, tint = T.accentInk, modifier = Modifier.size(18.dp))
+                                }
+                                Spacer(Modifier.width(12.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Txt("Try Pro free for ${Billing.spoken(trial)}", weight = FontWeight.Bold)
+                                    Txt("Up to 5 scouts, hunting every 6 hours and twice as deep", size = T.caption, color = T.muted)
+                                }
+                                Icon(Icons.Filled.ChevronRight, null, tint = T.accent)
+                            }
                         if (newest.isNotEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             newest.forEach { f -> Catalog.item(f.itemID)?.let { ProductThumb(it, 70.dp) } }
                         }
