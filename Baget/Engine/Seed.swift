@@ -53,9 +53,9 @@ extension AppStore {
         func itemID(_ prefix: String) -> String? { Catalog.items.first { $0.title.hasPrefix(prefix) }?.id }
         let hour: TimeInterval = 3600
         state.suggestions = [
-            itemID("Travis Scott").map { Suggestion(id: "s1", friendID: "u1", itemID: $0, note: "Your size is still showing on SNKRS. Don't sleep on these.", date: Date.now - 1.5 * hour) },
-            itemID("Armani Privé Rose").map { Suggestion(id: "s2", friendID: "u2", itemID: $0, note: "Rose and oud together. Literally your whole thing.", date: Date.now - 5 * hour) },
-            itemID("1995 Porsche 911").map { Suggestion(id: "s3", friendID: "u3", itemID: $0, note: "Air-cooled, manual, coupe. You know you want it.", date: Date.now - 20 * hour) },
+            itemID("Air Jordan 1 Mid").map { Suggestion(id: "s1", friendID: "u1", itemID: $0, note: "Black and gum on a Jordan 1. Your size is still showing on SNKRS.", date: Date.now - 1.5 * hour) },
+            itemID("Ormonde Jayne").map { Suggestion(id: "s2", friendID: "u2", itemID: $0, note: "Rose and oud together. Literally your whole thing.", date: Date.now - 5 * hour) },
+            itemID("2011 BMW 1M").map { Suggestion(id: "s3", friendID: "u3", itemID: $0, note: "Manual, coupe, inline-six. You know you want it.", date: Date.now - 20 * hour) },
         ].compactMap { $0 }
 
         state.liveTabs = LiveTab.presets
