@@ -50,6 +50,14 @@ struct AgentCard: View {
     let agent: Agent
     @State private var confirmRetire = false
 
+    /// Over the Free limit: the server only sends the first scouts (oldest first, among those switched on), the rest wait.
+    private var resting: Bool {
+        guard store.isCloud, !store.isPro, store.plan != nil, !agent.isOff else { return false }
+        let on = store.state.agents.filter { !$0.isOff }
+        guard let i = on.firstIndex(where: { $0.id == agent.id }) else { return false }
+        return i >= store.scoutLimit
+    }
+
     var body: some View {
         let k = Matcher.intel(agent)
         let finds = store.state.finds.filter { $0.agentID == agent.id }.count
@@ -78,6 +86,19 @@ struct AgentCard: View {
                     Text(agent.isOff ? "OFF" : "ON").font(.system(size: 9, weight: .bold)).tracking(1)
                         .foregroundStyle(agent.isOff ? Theme.muted : Theme.green)
                 }
+            }
+            if resting {
+                Button { router.sheet = .pro } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "bed.double.fill").foregroundStyle(Theme.warn)
+                        Text("Resting on Free, which includes \(store.scoutLimit) scouts. ").foregroundStyle(Theme.ink)
+                            + Text(store.proTrial.map { "Try Pro free for \(AppStore.spoken($0)) to wake it" } ?? "Go Pro to wake it").foregroundStyle(Theme.accent).bold()
+                    }
+                    .font(.footnote)
+                    .padding(10).frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Theme.warn.opacity(0.10), in: RoundedRectangle(cornerRadius: 12))
+                }
+                .buttonStyle(.plain)
             }
             if agent.isOff {
                 Label("Off. Not searching or texting until you switch it back on.", systemImage: "moon.zzz.fill")

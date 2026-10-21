@@ -48,6 +48,9 @@ struct PaywallView: View {
                 Text("Pro").gradientText()
             }
             .font(.system(size: 36, weight: .heavy)).tracking(-1)
+            if let t = store.proTrial {
+                Text("Try it free for \(AppStore.spoken(t)).").font(.headline).foregroundStyle(Theme.green)
+            }
             Text("Your scouts never clock out and dig twice as deep: more searches, more stores and more angles on every hunt.")
                 .font(.subheadline).foregroundStyle(Theme.muted)
         }
@@ -124,18 +127,29 @@ struct PaywallView: View {
         }
     }
 
+    private var selectedProduct: Product? { store.proProducts.first(where: { $0.id == selected }) ?? store.proProducts.first }
+
     private var buyButton: some View {
-        Button {
+        let trial = store.trialLength(selectedProduct)
+        return VStack(spacing: 8) {
+            Button {
             guard let product = store.proProducts.first(where: { $0.id == selected }) ?? store.proProducts.first else {
                 message = "Plans aren't available right now. Try again in a minute."
                 return
             }
             Task { message = await store.buyPro(product) }
         } label: {
-            if store.purchasing { ProgressView().tint(Theme.accentInk) } else { Text("Go Pro") }
+                if store.purchasing { ProgressView().tint(Theme.accentInk) } else { Text(trial.map { "Start \($0) free trial" } ?? "Go Pro") }
+            }
+            .buttonStyle(PrimaryButton())
+            .disabled(store.purchasing || store.isPro)
+            if let trial, let p = selectedProduct {
+                let per = p.id.hasSuffix("yearly") ? "year" : "month"
+                Text("Free for \(AppStore.spoken(trial)), then \(p.displayPrice)/\(per). Cancel any time before the trial ends and you won't be charged.")
+                    .font(.caption).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+            }
         }
-        .buttonStyle(PrimaryButton())
-        .disabled(store.purchasing || store.isPro)
     }
 }
 

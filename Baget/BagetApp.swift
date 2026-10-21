@@ -50,6 +50,7 @@ struct BagetApp: App {
                     if store.isCloud { await store.registerForPushIfAsked() } else { await Notifier.requestPermission() }
                     store.listenForProUpdates()
                     await store.syncProEntitlements()
+                    await store.loadProProducts()
                     await store.loadPlan()
                     // While the app is open, keep everything fresh in the background, every 3 minutes.
                     while !Task.isCancelled {

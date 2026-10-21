@@ -47,6 +47,8 @@ final class AppStore {
     /// Baget Pro on the App Store (monthly, yearly), once loaded.
     var proProducts: [Product] = []
     var purchasing = false
+    /// This Apple ID can still start Pro's free trial (Apple decides: one intro offer per subscription group).
+    var proTrialEligible = false
     /// Owner accounts see the Stats screen (the server decides; the screen's data is admin-only too).
     var isAdmin = false
     /// Bumped when a taste photo finishes downloading, so boards redraw.
