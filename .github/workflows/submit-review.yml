@@ -1,0 +1,37 @@
+# Submits version 1.0 for App Review (the real App Store, not TestFlight). Only when Larry says to submit.
+name: Submit for App Review
+on:
+  workflow_dispatch:
+    inputs:
+      build:
+        description: "Build number that must be attached"
+        required: true
+permissions:
+  contents: read
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      BUNDLE_ID: ${{ secrets.BUNDLE_ID }}
+      EXPECT_BUILD: ${{ inputs.build }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Write key
+        env:
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/keys"
+          if printf '%s' "$ASC_KEY_P8_BASE64" | grep -q "BEGIN"; then printf '%s\n' "$ASC_KEY_P8_BASE64" > "$RUNNER_TEMP/keys/k.p8"
+          else echo "$ASC_KEY_P8_BASE64" | base64 --decode > "$RUNNER_TEMP/keys/k.p8"; fi
+          chmod 600 "$RUNNER_TEMP/keys/k.p8"
+      - name: Submit
+        env:
+          ASC_KEY_PATH: ${{ runner.temp }}/keys/k.p8
+        run: |
+          pip install -q pyjwt cryptography requests
+          python3 scripts/submit_review.py
+      - name: Remove key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/keys"
