@@ -733,11 +733,14 @@ final class AppStore {
         state.suggestions[si].status = .sent
         push { api in try await api.update("suggestions", "id=eq.\(id)", ["status": "sent"]) }
         guard let item = Catalog.item(s.itemID), let f = friend(s.friendID) else { save(); return }
+        // Saved to Finds as a like, under the scout that fits best (or any scout, so it's never lost).
         let target = best(for: item)?.agent ?? state.agents.first { Matcher.covers($0, item) }
-        let credit = "\(f.name) suggested it: “\(s.note)”"
+            ?? state.agents.first { $0.mission.category == item.category } ?? state.agents.first
+        let note = s.note.trimmingCharacters(in: .whitespacesAndNewlines)
+        let credit = note.isEmpty ? "\(f.name) suggested it" : "\(f.name) suggested it: “\(note)”"
         if let a = target, let find = ensureFind(agentID: a.id, itemID: item.id, why: credit), let fi = state.finds.firstIndex(where: { $0.id == find.id }) {
             state.finds[fi].why = [credit] + state.finds[fi].why.filter { !$0.contains("suggested it") }
-            if state.finds[fi].status != .acquired { state.finds[fi].status = .open }
+            if state.finds[fi].status != .acquired && state.finds[fi].status != .liked { like(find.id) }
             learn(a.id, from: item, delta: 1, note: "your friend \(f.name) thinks you'd like \(item.title)")
         }
         log("You took \(f.name)'s suggestion: \(item.title)")

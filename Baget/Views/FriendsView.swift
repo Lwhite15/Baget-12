@@ -27,12 +27,13 @@ struct FriendsView: View {
 
     var body: some View {
         @Bindable var store = store
-        let suggestions = store.state.suggestions.sorted { ($0.status == .new ? 0 : 1, -$0.date.timeIntervalSince1970) < ($1.status == .new ? 0 : 1, -$1.date.timeIntervalSince1970) }
+        // Only suggestions you haven't acted on: a like saves it to Finds and a pass dismisses it, and either way it leaves.
+        let suggestions = store.state.suggestions.filter { $0.status == .new }.sorted { $0.date > $1.date }
 
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 SectionTitle(text: "Suggested by friends")
-                if suggestions.isEmpty { EmptyCard(text: "No suggestions yet. When friends spot something for you, it shows up here.") }
+                if suggestions.isEmpty { EmptyCard(text: "Nothing new from friends. When they spot something for you, it shows up here.") }
                 ForEach(suggestions) { s in SuggestionCard(suggestion: s) }
 
                 SectionTitle(text: "Your friends")
@@ -136,13 +137,14 @@ struct SuggestionCard: View {
                 switch suggestion.status {
                 case .new:
                     HStack {
-                        Button(best != nil && !notInSize ? "Send to \(best!.agent.name)" : "Save to my Finds") {
-                            store.acceptSuggestion(suggestion.id)
+                        Button("♥ Add to Finds") {
+                            withAnimation(.snappy) { store.acceptSuggestion(suggestion.id) }
                             Analytics.track(.suggestionAccepted, ["category": item.category.rawValue])
-                            router.say("Saved to your Finds. Your agent learned from it.")
+                            router.say(best != nil && !notInSize ? "Liked and saved to Finds. \(best!.agent.name) learned from it." : "Liked and saved to your Finds")
                         }.buttonStyle(PrimaryButton())
                         Button("Not for me") {
-                            store.passSuggestion(suggestion.id)
+                            withAnimation(.snappy) { store.passSuggestion(suggestion.id) }
+                            router.say("Passed")
                             Analytics.track(.suggestionPassed, ["category": item.category.rawValue])
                         }.buttonStyle(GhostButton())
                     }
