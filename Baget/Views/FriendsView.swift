@@ -44,6 +44,7 @@ struct FriendsView: View {
                     HStack {
                         TextField(store.isCloud ? "@handle" : "@handle or email", text: $handle)
                             .textInputAutocapitalization(.never).autocorrectionDisabled()
+                            .submitLabel(.go).onSubmit { if !handle.isEmpty { invite() } }
                             .padding(10).background(Theme.bg.opacity(0.6), in: RoundedRectangle(cornerRadius: 12))
                             .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.line))
                         Button(adding ? "…" : "Add") { invite() }
@@ -87,6 +88,7 @@ struct FriendsView: View {
             .padding(.horizontal, 16)
             .padding(.bottom, 24)
         }
+        .dismissKeyboardOnTap()
         .scrollIndicators(.hidden)
     }
 }
@@ -120,7 +122,9 @@ struct SuggestionCard: View {
                     (Text(f.name).bold().foregroundStyle(Theme.ink) + Text(" suggested for you · \(Fmt.ago(suggestion.date))").foregroundStyle(Theme.muted))
                         .font(.footnote)
                 }
-                Text("“\(suggestion.note)”").font(.body.italic()).foregroundStyle(Theme.ink)
+                if !suggestion.note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Text("“\(suggestion.note)”").font(.body.italic()).foregroundStyle(Theme.ink)
+                }
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.title).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
                     Text("\(item.category.info.label) · \(item.priceLabel) at \(item.source)\(notInSize ? " · not in your size" : "")")
@@ -153,6 +157,13 @@ struct SuggestionCard: View {
                     } else {
                         HStack {
                             TextField("Reply to \(f.name.split(separator: " ").first.map(String.init) ?? f.name)", text: $reply)
+                                .submitLabel(.send)
+                                .onSubmit {
+                                    let t = reply.trimmingCharacters(in: .whitespacesAndNewlines)
+                                    guard !t.isEmpty else { return }
+                                    store.replyToSuggestion(suggestion, text: t)
+                                    reply = ""; replied = true
+                                }
                                 .padding(9).background(Theme.bg.opacity(0.6), in: RoundedRectangle(cornerRadius: 12))
                                 .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.line))
                             Button("Send") {
