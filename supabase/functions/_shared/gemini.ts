@@ -34,13 +34,15 @@ type Part = { text?: string; functionCall?: { name: string; args?: Record<string
 type Reply = { candidates?: { content?: { role?: string; parts?: Part[] }; groundingMetadata?: { webSearchQueries?: string[] } }[];
   usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number; thoughtsTokenCount?: number } };
 
-async function callOne(model: string, body: Record<string, unknown>, fetchFn: FetchFn): Promise<Reply | "gone" | null> {
+async function callOne(model: string, body: Record<string, unknown>, fetchFn: FetchFn): Promise<Reply | "gone" | "busy" | null> {
   const r = await fetchFn(endpoint(model), {
     method: "POST", signal: AbortSignal.timeout(60_000),
     headers: { "Content-Type": "application/json", "x-goog-api-key": env("GEMINI_API_KEY")! },
     body: JSON.stringify(body),
   });
   if (r.status === 404) { console.error("gemini", model, "not available"); return "gone"; }
+  // Busy or over quota on this model: try the next one.
+  if (r.status === 429 || r.status >= 500) { console.error("gemini", model, r.status, (await r.text()).slice(0, 160)); return "busy"; }
   if (!r.ok) { console.error("gemini", model, r.status, (await r.text()).slice(0, 200)); return null; }
   return await r.json() as Reply;
 }
@@ -50,6 +52,7 @@ async function call(body: Record<string, unknown>, fetchFn: FetchFn): Promise<{ 
   for (const m of list) {
     const j = await callOne(m, body, fetchFn);
     if (j === "gone") { if (working === m) working = null; continue; }
+    if (j === "busy") continue;
     if (!j) return null;
     working = m;
     return { j, model: m };
