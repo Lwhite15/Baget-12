@@ -8,6 +8,7 @@ import { addImages, linkIsDead, pageProduct, smaller, traceImage } from "../_sha
 import { setupDemo, setupShots } from "./demo.ts";
 import { restockCheck } from "../_shared/daily.ts";
 import { blockedDomains, notAProduct, pageKind, storeFeeds, storeLeads } from "../_shared/stores.ts";
+import { geminiHunt, geminiOn } from "../_shared/gemini.ts";
 import { SEARCH_TOOL, hitsText, serperSearch, serperUsable } from "../_shared/search.ts";
 export { firstName };
 import { type Lead, attachOffers, ebayConfigured, ebaySearch, queriesFor, shoppingLeads, shoppingOffers } from "../_shared/sources.ts";
@@ -255,6 +256,15 @@ export function cleanListings(raw: unknown, fallbackCategory: string): (Listing 
   return out;
 }
 
+/** Two titles name the same product (most of one's distinctive words are in the other). */
+export function sameProduct(a: string, b: string): boolean {
+  const ws = (s: string) => new Set(norm(s).split(/[^a-z0-9]+/).filter((w) => w.length > 2 && !["the", "and", "for", "eau", "parfum", "with", "new"].includes(w)));
+  const x = ws(a), y = ws(b);
+  if (!x.size || !y.size) return false;
+  const shared = [...x].filter((w) => y.has(w)).length;
+  return shared / Math.min(x.size, y.size) >= 0.8;
+}
+
 /** The last hunt's listings (for the Diagnose model comparison). */
 const lastHunt: string[] = [];
 
@@ -264,7 +274,7 @@ export const SWEEP_MODEL = () => env("SWEEP_MODEL") ?? "claude-haiku-5-5";
 
 export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", now = new Date(),
                                  opts: { model?: string; provider?: "serper" | "claude" } = {}) {
-  const run = { user_id: a.user_id, agent_id: a.id, trigger, searches: 0, listings: 0, finds: 0, input_tokens: 0, output_tokens: 0, cache_write_tokens: 0, cache_read_tokens: 0, fetches: 0, error: null as string | null };
+  const run = { user_id: a.user_id, agent_id: a.id, trigger, searches: 0, listings: 0, finds: 0, tandem: 0, input_tokens: 0, output_tokens: 0, cache_write_tokens: 0, cache_read_tokens: 0, fetches: 0, error: null as string | null };
   try {
     const reactions = await reactionsFor(a.id).catch(() => undefined);
     // Extra sources (each only when its key is set): Google Shopping leads for Claude, and real eBay listings.
@@ -278,6 +288,8 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
     run.searches += rotation.searches;
     const messages: ClaudeMessage[] = [{ role: "user", content: (rotation.text ? rotation.text + "\n\n" : "") + sweepPrompt(a, now.toISOString().slice(0, 10), reactions, (DROP_CATEGORIES.has(a.mission_category ?? "") ? [UPCOMING_ANGLE, ...anglesFor(a.id, now)] : anglesFor(a.id, now)).slice(0, depth.angles), leads,
       firstName(a.display_name), sourcesFor(a.mission_category, a.id, now, depth.sources), depth) }];
+    // The second scout (Gemini + Google Search) hunts the same brief at the same time; its picks are merged below.
+    const tandem = geminiOn() ? geminiHunt(String(messages[0].content)) : Promise.resolve(null);
     // Searching: through Serper (Google, ~10x cheaper) when it's working, else Claude's built-in web search.
     const useSerper = opts.provider ? opts.provider === "serper" : await serperUsable();
     const tools: Record<string, unknown>[] = useSerper ? [SEARCH_TOOL]
@@ -328,12 +340,25 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
     }
     const blocked = await blockedDomains();
     // Pages that aren't one product stay, labeled: "intel" (droplists, calendars, news) or "search" (a results page).
-    let listings = cleanListings(parseJSON(textOf(final)), a.mission_category ?? "other").flatMap((l) => {
+    const classify = (raw: unknown) => cleanListings(raw, a.mission_category ?? "other").flatMap((l) => {
       const k = pageKind(l.url, blocked);
       if (!k) return [];
       if (k !== "product" && !l.tags.includes(k)) l.tags = [...l.tags.filter((t) => t !== "intel" && t !== "search"), k];
       return [l];
     });
+    let listings = classify(parseJSON(textOf(final)));
+    // Merge the second scout's picks. A product both found independently is marked "both" (it ranks higher).
+    const second = await tandem;
+    if (second) {
+      const theirs = classify(second);
+      run.tandem = theirs.length;
+      for (const l of theirs) {
+        const twin = listings.find((x) => x.fingerprint === l.fingerprint || (x.category === l.category && sameProduct(x.title, l.title)));
+        if (twin) { if (!twin.tags.includes("both")) twin.tags.push("both"); continue; }
+        l.tags = [...l.tags, "scout2"];
+        listings.push(l);
+      }
+    }
     lastHunt.splice(0, lastHunt.length, ...listings.map((l) => `${l.title} | ${l.source} | ${l.price ?? "?"} | ${l.url}`.slice(0, 220)));
     // Made-up links (404) go; then each real one gets a verified product photo.
     const dead = await Promise.all(listings.map((l) => linkIsDead(l.url)));
@@ -375,13 +400,15 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
       const kind = kindFor(l, now.getTime());
       // No photo, no text: a find only buzzes your phone once Baget has its real photo. Intel and searches never text.
       const wantNote = !info && (!groups || groups.includes(GROUP_OF[kind])) && !!l.image_url;
-      const why = [...(l.pitch ? [l.pitch] : []), ...(l.discovery ? ["Discovery: something new it found for you"] : []), ...m.why].slice(0, 6);
+      const both = l.tags.includes("both");
+      const why = [...(l.pitch ? [l.pitch] : []), ...(both ? ["Both scouts found this on their own"] : []),
+        ...(l.discovery ? ["Discovery: something new it found for you"] : []), ...m.why].slice(0, 6);
       // The agent's own personal text first; the templates are the fallback.
       const body = l.text ? l.text : l.discovery && l.pitch
         ? `Found something you didn't ask for but I think you'll love: ${l.title}${l.price ? ` ($${Math.round(l.price)})` : ""} at ${l.source}. ${l.pitch}`
         : friendLine(a, kind, l, m.score, now.getTime());
       finds.push({
-        listing_id: s.id, score: Math.max(m.score, l.discovery ? 60 : 0), why,
+        listing_id: s.id, score: Math.min(99, Math.max(m.score, l.discovery ? 60 : 0) + (both ? 10 : 0)), why,
         ...(wantNote ? { note: { kind, body: body.slice(0, 480), held: heldForMorning(kind, l, a.tz, quiet, now) } } : {}),
       });
     }

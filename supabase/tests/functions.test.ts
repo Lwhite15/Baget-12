@@ -1503,4 +1503,28 @@ await test("typed-in missions: a color word alone doesn't make a match", async (
   assert.equal(M.missionCovers("vinyl records", "carpet vinyl flooring"), false);
 });
 
+await test("tandem: the second scout's hunt is parsed and logged; same products are recognized across scouts", async () => {
+  const G = await import("../functions/_shared/gemini.ts");
+  assert.ok(sweep.sameProduct("Byredo Bal d'Afrique Eau de Parfum 50ml", "BYREDO Bal d'Afrique 50 ml"));
+  assert.ok(!sweep.sameProduct("Byredo Bal d'Afrique", "Byredo Gypsy Water"));
+  process.env.GEMINI_API_KEY = "g-key";
+  const logged: any[] = [];
+  reset([
+    [/generativelanguage\.googleapis\.com/, (_u, init, b) => {
+      assert.equal((init.headers as any)["x-goog-api-key"], "g-key");
+      assert.deepEqual(b.tools, [{ google_search: {} }]);
+      assert.match(b.contents[0].parts[0].text, /second scout/);
+      return ok({ candidates: [{ content: { parts: [{ text: 'Found these.\n```json\n{"listings":[{"title":"Ataraxia Lumen","url":"https://ataraxiaperfumery.com/products/lumen","price":180}]}\n```' }] },
+        groundingMetadata: { webSearchQueries: ["a", "b"] } }], usageMetadata: { promptTokenCount: 1000, candidatesTokenCount: 500 } });
+    }],
+    [/rest\/v1\/claude_usage/, (_u, _i, b) => { logged.push(b); return ok([]); }],
+  ]);
+  const r: any = await G.geminiHunt("Mission: niche fragrance");
+  assert.equal(r.listings[0].title, "Ataraxia Lumen");
+  assert.equal(logged[0].fn, "sweep (tandem)");
+  assert.equal(logged[0].searches, 2);
+  delete process.env.GEMINI_API_KEY;
+  assert.equal(await G.geminiHunt("x"), null, "off without a key");
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

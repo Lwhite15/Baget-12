@@ -249,7 +249,7 @@ export async function logBatchUsage(fn: string, model: string, u: ClaudeResponse
 }
 
 /** One row per Claude call, for the owner's stats screen (spend per day and per feature). Never breaks a call. */
-async function logUsage(fn: string, model: string, u: ClaudeResponse["usage"]) {
+export async function logUsage(fn: string, model: string, u: ClaudeResponse["usage"]) {
   if (!u) return;
   try {
     await fetch(`${SUPABASE_URL()}/rest/v1/claude_usage`, {

@@ -1,6 +1,6 @@
 # Baget Privacy Policy
 
-_Last updated: October 16, 2026_
+_Last updated: October 22, 2026_
 
 Baget is a personal shopping scout. This policy explains what Baget collects, why, and your choices.
 
@@ -17,6 +17,7 @@ To find products for you, learn your taste, send you notifications, run Baget Pr
 Service providers that process data for us:
 - **Anthropic (Claude)** runs your scouts, chat and photo reading. It receives your agents' briefs, your chats with them, photos you choose to share, and your first name so scouts can address you. It doesn't receive your email address.
 - **Serper (Google search)** receives the search terms your scouts use. No personal details are sent.
+- **Google (Gemini)** runs a second scout alongside Claude on hunts. It receives your scouts' briefs (what they hunt, the brands and styles you like, and what you liked or passed on) and searches the web with Google. It doesn't receive your name or email address.
 - **Supabase** hosts the database, storage and server functions.
 - **Apple** delivers notifications and handles Baget Pro payments.
 
