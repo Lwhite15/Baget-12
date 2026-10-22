@@ -387,6 +387,7 @@ struct FindCard: View {
                     if store.isSoldOut(item) { badge("SOLD OUT", Theme.warn) }
                     else if !store.isLive(item) { badge(store.whenLabel(item), Theme.blue) }
                     if item.tags.contains("limited") { badge("LIMITED", Theme.hot) }
+                    if find.why.contains(where: { $0.hasPrefix("Discovery") }) { badge("NEW TO YOU", Theme.cyan) }
                     if item.isIntel { badge("INTEL", Theme.cyan) }
                     if item.isSearchLink { badge("SEARCH", Theme.cyan) }
                     if store.reminder(for: item) != nil { Image(systemName: "bell.fill").font(.caption2).foregroundStyle(Theme.blue).accessibilityLabel("Reminder set") }

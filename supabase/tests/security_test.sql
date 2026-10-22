@@ -287,6 +287,15 @@ select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001
 select t.ok(exists (select 1 from public.for_you(24) x where x ->> 'kind' = 'similar' and x -> 'listing' ->> 'title' = 'Seedco Trail Suede' and x ->> 'reason' like 'Like your Seed Runner%'), 'comparable to a scout find: same brand, shared details, similar price');
 select t.ok(exists (select 1 from public.for_you(24) x where x ->> 'kind' = 'yours' and x -> 'listing' ->> 'title' = 'Seed Runner Suede'), 'and the find itself is there');
 select t.ok((select x ->> 'kind' = 'yours' from public.for_you(24) x limit 1), 'their scouts'' finds lead');
+reset role;
+insert into public.listings (fingerprint, title, brand, category, url, image_url, traits, price)
+  values ('fy|jacket', 'Suede Trucker Jacket', 'Newhouse', 'apparel', 'https://nh.example/p/1', 'https://img.example/j1.jpg', '{suede}', 300),
+         ('fy|perfume', 'Mystery Oud', 'Scenthouse', 'fragrance', 'https://sh.example/p/1', 'https://img.example/p1.jpg', '{suede}', 200);
+insert into public.listing_seen (user_id, listing_id) select 'aaaaaaaa-0000-0000-0000-000000000001', id from public.listings where fingerprint in ('fy|jacket', 'fy|perfume');
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
+select t.ok(exists (select 1 from public.for_you(40) x where x ->> 'kind' = 'explore' and x -> 'listing' ->> 'title' = 'Suede Trucker Jacket'), 'discovery: a new brand from a neighboring category that shares a detail they like');
+select t.ok(not exists (select 1 from public.for_you(40) x where x -> 'listing' ->> 'title' = 'Mystery Oud'), 'but nothing from an unrelated category');
 select t.ok(public.title_overlap('Bal D''Afrique Eau De Parfum', 'Byredo Bal d''Afrique Eau de Parfum 50ml') >= 0.6, 'the same product at another store is recognized');
 select t.ok(public.title_overlap('Seed Runner Suede', 'Seedco Trail Suede') < 0.6, 'a different product is not');
 do $d$ declare r record; begin for r in select x ->> 'kind' k, x -> 'listing' ->> 'title' t, x ->> 'reason' re from public.for_you(10) x loop raise notice 'FY % | % | %', r.k, r.t, r.re; end loop; end $d$;
