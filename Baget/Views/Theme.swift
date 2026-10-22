@@ -291,9 +291,9 @@ struct BrandTag: View {
     var live = false
 
     var body: some View {
-        // The brand in Apple's serif (New York), plain white like a boutique label. The whole name always shows.
+        // The brand in the system font, semibold (same as product titles), plain white. The whole name always shows.
         let t = Text(text)
-            .font(.system(size: 17, weight: .regular, design: .serif))
+            .font(.system(size: 17, weight: .semibold))
             .lineLimit(2)
             .minimumScaleFactor(0.8)
             .multilineTextAlignment(.leading)

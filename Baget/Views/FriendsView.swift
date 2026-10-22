@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// Serif headings and plain type: the Friends tab's quieter, boutique look.
+/// The Friends tab's quieter look: headings in the system font, semibold (same as product titles).
 private enum FriendsStyle {
-    static func serif(_ size: CGFloat) -> Font { .system(size: size, weight: .regular, design: .serif) }
+    static func serif(_ size: CGFloat) -> Font { .system(size: size, weight: size >= 30 ? .bold : .semibold) }
     static let rule = Theme.line
 }
 
@@ -219,7 +219,7 @@ struct SuggestionCard: View {
                 }
                 if !note.isEmpty {
                     Text(note)
-                        .font(FriendsStyle.serif(16).italic()).foregroundStyle(Theme.ink.opacity(0.9))
+                        .font(.system(size: 16).italic()).foregroundStyle(Theme.ink.opacity(0.9))
                         .padding(.leading, 12)
                         .overlay(alignment: .leading) { Rectangle().fill(Color.white.opacity(0.25)).frame(width: 2) }
                 }
