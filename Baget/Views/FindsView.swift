@@ -11,14 +11,15 @@ private struct FindGroup: Identifiable {
 }
 
 enum FindsShow: String, CaseIterable, Identifiable {
-    case all = "All", new = "New", liked = "Liked", intel = "Intel"
+    // In the order the filter row shows them.
+    case new = "New", liked = "Liked", watching = "Watching", intel = "Intel", all = "All"
     var id: String { rawValue }
 }
 
 struct FindsView: View {
     @Environment(AppStore.self) private var store
     @Environment(Router.self) private var router
-    @State private var show: FindsShow = .all
+    @State private var show: FindsShow = .new
     @State private var collapsed: Set<String> = []
     @State private var expanded: String?
     @State private var highlighted: String?
@@ -35,6 +36,7 @@ struct FindsView: View {
             case .all: return true
             case .new: return f.status == .open
             case .liked: return f.status == .liked
+            case .watching: return f.watching
             case .intel: return Catalog.item(f.itemID)?.isProduct == false
             }
         }
@@ -82,6 +84,7 @@ struct FindsView: View {
         let groups = self.groups
         let newTotal = store.state.finds.filter { $0.status == .open && Catalog.item($0.itemID)?.showsInFinds == true }.count
         let likedTotal = store.state.finds.filter { $0.status == .liked && Catalog.item($0.itemID)?.showsInFinds == true }.count
+        let watchingTotal = store.state.finds.filter { ($0.status == .open || $0.status == .liked) && $0.watching && Catalog.item($0.itemID)?.showsInFinds == true }.count
         let intelTotal = store.state.finds.filter { ($0.status == .open || $0.status == .liked) && Catalog.item($0.itemID).map { !$0.isProduct && $0.showsInFinds } == true }.count
 
         ScrollViewReader { proxy in
@@ -89,13 +92,7 @@ struct FindsView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     header(newTotal: newTotal, likedTotal: likedTotal)
 
-                    Picker("Show", selection: $show) {
-                        Text("All").tag(FindsShow.all)
-                        Text(newTotal > 0 ? "New · \(newTotal)" : "New").tag(FindsShow.new)
-                        Text(likedTotal > 0 ? "♥ Liked · \(likedTotal)" : "♥ Liked").tag(FindsShow.liked)
-                        if intelTotal > 0 { Text("Intel · \(intelTotal)").tag(FindsShow.intel) }
-                    }
-                    .pickerStyle(.segmented)
+                    filterRow(counts: [.new: newTotal, .liked: likedTotal, .watching: watchingTotal, .intel: intelTotal])
 
                     if !visible.isEmpty {
                         HStack {
@@ -156,11 +153,42 @@ struct FindsView: View {
         }
     }
 
+    /// New, Liked, Watching, Intel, All: one tap each, with counts. Scrolls sideways on small phones.
+    private func filterRow(counts: [FindsShow: Int]) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                ForEach(FindsShow.allCases) { f in
+                    let n = counts[f] ?? 0
+                    let label: String = {
+                        switch f {
+                        case .liked: return n > 0 ? "♥ Liked · \(n)" : "♥ Liked"
+                        case .watching: return n > 0 ? "Watching · \(n)" : "Watching"
+                        case .all: return "All"
+                        default: return n > 0 ? "\(f.rawValue) · \(n)" : f.rawValue
+                        }
+                    }()
+                    let on = show == f
+                    Button { withAnimation(.snappy) { show = f } } label: {
+                        Text(label)
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(on ? Theme.accentInk : Theme.ink)
+                            .padding(.horizontal, 10).padding(.vertical, 7)
+                            .background { if on { Capsule().fill(Theme.gradient) } else { Capsule().fill(Theme.glass) } }
+                            .overlay(Capsule().strokeBorder(on ? Color.clear : Theme.line))
+                    }
+                        .buttonStyle(.plain)
+                        .accessibilityAddTraits(show == f ? .isSelected : [])
+                }
+            }
+        }
+    }
+
     private var clearLabel: String {
         switch show {
         case .all: return "Clear all"
         case .new: return "Clear new"
         case .liked: return "Clear liked"
+        case .watching: return "Clear watching"
         case .intel: return "Clear intel"
         }
     }
@@ -171,6 +199,7 @@ struct FindsView: View {
         case .new: return "You're all caught up. Your squad keeps hunting in the background."
         case .liked: return "Nothing liked yet. Tap ♥ on a find you love and your agents will find more like it."
         case .all: return "Nothing here yet. Tap Sweep now, or pull down on Live."
+        case .watching: return "Nothing on watch. Tap Watch it for me on a find, or Notify me on something sold out, and it shows up here."
         case .intel: return "No intel right now. Droplists, release calendars and news your scouts come across land here."
         }
     }
