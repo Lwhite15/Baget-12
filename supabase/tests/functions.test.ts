@@ -1513,7 +1513,7 @@ await test("tandem: grounded Gemini while the free allowance lasts, then Flash-L
   let used = 10;
   const logged: any[] = [], models: string[] = [];
   reset([
-    [/rpc\/gemini_grounded_today/, () => ok(used)],
+    [/rpc\/gemini_grounded_month/, () => ok(used)],
     [/generativelanguage\.googleapis\.com/, (u, init, b) => {
       assert.equal((init.headers as any)["x-goog-api-key"], "g-key");
       models.push(decodeURIComponent(u.pathname.split("/models/")[1]));
@@ -1533,12 +1533,19 @@ await test("tandem: grounded Gemini while the free allowance lasts, then Flash-L
   const r: any = await G.geminiHunt("Mission: niche fragrance");
   assert.equal(r.listings[0].title, "Ataraxia Lumen");
   assert.match(logged[0].model, /\(grounded\)$/);
-  used = 1400;
+  used = 4800;
   G.resetGrounded();
   const r2: any = await G.geminiHunt("Mission: niche fragrance", 4);
   assert.equal(r2.listings[0].title, "Ataraxia Lumen");
-  assert.ok(models.at(-1)!.includes("lite"), "switched to Flash-Lite");
+  assert.ok(models.every((m) => m.startsWith("gemini-3.1-flash-lite:")), "Gemini 3.1 Flash-Lite for both modes");
   assert.match(logged.at(-1).model, /lite.*\(serper\)$/);
+  // a retired model is skipped
+  reset([[/rpc\/gemini_grounded_month/, () => ok(0)],
+    [/models\/gemini-3\.1-flash-lite/, () => new Response("gone", { status: 404 })],
+    [/models\/gemini-3\.5-flash-lite/, () => ok({ candidates: [{ content: { parts: [{ text: json }] } }] })],
+    [/rest\/v1\/claude_usage/, () => ok([])]]);
+  G.resetGrounded();
+  assert.equal(((await G.geminiHunt("x")) as any).listings[0].title, "Ataraxia Lumen", "falls through to the next model");
   assert.equal(logged.at(-1).searches, 1);
   delete process.env.GEMINI_API_KEY; delete process.env.SERPER_API_KEY;
   assert.equal(await G.geminiHunt("x"), null, "off without a key");
