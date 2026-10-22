@@ -273,16 +273,16 @@ struct SuggestionCard: View {
 private struct SentRow: View {
     @Environment(AppStore.self) private var store
     let share: Share
+    private var recipients: String {
+        share.to.compactMap { store.friend($0)?.name }.map { n in n.split(separator: " ").first.map(String.init) ?? n }.joined(separator: ", ")
+    }
     var body: some View {
         if let item = Catalog.item(share.itemID) {
             HStack(alignment: .top, spacing: 12) {
                 ProductThumb(item: item, size: 50)
                 VStack(alignment: .leading, spacing: 6) {
                     (Text(item.title).foregroundStyle(Theme.ink)
-                     + Text(" to \(share.to.compactMap { id -> String? in
-                        guard let n = store.friend(id)?.name else { return nil }
-                        return n.split(separator: " ").first.map(String.init) ?? n
-                    }.joined(separator: ", ")) · \(Fmt.ago(share.date))").foregroundStyle(Theme.muted))
+                     + Text(" to \(recipients) · \(Fmt.ago(share.date))").foregroundStyle(Theme.muted))
                         .font(.subheadline).lineLimit(2)
                     ForEach(share.replies, id: \.self) { r in
                         if let f = store.friend(r.friendID) {
