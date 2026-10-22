@@ -289,7 +289,7 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
     const messages: ClaudeMessage[] = [{ role: "user", content: (rotation.text ? rotation.text + "\n\n" : "") + sweepPrompt(a, now.toISOString().slice(0, 10), reactions, (DROP_CATEGORIES.has(a.mission_category ?? "") ? [UPCOMING_ANGLE, ...anglesFor(a.id, now)] : anglesFor(a.id, now)).slice(0, depth.angles), leads,
       firstName(a.display_name), sourcesFor(a.mission_category, a.id, now, depth.sources), depth) }];
     // The second scout (Gemini + Google Search) hunts the same brief at the same time; its picks are merged below.
-    const tandem = geminiOn() ? geminiHunt(String(messages[0].content)) : Promise.resolve(null);
+    const tandem = geminiOn() ? geminiHunt(String(messages[0].content), Math.ceil(depth.searches / 2)) : Promise.resolve(null);
     // Searching: through Serper (Google, ~10x cheaper) when it's working, else Claude's built-in web search.
     const useSerper = opts.provider ? opts.provider === "serper" : await serperUsable();
     const tools: Record<string, unknown>[] = useSerper ? [SEARCH_TOOL]

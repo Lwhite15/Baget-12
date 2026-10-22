@@ -1503,27 +1503,44 @@ await test("typed-in missions: a color word alone doesn't make a match", async (
   assert.equal(M.missionCovers("vinyl records", "carpet vinyl flooring"), false);
 });
 
-await test("tandem: the second scout's hunt is parsed and logged; same products are recognized across scouts", async () => {
+await test("tandem: grounded Gemini while the free allowance lasts, then Flash-Lite with Baget's own search", async () => {
   const G = await import("../functions/_shared/gemini.ts");
   assert.ok(sweep.sameProduct("Byredo Bal d'Afrique Eau de Parfum 50ml", "BYREDO Bal d'Afrique 50 ml"));
   assert.ok(!sweep.sameProduct("Byredo Bal d'Afrique", "Byredo Gypsy Water"));
   process.env.GEMINI_API_KEY = "g-key";
-  const logged: any[] = [];
+  process.env.SERPER_API_KEY = "serp";
+  const json = '```json\n{"listings":[{"title":"Ataraxia Lumen","url":"https://ataraxiaperfumery.com/products/lumen","price":180}]}\n```';
+  let used = 10;
+  const logged: any[] = [], models: string[] = [];
   reset([
-    [/generativelanguage\.googleapis\.com/, (_u, init, b) => {
+    [/rpc\/gemini_grounded_today/, () => ok(used)],
+    [/generativelanguage\.googleapis\.com/, (u, init, b) => {
       assert.equal((init.headers as any)["x-goog-api-key"], "g-key");
-      assert.deepEqual(b.tools, [{ google_search: {} }]);
-      assert.match(b.contents[0].parts[0].text, /second scout/);
-      return ok({ candidates: [{ content: { parts: [{ text: 'Found these.\n```json\n{"listings":[{"title":"Ataraxia Lumen","url":"https://ataraxiaperfumery.com/products/lumen","price":180}]}\n```' }] },
-        groundingMetadata: { webSearchQueries: ["a", "b"] } }], usageMetadata: { promptTokenCount: 1000, candidatesTokenCount: 500 } });
+      models.push(decodeURIComponent(u.pathname.split("/models/")[1]));
+      if (b.tools[0].google_search) {
+        assert.match(b.contents[0].parts[0].text, /second scout/);
+        return ok({ candidates: [{ content: { parts: [{ text: json }] }, groundingMetadata: { webSearchQueries: ["a", "b"] } }], usageMetadata: { promptTokenCount: 1000, candidatesTokenCount: 500 } });
+      }
+      // Flash-Lite: first asks to search, then answers
+      if (b.contents.length === 1) return ok({ candidates: [{ content: { role: "model", parts: [{ functionCall: { name: "search", args: { query: "niche oud" } } }] } }], usageMetadata: { promptTokenCount: 800, candidatesTokenCount: 20 } });
+      assert.match(JSON.stringify(b.contents[2].parts[0].functionResponse), /ataraxia/);
+      return ok({ candidates: [{ content: { parts: [{ text: json }] } }], usageMetadata: { promptTokenCount: 1500, candidatesTokenCount: 300 } });
     }],
+    [/google\.serper\.dev/, () => ok({ organic: [{ title: "Lumen", link: "https://ataraxiaperfumery.com/products/lumen", snippet: "" }] })],
     [/rest\/v1\/claude_usage/, (_u, _i, b) => { logged.push(b); return ok([]); }],
   ]);
+  G.resetGrounded();
   const r: any = await G.geminiHunt("Mission: niche fragrance");
   assert.equal(r.listings[0].title, "Ataraxia Lumen");
-  assert.equal(logged[0].fn, "sweep (tandem)");
-  assert.equal(logged[0].searches, 2);
-  delete process.env.GEMINI_API_KEY;
+  assert.match(logged[0].model, /\(grounded\)$/);
+  used = 1400;
+  G.resetGrounded();
+  const r2: any = await G.geminiHunt("Mission: niche fragrance", 4);
+  assert.equal(r2.listings[0].title, "Ataraxia Lumen");
+  assert.ok(models.at(-1)!.includes("lite"), "switched to Flash-Lite");
+  assert.match(logged.at(-1).model, /lite.*\(serper\)$/);
+  assert.equal(logged.at(-1).searches, 1);
+  delete process.env.GEMINI_API_KEY; delete process.env.SERPER_API_KEY;
   assert.equal(await G.geminiHunt("x"), null, "off without a key");
 });
 
