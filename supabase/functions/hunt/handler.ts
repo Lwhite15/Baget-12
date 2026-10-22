@@ -167,7 +167,7 @@ export const handler = handle(async (req) => {
   await quota(user.id, "hunt", 20, 50);
   const body = await req.json().catch(() => ({})) as { text?: string; size?: string; categories?: string[]; images?: Img[]; liked?: string[]; passed?: string[];
     vibes?: unknown; budget?: unknown; brands?: unknown; interests?: unknown };
-  const text = (body.text ?? "").trim().slice(0, 300);
+  const text = (body.text ?? "").trim().slice(0, 1200);
   if (Array.isArray(body.categories)) {
     const images = (Array.isArray(body.images) ? body.images : [])
       .filter((im) => im && IMG_TYPES.includes(im.media_type) && typeof im.data === "string" && im.data.length < 2_000_000).slice(0, 3);

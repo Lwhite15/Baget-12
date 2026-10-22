@@ -181,14 +181,20 @@ struct OnboardingView: View {
                         Text("Free includes 2 scouts. You can go Pro any time for up to 5, hunting around the clock.")
                             .font(.caption).foregroundStyle(Theme.muted)
                     }
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Don't see it? Describe anything")
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Tell your scouts in your own words")
                             .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
-                        Text("A first-edition book, a vintage Rolex, a gift for your mom. Say it in your own words and your scouts will find it.")
+                        Text("The more you share, the better Baget gets. Be as descriptive as you like: brands you love, styles, colors, materials, sizes, your budget, what you're hunting for and why. Anything not listed above, just describe it and your scouts will find it.")
                             .font(.caption).foregroundStyle(Theme.muted)
                             .fixedSize(horizontal: false, vertical: true)
-                        TextField("Describe what you're looking for", text: $text, axis: .vertical)
-                            .lineLimit(1...4)
+                        HStack(alignment: .firstTextBaseline, spacing: 6) {
+                            Image(systemName: "sparkles").font(.caption2).foregroundStyle(Theme.cyan)
+                            Text("“Vintage Rolex Datejust 36, champagne dial, under $6k” finds far more than “watches.”")
+                                .font(.caption.italic()).foregroundStyle(Theme.ink.opacity(0.8))
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        TextField("Describe what you love and what you're looking for", text: $text, axis: .vertical)
+                            .lineLimit(2...6)
                             .padding(12)
                             .background(Theme.bg.opacity(0.6), in: RoundedRectangle(cornerRadius: 14))
                             .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Theme.line))
