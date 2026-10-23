@@ -161,6 +161,8 @@ Use only what they said, picked or showed. Keep every list item short (1-4 words
     p.makers = [...new Set([...b, ...p.makers].map((x) => x.trim()))].slice(0, 10);
     // The size they tapped for this category beats anything guessed from their words.
     if (p.category && sizes[p.category]) p.size = sizes[p.category];
+    // Women's sizes: the scout hunts the women's department.
+    if (/\bUS W\b|womenswear/i.test(p.size) && !p.traits.some((t) => /women/i.test(t))) p.traits = ["womens", ...p.traits].slice(0, 12);
   }
   // Only as many scouts as the plan allows (Free 2, Pro 5); the strongest picks first.
   const limit = await scoutLimit(userId);

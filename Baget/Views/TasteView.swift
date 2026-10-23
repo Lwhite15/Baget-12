@@ -104,6 +104,7 @@ struct OnboardingView: View {
     @State private var budget: Int? = nil
     @State private var brands: [Category: Set<String>] = [:]
     @State private var sizes: [Category: String] = [:]
+    @State private var womens: Set<Category> = []
     @State private var editingWords = false
     // First hunt
     @State private var pushOn = false
@@ -249,9 +250,21 @@ struct OnboardingView: View {
                                         .accessibilityAddTraits(on ? .isSelected : [])
                                 }
                             }
-                            if let options = Vibes.sizes(c) {
+                            if let options = Vibes.sizes(c, women: womens.contains(c)) {
                                 // Sneaker and clothing scouts only flag what's in stock in your size, so ask here.
-                                Text(c == .sneakers ? "Your shoe size (US men's)" : "Your size").font(.caption.weight(.semibold)).foregroundStyle(Theme.muted).padding(.top, 4)
+                                HStack {
+                                    Text(c == .sneakers ? "Your shoe size (US)" : "Your size").font(.caption.weight(.semibold)).foregroundStyle(Theme.muted)
+                                    Spacer()
+                                    Picker("Fit", selection: Binding(get: { womens.contains(c) }, set: { w in
+                                        if w { womens.insert(c) } else { womens.remove(c) }
+                                        sizes[c] = nil   // a men's 10 isn't a women's 10
+                                    })) {
+                                        Text("Men's").tag(false)
+                                        Text("Women's").tag(true)
+                                    }
+                                    .pickerStyle(.segmented).frame(width: 180)
+                                }
+                                .padding(.top, 4)
                                 ScrollView(.horizontal) {
                                     HStack(spacing: 8) {
                                         ForEach(options, id: \.self) { z in
@@ -265,7 +278,7 @@ struct OnboardingView: View {
                                 }
                                 .scrollIndicators(.hidden)
                                 if sizes[c] == nil {
-                                    Text(c == .sneakers ? "Women's or EU? Put it in your own words on the first screen." : "Pants or a specific fit? Put it in your own words on the first screen.")
+                                    Text(c == .sneakers ? "EU or UK sizing? Put it in your own words on the first screen." : "Pants or a specific fit? Put it in your own words on the first screen.")
                                         .font(.caption2).foregroundStyle(Theme.muted)
                                 }
                             }
@@ -449,7 +462,8 @@ struct OnboardingView: View {
             let ids = await store.onboard(categories: Array(picked), text: text.trimmingCharacters(in: .whitespacesAndNewlines), photos: photos,
                                           liked: liked, passed: passed,
                                           vibes: vibes.mapValues { Array($0) }, budget: budget.flatMap { $0 > 0 ? $0 : nil },
-                                          brands: brands.mapValues { Array($0) }, interests: Array(extras), sizes: sizes)
+                                          brands: brands.mapValues { Array($0) }, interests: Array(extras),
+                                          sizes: Dictionary(uniqueKeysWithValues: sizes.map { ($0.key, Vibes.sizeValue($0.key, $0.value, women: womens.contains($0.key))) }))
             working = false
             made = ids.count
             pushOn = await store.pushAllowed

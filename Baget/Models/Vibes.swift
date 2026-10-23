@@ -4,12 +4,20 @@ import Foundation
 /// The server turns these into concrete things to search for (e.g. "fresh & clean" → citrus, aquatic, musk).
 enum Vibes {
     /// Sizes to tap in setup, for the categories whose scouts only flag what's in stock in your size.
-    static func sizes(_ c: Category) -> [String]? {
+    static func sizes(_ c: Category, women: Bool = false) -> [String]? {
+        let half = { (a: Double, b: Double) in stride(from: a, through: b, by: 0.5).map { $0 == $0.rounded() ? String(Int($0)) : String($0) } }
         switch c {
-        case .sneakers: return stride(from: 6.0, through: 14.0, by: 0.5).map { $0 == $0.rounded() ? String(Int($0)) : String($0) } + ["15"]
+        case .sneakers: return women ? half(5, 12) : half(6, 14) + ["15"]
         case .apparel: return ["XS", "S", "M", "L", "XL", "XXL"]
         default: return nil
         }
+    }
+
+    /// How a tapped size is saved on the scout. Women's shoes say "US W 8" (read as US men's 6.5 when checking stock);
+    /// women's clothing keeps the letter size and says womenswear, so the scout hunts the right department.
+    static func sizeValue(_ c: Category, _ size: String, women: Bool) -> String {
+        guard women else { return size }
+        return c == .sneakers ? "US W \(size)" : "\(size) (womenswear)"
     }
 
     static func question(_ c: Category) -> String {

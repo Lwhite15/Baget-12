@@ -1599,3 +1599,9 @@ await test("scouts stick to the budget", () => {
   assert.equal(M.budgetOf({ ...vinyl, mission_custom: "Datejust under $6k" }), 6000);
 });
 
+await test("women's sizes from setup are read right", () => {
+  assert.equal(M.shoeUS("US W 8"), 6.5);
+  assert.equal(M.topSize("M (womenswear)"), "M");
+  assert.equal(M.topSize("S (womenswear)"), "S");
+});
+
