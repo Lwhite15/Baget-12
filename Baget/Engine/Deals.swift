@@ -17,15 +17,22 @@ struct DealVerdict: Hashable {
 
     static func of(_ item: Item) -> DealVerdict? {
         let p = item.priceKnown ? item.price : 0
-        let low = item.lowPrice ?? 0
-        let store = item.lowStore ?? "another store"
-        let others = (item.offers ?? []).count
+        let offers = item.offers ?? []
+        // Other stores (not the one it's listed at), cheapest first.
+        let elsewhere = offers.filter { !sameStore($0.store, item.source) && $0.price > 0 }.sorted { $0.price < $1.price }
+        let low = elsewhere.first?.price ?? (sameStore(item.lowStore ?? "", item.source) ? 0 : (item.lowPrice ?? 0))
+        let store = elsewhere.first?.store ?? item.lowStore ?? "another store"
+        let others = elsewhere.count
         let hasMarket = item.market > 0 && item.market != item.price
         guard p > 0 else {
             return low > 0 ? DealVerdict(level: .info, title: "From \(Fmt.money(low))", detail: "at \(store)") : nil
         }
-        if low > 0 && low < p * 0.95 && !sameStore(store, item.source) {
+        if low > 0 && low < p * 0.95 {
             return DealVerdict(level: .wait, title: "Cheaper elsewhere", detail: "\(Fmt.money(low)) at \(store), \(Int(safe: ((1 - low / p) * 100).rounded()))% less")
+        }
+        // The same store also shows it for much less: this price may be for another version, or out of date.
+        if let same = offers.filter({ sameStore($0.store, item.source) && $0.price > 0 }).min(by: { $0.price < $1.price }), same.price < p * 0.9 {
+            return DealVerdict(level: .wait, title: "Check the price", detail: "\(item.source) also lists it for \(Fmt.money(same.price))")
         }
         if hasMarket && item.market > p * 1.15 {
             return DealVerdict(level: .great, title: "Great deal", detail: "\(Int(safe: ((item.market / p - 1) * 100).rounded()))% under resale (\(Fmt.money(item.market)))")

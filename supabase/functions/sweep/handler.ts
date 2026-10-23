@@ -174,7 +174,7 @@ How to hunt${depth.deep ? " (leave no stone unturned)" : ""}:
   they told you they like (a vibe, a style, a brand, something they liked). Write for someone who may not know the brand.
 - For each product, write "about": 1-2 plain sentences (max 260 characters) about this product: what it actually is${a.mission_category === "fragrance" ? `. For fragrance, say what it smells like in everyday words (e.g. "fresh and clean, like
   soap and citrus" or "warm and sweet, like vanilla and wood"), its main notes, and when it's worn (daytime, night out, summer)` : ", what makes it special, and who or what it's for"}.
-  No hype words, no jargon. Only facts from the page or well known facts about this exact product; if you're not sure, say less.
+  No hype words, no jargon. Describe the product, not the brand (the brand is explained separately). Only facts from the page or well known facts about this exact product; if you're not sure, say less.
 - For each product, also write "text": the notification you'd text them about it, max 170 characters. Make it feel personal, like
   a friend who knows their taste texting them: say what you found in a few natural words (not the full product title), the key fact
   (price and store, the drop date, or that it's back in stock), and one specific reason it's for THEM, tied to something above
@@ -476,6 +476,7 @@ function aboutRequest(batch: AboutRow[]) {
 `Write a plain-language description for each product below, for a shopper seeing it for the first time.
 1-2 sentences, max 260 characters, everyday words, no hype or jargon: what it is, and what makes it special or who it's for.
 For a fragrance: what it smells like in everyday words (e.g. "fresh and clean, like soap and citrus"), main notes, and when it's worn.
+Describe the product itself, not the brand: who the brand is is shown separately, so don't explain it here.
 Only say what you're confident is true of this exact product. If you don't know a fragrance's notes, don't guess them: describe only
 what the name and details show. If you can't say anything useful, use null.
 

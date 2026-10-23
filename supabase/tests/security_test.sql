@@ -436,6 +436,13 @@ insert into public.finds (user_id, agent_id, listing_id, score, why)
 delete from public.agents where name = 'Temp Nose';
 select t.ok((select a.mission_category = 'fragrance' from public.finds f join public.agents a on a.id = f.agent_id
               join public.listings l on l.id = f.listing_id where l.fingerprint = 'orphan|1'), 'a deleted scout''s finds move to a remaining scout that fits');
+reset role;
+insert into public.agents (user_id, name, mission_category) values ('cccccccc-0000-0000-0000-000000000003', 'Temp Ring', 'accessories');
+insert into public.listings (fingerprint, title, category, url) values ('orphan|2', 'Orphan Ring', 'accessories', 'https://x.example/r');
+insert into public.finds (user_id, agent_id, listing_id, score, why)
+  select 'cccccccc-0000-0000-0000-000000000003', (select id from public.agents where name = 'Temp Ring'), id, 60, '{}' from public.listings where fingerprint = 'orphan|2';
+delete from public.agents where name = 'Temp Ring';
+select t.ok((select f.agent_id is null from public.finds f join public.listings l on l.id = f.listing_id where l.fingerprint = 'orphan|2'), 'but never to a scout that hunts something else');
 
 -- morning release and account deletion
 set role service_role;
