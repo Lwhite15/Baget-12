@@ -342,6 +342,8 @@ select t.ok(jsonb_array_length(public.taste_top(8)) > 0, 'taste profile is reada
 select t.ok(t.n($$select * from public.taste_quiz(array['sneakers'], 10)$$) >= 1, 'taste check has sneakers to rate');
 select t.ok(not exists (select 1 from public.taste_quiz(array['sneakers'], 10) x where x ->> 'category' <> 'sneakers'), 'only the categories you picked');
 select t.ok(not exists (select 1 from public.taste_quiz(array['sneakers'], 10) x where x ->> 'image_url' is null), 'only products with photos');
+select t.ok((select public.brand_key(x ->> 'brand') from public.taste_quiz(array['sneakers'], 10, array['Asics']) x limit 1) = 'asics',
+  'the taste check leads with a brand you picked');
 select t.err($$select * from public.buy_clicks$$, 'buy clicks are server-only');
 insert into public.feed_reactions (listing_id, action) select id, 'dismiss' from public.listings where fingerprint in ('fy|lamp', 'fy|kayano');
 select t.ok(not exists (select 1 from public.for_you(10) x where x -> 'listing' ->> 'title' = 'Gel-Kayano 14 Silver'), '"not for me" removes it');

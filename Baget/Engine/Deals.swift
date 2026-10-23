@@ -149,14 +149,16 @@ extension AppStore {
         }
     }
 
-    /// Setup's quick taste check: real products in the picked categories, one per brand, photos only.
-    func tasteQuiz(_ categories: [Category]) async -> [Item] {
+    /// Setup's quick taste check: real products in the picked categories, photos only, leading with the brands picked.
+    func tasteQuiz(_ categories: [Category], brands: [String] = []) async -> [Item] {
         guard isCloud else {
             let cats = Set(categories)
-            var brands = Set<String>()
-            return Catalog.items.filter { (cats.isEmpty || cats.contains($0.category)) && brands.insert($0.brand).inserted }.prefix(10).map { $0 }
+            var seen = Set<String>()
+            let picked = Set(brands.map { $0.lowercased() })
+            let pool = Catalog.items.filter { (cats.isEmpty || cats.contains($0.category)) && seen.insert($0.brand).inserted }
+            return (pool.filter { picked.contains($0.brand.lowercased()) } + pool.filter { !picked.contains($0.brand.lowercased()) }).prefix(10).map { $0 }
         }
-        let rows: [ListingRow] = (try? await api.rpc("taste_quiz", ["p_categories": categories.map(\.rawValue), "p_limit": 10])) ?? []
+        let rows: [ListingRow] = (try? await api.rpc("taste_quiz", ["p_categories": categories.map(\.rawValue), "p_limit": 10, "p_brands": brands])) ?? []
         for r in rows { Catalog.cloud[r.id] = r.item }
         return Array(rows.map(\.item).prefix(10))
     }

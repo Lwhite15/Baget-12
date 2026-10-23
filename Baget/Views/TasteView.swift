@@ -275,7 +275,7 @@ struct OnboardingView: View {
         withAnimation { step = 2 }
         quizLoading = true
         Task { @MainActor in
-            quiz = await store.tasteQuiz(Array(picked))
+            quiz = await store.tasteQuiz(Array(picked), brands: brands.values.flatMap { Array($0) })
             quizIndex = 0
             quizLoading = false
             if quiz.isEmpty { withAnimation { step = 3 } }   // nothing to rate yet: go straight on
