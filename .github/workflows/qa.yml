@@ -5,7 +5,7 @@
 name: QA walkthrough
 on: workflow_dispatch
 permissions:
-  contents: read
+  contents: write
 jobs:
   walk:
     runs-on: macos-26
@@ -63,3 +63,10 @@ jobs:
           name: qa
           path: ${{ runner.temp }}/out/qa
           retention-days: 7
+      - name: Put them on the qa branch
+        if: always()
+        run: |
+          cd "$RUNNER_TEMP/out/qa" 2>/dev/null || exit 0
+          git init -q && git checkout -q -b qa && git add -A
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "QA walkthrough ${GITHUB_RUN_ID}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" HEAD:qa

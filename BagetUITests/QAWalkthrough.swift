@@ -45,8 +45,13 @@ final class QAWalkthrough: XCTestCase {
         repeat {
             for q in [app.buttons, app.staticTexts, app.descendants(matching: .any)] {
                 let m = q.matching(NSPredicate(format: "label == %@", label))
-                let all = (0..<min(m.count, 20)).map { m.element(boundBy: $0) }.filter { $0.exists && $0.isHittable }
+                let found = (0..<min(m.count, 20)).map { m.element(boundBy: $0) }.filter { $0.exists && $0.frame.width > 0 }
+                let all = found.filter { $0.isHittable }
                 if let e = last ? all.last : all.first { e.tap(); note("tap \(label)"); return true }
+                // On screen but covered (a keyboard, a glass bar): tap its middle anyway.
+                if let e = last ? found.last : found.first, Date().addingTimeInterval(2) > deadline {
+                    e.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap(); note("tap (forced) \(label)"); return true
+                }
             }
             Thread.sleep(forTimeInterval: 0.5)
         } while Date() < deadline
@@ -95,7 +100,12 @@ final class QAWalkthrough: XCTestCase {
         type(into: app.textFields["Email"], email)
         type(into: app.secureTextFields.firstMatch, password)
         snap("email-filled", wait: 0.5)
-        tap("Create account", last: true)
+        app.staticTexts["Create account"].firstMatch.tap()   // put the keyboard away, like a person would
+        let submit = app.buttons.matching(NSPredicate(format: "label == 'Create account'"))
+        if submit.count > 1 { submit.element(boundBy: submit.count - 1).coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap(); note("tap submit") }
+        else { note("MISSING submit button") }
+        Thread.sleep(forTimeInterval: 3)
+        snap("after-submit", wait: 0)
         let signed = Date()
         _ = app.staticTexts["What are you into?"].waitForExistence(timeout: 25)
         timed("sign-up to setup", signed)
