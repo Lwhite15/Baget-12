@@ -3,6 +3,15 @@ import Foundation
 /// Plain-language taste choices for setup, so nobody needs to know brand names to get good picks.
 /// The server turns these into concrete things to search for (e.g. "fresh & clean" → citrus, aquatic, musk).
 enum Vibes {
+    /// Sizes to tap in setup, for the categories whose scouts only flag what's in stock in your size.
+    static func sizes(_ c: Category) -> [String]? {
+        switch c {
+        case .sneakers: return stride(from: 6.0, through: 14.0, by: 0.5).map { $0 == $0.rounded() ? String(Int($0)) : String($0) } + ["15"]
+        case .apparel: return ["XS", "S", "M", "L", "XL", "XXL"]
+        default: return nil
+        }
+    }
+
     static func question(_ c: Category) -> String {
         switch c {
         case .fragrance: return "What do you like to smell like?"

@@ -103,6 +103,8 @@ struct OnboardingView: View {
     @State private var vibes: [Category: Set<String>] = [:]
     @State private var budget: Int? = nil
     @State private var brands: [Category: Set<String>] = [:]
+    @State private var sizes: [Category: String] = [:]
+    @State private var editingWords = false
     // First hunt
     @State private var pushOn = false
     @State private var watching = false
@@ -128,6 +130,9 @@ struct OnboardingView: View {
             .padding(24)
         }
         .preferredColorScheme(.dark)
+        .sheet(isPresented: $editingWords) {
+            OwnWordsEditor(text: $text).presentationDetents([.large]).presentationBackground(Theme.panel)
+        }
         .onChange(of: pickerItems) { _, items in
             guard !items.isEmpty else { return }
             Task { @MainActor in
@@ -193,11 +198,21 @@ struct OnboardingView: View {
                                 .font(.caption.italic()).foregroundStyle(Theme.ink.opacity(0.8))
                                 .fixedSize(horizontal: false, vertical: true)
                         }
-                        TextField("Describe what you love and what you're looking for", text: $text, axis: .vertical)
-                            .lineLimit(2...6)
+                        // Opens a full-height editor, so what you write stays readable while you type.
+                        Button { editingWords = true } label: {
+                            HStack(alignment: .top, spacing: 10) {
+                                Text(text.isEmpty ? "Describe what you love and what you're looking for" : text)
+                                    .font(.body).foregroundStyle(text.isEmpty ? Theme.muted : Theme.ink)
+                                    .multilineTextAlignment(.leading).lineLimit(6)
+                                    .frame(maxWidth: .infinity, minHeight: 66, alignment: .topLeading)
+                                Image(systemName: text.isEmpty ? "square.and.pencil" : "pencil").foregroundStyle(Theme.accent)
+                            }
                             .padding(12)
                             .background(Theme.bg.opacity(0.6), in: RoundedRectangle(cornerRadius: 14))
                             .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Theme.line))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(text.isEmpty ? "Describe what you love and what you're looking for" : "Your description: \(text)")
                     }
                     .padding(.top, 4)
                 }
@@ -234,6 +249,26 @@ struct OnboardingView: View {
                                         .accessibilityAddTraits(on ? .isSelected : [])
                                 }
                             }
+                            if let options = Vibes.sizes(c) {
+                                // Sneaker and clothing scouts only flag what's in stock in your size, so ask here.
+                                Text(c == .sneakers ? "Your shoe size (US men's)" : "Your size").font(.caption.weight(.semibold)).foregroundStyle(Theme.muted).padding(.top, 4)
+                                ScrollView(.horizontal) {
+                                    HStack(spacing: 8) {
+                                        ForEach(options, id: \.self) { z in
+                                            let on = sizes[c] == z
+                                            Button { sizes[c] = on ? nil : z } label: { Pill(text: z, selected: on) }
+                                                .buttonStyle(.plain)
+                                                .accessibilityLabel("Size \(z)")
+                                                .accessibilityAddTraits(on ? .isSelected : [])
+                                        }
+                                    }
+                                }
+                                .scrollIndicators(.hidden)
+                                if sizes[c] == nil {
+                                    Text(c == .sneakers ? "Women's or EU? Put it in your own words on the first screen." : "Pants or a specific fit? Put it in your own words on the first screen.")
+                                        .font(.caption2).foregroundStyle(Theme.muted)
+                                }
+                            }
                             Text(Vibes.question(c)).font(.caption.weight(.semibold)).foregroundStyle(Theme.muted).padding(.top, 4)
                             FlowRow {
                                 ForEach(Vibes.options(c), id: \.self) { v in
@@ -263,7 +298,7 @@ struct OnboardingView: View {
                 }
                 .padding(.bottom, 8)
             }
-            Button(vibes.values.allSatisfy(\.isEmpty) && brands.values.allSatisfy(\.isEmpty) && budget == nil ? "Skip" : "Next") { startQuiz() }
+            Button(vibes.values.allSatisfy(\.isEmpty) && brands.values.allSatisfy(\.isEmpty) && budget == nil && sizes.isEmpty ? "Skip" : "Next") { startQuiz() }
                 .buttonStyle(PrimaryButton())
             Button("Back") { withAnimation { step = 0 } }.font(.footnote).foregroundStyle(Theme.muted).frame(maxWidth: .infinity)
         }
@@ -396,7 +431,7 @@ struct OnboardingView: View {
                     Button("Build without photos") { photos = []; pickerItems = []; build() }
                         .font(.footnote.weight(.semibold)).foregroundStyle(Theme.accent).frame(maxWidth: .infinity)
                 }
-                Button("Back") { withAnimation { step = 0 } }.font(.footnote).foregroundStyle(Theme.muted).frame(maxWidth: .infinity)
+                Button("Back") { withAnimation { step = picked.isEmpty ? 0 : 1 } }.font(.footnote).foregroundStyle(Theme.muted).frame(maxWidth: .infinity)
             }
         }
     }
@@ -414,7 +449,7 @@ struct OnboardingView: View {
             let ids = await store.onboard(categories: Array(picked), text: text.trimmingCharacters(in: .whitespacesAndNewlines), photos: photos,
                                           liked: liked, passed: passed,
                                           vibes: vibes.mapValues { Array($0) }, budget: budget.flatMap { $0 > 0 ? $0 : nil },
-                                          brands: brands.mapValues { Array($0) }, interests: Array(extras))
+                                          brands: brands.mapValues { Array($0) }, interests: Array(extras), sizes: sizes)
             working = false
             made = ids.count
             pushOn = await store.pushAllowed
@@ -551,5 +586,46 @@ struct OnboardingView: View {
     private func finish() {
         onboarded = true
         dismiss()
+    }
+}
+
+/// Setup's "in your own words" box, full height so a long description stays readable while you type.
+private struct OwnWordsEditor: View {
+    @Binding var text: String
+    @Environment(\.dismiss) private var dismiss
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Brands you love, styles, colors, materials, sizes, your budget, what you're hunting for and why.")
+                    .font(.subheadline).foregroundStyle(Theme.muted)
+                    .fixedSize(horizontal: false, vertical: true)
+                ZStack(alignment: .topLeading) {
+                    if text.isEmpty {
+                        Text("e.g. New Balance 990s in grey or earth tones, size 10.5, under $200. Also hunting a vintage Carhartt chore coat.")
+                            .font(.body).foregroundStyle(Theme.muted.opacity(0.7))
+                            .padding(.horizontal, 5).padding(.vertical, 8)
+                            .allowsHitTesting(false)
+                    }
+                    TextEditor(text: $text)
+                        .font(.body).foregroundStyle(Theme.ink)
+                        .scrollContentBackground(.hidden)
+                        .focused($focused)
+                }
+                .padding(8)
+                .frame(maxHeight: .infinity)
+                .background(Theme.bg.opacity(0.6), in: RoundedRectangle(cornerRadius: 14))
+                .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Theme.line))
+                Text("\(text.count)/1200").font(.caption2).foregroundStyle(Theme.muted).frame(maxWidth: .infinity, alignment: .trailing)
+            }
+            .padding(16)
+            .navigationTitle("In your own words")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() }.bold() } }
+            .onChange(of: text) { _, t in if t.count > 1200 { text = String(t.prefix(1200)) } }
+            .onAppear { focused = true }
+        }
+        .preferredColorScheme(.dark)
     }
 }

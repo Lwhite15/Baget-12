@@ -109,12 +109,23 @@ export function cleanVibes(v: unknown, lower = true): Record<string, string[]> {
   return out;
 }
 
+/** Sizes picked in setup, per category ("sneakers": "10.5", "apparel": "M"). */
+export function cleanSizes(v: unknown): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!v || typeof v !== "object" || Array.isArray(v)) return out;
+  for (const k of ["sneakers", "apparel"]) {
+    const x = (v as Record<string, unknown>)[k];
+    if (typeof x === "string" && x.trim()) out[k] = x.trim().slice(0, 40);
+  }
+  return out;
+}
+
 /** Budget picked in setup: the most they'd usually spend on one item, or null for no limit. */
 export const cleanBudget = (v: unknown) => typeof v === "number" && v >= 10 && v <= 100000 ? Math.round(v) : null;
 
 async function onboard(userId: string, categories: string[], text: string, size: string | undefined, images: Img[],
                        liked: string[] = [], passed: string[] = [], vibes: Record<string, string[]> = {}, budget: number | null = null,
-                       brands: Record<string, string[]> = {}, interests: string[] = []) {
+                       brands: Record<string, string[]> = {}, interests: string[] = [], sizes: Record<string, string> = {}) {
   const cats = [...new Set(categories.filter((c) => (CATEGORIES as string[]).includes(c) && c !== "other"))].slice(0, 6);
   if (!cats.length && !interests.length && !text) throw new HttpError(400, "Pick at least one thing you're into");
   const picked = [...cats, ...interests];
@@ -148,6 +159,8 @@ Use only what they said, picked or showed. Keep every list item short (1-4 words
     p.traits = [...new Set([...v, ...p.traits])].slice(0, 12);
     const b = p.category ? brands[p.category] ?? [] : [];
     p.makers = [...new Set([...b, ...p.makers].map((x) => x.trim()))].slice(0, 10);
+    // The size they tapped for this category beats anything guessed from their words.
+    if (p.category && sizes[p.category]) p.size = sizes[p.category];
   }
   // Only as many scouts as the plan allows (Free 2, Pro 5); the strongest picks first.
   const limit = await scoutLimit(userId);
@@ -166,7 +179,7 @@ export const handler = handle(async (req) => {
   const user = await requireUser(req);
   await quota(user.id, "hunt", 20, 50);
   const body = await req.json().catch(() => ({})) as { text?: string; size?: string; categories?: string[]; images?: Img[]; liked?: string[]; passed?: string[];
-    vibes?: unknown; budget?: unknown; brands?: unknown; interests?: unknown };
+    vibes?: unknown; budget?: unknown; brands?: unknown; interests?: unknown; sizes?: unknown };
   const text = (body.text ?? "").trim().slice(0, 1200);
   if (Array.isArray(body.categories)) {
     const images = (Array.isArray(body.images) ? body.images : [])
@@ -174,7 +187,7 @@ export const handler = handle(async (req) => {
     const titles = (v: unknown) => Array.isArray(v)
       ? v.filter((x) => typeof x === "string" && x.trim()).map((x) => (x as string).trim().slice(0, 80)).slice(0, 12) : [];
     return json(await onboard(user.id, body.categories, text, body.size, images, titles(body.liked), titles(body.passed),
-      cleanVibes(body.vibes), cleanBudget(body.budget), cleanVibes(body.brands, false), cleanInterests(body.interests)));
+      cleanVibes(body.vibes), cleanBudget(body.budget), cleanVibes(body.brands, false), cleanInterests(body.interests), cleanSizes(body.sizes)));
   }
   if (text.length < 2) throw new HttpError(400, "Tell me what to hunt for");
 

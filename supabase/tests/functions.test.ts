@@ -1568,3 +1568,23 @@ await test("descriptions never show the model's notes to itself", async () => {
   assert.equal(sw.cleanAbout("I couldn't confirm the notes."), null);
   assert.equal(sw.cleanAbout("Fresh and clean, like soap and citrus."), "Fresh and clean, like soap and citrus.");
 });
+
+await test("sizes tapped in setup land on the right scouts", async () => {
+  const inserted: any[] = [];
+  reset([
+    [/auth\/v1\/user/, () => ok({ id: jumpman.user_id })],
+    [/api\.anthropic\.com/, () => ok({ stop_reason: "end_turn", content: [{ type: "text", text: JSON.stringify({ agents: [
+      { name: "Sole Scout", category: "sneakers", size: "10" }, { name: "Thread Scout", category: "apparel" }] }) }] })],
+    [/profiles\?select=plan/, () => ok([{ plan: "free", pro_until: null }])],
+    [/GET .*rest\/v1\/agents/, () => ok([])],
+    [/rest\/v1\/agents/, (_u, _i, b) => { inserted.push(b); return ok([{ id: "a" + inserted.length }]); }],
+    [/rest\/v1\/profiles/, () => ok([{ display_name: "" }])],
+    [/rest\/v1\/notes/, () => new Response(null, { status: 201 })],
+  ]);
+  const res = await hunt.handler(post("hunt", { categories: ["sneakers", "apparel"], text: "", sizes: { sneakers: "10.5", apparel: "M", cars: "x" } },
+    { Authorization: "Bearer user-jwt" }));
+  assert.equal(res.status, 200);
+  assert.equal(inserted.find((x) => x.mission_category === "sneakers").size, "10.5");
+  assert.equal(inserted.find((x) => x.mission_category === "apparel").size, "M");
+});
+
