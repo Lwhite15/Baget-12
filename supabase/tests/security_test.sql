@@ -305,6 +305,9 @@ select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001
 select t.ok(exists (select 1 from public.for_you(60) x where x -> 'listing' ->> 'title' = 'Catalog Suede Runner'), 'store catalogs feed For You in what they hunt');
 select t.ok(not exists (select 1 from public.for_you(60) x where x -> 'listing' ->> 'title' = 'Catalog Sofa'), 'but not unrelated categories');
 select t.ok(not exists (select 1 from public.for_you(60) x where x -> 'listing' ->> 'title' = 'Bob Secret Grail Sneaker'), 'and never what another person''s scouts found');
+select t.ok(public.brand_key('Marc-Antoine Barrois US') = public.brand_key('Marc-Antoine Barrois')
+        and public.brand_key('The House of Amouage') = 'amouage' and public.brand_key('ROJA') = public.brand_key('Roja Parfums')
+        and public.brand_key('Nike') = 'nike' and public.brand_key('') = '', 'one brand, one name');
 select t.ok(public.title_overlap('Bal D''Afrique Eau De Parfum', 'Byredo Bal d''Afrique Eau de Parfum 50ml') >= 0.6, 'the same product at another store is recognized');
 select t.ok(public.title_overlap('Seed Runner Suede', 'Seedco Trail Suede') < 0.6, 'a different product is not');
 do $d$ declare r record; begin for r in select x ->> 'kind' k, x -> 'listing' ->> 'title' t, x ->> 'reason' re from public.for_you(10) x loop raise notice 'FY % | % | %', r.k, r.t, r.re; end loop; end $d$;

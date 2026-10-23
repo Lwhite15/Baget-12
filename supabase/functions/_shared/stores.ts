@@ -139,7 +139,7 @@ export function shopifyListing(p: ShopifyProduct, domain: string, storeName: str
   const intl = currency !== "USD";
   return {
     fingerprint: `${host}|${norm(title).replace(/[^a-z0-9]+/g, " ").trim()}`.slice(0, 300),
-    title: title.slice(0, 200), brand: (p.vendor ?? "").trim().slice(0, 80), category,
+    title: title.slice(0, 200), brand: (p.vendor ?? "").trim().replace(/(\s+(US|USA|UK|EU|Official|Store|Shop|Online))+$/i, "").slice(0, 80), category,
     price: intl ? Math.round(local * rate * 100) / 100 : local, market: null, source: storeName.slice(0, 80) || host,
     ...(intl ? { orig_price: local, orig_currency: currency } : {}),
     url: `https://${domain}/products/${p.handle}`.slice(0, 1000), image_url: image.startsWith("//") ? `https:${image}` : image.slice(0, 500),
