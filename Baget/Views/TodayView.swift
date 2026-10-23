@@ -186,7 +186,7 @@ struct ForYouSection: View {
                 Text("For You").font(.title3.weight(.heavy)).foregroundStyle(Theme.ink)
                 Spacer()
             }
-            Text("Picked from everything Baget's agents have found, ranked by your taste. Every ♥ and ✕ sharpens it.")
+            Text("Picked from everything Baget's scouts have found, ranked by your taste. Every ♥ and ✕ sharpens it.")
                 .font(.caption).foregroundStyle(Theme.muted)
             if !store.tasteTop.isEmpty { tasteStrip }
 
@@ -384,7 +384,7 @@ struct HuntBox: View {
                 .background(Theme.green.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                 .transition(.opacity.combined(with: .move(edge: .top)))
             } else {
-                Text("Type or say it in your own words. Baget builds the right agent and it starts searching right away.")
+                Text("Type or say it in your own words. Baget builds the right scout and it starts searching right away.")
                     .font(.caption).foregroundStyle(Theme.muted)
             }
         }

@@ -19,7 +19,7 @@ struct SquadView: View {
                         .buttonStyle(GhostButton())
                 }
                 if store.state.agents.isEmpty {
-                    EmptyCard(text: "No agents yet. Tell Baget what you're hunting above.")
+                    EmptyCard(text: "No scouts yet. Tell Baget what you're hunting above.")
                 }
                 ForEach(store.state.agents) { a in AgentCard(agent: a) }
 
@@ -29,7 +29,7 @@ struct SquadView: View {
                     // The newest few only; older events roll off as new ones arrive.
                     ForEach(store.state.log.prefix(6)) { l in
                         HStack(alignment: .firstTextBaseline, spacing: 10) {
-                            Text(Fmt.ago(l.date)).font(.caption2.monospaced()).foregroundStyle(Theme.muted).frame(width: 64, alignment: .leading)
+                            Text(Fmt.ago(l.date)).font(.caption2.monospacedDigit()).foregroundStyle(Theme.muted).frame(width: 64, alignment: .leading)
                             Text(l.text).font(.footnote).foregroundStyle(Theme.ink).lineLimit(2)
                         }
                     }
@@ -72,7 +72,7 @@ struct AgentCard: View {
                     .accessibilityLabel("Change \(agent.name)'s icon")
                 VStack(alignment: .leading, spacing: 2) {
                     Text(agent.name).font(.title3.weight(.heavy)).foregroundStyle(Theme.ink)
-                    Text("\(agent.mission.label) · \(finds) find\(finds == 1 ? "" : "s")").font(.caption.monospaced()).foregroundStyle(Theme.muted)
+                    Text("\(agent.mission.label) · \(finds) find\(finds == 1 ? "" : "s")").font(.caption.monospacedDigit()).foregroundStyle(Theme.muted)
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 2) {
@@ -115,7 +115,7 @@ struct AgentCard: View {
             }
             TasteBoardRow(agent: agent)
             Button {
-                if store.isCloud { router.sheet = .chat(agent.id) } else { router.say("Sign in to talk to your agents. They need the internet to search.") }
+                if store.isCloud { router.sheet = .chat(agent.id) } else { router.say("Sign in to talk to your scouts. They need the internet to search.") }
             } label: { Label("Talk to \(agent.name)", systemImage: "bubble.left.and.text.bubble.right.fill") }
                 .buttonStyle(PrimaryButton())
             if Sizes.required(agent) && !Sizes.has(agent) {
@@ -202,7 +202,7 @@ struct AgentCard: View {
     private func stat(_ label: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label.uppercased()).font(.system(size: 9, weight: .semibold)).tracking(1).foregroundStyle(Theme.muted)
-            Text(value).font(.system(.subheadline, design: .monospaced).weight(.semibold)).foregroundStyle(Theme.ink)
+            Text(value).font(.subheadline.weight(.semibold).monospacedDigit()).foregroundStyle(Theme.ink)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

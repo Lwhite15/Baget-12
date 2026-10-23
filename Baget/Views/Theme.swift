@@ -202,7 +202,7 @@ struct Plate: View {
                         .foregroundStyle(lead ? Theme.accentInk : Theme.ink)
                 }
                 Text(item.sku.isEmpty ? item.source : "\(item.sku) · \(item.source)")
-                    .font(.system(size: 10, design: .monospaced))
+                    .font(.system(size: 10).monospacedDigit())
                     .foregroundStyle(onWhite ? Color.black.opacity(0.5) : (photo != nil ? Theme.muted : (lead ? Theme.accentInk.opacity(0.7) : Theme.muted)))
                     .lineLimit(1)
             }

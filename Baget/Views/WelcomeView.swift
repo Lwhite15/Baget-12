@@ -321,7 +321,7 @@ struct ChatView: View {
                 .background(.ultraThinMaterial)
             }
             .background(LitBackground())
-            .navigationTitle(a?.name ?? "Agent")
+            .navigationTitle(a?.name ?? "Scout")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
         }
@@ -418,7 +418,7 @@ struct AccountSection: View {
                 Button(deleting ? "Deleting…" : "Delete my account", role: .destructive) { confirmDelete = true }
                     .disabled(deleting)
             } header: { Text("Account") } footer: {
-                Text("Friends add you by your handle. Deleting your account permanently removes your agents, finds, purchases, photos and friends.")
+                Text("Friends add you by your handle. Deleting your account permanently removes your scouts, finds, purchases, photos and friends.")
             }
             .onAppear { handle = store.state.profile?.handle ?? "" }
             .confirmationDialog("Delete your Baget account?", isPresented: $confirmDelete, titleVisibility: .visible) {
@@ -436,7 +436,7 @@ struct AccountSection: View {
             Section {
                 Button("Sign in to start hunting for real") { store.resetToWelcome() }
             } header: { Text("Account") } footer: {
-                Text("You're looking at sample data. Signing in lets your agents search the real web, sync across your devices and connect with friends.")
+                Text("You're looking at sample data. Signing in lets your scouts search the real web, sync across your devices and connect with friends.")
             }
         }
     }

@@ -148,7 +148,7 @@ final class Router {
             if find != nil { Analytics.track(.storySentToAgent, ["category": story.item.category.rawValue, "from": "tap"]) }
         }
         guard let f = find else {
-            say(story.agentID == nil ? "Deploy a \(story.item.category.info.label.lowercased()) agent to track this" : "Not in your size, so it isn't in Finds")
+            say(story.agentID == nil ? "Set up a \(story.item.category.info.label.lowercased()) scout to track this" : "Not in your size, so it isn't in Finds")
             return
         }
         switch f.status {

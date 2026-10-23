@@ -72,13 +72,13 @@ struct LiveFeed: View {
         case .custom(let q):
             VStack(spacing: 12) {
                 EmptyCard(text: "Nothing in today's stories matches “\(q)” yet.")
-                Button("Deploy an agent to hunt \(tab.label)") {
+                Button("Set up a scout to hunt \(tab.label)") {
                     router.deployPrefill = .custom(q)
                     router.sheet = .deploy
                 }.buttonStyle(PrimaryButton())
             }
         case .forYou:
-            EmptyCard(text: "Your squad hasn't picked anything yet. Brief an agent or rate a few finds and this fills up.")
+            EmptyCard(text: "Your squad hasn't picked anything yet. Set up a scout or rate a few finds and this fills up.")
         default:
             EmptyCard(text: "No stories here yet.")
         }
@@ -131,7 +131,7 @@ struct StoryActions: View {
                     }.buttonStyle(PrimaryButton())
                 }
             } else if story.agentID == nil {
-                Button("Deploy a \(story.item.category.info.label.lowercased()) agent") {
+                Button("Set up a \(story.item.category.info.label.lowercased()) scout") {
                     router.deployPrefill = .category(story.item.category)
                     router.sheet = .deploy
                 }.buttonStyle(GhostButton())
@@ -220,7 +220,7 @@ struct TrendingView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(item.title).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
                         Text("+\(Int(safe: ((item.market / item.price - 1) * 100).rounded()))% vs asking · \(item.category.info.label)")
-                            .font(.caption.monospaced()).foregroundStyle(Theme.muted)
+                            .font(.caption.monospacedDigit()).foregroundStyle(Theme.muted)
                     }
                 }
             }

@@ -15,7 +15,7 @@ struct AgentAvatarView: View {
 
     var body: some View {
         let icon = preview ?? agent?.icon
-        let name = nameOverride ?? agent?.name ?? "Agent"
+        let name = nameOverride ?? agent?.name ?? "Scout"
         ZStack {
             if icon?.style == .photo, let img = previewPhoto ?? store.iconImage(icon?.photoID) {
                 Image(uiImage: img).resizable().scaledToFill()
@@ -96,7 +96,7 @@ struct IconPickerRows: View {
             }
             if failed { Text("Couldn't open that photo. Try another.").font(.footnote).foregroundStyle(Theme.hot) }
             if photo == nil && !hasSavedPhoto {
-                Text("Pick a photo, or this agent keeps its auto emoji.").font(.caption).foregroundStyle(Theme.muted)
+                Text("Pick a photo, or this scout keeps its auto emoji.").font(.caption).foregroundStyle(Theme.muted)
             }
         }
     }
@@ -161,7 +161,7 @@ struct AgentIconView: View {
                 .listRowBackground(Color.clear)
                 Section {
                     IconPickerRows(icon: $icon, photo: $photo, hasSavedPhoto: agent?.icon?.photoID != nil)
-                } header: { Text("\(agent?.name ?? "Agent")'s icon") } footer: {
+                } header: { Text("\(agent?.name ?? "Scout")'s icon") } footer: {
                     Text("Shows on its card and on every text it sends you.")
                 }
                 if agent?.icon != nil {
@@ -176,7 +176,7 @@ struct AgentIconView: View {
             .tint(Theme.cyan)
             .scrollContentBackground(.hidden)
             .background(LitBackground())
-            .navigationTitle("Agent icon")
+            .navigationTitle("Scout icon")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }

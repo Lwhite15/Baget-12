@@ -103,7 +103,7 @@ struct AlertSettingsForm: View {
                 }
             }
             Section {
-                Picker("Each agent searches the web", selection: $store.state.settings.sweepMinutes) {
+                Picker("Each scout searches the web", selection: $store.state.settings.sweepMinutes) {
                     Text("Every hour").tag(60)
                     Text("Every 3 hours").tag(180)
                     Text("Every 6 hours").tag(360)
@@ -161,7 +161,7 @@ struct AlertSettingsForm: View {
                         onSimulate()
                     }
                 } header: { Text("Try it") } footer: {
-                    Text("Fast-forwards three hours of background sweeps so you can see what your squad does while you're gone. Each agent's texting style is set on its card in Squad.")
+                    Text("Fast-forwards three hours of background hunts so you can see what your squad does while you're gone. Each scout's texting style is set on its card in Squad.")
                 }
             }
         }
@@ -209,7 +209,7 @@ struct CustomizeBarView: View {
                     }
                     if let error { Text(error).font(.footnote).foregroundStyle(Theme.hot) }
                 } header: { Text("Add your own section") } footer: {
-                    Text("It shows every story that matches, with your agents' picks first.")
+                    Text("It shows every story that matches, with your scouts' picks first.")
                 }
 
                 if !hidden.isEmpty {
@@ -251,7 +251,7 @@ struct CustomizeBarView: View {
         store.save()
         Analytics.track(.customSectionAdded, ["words": TextMatch.words(q).count])
         let n = Catalog.all.filter { TextMatch.matches($0, query: q) }.count
-        router.say(n > 0 ? "Added \(label) · \(n) stor\(n == 1 ? "y" : "ies") today" : "Added \(label). Deploy an agent to hunt it.")
+        router.say(n > 0 ? "Added \(label) · \(n) stor\(n == 1 ? "y" : "ies") today" : "Added \(label). Set up a scout to hunt it.")
         newSection = ""
     }
 }

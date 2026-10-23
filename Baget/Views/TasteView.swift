@@ -11,9 +11,9 @@ struct TasteView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("Tap ✕ on anything that isn't you. Agents stop using it on their next search. Like, pass and chat to teach them more.")
+                    Text("Tap ✕ on anything that isn't you. Scouts stop using it on their next search. Like, pass and chat to teach them more.")
                         .font(.footnote).foregroundStyle(Theme.muted)
-                    if store.state.agents.isEmpty { EmptyCard(text: "No agents yet. Tell Baget what you're hunting on Today.") }
+                    if store.state.agents.isEmpty { EmptyCard(text: "No scouts yet. Tell Baget what you're hunting on Today.") }
                     ForEach(store.state.agents) { a in agentCard(a) }
                 }
                 .padding(16)
@@ -352,7 +352,7 @@ struct OnboardingView: View {
                 }
                 .buttonStyle(.plain)
                 HStack {
-                    Text("\(quizIndex + 1) of \(quiz.count)").font(.caption.monospaced()).foregroundStyle(Theme.muted)
+                    Text("\(quizIndex + 1) of \(quiz.count)").font(.caption.monospacedDigit()).foregroundStyle(Theme.muted)
                     Spacer()
                     Button("Done") { withAnimation { step = 3 } }.font(.footnote.weight(.semibold)).foregroundStyle(Theme.accent)
                 }

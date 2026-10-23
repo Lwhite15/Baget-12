@@ -83,7 +83,7 @@ struct RootView: View {
             }
             Button("Not yet", role: .cancel) { router.askBought = nil }
         } message: {
-            Text("Your agent learns the most from what you actually buy.")
+            Text("Your scout learns the most from what you actually buy.")
         }
         // First run after signing in with no agents yet: the 30-second setup.
         .fullScreenCover(isPresented: Binding(get: { !store.needsWelcome && store.isCloud && store.state.agents.isEmpty && !onboarded && store.state.lastSynced != nil },
@@ -107,6 +107,8 @@ struct RootView: View {
                 LitBackground()
                 content
             }
+            // No large-title band: each screen has its own heading, so content starts right under the bar.
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button { router.sheet = .profile } label: { AvatarView(size: 30) }

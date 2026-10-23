@@ -69,7 +69,7 @@ struct DeployAgentView: View {
                     }
                 }
 
-                Section("Agent") {
+                Section("Scout") {
                     TextField("Name (optional), e.g. Grail Hunter", text: $name)
                     Picker("How it texts you", selection: $voice) {
                         ForEach(Voice.allCases) { v in Text(v.label).tag(v) }
@@ -106,7 +106,7 @@ struct DeployAgentView: View {
                             ForEach(shoeOptions, id: \.self) { n in Text(Sizes.display(n)).tag(Double?.some(n)) }
                         }
                     } header: { Text("Shoe size (required)") } footer: {
-                        Text("Your agent only flags pairs in stock in this size.")
+                        Text("Your scout only flags pairs in stock in this size.")
                     }
                 } else if category == .apparel {
                     Section {
@@ -116,7 +116,7 @@ struct DeployAgentView: View {
                         }
                         TextField("Pants, e.g. 32x32 (optional)", text: $pants)
                     } header: { Text("Clothing size (required)") } footer: {
-                        Text("Your agent only flags pieces in stock in this size.")
+                        Text("Your scout only flags pieces in stock in this size.")
                     }
                 } else if let label = info.sizeLabel {
                     Section(label) { TextField(label, text: $sizeText) }
@@ -141,7 +141,7 @@ struct DeployAgentView: View {
             }
             .scrollContentBackground(.hidden)
             .background(LitBackground())
-            .navigationTitle("Brief a new agent")
+            .navigationTitle("Set up a new scout")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
@@ -154,10 +154,10 @@ struct DeployAgentView: View {
     @ViewBuilder private var preview: some View {
         let a = draft
         if Sizes.required(a) && !Sizes.has(a) {
-            Text("Pick your \(category == .sneakers ? "shoe size" : "size") first. Your agent only hunts what's in stock in it.")
+            Text("Pick your \(category == .sneakers ? "shoe size" : "size") first. Your scout only hunts what's in stock in it.")
                 .font(.footnote).foregroundStyle(Theme.warn)
         } else if category == nil && customText.trimmingCharacters(in: .whitespaces).isEmpty {
-            Text("Tell this agent what to hunt. Anything works.").font(.footnote).foregroundStyle(Theme.muted)
+            Text("Tell this scout what to hunt. Anything works.").font(.footnote).foregroundStyle(Theme.muted)
         } else {
             let k = Matcher.intel(a)
             let reach = Catalog.all.filter { (Matcher.match(a, $0)?.score ?? 0) >= 45 }.count
@@ -189,8 +189,8 @@ struct DeployAgentView: View {
 
     private func deploy() {
         var a = draft
-        if case .custom(let t) = a.mission, t.isEmpty { error = "Tell the agent what to hunt."; return }
-        if Sizes.required(a) && !Sizes.has(a) { error = "Pick your \(category == .sneakers ? "shoe size" : "size"). This agent only hunts things in stock in your size."; return }
+        if case .custom(let t) = a.mission, t.isEmpty { error = "Tell the scout what to hunt."; return }
+        if Sizes.required(a) && !Sizes.has(a) { error = "Pick your \(category == .sneakers ? "shoe size" : "size"). This scout only hunts things in stock in your size."; return }
         if a.name.isEmpty { a.name = String("\(a.mission.label.capitalizedFirst) Hunter".prefix(40)) }
         if store.squadFull {
             error = store.scoutLimitMessage

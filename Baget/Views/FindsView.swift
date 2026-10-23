@@ -94,16 +94,6 @@ struct FindsView: View {
 
                     filterRow(counts: [.new: newTotal, .liked: likedTotal, .watching: watchingTotal, .intel: intelTotal])
 
-                    if !visible.isEmpty {
-                        HStack {
-                            Text("Long-press a find, or tap its trash, to remove one").font(.caption2).foregroundStyle(Theme.muted)
-                            Spacer()
-                            Button { confirmClear = true } label: {
-                                Label(clearLabel, systemImage: "trash").font(.footnote.weight(.semibold)).foregroundStyle(Theme.hot)
-                            }
-                        }
-                    }
-
                     if groups.isEmpty {
                         EmptyCard(text: emptyText)
                     }
@@ -133,7 +123,7 @@ struct FindsView: View {
                     router.say(n == 1 ? "Cleared 1 find" : "Cleared \(n) finds")
                 }
             } message: {
-                Text("They leave Finds and your agents won't show them again. What your agents learned about your taste stays.")
+                Text("They leave Finds and your scouts won't show them again. What your scouts learned about your taste stays.")
             }
             .onChange(of: router.focusFind, initial: true) { _, id in
                 guard let id else { return }
@@ -194,11 +184,11 @@ struct FindsView: View {
     }
 
     private var emptyText: String {
-        if store.state.agents.isEmpty { return "Deploy an agent first, then run a sweep." }
+        if store.state.agents.isEmpty { return "Set up a scout first, then tap Hunt now." }
         switch show {
         case .new: return "You're all caught up. Your squad keeps hunting in the background."
-        case .liked: return "Nothing liked yet. Tap ♥ on a find you love and your agents will find more like it."
-        case .all: return "Nothing here yet. Tap Sweep now, or pull down on Live."
+        case .liked: return "Nothing liked yet. Tap ♥ on a find you love and your scouts will find more like it."
+        case .all: return "Nothing here yet. Tap Hunt now, or pull down on Today."
         case .watching: return "Nothing on watch. Tap Watch it for me on a find, or Notify me on something sold out, and it shows up here."
         case .intel: return "No intel right now. Droplists, release calendars and news your scouts come across land here."
         }
@@ -208,7 +198,7 @@ struct FindsView: View {
         HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Finds").font(.system(size: 30, weight: .heavy)).tracking(-0.8).foregroundStyle(Theme.ink)
-                Text("\(store.state.agents.count) agents hunting · \(newTotal) new · \(likedTotal) liked")
+                Text("\(store.state.agents.count) scout\(store.state.agents.count == 1 ? "" : "s") hunting · \(newTotal) new · \(likedTotal) liked")
                     .font(.footnote).foregroundStyle(Theme.muted)
             }
             Spacer()
@@ -226,11 +216,23 @@ struct FindsView: View {
                     if res.found == 0 { router.say("Nothing new fits you right now") }
                 }
             } label: {
-                if sweeping { ProgressView().tint(Theme.accent) } else { IconText(icon: "arrow.clockwise", text: "Sweep") }
+                if sweeping { ProgressView().tint(Theme.accent) } else { IconText(icon: "arrow.clockwise", text: "Hunt now") }
             }
             .buttonStyle(GhostButton())
-            .frame(width: 100)
+            .frame(width: 118)
             .disabled(sweeping)
+            .accessibilityHint("Your scouts search again right now")
+            // Clearing lives behind this menu (and asks first), so it can't be hit by accident.
+            Menu {
+                Section("Long-press a find, or tap its trash, to remove one") {
+                    Button(role: .destructive) { confirmClear = true } label: { Label("\(clearLabel)…", systemImage: "trash") }
+                        .disabled(visible.isEmpty)
+                }
+            } label: {
+                Image(systemName: "ellipsis").font(.body.weight(.semibold)).foregroundStyle(Theme.ink)
+                    .frame(width: 40, height: 40).background(Theme.glass, in: Circle())
+            }
+            .accessibilityLabel("More")
         }
         .padding(.top, 4)
     }
@@ -357,12 +359,12 @@ struct FindCard: View {
                     .presentationBackground(Theme.panel)
                     .preferredColorScheme(.dark)
             }
-            .confirmationDialog("What was off? \(agent?.name ?? "Your agent") will learn from it.", isPresented: $askingWhy, titleVisibility: .visible) {
+            .confirmationDialog("What was off? \(agent?.name ?? "Your scout") will learn from it.", isPresented: $askingWhy, titleVisibility: .visible) {
                 ForEach(AppStore.PassReason.allCases) { r in
                     Button(r.rawValue) {
                         store.pass(find.id, reason: r)
                         Analytics.track(.findPassed, ["reason": r.rawValue, "category": item.category.rawValue])
-                        router.say(r == .later ? "Passed" : "Passed. \(agent?.name ?? "Your agent") is learning from that")
+                        router.say(r == .later ? "Passed" : "Passed. \(agent?.name ?? "Your scout") is learning from that")
                     }
                 }
             }
@@ -393,8 +395,8 @@ struct FindCard: View {
                     if store.reminder(for: item) != nil { Image(systemName: "bell.fill").font(.caption2).foregroundStyle(Theme.blue).accessibilityLabel("Reminder set") }
                     if find.status == .liked { Image(systemName: "heart.fill").font(.caption).foregroundStyle(Theme.hot) }
                     Spacer(minLength: 0)
-                    Text("\(find.score)%")
-                        .font(.caption.monospaced().weight(.bold))
+                    Text("\(find.score)% match")
+                        .font(.caption.weight(.bold).monospacedDigit())
                         .foregroundStyle(find.score >= 80 ? Theme.green : find.score >= 60 ? Theme.accent : Theme.muted)
                 }
                 Text(item.title)
@@ -418,7 +420,7 @@ struct FindCard: View {
 
     private func badge(_ text: String, _ tint: Color) -> some View {
         Text(text)
-            .font(.system(size: 9, weight: .bold, design: .monospaced))
+            .font(.system(size: 9, weight: .bold).monospacedDigit())
             .foregroundStyle(tint)
             .padding(.horizontal, 6).padding(.vertical, 2)
             .background(tint.opacity(0.14), in: Capsule())
@@ -448,7 +450,7 @@ struct FindCard: View {
                         HStack {
                             Text(o.store).font(.footnote).foregroundStyle(Theme.ink).lineLimit(1)
                             Spacer()
-                            Text(Fmt.money(o.price)).font(.footnote.monospaced()).foregroundStyle(known && o.price < item.price ? Theme.green : Theme.muted)
+                            Text(Fmt.money(o.price)).font(.footnote.monospacedDigit()).foregroundStyle(known && o.price < item.price ? Theme.green : Theme.muted)
                         }
                     }
                 }
@@ -495,12 +497,12 @@ struct FindCard: View {
             HStack(spacing: 8) {
                 chip(find.watching ? "eye.fill" : "eye", find.watching ? "Watching" : "Watch it for me", tint: find.watching ? Theme.warn : nil) {
                     store.toggleWatch(find.id)
-                    if !find.watching { router.say("\(agent?.name ?? "Your agent") will text you on a price drop, restock or release") }
+                    if !find.watching { router.say("\(agent?.name ?? "Your scout") will text you on a price drop, restock or release") }
                 }
                 chip("bubble.left.and.text.bubble.right", "Ask about this") { router.sheet = .ask(find.id) }
             }
             if find.watching {
-                Text("\(agent?.name ?? "Your agent") checks the price twice a day and texts you if it drops\(store.isSoldOut(item) ? ", or the moment it restocks" : !store.isLive(item) ? ", and at release" : "").")
+                Text("\(agent?.name ?? "Your scout") checks the price twice a day and texts you if it drops\(store.isSoldOut(item) ? ", or the moment it restocks" : !store.isLive(item) ? ", and at release" : "").")
                     .font(.caption).foregroundStyle(Theme.muted)
             }
         }
@@ -544,7 +546,7 @@ struct FindCard: View {
     private func priceCell(_ label: String, _ value: String, _ tint: Color?) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label).font(.system(size: 9, weight: .semibold)).tracking(1).foregroundStyle(Theme.muted)
-            Text(value).font(.system(.subheadline, design: .monospaced).weight(.semibold)).foregroundStyle(tint ?? Theme.ink)
+            Text(value).font(.subheadline.weight(.semibold).monospacedDigit()).foregroundStyle(tint ?? Theme.ink)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -560,7 +562,7 @@ struct FindCard: View {
             } else {
                 chip("heart", "Like", primary: true) {
                     store.like(find.id)
-                    router.say("\(agent?.name ?? "Your agent") will find more like this")
+                    router.say("\(agent?.name ?? "Your scout") will find more like this")
                 }
                 chip("xmark", "Pass") { askingWhy = true }
             }
@@ -684,7 +686,7 @@ struct CheckoutView: View {
                 Text([item.source, item.sku].filter { !$0.isEmpty }.joined(separator: " · ")).font(.footnote).foregroundStyle(Theme.muted)
                 if AboutBlock.has(item) { AboutBlock(item: item).glassCard() }
                 Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 12) {
-                    GridRow { cell("Price", item.priceKnown ? item.priceLabel : "Not listed"); cell("Agent", a?.name ?? "—") }
+                    GridRow { cell("Price", item.priceKnown ? item.priceLabel : "Not listed"); cell("Scout", a?.name ?? "—") }
                     GridRow {
                         cell(item.category.info.sizeRequired ? (item.category.info.sizeLabel ?? "Size") : "Category",
                              item.category.info.sizeRequired ? (a?.size.isEmpty == false ? a!.size : "Any") : item.category.info.label)
@@ -721,7 +723,7 @@ struct CheckoutView: View {
                         Button(soldOut ? "Watch for restock" : "Remind me at release") {
                             store.watch(findID)
                             Analytics.track(.findWatched, ["category": item.category.rawValue])
-                            router.say(soldOut ? "Restock watch on" : "Got it. Your agent will ping you at release.")
+                            router.say(soldOut ? "Restock watch on" : "Got it. Your scout will ping you at release.")
                             dismiss()
                         }.buttonStyle(PrimaryButton())
                     } else if cloud {
@@ -729,7 +731,7 @@ struct CheckoutView: View {
                             let amount = item.priceKnown ? item.price : Double(amountText.replacingOccurrences(of: ",", with: "")) ?? 0
                             store.confirmPurchase(findID, amount: amount)
                             Analytics.track(.purchaseConfirmed, ["amount": amount, "category": item.category.rawValue, "score": f.score, "agentMode": a?.mode.rawValue ?? ""])
-                            router.say("Logged and off your list. \(a?.name ?? "Your agent") will learn from it.")
+                            router.say("Logged and off your list. \(a?.name ?? "Your scout") will learn from it.")
                             dismiss()
                         }
                         .buttonStyle(GhostButton())
@@ -753,13 +755,13 @@ struct CheckoutView: View {
     private func cloudNote(item: Item, block: String?, soldOut: Bool, live: Bool) -> String {
         if soldOut || !live { return block ?? "" }
         let caution = block.map { "Heads up: \($0) " } ?? ""
-        return caution + "You buy it at \(item.source); Baget never charges you. Tap \"I bought it\" afterwards so your agent learns from it."
+        return caution + "You buy it at \(item.source); Baget never charges you. Tap \"I bought it\" afterwards so your scout learns from it."
     }
 
     private func blockReason(item: Item, agent a: Agent?, live: Bool, soldOut: Bool) -> String? {
-        let name = a?.name ?? "Your agent"
+        let name = a?.name ?? "Your scout"
         if soldOut { return "Sold out right now. \(name) will watch for a restock and tell you the moment it's back." }
-        if !live { return "This isn't available yet. Your agent will hold your spot and ask again at release." }
+        if !live { return "This isn't available yet. Your scout will hold your spot and ask again at release." }
         _ = a
         return nil
     }
@@ -767,7 +769,7 @@ struct CheckoutView: View {
     private func cell(_ label: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label.uppercased()).font(.system(size: 9, weight: .semibold)).tracking(1).foregroundStyle(Theme.muted)
-            Text(value).font(.system(.subheadline, design: .monospaced).weight(.semibold)).foregroundStyle(Theme.ink)
+            Text(value).font(.subheadline.weight(.semibold).monospacedDigit()).foregroundStyle(Theme.ink)
         }
     }
 }

@@ -16,7 +16,7 @@ struct SwipeDeckView: View {
         NavigationStack {
             VStack(spacing: 16) {
                 if index < ids.count, let f = store.state.finds.first(where: { $0.id == ids[index] }), let item = Catalog.item(f.itemID) {
-                    Text("\(index + 1) of \(ids.count)").font(.caption.monospaced()).foregroundStyle(Theme.muted)
+                    Text("\(index + 1) of \(ids.count)").font(.caption.monospacedDigit()).foregroundStyle(Theme.muted)
                     ZStack {
                         if index + 1 < ids.count, let next = store.state.finds.first(where: { $0.id == ids[index + 1] }), let ni = Catalog.item(next.itemID) {
                             card(next, ni).scaleEffect(0.95).offset(y: 14).opacity(0.6).allowsHitTesting(false)
@@ -78,7 +78,7 @@ struct SwipeDeckView: View {
             HStack(spacing: 6) {
                 if let a = agent { AgentAvatarView(agent: a, size: 22); Text(a.name).font(.caption.weight(.semibold)).foregroundStyle(Theme.muted) }
                 Spacer()
-                Text("\(f.score)% match").font(.caption.monospaced().weight(.bold)).foregroundStyle(f.score >= 80 ? Theme.green : Theme.accent)
+                Text("\(f.score)% match").font(.caption.monospacedDigit().weight(.bold)).foregroundStyle(f.score >= 80 ? Theme.green : Theme.accent)
             }
             Text(item.title).font(.title3.weight(.heavy)).foregroundStyle(Theme.ink).lineLimit(3)
             Text([item.source, item.priceKnown && item.price > 0 ? item.priceLabel : "Price at store"].joined(separator: " · "))

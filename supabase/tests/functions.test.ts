@@ -1588,3 +1588,14 @@ await test("sizes tapped in setup land on the right scouts", async () => {
   assert.equal(inserted.find((x) => x.mission_category === "apparel").size, "M");
 });
 
+await test("scouts stick to the budget", () => {
+  const vinyl = { ...jumpman, mission_category: null, mission_custom: "90s hip hop vinyl original pressings under $80", keywords: ["original pressing"], traits: [], makers: [], creators: [], size: "", price_note: 0 };
+  const rec = { ...ts, title: "Public Enemy Fear Of A Black Planet original pressing", brand: "", category: "other", traits: [], tags: [], creator: null, sizes_in_stock: null };
+  assert.equal(M.budgetOf(vinyl), 80);
+  assert.equal(M.match(vinyl, { ...rec, price: 125 }, [], { own: true }), null, "well over budget is out");
+  const near = M.match(vinyl, { ...rec, price: 95 }, [], { own: true })!;
+  const under = M.match(vinyl, { ...rec, price: 40 }, [], { own: true })!;
+  assert.ok(near.score < under.score && near.why.some((w) => w.includes("over your $80")), "a little over ranks lower and says so");
+  assert.equal(M.budgetOf({ ...vinyl, mission_custom: "Datejust under $6k" }), 6000);
+});
+

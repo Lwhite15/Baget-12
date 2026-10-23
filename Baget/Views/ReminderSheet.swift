@@ -38,7 +38,7 @@ struct ReminderSheet: View {
                         Text(item.title).font(.headline).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
                         HStack(spacing: 6) {
                             Text("Releases \(Self.fmt(drop)) at \(item.source)").font(.footnote).foregroundStyle(Theme.muted)
-                            if item.tags.contains("limited") { Text("LIMITED").font(.system(size: 9, weight: .bold, design: .monospaced)).foregroundStyle(Theme.hot) }
+                            if item.tags.contains("limited") { Text("LIMITED").font(.system(size: 9, weight: .bold).monospacedDigit()).foregroundStyle(Theme.hot) }
                         }
                     }
                     if let current {

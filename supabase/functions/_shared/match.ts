@@ -138,6 +138,15 @@ export function covers(a: Agent, l: Listing): boolean {
   if (a.mission_category) return a.mission_category === l.category;
   return missionCovers(a.mission_custom ?? "", haystack(l));
 }
+/** The most they'd spend on one item: the budget picked in setup, else "under $80" / "under $6k" in their own words. */
+export function budgetOf(a: Agent): number | null {
+  if (a.price_note > 0) return a.price_note;
+  const text = [a.mission_custom ?? "", ...a.keywords, ...a.traits].join(" ").toLowerCase();
+  const m = text.match(/\b(?:under|below|less than|max|up to)\s*\$\s?(\d[\d,]*(?:\.\d+)?)\s*(k)?\b/);
+  if (!m) return null;
+  const n = parseFloat(m[1].replace(/,/g, "")) * (m[2] ? 1000 : 1);
+  return n >= 5 ? n : null;
+}
 export function intel(a: Agent): number {
   let k = 26 + Math.min(a.keywords.length, 5) * 6 + ((a.size || !sizeRequired(a)) ? 10 : 0) +
     Math.min(a.traits.length, 5) * 6 + Math.min(a.makers.length, 3) * 5 + Math.min(a.creators.length, 2) * 5;
@@ -151,6 +160,9 @@ export function match(a: Agent, l: Listing, photoTags: string[] = [], opts: { ow
   if (!(opts.own && !a.mission_category) && !covers(a, l)) return null;
   const fit = sizeFit(a, l);
   if (fit === false) return { score: 0, why: [`Not in stock in your size (${a.size})`], notInSize: true };
+  // Their budget is a real limit: well over it is out; a little over (a standout deal) is allowed but ranks lower.
+  const cap = budgetOf(a);
+  if (cap && l.price && l.price > cap * 1.5) return null;
   const inf = info(l.category);
   const why: string[] = [];
   let pts = 0;
@@ -176,6 +188,7 @@ export function match(a: Agent, l: Listing, photoTags: string[] = [], opts: { ow
   if (liked.length) { pts += liked.reduce((t, k) => t + Math.min(3, learned[norm(k)]) * 6, 0); why.push(`You've gone for ${liked.slice(0, 3).join(", ")} before`); }
   if (disliked.length) { pts += disliked.reduce((t, k) => t + Math.max(-3, learned[norm(k)]) * 8, 0); why.push(`Heads up: you passed on ${disliked.slice(0, 2).join(", ")} before`); }
   if (fit === true) why.push(`In stock in your size, ${a.size}`);
+  if (cap && l.price && l.price > cap * 1.1) { pts -= 25; why.push(`A bit over your $${Math.round(cap).toLocaleString("en-US")} budget`); }
   const boost = intel(a);
   if (why.length === 0 || (why.length === 1 && fit === true)) return { score: Math.round(28 + boost * 0.12), why: ["Broad mission match only", ...why] };
   return { score: Math.max(5, Math.min(98, Math.round(35 + pts * 0.55 + boost * 0.1))), why };

@@ -161,7 +161,7 @@ struct StatsView: View {
                         HStack {
                             Text(k.capitalized).font(.subheadline).foregroundStyle(Theme.ink)
                             Spacer()
-                            Text(money(v)).font(.subheadline.monospaced()).foregroundStyle(Theme.ink)
+                            Text(money(v)).font(.subheadline.monospacedDigit()).foregroundStyle(Theme.ink)
                         }
                     }
                 }

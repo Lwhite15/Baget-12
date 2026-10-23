@@ -313,7 +313,7 @@ struct FriendsPrivacyForm: View {
                 Toggle(isOn: $store.state.settings.shareTasteWithFriends) {
                     VStack(alignment: .leading) {
                         Text("My taste profile")
-                        Text("The styles, makers and creators your agents hunt, so suggestions land better.").font(.caption).foregroundStyle(Theme.muted)
+                        Text("The styles, makers and creators your scouts hunt, so suggestions land better.").font(.caption).foregroundStyle(Theme.muted)
                     }
                 }
                 Toggle(isOn: $store.state.settings.sharePurchasesWithFriends) {
