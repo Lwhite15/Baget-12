@@ -426,6 +426,17 @@ select t.ok(public.send_release_reminders() = 0, 'once');
 reset role;
 select t.ok(t.n($$select * from public.notes where kind = 'reminder' and user_id = 'bbbbbbbb-0000-0000-0000-000000000002' and body like 'Reminder: the Test Runner OG releases %'$$) = 1, 'as a text naming the product and time');
 
+-- Deleting a scout hands its finds to another of yours
+reset role;
+insert into public.agents (user_id, name, mission_category) values ('cccccccc-0000-0000-0000-000000000003', 'Temp Nose', 'fragrance'), ('cccccccc-0000-0000-0000-000000000003', 'Keeper Nose', 'fragrance');
+update public.agents set created_at = now() + interval '1 minute' where name = 'Keeper Nose';
+insert into public.listings (fingerprint, title, category, url) values ('orphan|1', 'Orphan Oud', 'fragrance', 'https://x.example/o');
+insert into public.finds (user_id, agent_id, listing_id, score, why)
+  select 'cccccccc-0000-0000-0000-000000000003', (select id from public.agents where name = 'Temp Nose'), id, 60, '{}' from public.listings where fingerprint = 'orphan|1';
+delete from public.agents where name = 'Temp Nose';
+select t.ok((select a.mission_category = 'fragrance' from public.finds f join public.agents a on a.id = f.agent_id
+              join public.listings l on l.id = f.listing_id where l.fingerprint = 'orphan|1'), 'a deleted scout''s finds move to a remaining scout that fits');
+
 -- morning release and account deletion
 set role service_role;
 select t.ok(t.n('select * from public.release_held_notes()') >= 0, 'release runs');

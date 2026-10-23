@@ -230,6 +230,22 @@ struct EmailSignInView: View {
 }
 
 /// Talk to an agent. It learns from the conversation, searches the web, and can flag finds or line up checkout.
+/// "Ask about this" when there's no scout left to ask.
+struct NoScoutView: View {
+    @Environment(Router.self) private var router
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        VStack(spacing: 14) {
+            Image(systemName: "person.crop.circle.badge.questionmark").font(.system(size: 40)).foregroundStyle(Theme.muted)
+            Text("Set up a scout to ask about this").font(.headline).foregroundStyle(Theme.ink)
+            Text("The scout that found it is gone. Add a scout and you can ask it anything about your finds.")
+                .font(.subheadline).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
+            Button("Set up a scout") { dismiss(); router.sheet = .deploy }.buttonStyle(PrimaryButton())
+        }
+        .padding(28)
+    }
+}
+
 struct ChatView: View {
     @Environment(AppStore.self) private var store
     @Environment(Router.self) private var router

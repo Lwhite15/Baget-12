@@ -727,6 +727,14 @@ final class AppStore {
 
     func friend(_ id: String) -> Friend? { state.friends.first { $0.id == id } }
 
+    /// The scout to talk to about a find: the one that found it, or (if that one was deleted) the best fit you have now.
+    func scoutFor(_ f: Find) -> Agent? {
+        if let a = agent(f.agentID) { return a }
+        guard let item = Catalog.item(f.itemID) else { return state.agents.first }
+        return best(for: item)?.agent ?? state.agents.first { Matcher.covers($0, item) }
+            ?? state.agents.first { $0.mission.category == item.category } ?? state.agents.first
+    }
+
     func acceptSuggestion(_ id: String) {
         guard let si = state.suggestions.firstIndex(where: { $0.id == id }) else { return }
         let s = state.suggestions[si]

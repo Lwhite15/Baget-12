@@ -37,7 +37,11 @@ struct RootView: View {
                 case .pro: PaywallView()
                 case .feedback: FeedbackView()
                 case .ask(let fid):
-                    if let f = store.state.finds.first(where: { $0.id == fid }) { ChatView(agentID: f.agentID, aboutFindID: fid) }
+                    if let f = store.state.finds.first(where: { $0.id == fid }) {
+                        // The scout that found it may have been deleted: ask whichever current scout fits best.
+                        if let a = store.scoutFor(f) { ChatView(agentID: a.id, aboutFindID: fid) }
+                        else { NoScoutView() }
+                    }
                 }
             }
             .environment(store)
