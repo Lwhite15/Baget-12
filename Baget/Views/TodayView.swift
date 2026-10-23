@@ -278,13 +278,6 @@ struct ForYouSection: View {
             .font(.caption2.weight(.medium))
             .foregroundStyle(p.kind == "explore" ? Theme.cyan : Theme.green)
             HStack(spacing: 8) {
-                Button { withAnimation(.snappy) { store.reactForYou(p, .dismiss) }; router.say("Got it, fewer like this") } label: {
-                    Image(systemName: "xmark").font(.footnote.weight(.bold)).foregroundStyle(Theme.muted)
-                        .frame(maxWidth: .infinity).frame(height: 34)
-                        .background(Theme.glass, in: Capsule())
-                        .overlay(Capsule().strokeBorder(Theme.line))
-                }
-                .accessibilityLabel("Not for me")
                 Button {
                     withAnimation(.snappy) { store.reactForYou(p, .like) }
                     router.say(store.state.agents.isEmpty ? "Liked. Baget will show more like this" : "Saved to Finds. More like this coming")
@@ -294,6 +287,13 @@ struct ForYouSection: View {
                         .background(Theme.gradient, in: Capsule())
                 }
                 .accessibilityLabel("Like")
+                Button { withAnimation(.snappy) { store.reactForYou(p, .dismiss) }; router.say("Got it, fewer like this") } label: {
+                    Image(systemName: "xmark").font(.footnote.weight(.bold)).foregroundStyle(Theme.muted)
+                        .frame(maxWidth: .infinity).frame(height: 34)
+                        .background(Theme.glass, in: Capsule())
+                        .overlay(Capsule().strokeBorder(Theme.line))
+                }
+                .accessibilityLabel("Not for me")
             }
             .buttonStyle(.plain)
         }

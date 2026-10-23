@@ -350,18 +350,18 @@ struct OnboardingView: View {
                 }
                 Spacer(minLength: 0)
                 HStack(spacing: 18) {
-                    Button { answer(item, liked: false) } label: {
-                        Image(systemName: "xmark").font(.title2.weight(.bold)).foregroundStyle(Theme.hot)
-                            .frame(maxWidth: .infinity).frame(height: 60)
-                            .background(Theme.glass, in: Capsule()).overlay(Capsule().strokeBorder(Theme.hot.opacity(0.5)))
-                    }
-                    .accessibilityLabel("Not for me")
                     Button { answer(item, liked: true) } label: {
                         Image(systemName: "heart.fill").font(.title2.weight(.bold)).foregroundStyle(Theme.accentInk)
                             .frame(maxWidth: .infinity).frame(height: 60)
                             .background(Theme.gradient, in: Capsule())
                     }
                     .accessibilityLabel("Love it")
+                    Button { answer(item, liked: false) } label: {
+                        Image(systemName: "xmark").font(.title2.weight(.bold)).foregroundStyle(Theme.hot)
+                            .frame(maxWidth: .infinity).frame(height: 60)
+                            .background(Theme.glass, in: Capsule()).overlay(Capsule().strokeBorder(Theme.hot.opacity(0.5)))
+                    }
+                    .accessibilityLabel("Not for me")
                 }
                 .buttonStyle(.plain)
                 HStack {
