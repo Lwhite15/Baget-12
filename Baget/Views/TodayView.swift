@@ -45,7 +45,47 @@ struct TodayView: View {
     }
 
     /// Until the first finds land: who's out hunting, so a new account never looks idle.
-    private var firstHuntCard: some View {
+    /// When the first hunt started (kept on this phone), so a scout that's still empty after an hour says why.
+    @AppStorage("baget.firstHuntStarted") private var firstHuntStarted: Double = 0
+
+    @ViewBuilder private var firstHuntCard: some View {
+        let waited = firstHuntStarted > 0 ? Date.now.timeIntervalSince1970 - firstHuntStarted : 0
+        if waited > 3600, let a = store.state.agents.first(where: { !$0.isOff }) {
+            emptyHuntCard(a)
+        } else {
+            huntingCard.onAppear { if firstHuntStarted == 0 { firstHuntStarted = Date.now.timeIntervalSince1970 } }
+        }
+    }
+
+    /// Nothing yet after an hour: say why, with a one-tap fix, instead of an endless spinner.
+    private func emptyHuntCard(_ first: Agent) -> some View {
+        let noSize = store.state.agents.first { !$0.isOff && Sizes.required($0) && !Sizes.has($0) }
+        let a = noSize ?? first
+        return VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                AgentAvatarView(agent: a, size: 30)
+                Text("Nothing worth showing you yet").font(.subheadline.weight(.bold)).foregroundStyle(Theme.ink)
+            }
+            Text(noSize != nil
+                 ? "\(a.name) only flags \(a.mission.category == .sneakers ? "pairs" : "pieces") in stock in your size, and it doesn't know yours yet."
+                 : "\(a.name) is being picky so you only see good matches. A brand, model or budget gives it much more to go on.")
+                .font(.caption).foregroundStyle(Theme.muted).fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: 10) {
+                Button(noSize != nil ? "Add your size" : "Tell \(a.name) more") { router.sheet = .chat(a.id) }
+                    .font(.footnote.weight(.semibold)).foregroundStyle(Theme.accentInk)
+                    .padding(.horizontal, 14).padding(.vertical, 8)
+                    .background(Theme.gradient, in: Capsule())
+                Button("Hunt again now") { Task { await store.refreshNow(router: router) } }
+                    .font(.footnote.weight(.semibold)).foregroundStyle(Theme.accent)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.warn.opacity(0.08), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.warn.opacity(0.3)))
+    }
+
+    private var huntingCard: some View {
         HStack(spacing: 12) {
             HStack(spacing: -8) {
                 ForEach(store.state.agents.prefix(4)) { a in AgentAvatarView(agent: a, size: 30).overlay(Circle().strokeBorder(Theme.bg, lineWidth: 2)) }
