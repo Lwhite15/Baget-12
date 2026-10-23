@@ -119,15 +119,19 @@ final class QAWalkthrough: XCTestCase {
         snap("setup-1-picked", wait: 0.5)
         tap("Watches")   // over the free limit: should be blocked
         snap("setup-1-third-pick", wait: 0.5)
-        let words = app.textFields["Describe what you love and what you're looking for"].exists
-            ? app.textFields["Describe what you love and what you're looking for"] : app.textViews.firstMatch
-        type(into: words, "New Balance 990s and Salomon trail runners in earth tones, size 10.5. I also collect 90s hip hop vinyl, original pressings under $80.")
+        if tap("Describe what you love and what you're looking for", timeout: 4) {
+            snap("setup-1-editor", wait: 1)
+            let editor = app.textViews.firstMatch
+            if editor.waitForExistence(timeout: 4) { editor.typeText("New Balance 990s and Salomon trail runners in earth tones, size 10.5. I also collect 90s hip hop vinyl, original pressings under $80.") }
+            snap("setup-1-editor-typed", wait: 0.5)
+            tap("Done")
+        }
         snap("setup-1-typed", wait: 0.5)
         if app.keyboards.count > 0 { app.swipeDown() }
         tap("Next")
         snap("setup-2-vibe")
         // Pick a couple of whatever pills are on screen.
-        for l in ["New Balance", "Salomon", "Running & retro", "Up to $250"] { _ = tap(l, timeout: 1) }
+        for l in ["New Balance", "Salomon", "Size 10.5", "Running & retro", "Up to $250"] { _ = tap(l, timeout: 1) }
         snap("setup-2-picked", wait: 0.5)
         if !tap("Next", timeout: 2) { tap("Skip") }
         let quizStart = Date()
