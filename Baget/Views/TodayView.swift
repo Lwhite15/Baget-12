@@ -53,7 +53,17 @@ struct TodayView: View {
         if waited > 3600, let a = store.state.agents.first(where: { !$0.isOff }) {
             emptyHuntCard(a)
         } else {
-            huntingCard.onAppear { if firstHuntStarted == 0 { firstHuntStarted = Date.now.timeIntervalSince1970 } }
+            huntingCard
+                .onAppear { if firstHuntStarted == 0 { firstHuntStarted = Date.now.timeIntervalSince1970 } }
+                // Check for the first finds on its own (every 10 seconds, up to 5 minutes), so the card goes away
+                // the moment they land instead of waiting for a pull-down.
+                .task {
+                    for _ in 0..<30 {
+                        try? await Task.sleep(for: .seconds(10))
+                        if Task.isCancelled || !store.state.finds.isEmpty { break }
+                        await store.pull()
+                    }
+                }
         }
     }
 
