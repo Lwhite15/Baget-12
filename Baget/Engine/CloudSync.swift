@@ -224,7 +224,8 @@ extension AppStore {
         try? await api.update("profiles", "id=eq.\(uid)", ["tz": TimeZone.current.identifier])
         await pull()
         Analytics.track(.signedIn, ["newAccount": state.agents.isEmpty])
-        await registerForPush()
+        // Don't pop the system prompt the moment someone signs up: setup asks at the end, with a reason.
+        await registerForPushIfAsked()
     }
 
     func signOut() async {
@@ -565,7 +566,8 @@ extension AppStore {
     /// At launch: register if notifications were already allowed, or for accounts set up before setup asked about them.
     func registerForPushIfAsked() async {
         let status = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
-        if status == .notDetermined && !UserDefaults.standard.bool(forKey: "baget.onboarded") && state.agents.isEmpty { return }
+        // Never ask cold: not before signing in (the sample squad has agents too), and not before setup is done.
+        if status == .notDetermined && (Backend.shared.userID == nil || !UserDefaults.standard.bool(forKey: "baget.onboarded")) { return }
         await registerForPush()
     }
 
