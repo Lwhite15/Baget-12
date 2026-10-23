@@ -166,7 +166,9 @@ How to hunt${depth.deep ? " (leave no stone unturned)" : ""}:
   a droplist, a release-calendar entry, news about an upcoming drop, collab or restock, or a good reference page on something
   they'd love. Mark them "intel": true, use that page's URL, price null, the release date in drop_at if there is one, and say
   in "about" what it tells them. Intel never replaces a real product page when you found one.
-- Take initiative: include at least two discovery picks the person never named (a maker, model, note, collab or era that fits their taste), and mark them "discovery": true.${r.liked.length || r.bought.length ? `
+${a.mission_category === "fragrance" ? `- The world around fragrance counts too: include one or two related picks from houses they like or would like, such as
+  candles and home scents, body and hair mists, body wash and lotion, or grooming (mark them "discovery": true).
+` : ""}- Take initiative: include at least two discovery picks the person never named (a maker, model, note, collab or era that fits their taste), and mark them "discovery": true.${r.liked.length || r.bought.length ? `
 - Their likes and buys are the strongest signal: find more in that spirit (same makers, materials, notes, silhouettes, eras), but not the same items again.` : ""}${r.passed.length ? `
 - Steer away from what they passed on as not their style.` : ""}${r.seen?.length ? `
 - Already shown to them (find different things): ${r.seen.slice(0, 30).join("; ")}` : ""}
