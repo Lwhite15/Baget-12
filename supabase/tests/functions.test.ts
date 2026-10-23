@@ -1561,3 +1561,10 @@ await test("tandem: grounded Gemini while the free allowance lasts, then Flash-L
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
+
+await test("descriptions never show the model's notes to itself", async () => {
+  const sw = await import("../functions/sweep/handler.ts");
+  assert.equal(sw.cleanAbout("A retro adidas sneaker in black suede. Price and sizes not shown in the snippet I found."), "A retro adidas sneaker in black suede.");
+  assert.equal(sw.cleanAbout("I couldn't confirm the notes."), null);
+  assert.equal(sw.cleanAbout("Fresh and clean, like soap and citrus."), "Fresh and clean, like soap and citrus.");
+});

@@ -214,6 +214,15 @@ export function isSearchPage(url: string): boolean {
   return false;
 }
 
+/** A product description people read: drops the model's notes to itself ("Price and sizes not shown in the snippet",
+ *  "I couldn't confirm…"), sentence by sentence. Null when nothing useful is left. */
+const META = /\b(snippet|search results?|the (listing|page|source) (doesn't|does not|didn't)|not (shown|listed|provided|mentioned|specified) in|(i|we) (could not|couldn't|can't|cannot|wasn't able to|was unable to)|unable to (confirm|verify|find))\b/i;
+export function cleanAbout(text: string): string | null {
+  const t = text.trim().replace(/\s+/g, " ");
+  const kept = (t.match(/[^.!?]+[.!?]*/g) ?? [t]).map((x) => x.trim()).filter((x) => x && !META.test(x)).join(" ");
+  return kept.length > 15 ? kept.slice(0, 400) : null;
+}
+
 export function cleanListings(raw: unknown, fallbackCategory: string): (Listing & { fingerprint: string; url: string; sku: string; image_url: string | null; discovery: boolean; about: string | null; pitch: string; text: string })[] {
   const arr = (raw as { listings?: unknown[] })?.listings;
   if (!Array.isArray(arr)) return [];
@@ -250,7 +259,7 @@ export function cleanListings(raw: unknown, fallbackCategory: string): (Listing 
       sizes_in_stock: sizes && sizes.length ? sizes : null,
       sku: typeof r.sku === "string" ? r.sku.trim().slice(0, 60) : "",
       discovery: r.discovery === true,
-      about: typeof r.about === "string" && r.about.trim() ? r.about.trim().replace(/\s+/g, " ").slice(0, 400) : null,
+      about: typeof r.about === "string" ? cleanAbout(r.about) : null,
       pitch: typeof r.pitch === "string" ? r.pitch.trim().slice(0, 160) : "",
       text: cleanText(r.text),
     });
@@ -496,7 +505,7 @@ async function applyAbout(batch: AboutRow[], text: string) {
   const out = keyed(parsed, "about", batch.map((r, j) => ({ id: `p${j + 1}`, name: r.title })));
   let written = 0;
   await Promise.all(batch.map((r, j) => {
-    const a = out[j] && out[j]!.length > 15 ? out[j]!.slice(0, 400) : null;
+    const a = out[j] ? cleanAbout(out[j]!) : null;
     if (a) written++;
     return db.update("listings", `id=eq.${r.id}`, { about: a, about_checked_at: new Date().toISOString() });
   }));
