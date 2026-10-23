@@ -62,14 +62,23 @@ await test("match: not in your size is excluded", () => {
   const m = M.match(jumpman, { ...ts, sizes_in_stock: ["8", "9"] })!;
   assert.equal(m.notInSize, true);
 });
-await test("match: no size means no hunting for sneakers", () => {
-  assert.equal(M.match({ ...jumpman, size: "" }, ts), null);
+await test("match: no size yet still finds sneakers (fit unknown), never says it's in your size", () => {
+  const m = M.match({ ...jumpman, size: "" }, ts)!;
+  assert.ok(m && !m.notInSize && m.score >= 45);
+  assert.ok(!m.why.some((w) => w.includes("your size")));
 });
 await test("sizes convert across systems", () => {
   assert.equal(M.shoeUS("EU 44.5"), 10.5);
   assert.equal(M.shoeUS("UK 9.5"), 10.5);
   assert.equal(M.shoeUS("US W 12"), 10.5);
   assert.equal(M.topSize("l · 32x32"), "L");
+});
+await test("a typed-in mission trusts its own hunt", () => {
+  const gear = { ...jumpman, mission_category: null, mission_custom: "outdoor gear", keywords: [], traits: [], makers: [], creators: [], size: "" };
+  const pack = { ...ts, title: "Unbound 40L Backpack", brand: "Hyperlite Mountain Gear", category: "other", traits: ["ultralight"], tags: [], creator: null, sizes_in_stock: null };
+  assert.equal(M.match(gear, pack), null, "a product it didn't hunt still needs the mission's words");
+  const m = M.match(gear, pack, [], { own: true })!;
+  assert.ok(m && m.score >= 45, "but its own find counts");
 });
 await test("custom mission matches by words", () => {
   const vinyl = { ...jumpman, mission_category: null, mission_custom: "first press vinyl", size: "" };

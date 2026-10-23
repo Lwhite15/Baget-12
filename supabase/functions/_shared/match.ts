@@ -143,9 +143,12 @@ export function intel(a: Agent): number {
     Math.min(a.traits.length, 5) * 6 + Math.min(a.makers.length, 3) * 5 + Math.min(a.creators.length, 2) * 5;
   return Math.min(100, k);
 }
-export function match(a: Agent, l: Listing, photoTags: string[] = []): Match | null {
-  if (!covers(a, l)) return null;
-  if (sizeRequired(a) && !hasSize(a)) return null;
+/** own: the scout found this on its own hunt for this mission (not a store feed or another scout's product). A typed-in
+ *  mission ("outdoor gear") then counts as covered: the scout searched for exactly that, and demanding the mission's own
+ *  words in every product title left whole scouts with nothing. Without a size yet, sneaker and clothing scouts still
+ *  find things (fit unknown) instead of going silent; the app keeps asking for the size. */
+export function match(a: Agent, l: Listing, photoTags: string[] = [], opts: { own?: boolean } = {}): Match | null {
+  if (!(opts.own && !a.mission_category) && !covers(a, l)) return null;
   const fit = sizeFit(a, l);
   if (fit === false) return { score: 0, why: [`Not in stock in your size (${a.size})`], notInSize: true };
   const inf = info(l.category);

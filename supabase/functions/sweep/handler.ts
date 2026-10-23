@@ -395,7 +395,7 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
     for (const l of listings) {
       const s = ids.get(l.fingerprint);
       if (!s || s.already_found) continue;
-      const m = match(a, l, photoTags);
+      const m = match(a, l, photoTags, { own: true });
       const info = l.tags.includes("intel") || l.tags.includes("search");
       // Discovery picks and intel are the agent's own initiative, so they don't need to hit the stated keywords as hard.
       if (!m || (!info && m.notInSize) || m.score < (l.discovery || info ? 35 : 45)) continue;
