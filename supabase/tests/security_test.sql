@@ -155,6 +155,31 @@ select t.ok(public.record_finds((select id from public.agents where name = 'Jump
   'find with null reasons saves');
 delete from public.finds where listing_id = (select id from public.listings where fingerprint = 'aesop|hwyl eau de parfum');
 delete from public.listings where fingerprint = 'aesop|hwyl eau de parfum';
+-- Fewer, better finds: at most 5 a day per scout on Free, strongest first; only the top 2 per hunt go to the inbox.
+insert into public.listings (fingerprint, title, brand, category, url, price)
+select 'cap|' || g, 'Cap Test Shoe ' || g, 'Capbrand', 'sneakers', 'https://cap.example/' || g, 100 from generate_series(1, 8) g;
+update public.profiles set plan = 'free' where id = 'aaaaaaaa-0000-0000-0000-000000000001';
+select t.ok(public.record_finds((select id from public.agents where name = 'Jumpman Scout'),
+  (select jsonb_agg(jsonb_build_object('listing_id', l.id, 'score', 50 + g, 'why', '[]'::jsonb,
+          'note', jsonb_build_object('kind', 'available', 'body', 'Found ' || l.title)))
+     from generate_series(1, 8) g join public.listings l on l.fingerprint = 'cap|' || g))
+  + (select count(*) from public.finds f where f.agent_id = (select id from public.agents where name = 'Jumpman Scout')
+       and f.created_at > now() - interval '24 hours' and f.listing_id not in (select id from public.listings where fingerprint like 'cap|%'))::int <= 5,
+  'a scout adds at most 5 finds a day on Free');
+select t.ok(not exists (select 1 from public.finds f join public.listings l on l.id = f.listing_id where l.fingerprint = 'cap|1'),
+  'and the weakest ones are the ones left out');
+select t.ok((select count(*) from public.notes n join public.finds f on f.id = n.find_id join public.listings l on l.id = f.listing_id
+              where l.fingerprint like 'cap|%') <= 2, 'only the strongest two reach the inbox');
+-- A week-old untouched find is archived; a watched one stays.
+update public.finds set created_at = now() - interval '8 days'
+ where listing_id in (select id from public.listings where fingerprint in ('cap|8', 'cap|7'));
+update public.finds set watching = true where listing_id = (select id from public.listings where fingerprint = 'cap|7');
+select public.archive_stale_finds(7);
+select t.ok((select status from public.finds f join public.listings l on l.id = f.listing_id where l.fingerprint = 'cap|8') = 'removed', 'untouched for a week: archived');
+select t.ok((select status from public.finds f join public.listings l on l.id = f.listing_id where l.fingerprint = 'cap|7') = 'open', 'watched: stays');
+delete from public.finds where listing_id in (select id from public.listings where fingerprint like 'cap|%');
+delete from public.listings where fingerprint like 'cap|%';
+update public.profiles set plan = 'comp' where id = 'aaaaaaaa-0000-0000-0000-000000000001';
 reset role;
 
 -- ── Larry acts on his finds ──

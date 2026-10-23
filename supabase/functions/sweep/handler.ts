@@ -644,6 +644,8 @@ export async function maintain() {
   out.refreshed = await refreshFinds(num("REFRESH_CHECKS", 40)).catch((e) => { console.error("refresh", e); return null; });
   out.prices = await repriceOld(num("PRICE_BACKFILL", 10)).catch((e) => { console.error("prices", e); return null; });
   out.stores = await db.rpc<number>("learn_stores", {}).catch((e) => { console.error("stores", e); return null; });
+  // Finds nobody touched in a week step aside so Finds stays a short list of what's worth a look.
+  out.archived = await db.rpc<number>("archive_stale_finds", { p_days: 7 }).catch((e) => { console.error("archive", e); return null; });
   return out;
 }
 
