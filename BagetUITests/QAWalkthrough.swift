@@ -127,7 +127,7 @@ final class QAWalkthrough: XCTestCase {
         tap("Next")
         snap("setup-2-vibe")
         // Pick a couple of whatever pills are on screen.
-        for l in ["New Balance", "Salomon", "Earthy", "Minimal", "Under $200"] { _ = tap(l, timeout: 1) }
+        for l in ["New Balance", "Salomon", "Running & retro", "Up to $250"] { _ = tap(l, timeout: 1) }
         snap("setup-2-picked", wait: 0.5)
         if !tap("Next", timeout: 2) { tap("Skip") }
         let quizStart = Date()
@@ -138,7 +138,7 @@ final class QAWalkthrough: XCTestCase {
         if !tap("Next", timeout: 3) { tap("Done", timeout: 3) }
         snap("setup-4-photos")
         let build = Date()
-        tap("Build without photos")
+        if !tap("Skip and build my squad", timeout: 4) { tap("Build without photos") }
         snap("setup-5-building", wait: 1)
         _ = app.staticTexts["Your squad is hunting"].waitForExistence(timeout: 60) || app.staticTexts["First finds are in"].exists
         timed("build squad", build)
