@@ -31,6 +31,8 @@ jobs:
             BAGET_SUPABASE_URL="https://${PROJECT_REF}.supabase.co" BAGET_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" > build.log 2>&1 \
             || { grep -E ": error: " build.log | head -20 | while IFS= read -r l; do echo "::error::$l"; done; exit 1; }
       - name: Walk through the app
+        env:
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           UDID=$(xcrun simctl list devices available -j | python3 -c '
           import json,sys
@@ -44,6 +46,9 @@ jobs:
           xcrun simctl ui "$UDID" appearance dark
           pw=$(python3 -c "import secrets,string; print('Qa-' + ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(20)))")
           echo "::add-mask::$pw"
+          r=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "https://${PROJECT_REF}.supabase.co/auth/v1/signup" -H "apikey: ${SUPABASE_ANON_KEY}" \
+                -H "Content-Type: application/json" -d "$(jq -nc --arg e "qa-${GITHUB_RUN_ID}@example.com" --arg p "$pw" '{email:$e,password:$p,data:{full_name:"Claude Tester"}}')")
+          echo "::notice::sign-up HTTP $r"
           mkdir -p "$RUNNER_TEMP/out"
           echo "::notice::Account: qa-${GITHUB_RUN_ID}@example.com"
           TEST_RUNNER_QA_EMAIL="qa-${GITHUB_RUN_ID}@example.com" TEST_RUNNER_QA_PASSWORD="$pw" TEST_RUNNER_QA_OUT="$RUNNER_TEMP/out" \

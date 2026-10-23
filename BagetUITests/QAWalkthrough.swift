@@ -92,16 +92,15 @@ final class QAWalkthrough: XCTestCase {
         snap("welcome", wait: 3)
         app.swipeUp(); snap("welcome-scrolled", wait: 1)
 
-        // Sign up with email.
+        // Sign in with email. The workflow made the account through the same sign-up API the app uses; the simulator's
+        // strong-password sheet (invisible to screenshots) blocks the in-app Create account button under automation.
         tap("Continue with email")
         snap("email-sheet")
-        tap("Create account")
-        type(into: app.textFields["Your name"], "Claude Tester")
         type(into: app.textFields["Email"], email)
         type(into: app.secureTextFields.firstMatch, password)
+        app.staticTexts["Sign in with email"].firstMatch.tap()
         snap("email-filled", wait: 0.5)
-        app.staticTexts["Create account"].firstMatch.tap()   // put the keyboard away, like a person would
-        let submit = app.buttons.matching(NSPredicate(format: "label == 'Create account'"))
+        let submit = app.buttons.matching(NSPredicate(format: "label == 'Sign in'"))
         if submit.count > 1 { submit.element(boundBy: submit.count - 1).coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap(); note("tap submit") }
         else { note("MISSING submit button") }
         Thread.sleep(forTimeInterval: 3)
