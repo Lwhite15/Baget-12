@@ -131,7 +131,7 @@ enum Analytics {
             req.timeoutInterval = 20
             req.setValue("application/json", forHTTPHeaderField: "Content-Type")
             req.setValue(config.key, forHTTPHeaderField: "apikey")
-            req.setValue("Bearer \(config.key)", forHTTPHeaderField: "Authorization")
+            // The publishable key goes in apikey only: as a Bearer token it isn't a JWT and every batch came back 401.
             // Duplicate IDs (a retried batch) are ignored instead of failing the whole batch.
             req.setValue("return=minimal,resolution=ignore-duplicates", forHTTPHeaderField: "Prefer")
             req.httpBody = body
