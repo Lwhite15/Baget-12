@@ -100,9 +100,13 @@ final class QAWalkthrough: XCTestCase {
         type(into: app.secureTextFields.firstMatch, password)
         app.staticTexts["Sign in with email"].firstMatch.tap()
         snap("email-filled", wait: 0.5)
-        let submit = app.buttons.matching(NSPredicate(format: "label == 'Sign in'"))
-        if submit.count > 1 { submit.element(boundBy: submit.count - 1).coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap(); note("tap submit") }
-        else { note("MISSING submit button") }
+        // The form's button is the lowest "Sign in" on screen (the other is the segmented control at the top).
+        let submit = app.buttons.matching(NSPredicate(format: "label == 'Sign in'")).allElementsBoundByIndex
+        if let b = submit.max(by: { $0.frame.minY < $1.frame.minY }), b.frame.minY > 300 {
+            note("submit at y=\(Int(b.frame.minY)) enabled=\(b.isEnabled)")
+            b.tap(); Thread.sleep(forTimeInterval: 1)
+            if app.buttons.matching(NSPredicate(format: "label == 'Sign in'")).count > 1 { b.tap(); note("tapped submit twice (first tap only closed the keyboard)") }
+        } else { note("MISSING submit button: \(submit.map { Int($0.frame.minY) })") }
         Thread.sleep(forTimeInterval: 3)
         snap("after-submit", wait: 0)
         let signed = Date()
