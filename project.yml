@@ -90,3 +90,31 @@ targets:
         NSExtension:
           NSExtensionPointIdentifier: com.apple.usernotifications.service
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).NotificationService
+
+  # The QA walkthrough (UI test). Only the "QA walkthrough" workflow builds it; never part of an App Store build.
+  BagetUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: BagetUITests
+    dependencies:
+      - target: Baget
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.baget.qa
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Baget
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+
+schemes:
+  BagetQA:
+    build:
+      targets:
+        Baget: all
+        BagetUITests: [test]
+    test:
+      config: Debug
+      targets:
+        - BagetUITests
+

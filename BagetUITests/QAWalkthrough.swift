@@ -1,0 +1,188 @@
+import XCTest
+
+/// A new customer's first session, end to end, on the real backend. Run by the "QA walkthrough" workflow only.
+/// Creates a brand-new email account, goes through setup, waits for the first hunt, then tours every screen.
+/// Each step saves a screenshot and the screen's accessibility tree, and never stops the run if something is missing:
+/// a missing button is itself a finding, logged in steps.txt.
+final class QAWalkthrough: XCTestCase {
+    private var app: XCUIApplication!
+    private var out: URL!
+    private var n = 0
+    private var log = ""
+
+    override func setUp() {
+        continueAfterFailure = true
+        let env = ProcessInfo.processInfo.environment
+        out = URL(fileURLWithPath: env["QA_OUT"] ?? NSTemporaryDirectory()).appendingPathComponent("qa")
+        try? FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
+        app = XCUIApplication()
+    }
+
+    // MARK: helpers
+
+    private func note(_ s: String) {
+        let line = "[\(String(format: "%02d", n))] \(s)"
+        log += line + "\n"
+        print("QA: " + line)
+        try? log.write(to: out.appendingPathComponent("steps.txt"), atomically: true, encoding: .utf8)
+    }
+
+    private func snap(_ name: String, wait: Double = 2) {
+        if wait > 0 { Thread.sleep(forTimeInterval: wait) }
+        n += 1
+        let base = String(format: "%02d-%@", n, name)
+        let shot = XCUIScreen.main.screenshot()
+        try? shot.pngRepresentation.write(to: out.appendingPathComponent(base + ".png"))
+        let a = XCTAttachment(screenshot: shot); a.name = base; a.lifetime = .keepAlways; add(a)
+        try? app.debugDescription.write(to: out.appendingPathComponent(base + ".txt"), atomically: true, encoding: .utf8)
+        note("snap \(base)")
+    }
+
+    /// Taps the first hittable element with this label (buttons first, then anything). Returns false and logs if missing.
+    @discardableResult
+    private func tap(_ label: String, timeout: Double = 8, last: Bool = false) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        repeat {
+            for q in [app.buttons, app.staticTexts, app.descendants(matching: .any)] {
+                let m = q.matching(NSPredicate(format: "label == %@", label))
+                let all = (0..<min(m.count, 20)).map { m.element(boundBy: $0) }.filter { $0.exists && $0.isHittable }
+                if let e = last ? all.last : all.first { e.tap(); note("tap \(label)"); return true }
+            }
+            Thread.sleep(forTimeInterval: 0.5)
+        } while Date() < deadline
+        note("MISSING \(label)")
+        return false
+    }
+
+    private func tapContaining(_ text: String, timeout: Double = 6) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        repeat {
+            let m = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", text))
+            for i in 0..<min(m.count, 20) where m.element(boundBy: i).isHittable { m.element(boundBy: i).tap(); note("tap ~\(text)"); return true }
+            Thread.sleep(forTimeInterval: 0.5)
+        } while Date() < deadline
+        note("MISSING ~\(text)")
+        return false
+    }
+
+    private func type(into field: XCUIElement, _ text: String) {
+        guard field.waitForExistence(timeout: 6) else { note("MISSING field \(field)"); return }
+        field.tap(); field.typeText(text)
+    }
+
+    private func closeSheet() {
+        for l in ["Done", "Close", "Cancel"] where app.buttons[l].exists && app.buttons[l].isHittable { app.buttons[l].tap(); note("close via \(l)"); return }
+        app.swipeDown(velocity: .fast); note("close via swipe")
+    }
+
+    private func timed(_ what: String, _ start: Date) { note(String(format: "TIME %@ %.1fs", what, Date().timeIntervalSince(start))) }
+
+    // MARK: the session
+
+    func testNewCustomer() {
+        let env = ProcessInfo.processInfo.environment
+        let email = env["QA_EMAIL"] ?? "qa@example.com", password = env["QA_PASSWORD"] ?? "change-me-123"
+        let t0 = Date()
+        app.launch()
+        snap("welcome", wait: 3)
+        app.swipeUp(); snap("welcome-scrolled", wait: 1)
+
+        // Sign up with email.
+        tap("Continue with email")
+        snap("email-sheet")
+        tap("Create account")
+        type(into: app.textFields["Your name"], "Claude Tester")
+        type(into: app.textFields["Email"], email)
+        type(into: app.secureTextFields.firstMatch, password)
+        snap("email-filled", wait: 0.5)
+        tap("Create account", last: true)
+        let signed = Date()
+        _ = app.staticTexts["What are you into?"].waitForExistence(timeout: 25)
+        timed("sign-up to setup", signed)
+        snap("setup-1-interests")
+
+        // 1. Interests: one built-in category, one custom interest, plus my own words.
+        tap("Sneakers"); tap("Vinyl & music")
+        snap("setup-1-picked", wait: 0.5)
+        tap("Watches")   // over the free limit: should be blocked
+        snap("setup-1-third-pick", wait: 0.5)
+        let words = app.textFields["Describe what you love and what you're looking for"].exists
+            ? app.textFields["Describe what you love and what you're looking for"] : app.textViews.firstMatch
+        type(into: words, "New Balance 990s and Salomon trail runners in earth tones, size 10.5. I also collect 90s hip hop vinyl, original pressings under $80.")
+        snap("setup-1-typed", wait: 0.5)
+        if app.keyboards.count > 0 { app.swipeDown() }
+        tap("Next")
+        snap("setup-2-vibe")
+        // Pick a couple of whatever pills are on screen.
+        for l in ["New Balance", "Salomon", "Earthy", "Minimal", "Under $200"] { _ = tap(l, timeout: 1) }
+        snap("setup-2-picked", wait: 0.5)
+        if !tap("Next", timeout: 2) { tap("Skip") }
+        let quizStart = Date()
+        snap("setup-3-taste-check", wait: 4)
+        timed("taste check load", quizStart)
+        for i in 0..<6 { if !tap(i % 3 == 2 ? "Not for me" : "Love it", timeout: 4) { break }; if i == 1 { snap("setup-3-mid", wait: 1) } }
+        snap("setup-3-after")
+        if !tap("Next", timeout: 3) { tap("Done", timeout: 3) }
+        snap("setup-4-photos")
+        let build = Date()
+        tap("Build without photos")
+        snap("setup-5-building", wait: 1)
+        _ = app.staticTexts["Your squad is hunting"].waitForExistence(timeout: 60) || app.staticTexts["First finds are in"].exists
+        timed("build squad", build)
+        snap("setup-5-first-hunt", wait: 1)
+        // Watch the first hunt like a customer would.
+        for s in [45, 90, 150] {
+            Thread.sleep(forTimeInterval: Double(s) - Date().timeIntervalSince(build))
+            if app.staticTexts["First finds are in"].exists { timed("first finds appeared", build); break }
+            snap("setup-5-wait-\(s)s", wait: 0)
+        }
+        snap("setup-5-end", wait: 1)
+        if !tap("Not now, see my finds", timeout: 3) && !tap("Not now, show me Today", timeout: 3) { _ = tap("See my finds", timeout: 2) || tap("Show me Today", timeout: 2) }
+
+        // Today.
+        snap("today", wait: 4)
+        app.swipeUp(); snap("today-scroll-1", wait: 2)
+        app.swipeUp(); snap("today-scroll-2", wait: 2)
+        app.swipeUp(); snap("today-scroll-3", wait: 2)
+        app.swipeDown(); app.swipeDown(); app.swipeDown()
+        if tap("Latest", timeout: 3) { snap("today-latest") }
+        _ = tap("For you", timeout: 2)
+
+        // Finds.
+        tap("Finds"); snap("finds", wait: 3)
+        for f in ["New", "Liked", "Watching", "Intel", "All"] { if tap(f, timeout: 2) { snap("finds-\(f.lowercased())", wait: 1.5) } }
+        _ = tap("New", timeout: 2)
+        // Open the first product card.
+        let card = app.scrollViews.firstMatch.images.firstMatch
+        if card.waitForExistence(timeout: 4) && card.isHittable { card.tap(); snap("find-detail", wait: 3); app.swipeUp(); snap("find-detail-scroll", wait: 1.5); closeSheet() }
+        else { note("MISSING product card image") }
+        snap("finds-after-detail", wait: 1)
+
+        // Squad.
+        tap("Squad"); snap("squad", wait: 3)
+        app.swipeUp(); snap("squad-scroll", wait: 1.5)
+        app.swipeDown()
+
+        // Friends.
+        tap("Friends"); snap("friends", wait: 3)
+
+        // Notifications.
+        if tapContaining("Notifications") { snap("inbox", wait: 3); closeSheet() }
+
+        // Profile / settings.
+        tap("You: icon, settings and account"); snap("profile", wait: 3)
+        app.swipeUp(); snap("profile-scroll-1", wait: 1.5)
+        app.swipeUp(); snap("profile-scroll-2", wait: 1.5)
+        closeSheet()
+
+        // Pro.
+        tap("Squad")
+        if tapContaining("Go Pro") || tapContaining("Pro") { snap("paywall", wait: 3); app.swipeUp(); snap("paywall-scroll", wait: 1.5); closeSheet() }
+
+        // A second look at Today/Finds after a few more minutes of hunting.
+        Thread.sleep(forTimeInterval: 60)
+        tap("Today"); app.swipeDown(); snap("today-later", wait: 5)
+        tap("Finds"); snap("finds-later", wait: 3)
+        timed("whole session", t0)
+    }
+}

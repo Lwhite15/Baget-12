@@ -1,0 +1,65 @@
+# QA walkthrough: a brand-new customer's first session on the real backend, on an iPhone simulator.
+# Creates a fresh email account (qa-<run>@example.com, random password nobody sees), goes through setup, waits for the
+# first hunt and tours every screen. Screenshots and screen trees come back as the "qa" artifact (not committed).
+# The account stays so its finds can be checked afterwards; remove it with the "Delete account" workflow.
+name: QA walkthrough
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  walk:
+    runs-on: macos-26
+    timeout-minutes: 60
+    env:
+      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Use Xcode 26
+        run: |
+          X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | grep -v -i beta | sort -V | tail -1)
+          [ -z "$X" ] && X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          sudo xcode-select -s "$X"
+      - name: Build
+        env:
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          brew install xcodegen >/dev/null
+          xcodegen generate
+          set -o pipefail
+          xcodebuild build-for-testing -project Baget.xcodeproj -scheme BagetQA -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' -derivedDataPath build CODE_SIGNING_ALLOWED=NO \
+            BAGET_SUPABASE_URL="https://${PROJECT_REF}.supabase.co" BAGET_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" > build.log 2>&1 \
+            || { grep -E ": error: " build.log | head -20 | while IFS= read -r l; do echo "::error::$l"; done; exit 1; }
+      - name: Walk through the app
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json,sys
+          d=json.load(sys.stdin)["devices"]
+          devs=[x for k,v in d.items() if "iOS" in k for x in v if x["name"].startswith("iPhone")]
+          pick=next((x for x in devs if x["name"].endswith("Pro")), None) or devs[0]
+          print(pick["udid"])')
+          echo "::notice::Device: $(xcrun simctl list devices | grep "$UDID" | sed 's/^ *//')"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b >/dev/null
+          xcrun simctl ui "$UDID" appearance dark
+          pw=$(python3 -c "import secrets,string; print('Qa-' + ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(20)))")
+          echo "::add-mask::$pw"
+          mkdir -p "$RUNNER_TEMP/out"
+          echo "::notice::Account: qa-${GITHUB_RUN_ID}@example.com"
+          TEST_RUNNER_QA_EMAIL="qa-${GITHUB_RUN_ID}@example.com" TEST_RUNNER_QA_PASSWORD="$pw" TEST_RUNNER_QA_OUT="$RUNNER_TEMP/out" \
+            xcodebuild test-without-building -project Baget.xcodeproj -scheme BagetQA -derivedDataPath build \
+            -destination "id=$UDID" -resultBundlePath "$RUNNER_TEMP/qa.xcresult" > test.log 2>&1 || echo "::warning::The walkthrough reported failures (see steps.txt)"
+          grep "QA: " test.log | sed 's/.*QA: //' | tail -150
+          # Screenshots also live in the result bundle, in case the simulator couldn't write to the runner's folder.
+          if ! ls "$RUNNER_TEMP/out/qa/"*.png >/dev/null 2>&1; then
+            mkdir -p "$RUNNER_TEMP/out/qa"
+            xcrun xcresulttool export attachments --path "$RUNNER_TEMP/qa.xcresult" --output-path "$RUNNER_TEMP/out/qa" || true
+          fi
+          cp test.log "$RUNNER_TEMP/out/qa/test.log"
+          ls "$RUNNER_TEMP/out/qa" | wc -l
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qa
+          path: ${{ runner.temp }}/out/qa
+          retention-days: 7
