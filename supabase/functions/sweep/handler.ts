@@ -286,9 +286,12 @@ export const SWEEP_MODEL = () => env("SWEEP_MODEL") ?? "claude-haiku-5-5";
 /** A scout whose last 3 hunts found nothing new rests: scheduled hunts are skipped until 3 days after its last real
  *  hunt, then it tries again (and rests again if that one is empty too). Hunting from the app always runs. */
 export const REST_AFTER_EMPTY = 3;
+/** Empty hunts before this don't count: until then, scouts without a size or with a typed-in mission found nothing
+ *  because of a matching bug (fixed Oct 23, 2026), and they deserve fresh hunts now. */
+const EMPTY_SINCE = "2026-10-23T14:00:00Z";
 export async function restingAfterNothing(agentId: string, now = new Date()): Promise<boolean> {
   const last = await db.select<{ finds: number; created_at: string }>("sweep_runs",
-    `select=finds,created_at&agent_id=eq.${agentId}&trigger=in.(scheduled,manual)&error=is.null&order=created_at.desc&limit=${REST_AFTER_EMPTY}`).catch(() => []);
+    `select=finds,created_at&agent_id=eq.${agentId}&trigger=in.(scheduled,manual)&error=is.null&created_at=gt.${EMPTY_SINCE}&order=created_at.desc&limit=${REST_AFTER_EMPTY}`).catch(() => []);
   if (!Array.isArray(last) || last.length < REST_AFTER_EMPTY || last.some((r) => !r || r.finds > 0)) return false;
   return now.getTime() - Date.parse(last[0].created_at) < num("REST_HOURS", 72) * 3600_000;
 }
