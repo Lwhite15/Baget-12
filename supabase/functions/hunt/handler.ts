@@ -1,6 +1,6 @@
 // "What are you hunting?" One sentence in, a ready agent out.
 // Claude turns the sentence into a brief (mission, brands, styles, keywords, size) and the agent is created for the person.
-import { CATEGORIES, firstName } from "../_shared/match.ts";
+import { CATEGORIES, firstName, langOf } from "../_shared/match.ts";
 import { HttpError, claude, db, handle, json, parseJSON, quota, requireUser, textOf } from "../_shared/platform.ts";
 
 export interface Plan {
@@ -81,12 +81,20 @@ export async function scoutLimit(userId: string): Promise<number> {
 }
 
 /** Each new agent says hi in the inbox: who it is, what it's hunting, and when to expect finds. Not pushed (kind "learned"). */
-async function introNotes(userId: string, agents: { agent_id: string; name: string; intro: string }[]) {
+const INTRO: Record<string, (name: string, scout: string, intro: string) => string> = {
+  en: (n, s, i) => `${n ? `Hey ${n}, ` : "Hey, "}${s} here. ${i || "I'm on the hunt for you."} I'm searching now; my first finds usually land within a few minutes.`,
+  es: (n, s, i) => `${n ? `¡Hola, ${n}! ` : "¡Hola! "}Soy ${s}. ${i || "Ya estoy buscando para ti."} Estoy buscando ahora; mis primeros hallazgos suelen llegar en unos minutos.`,
+  fr: (n, s, i) => `${n ? `Salut ${n}, ` : "Salut, "}c'est ${s}. ${i || "Je pars à la chasse pour toi."} Je cherche en ce moment ; mes premières trouvailles arrivent en général en quelques minutes.`,
+  ko: (n, s, i) => `${n ? `${n}님, 안녕하세요! ` : "안녕하세요! "}${s}예요. ${i || "지금부터 찾아볼게요."} 지금 찾고 있어요. 첫 결과는 보통 몇 분 안에 도착해요.`,
+};
+
+async function introNotes(userId: string, agents: { agent_id: string; name: string; intro: string }[], lang = "en") {
   const [p] = await db.select<{ display_name: string }>("profiles", `select=display_name&id=eq.${userId}`).catch(() => []);
   const name = firstName(p?.display_name);
+  const write = INTRO[lang] ?? INTRO.en;
   const rows = agents.map((a) => ({
     user_id: userId, agent_id: a.agent_id, sender_name: a.name, kind: "learned",
-    body: `${name ? `Hey ${name}, ` : "Hey, "}${a.name} here. ${a.intro || "I'm on the hunt for you."} I'm searching now; my first finds usually land within a few minutes.`.slice(0, 480),
+    body: write(name, a.name, a.intro).slice(0, 480),
   }));
   if (rows.length) await db.insert("notes", rows, false).catch((e) => console.error("intro notes", e));
 }
@@ -133,7 +141,7 @@ export const cleanBudget = (v: unknown) => typeof v === "number" && v >= 10 && v
 async function onboard(userId: string, categories: string[], text: string, size: string | undefined, images: Img[],
                        liked: string[] = [], passed: string[] = [], vibes: Record<string, string[]> = {}, budget: number | null = null,
                        brands: Record<string, string[]> = {}, interests: string[] = [], sizes: Record<string, string> = {},
-                       department: "women" | "men" | null = null) {
+                       department: "women" | "men" | null = null, lang = "en") {
   const cats = [...new Set(categories.filter((c) => (CATEGORIES as string[]).includes(c) && c !== "other"))].slice(0, 6);
   if (!cats.length && !interests.length && !text) throw new HttpError(400, "Pick at least one thing you're into");
   const picked = [...cats, ...interests];
@@ -152,6 +160,7 @@ ${budget ? `They usually spend up to $${budget} on one item.` : ""}
 Make one agent brief per picked interest${text && !picked.length ? " (or one for what they said)" : ""}${text && picked.length ? ", plus one more if what they said is a separate hunt" : ""}.
 For an interest that isn't one of the categories, set category null and write it as "custom" (e.g. "Tech & gadgets" → custom "tech and gadgets").
 ${department ? `They shop the ${department === "women" ? "women's" : "men's"} department: make every brief for that department (sizes, cuts, styles).` : ""}
+${langOf(lang) ? `Write each agent's "name" and "intro" in ${langOf(lang)}. Keep keywords, traits, makers and creators in English: they're search terms.` : ""}
 Also say who they shop for: "department" is "women" or "men" only when their words, photos, picks or sizes clearly show it
 (e.g. women's sizes, "my wife's style" means they shop women's), else null.
 Reply with only JSON: {"department": "women" | "men" | null, "agents": [${BRIEF_FIELDS}, ...]}
@@ -189,7 +198,7 @@ Use only what they said, picked or showed. Keep every list item short (1-4 words
     const id = await insertAgent(userId, p, budget);
     agents.push({ agent_id: id, ...p, needs_size: needsSize(p) });
   }
-  await introNotes(userId, agents);
+  await introNotes(userId, agents, langOf(lang) ? lang : "en");
   return { agents };
 }
 
@@ -197,7 +206,7 @@ export const handler = handle(async (req) => {
   const user = await requireUser(req);
   await quota(user.id, "hunt", 20, 50);
   const body = await req.json().catch(() => ({})) as { text?: string; size?: string; categories?: string[]; images?: Img[]; liked?: string[]; passed?: string[];
-    vibes?: unknown; budget?: unknown; brands?: unknown; interests?: unknown; sizes?: unknown; department?: unknown };
+    vibes?: unknown; budget?: unknown; brands?: unknown; interests?: unknown; sizes?: unknown; department?: unknown; lang?: unknown };
   const text = (body.text ?? "").trim().slice(0, 1200);
   if (Array.isArray(body.categories)) {
     const images = (Array.isArray(body.images) ? body.images : [])
@@ -205,7 +214,8 @@ export const handler = handle(async (req) => {
     const titles = (v: unknown) => Array.isArray(v)
       ? v.filter((x) => typeof x === "string" && x.trim()).map((x) => (x as string).trim().slice(0, 80)).slice(0, 12) : [];
     return json(await onboard(user.id, body.categories, text, body.size, images, titles(body.liked), titles(body.passed),
-      cleanVibes(body.vibes), cleanBudget(body.budget), cleanVibes(body.brands, false), cleanInterests(body.interests), cleanSizes(body.sizes), cleanDepartment(body.department)));
+      cleanVibes(body.vibes), cleanBudget(body.budget), cleanVibes(body.brands, false), cleanInterests(body.interests), cleanSizes(body.sizes), cleanDepartment(body.department),
+      typeof body.lang === "string" ? body.lang.slice(0, 2).toLowerCase() : "en"));
   }
   if (text.length < 2) throw new HttpError(400, "Tell me what to hunt for");
 
@@ -225,7 +235,8 @@ Turn it into a brief for a personal shopping agent. Reply with only JSON:
  "size": their size if they said one, else "",
  "voice": "hype" for streetwear and sneakers, "straight" for cars and big purchases, else "chill",
  "intro": one friendly sentence in the agent's voice saying what it will hunt, e.g. "I'm on it: oud-heavy niche fragrances in the Frederic Malle lane."}
-Use only what they said or clearly implied. Keep every list item short (1-4 words).` }],
+Use only what they said or clearly implied. Keep every list item short (1-4 words).${langOf(body.lang) ? `
+Write "name" and "intro" in ${langOf(body.lang)}. Keep keywords, makers, traits and creators in English: they're search terms.` : ""}` }],
   });
   const plan = cleanPlan(parseJSON(textOf(res.content)), text, body.size);
 

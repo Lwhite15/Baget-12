@@ -348,6 +348,13 @@ select t.ok(public.wrong_dept('Nike Dunk Low Men''s', 'women', 'sneakers') and n
         and public.wrong_dept('Air Jordan 1 WMNS', 'men', 'sneakers') and not public.wrong_dept('Le Labo Santal 33 unisex', 'men', 'fragrance')
         and not public.wrong_dept('Men''s Rolex', 'women', 'watches') and not public.wrong_dept('Men''s tee', null, 'apparel'),
   'women see women''s and unisex, men see men''s and unisex');
+reset role;
+update public.profiles set settings = coalesce(settings, '{}') || '{"department": "women"}' where id = 'aaaaaaaa-0000-0000-0000-000000000001';
+update public.profiles set settings = '{"pushLevel": "all", "lang": "ko"}' where id = 'aaaaaaaa-0000-0000-0000-000000000001';
+select t.ok((select settings ->> 'department' = 'women' and settings ->> 'lang' = 'ko' from public.profiles where id = 'aaaaaaaa-0000-0000-0000-000000000001'),
+  'the app saving its settings keeps who you shop for');
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
 select t.err($$select * from public.buy_clicks$$, 'buy clicks are server-only');
 insert into public.feed_reactions (listing_id, action) select id, 'dismiss' from public.listings where fingerprint in ('fy|lamp', 'fy|kayano');
 select t.ok(not exists (select 1 from public.for_you(10) x where x -> 'listing' ->> 'title' = 'Gel-Kayano 14 Silver'), '"not for me" removes it');

@@ -1,6 +1,6 @@
 // Talk to an agent. Claude plays the agent, can search the live web, and acts through tools that run here
 // on the server against the user's own data. It never buys anything: the most it does is line up checkout.
-import { type Agent, intel, match, missionLabel, norm, words } from "../_shared/match.ts";
+import { type Agent, intel, match, missionLabel, norm, words, langOf } from "../_shared/match.ts";
 import { type Block, type ClaudeMessage, HttpError, claude, db, enc, handle, isScheduler, json, quota, requireUser, textOf } from "../_shared/platform.ts";
 import { cleanListings } from "../sweep/handler.ts";
 import { addImages } from "../_shared/images.ts";
@@ -48,8 +48,8 @@ const TOOLS = [
   },
 ];
 
-function rules(a: Agent, profile: unknown): string {
-  return `You are ${a.name}, a personal shopping agent in the Baget app. Act as the user's best friend who knows ${missionLabel(a)} inside out: warm, candid, specific. Your job is to learn exactly what they like and help them get it.
+function rules(a: Agent, profile: unknown, lang: string | null = null): string {
+  return `${lang ? `Always reply in ${lang} (their app is in ${lang}), unless they write to you in another language. Keep product, brand and store names as they are.\n\n` : ""}You are ${a.name}, a personal shopping agent in the Baget app. Act as the user's best friend who knows ${missionLabel(a)} inside out: warm, candid, specific. Your job is to learn exactly what they like and help them get it.
 
 What you know about them (JSON):
 ${JSON.stringify(profile)}
@@ -182,7 +182,7 @@ export const handler = handle(async (req) => {
   // The instructions must stay identical for the whole reply: Claude's thinking blocks are bound to the exact
   // conversation prefix, so rebuilding them after update_profile made the next step fail ("bound to a different
   // conversation"). Profile changes reach the agent through the update_profile tool result instead.
-  const system = rules(a, profile());
+  const system = rules(a, profile(), langOf((body as { lang?: unknown }).lang));
   const ask = async (): Promise<Awaited<ReturnType<typeof claude>>> => {
     try {
       return await claude({ max_tokens: 8000, system, messages, tools: TOOLS, cache: true, purpose: "chat" });

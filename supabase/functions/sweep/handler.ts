@@ -2,7 +2,7 @@
 //  * Scheduled (every 15 minutes by pg_cron, with the shared secret): agents whose owner's interval has passed.
 //  * Manual (the app, with the user's session): that user's agents, at most once per agent every 10 minutes.
 // Cost guards: agents per run, searches per agent, and sweeps per user per day are all capped (see env below).
-import { type Agent, CATEGORIES, GROUP_OF, type Listing, firstName, friendLine, localHour, heldForMorning, kindFor, match, deptOf, missionLabel, norm } from "../_shared/match.ts";
+import { type Agent, CATEGORIES, GROUP_OF, type Listing, firstName, friendLine, localHour, heldForMorning, kindFor, match, deptOf, langOf, missionLabel, norm } from "../_shared/match.ts";
 import { type Block, type ClaudeMessage, HttpError, MODEL, batchResults, batchStatus, claude, db, env, handle, isScheduler, json, logBatchUsage, parseJSON, requireUser, submitBatch, textOf } from "../_shared/platform.ts";
 import { addImages, linkIsDead, pageProduct, smaller, traceImage } from "../_shared/images.ts";
 import { setupDemo, setupShots } from "./demo.ts";
@@ -122,6 +122,12 @@ export function sourcesFor(category: string | null | undefined, agentId: string,
   return Array.from({ length: Math.min(n, list.length) }, (_, i) => list[(start + i) % list.length]);
 }
 
+/** Their app is in Spanish, French or Korean: what they read ("pitch", "text") is written in it. */
+function langLine(a: Agent): string {
+  const lang = langOf((a as Agent & { settings?: Record<string, unknown> }).settings?.lang);
+  return lang ? `Write each "pitch" and "text" in ${lang} (keep product, brand and store names as they are). Keep "about" in English.` : "";
+}
+
 /** Shops the women's or men's department: say so plainly, so every pick is in their department (or unisex). */
 function deptLine(a: Agent): string {
   const d = deptOf((a as Agent & { settings?: Record<string, unknown> }).settings);
@@ -141,6 +147,7 @@ export function sweepPrompt(a: Agent, today: string, r: Reactions = { liked: [],
     a.creators.length ? `Creators they follow: ${a.creators.join(", ")}` : "",
     a.size ? `Their size: ${a.size}` : "",
     deptLine(a),
+    langLine(a),
     a.price_note > 0 ? `Budget: they usually spend up to $${Math.round(a.price_note)} on one item. Mostly stay under it; a standout deal slightly over is fine.` : "",
     Object.entries(a.learned ?? {}).filter(([, w]) => w < 0).length
       ? `Not into: ${Object.entries(a.learned).filter(([, w]) => w < 0).map(([k]) => k).join(", ")}` : "",

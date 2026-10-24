@@ -138,6 +138,13 @@ export function covers(a: Agent, l: Listing): boolean {
   if (a.mission_category) return a.mission_category === l.category;
   return missionCovers(a.mission_custom ?? "", haystack(l));
 }
+/** The app's language, for what scouts write to them. English is the default (null). */
+export const LANG_NAMES: Record<string, string> = { es: "Spanish", fr: "French", ko: "Korean" };
+export function langOf(v: unknown): string | null {
+  const code = typeof v === "string" ? v.slice(0, 2).toLowerCase() : "";
+  return LANG_NAMES[code] ?? null;
+}
+
 /** Who they shop for, from setup (their Men's/Women's pick, or what they said and showed). */
 export type Dept = "women" | "men" | null;
 export function deptOf(settings: Record<string, unknown> | null | undefined): Dept {
