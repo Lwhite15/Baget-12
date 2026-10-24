@@ -120,12 +120,20 @@ export function cleanSizes(v: unknown): Record<string, string> {
   return out;
 }
 
+export const cleanDepartment = (v: unknown) => v === "women" || v === "men" ? v : null;
+
+async function saveDepartment(userId: string, dept: "women" | "men") {
+  const [p] = await db.select<{ settings: Record<string, unknown> | null }>("profiles", `select=settings&id=eq.${userId}`);
+  await db.update("profiles", `id=eq.${userId}`, { settings: { ...(p?.settings ?? {}), department: dept } });
+}
+
 /** Budget picked in setup: the most they'd usually spend on one item, or null for no limit. */
 export const cleanBudget = (v: unknown) => typeof v === "number" && v >= 10 && v <= 100000 ? Math.round(v) : null;
 
 async function onboard(userId: string, categories: string[], text: string, size: string | undefined, images: Img[],
                        liked: string[] = [], passed: string[] = [], vibes: Record<string, string[]> = {}, budget: number | null = null,
-                       brands: Record<string, string[]> = {}, interests: string[] = [], sizes: Record<string, string> = {}) {
+                       brands: Record<string, string[]> = {}, interests: string[] = [], sizes: Record<string, string> = {},
+                       department: "women" | "men" | null = null) {
   const cats = [...new Set(categories.filter((c) => (CATEGORIES as string[]).includes(c) && c !== "other"))].slice(0, 6);
   if (!cats.length && !interests.length && !text) throw new HttpError(400, "Pick at least one thing you're into");
   const picked = [...cats, ...interests];
@@ -143,10 +151,18 @@ ${Object.keys(brands).length ? `Brands they picked: ${Object.entries(brands).map
 ${budget ? `They usually spend up to $${budget} on one item.` : ""}
 Make one agent brief per picked interest${text && !picked.length ? " (or one for what they said)" : ""}${text && picked.length ? ", plus one more if what they said is a separate hunt" : ""}.
 For an interest that isn't one of the categories, set category null and write it as "custom" (e.g. "Tech & gadgets" → custom "tech and gadgets").
-Reply with only JSON: {"agents": [${BRIEF_FIELDS}, ...]}
+${department ? `They shop the ${department === "women" ? "women's" : "men's"} department: make every brief for that department (sizes, cuts, styles).` : ""}
+Also say who they shop for: "department" is "women" or "men" only when their words, photos, picks or sizes clearly show it
+(e.g. women's sizes, "my wife's style" means they shop women's), else null.
+Reply with only JSON: {"department": "women" | "men" | null, "agents": [${BRIEF_FIELDS}, ...]}
 Use only what they said, picked or showed. Keep every list item short (1-4 words).` });
   const res = await claude({ purpose: "onboarding", max_tokens: 6000, messages: [{ role: "user", content }] });
-  const raw = (parseJSON<{ agents?: unknown[] }>(textOf(res.content))?.agents ?? []).slice(0, 7);
+  const parsed = parseJSON<{ agents?: unknown[]; department?: unknown }>(textOf(res.content));
+  const raw = (parsed?.agents ?? []).slice(0, 7);
+  // Who they shop for: what they picked in setup, else what Claude read from their words and photos. Every scout and
+  // For You stick to that department from the first hunt on.
+  const dept = department ?? (parsed?.department === "women" || parsed?.department === "men" ? parsed.department : null);
+  if (dept) await saveDepartment(userId, dept).catch((e) => console.error("department", e));
   const plans = raw.map((r) => cleanPlan(r, text || "Anything I'd love", size));
   // Make sure every picked category got an agent, even if Claude skipped one.
   for (const c of cats) if (!plans.some((p) => p.category === c)) plans.push(cleanPlan({ category: c, name: `${c[0].toUpperCase()}${c.slice(1)} Scout` }, c, size));
@@ -181,7 +197,7 @@ export const handler = handle(async (req) => {
   const user = await requireUser(req);
   await quota(user.id, "hunt", 20, 50);
   const body = await req.json().catch(() => ({})) as { text?: string; size?: string; categories?: string[]; images?: Img[]; liked?: string[]; passed?: string[];
-    vibes?: unknown; budget?: unknown; brands?: unknown; interests?: unknown; sizes?: unknown };
+    vibes?: unknown; budget?: unknown; brands?: unknown; interests?: unknown; sizes?: unknown; department?: unknown };
   const text = (body.text ?? "").trim().slice(0, 1200);
   if (Array.isArray(body.categories)) {
     const images = (Array.isArray(body.images) ? body.images : [])
@@ -189,7 +205,7 @@ export const handler = handle(async (req) => {
     const titles = (v: unknown) => Array.isArray(v)
       ? v.filter((x) => typeof x === "string" && x.trim()).map((x) => (x as string).trim().slice(0, 80)).slice(0, 12) : [];
     return json(await onboard(user.id, body.categories, text, body.size, images, titles(body.liked), titles(body.passed),
-      cleanVibes(body.vibes), cleanBudget(body.budget), cleanVibes(body.brands, false), cleanInterests(body.interests), cleanSizes(body.sizes)));
+      cleanVibes(body.vibes), cleanBudget(body.budget), cleanVibes(body.brands, false), cleanInterests(body.interests), cleanSizes(body.sizes), cleanDepartment(body.department)));
   }
   if (text.length < 2) throw new HttpError(400, "Tell me what to hunt for");
 

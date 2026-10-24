@@ -2,7 +2,7 @@
 //  * Scheduled (every 15 minutes by pg_cron, with the shared secret): agents whose owner's interval has passed.
 //  * Manual (the app, with the user's session): that user's agents, at most once per agent every 10 minutes.
 // Cost guards: agents per run, searches per agent, and sweeps per user per day are all capped (see env below).
-import { type Agent, CATEGORIES, GROUP_OF, type Listing, firstName, friendLine, localHour, heldForMorning, kindFor, match, missionLabel, norm } from "../_shared/match.ts";
+import { type Agent, CATEGORIES, GROUP_OF, type Listing, firstName, friendLine, localHour, heldForMorning, kindFor, match, deptOf, missionLabel, norm } from "../_shared/match.ts";
 import { type Block, type ClaudeMessage, HttpError, MODEL, batchResults, batchStatus, claude, db, env, handle, isScheduler, json, logBatchUsage, parseJSON, requireUser, submitBatch, textOf } from "../_shared/platform.ts";
 import { addImages, linkIsDead, pageProduct, smaller, traceImage } from "../_shared/images.ts";
 import { setupDemo, setupShots } from "./demo.ts";
@@ -122,6 +122,15 @@ export function sourcesFor(category: string | null | undefined, agentId: string,
   return Array.from({ length: Math.min(n, list.length) }, (_, i) => list[(start + i) % list.length]);
 }
 
+/** Shops the women's or men's department: say so plainly, so every pick is in their department (or unisex). */
+function deptLine(a: Agent): string {
+  const d = deptOf((a as Agent & { settings?: Record<string, unknown> }).settings);
+  if (!d || !["sneakers", "apparel", "accessories", "fragrance"].includes(a.mission_category ?? "")) return "";
+  return d === "women"
+    ? "They shop women's: only women's or unisex products, in women's sizing. Never men's-only items."
+    : "They shop men's: only men's or unisex products, in men's sizing. Never women's-only items.";
+}
+
 export function sweepPrompt(a: Agent, today: string, r: Reactions = { liked: [], bought: [], passed: [] }, angles: string[] = [ANGLES[0], ANGLES[4]], leads: Lead[] = [], name = "", sources: string[] = [], depth = depthFor(true)): string {
   const leaning = Object.entries(a.learned ?? {}).filter(([, w]) => w >= 2).sort((x, y) => y[1] - x[1]).map(([k]) => k).slice(0, 10);
   const parts = [
@@ -131,6 +140,7 @@ export function sweepPrompt(a: Agent, today: string, r: Reactions = { liked: [],
     a.makers.length ? `Brands and makers they like: ${a.makers.join(", ")}` : "",
     a.creators.length ? `Creators they follow: ${a.creators.join(", ")}` : "",
     a.size ? `Their size: ${a.size}` : "",
+    deptLine(a),
     a.price_note > 0 ? `Budget: they usually spend up to $${Math.round(a.price_note)} on one item. Mostly stay under it; a standout deal slightly over is fine.` : "",
     Object.entries(a.learned ?? {}).filter(([, w]) => w < 0).length
       ? `Not into: ${Object.entries(a.learned).filter(([, w]) => w < 0).map(([k]) => k).join(", ")}` : "",
@@ -421,7 +431,7 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
     for (const l of listings) {
       const s = ids.get(l.fingerprint);
       if (!s || s.already_found) continue;
-      const m = match(a, l, photoTags, { own: true });
+      const m = match(a, l, photoTags, { own: true, dept: deptOf(a.settings) });
       const info = l.tags.includes("intel") || l.tags.includes("search");
       // Discovery picks and intel are the agent's own initiative, so they don't need to hit the stated keywords as hard.
       if (!m || (!info && m.notInSize) || m.score < (l.discovery || info ? 35 : 45)) continue;
@@ -724,7 +734,7 @@ export async function pulseAgent(a: Candidate, now = new Date(), fetchFn: typeof
       if (typical && p.price < typical * 0.35) continue;
     }
     // Same bar as a hunt's finds: it has to fit this scout's brief.
-    const m = match(a, l as unknown as Listing, []);
+    const m = match(a, l as unknown as Listing, [], { dept: deptOf(a.settings) });
     if (!m || m.notInSize || m.score < 45) continue;
     keep.push(l);
   }

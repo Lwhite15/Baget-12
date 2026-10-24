@@ -4,7 +4,7 @@
 //  * storeFeeds: Shopify stores publish their whole catalog (/products.json). Between hunts Baget reads them directly:
 //    exact names, prices, sizes and stock, no AI and no search. Matching products feed For You (nothing is texted).
 //  * Sites that aren't stores (news, droplists, encyclopedias) never become finds.
-import { type Agent, type Listing, match, missionLabel, norm } from "./match.ts";
+import { type Agent, type Listing, match, deptOf, missionLabel, norm } from "./match.ts";
 import { db } from "./platform.ts";
 import { type WebHit, serperSearch } from "./search.ts";
 import { queriesFor } from "./sources.ts";
@@ -178,7 +178,7 @@ export async function storeFeeds(limit: number, now = new Date(), fetchFn: Fetch
     // Each scout keeps its 5 strongest matches from this store.
     const byUser = new Map<string, typeof listings>();
     for (const a of scouts) {
-      const scored = listings.map((l) => ({ l, m: match(a, l as unknown as Listing, []) }))
+      const scored = listings.map((l) => ({ l, m: match(a, l as unknown as Listing, [], { dept: deptOf((a as Scout & { settings?: Record<string, unknown> }).settings) }) }))
         .filter((x) => x.m && !x.m.notInSize && x.m.score >= 50)
         .sort((x, y) => y.m!.score - x.m!.score).slice(0, 5).map((x) => x.l);
       if (!scored.length) continue;

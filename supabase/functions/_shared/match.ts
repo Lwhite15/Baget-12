@@ -138,6 +138,24 @@ export function covers(a: Agent, l: Listing): boolean {
   if (a.mission_category) return a.mission_category === l.category;
   return missionCovers(a.mission_custom ?? "", haystack(l));
 }
+/** Who they shop for, from setup (their Men's/Women's pick, or what they said and showed). */
+export type Dept = "women" | "men" | null;
+export function deptOf(settings: Record<string, unknown> | null | undefined): Dept {
+  const d = settings?.department;
+  return d === "women" || d === "men" ? d : null;
+}
+/** Categories where a product is made for one department. */
+const GENDERED = new Set(["sneakers", "apparel", "accessories", "fragrance"]);
+/** A product clearly for the other department ("Men's", "WMNS", "for women"…); unisex is fine for everyone. */
+export function wrongDept(text: string, dept: Dept, category?: string | null): boolean {
+  if (!dept || (category && !GENDERED.has(category))) return false;
+  const t = norm(text);
+  if (/\bunisex\b/.test(t)) return false;
+  return dept === "women"
+    ? /\b(men'?s|mens|for men|for him|homme|man's)\b/.test(t)
+    : /\b(women'?s|womens|wmns|for women|for her|ladies|lady's|femme|girls'?)\b/.test(t);
+}
+
 /** The most they'd spend on one item: the budget picked in setup, else "under $80" / "under $6k" in their own words. */
 export function budgetOf(a: Agent): number | null {
   if (a.price_note > 0) return a.price_note;
@@ -156,8 +174,9 @@ export function intel(a: Agent): number {
  *  mission ("outdoor gear") then counts as covered: the scout searched for exactly that, and demanding the mission's own
  *  words in every product title left whole scouts with nothing. Without a size yet, sneaker and clothing scouts still
  *  find things (fit unknown) instead of going silent; the app keeps asking for the size. */
-export function match(a: Agent, l: Listing, photoTags: string[] = [], opts: { own?: boolean } = {}): Match | null {
+export function match(a: Agent, l: Listing, photoTags: string[] = [], opts: { own?: boolean; dept?: Dept } = {}): Match | null {
   if (!(opts.own && !a.mission_category) && !covers(a, l)) return null;
+  if (wrongDept(`${l.title} ${l.traits.join(" ")}`, opts.dept ?? null, a.mission_category)) return null;
   const fit = sizeFit(a, l);
   if (fit === false) return { score: 0, why: [`Not in stock in your size (${a.size})`], notInSize: true };
   // Their budget is a real limit: well over it is out; a little over (a standout deal) is allowed but ranks lower.

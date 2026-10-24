@@ -344,6 +344,10 @@ select t.ok(not exists (select 1 from public.taste_quiz(array['sneakers'], 10) x
 select t.ok(not exists (select 1 from public.taste_quiz(array['sneakers'], 10) x where x ->> 'image_url' is null), 'only products with photos');
 select t.ok((select public.brand_key(x ->> 'brand') from public.taste_quiz(array['sneakers'], 10, array['Asics']) x limit 1) = 'asics',
   'the taste check leads with a brand you picked');
+select t.ok(public.wrong_dept('Nike Dunk Low Men''s', 'women', 'sneakers') and not public.wrong_dept('Nike Dunk Low Women''s', 'women', 'sneakers')
+        and public.wrong_dept('Air Jordan 1 WMNS', 'men', 'sneakers') and not public.wrong_dept('Le Labo Santal 33 unisex', 'men', 'fragrance')
+        and not public.wrong_dept('Men''s Rolex', 'women', 'watches') and not public.wrong_dept('Men''s tee', null, 'apparel'),
+  'women see women''s and unisex, men see men''s and unisex');
 select t.err($$select * from public.buy_clicks$$, 'buy clicks are server-only');
 insert into public.feed_reactions (listing_id, action) select id, 'dismiss' from public.listings where fingerprint in ('fy|lamp', 'fy|kayano');
 select t.ok(not exists (select 1 from public.for_you(10) x where x -> 'listing' ->> 'title' = 'Gel-Kayano 14 Silver'), '"not for me" removes it');

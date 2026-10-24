@@ -1619,3 +1619,29 @@ await test("a scout whose last 3 hunts found nothing rests for 3 days, then trie
   assert.equal(await sweep.restingAfterNothing("a1", now), false, "new scouts get their first hunts");
 });
 
+await test("women's and men's departments", async () => {
+  assert.equal(M.wrongDept("Nike Dunk Low Men's", "women", "sneakers"), true);
+  assert.equal(M.wrongDept("Nike Dunk Low Women's", "women", "sneakers"), false);
+  assert.equal(M.wrongDept("Air Jordan 1 Low WMNS", "men", "sneakers"), true);
+  assert.equal(M.wrongDept("Santal 33 unisex", "men", "fragrance"), false);
+  assert.equal(M.wrongDept("Men's Submariner", "women", "watches"), false, "watches aren't split by department");
+  const shopper = { ...jumpman, size: "US W 8" };
+  assert.equal(M.match(shopper, { ...ts, title: "Air Jordan 1 Low Men's" }, [], { dept: "women" }), null);
+  assert.ok(M.match(shopper, { ...ts, title: "Air Jordan 1 Low Women's" }, [], { dept: "women" }));
+  const saved: any[] = [];
+  reset([
+    [/auth\/v1\/user/, () => ok({ id: jumpman.user_id })],
+    [/api\.anthropic\.com/, () => ok({ stop_reason: "end_turn", content: [{ type: "text", text: JSON.stringify({ department: "women", agents: [{ name: "Sole Scout", category: "sneakers" }] }) }] })],
+    [/profiles\?select=plan/, () => ok([{ plan: "free", pro_until: null }])],
+    [/profiles\?select=settings/, () => ok([{ settings: { pushLevel: "best" } }])],
+    [/PATCH .*rest\/v1\/profiles/, (_u, _i, b) => { saved.push(b); return ok([]); }],
+    [/GET .*rest\/v1\/agents/, () => ok([])],
+    [/rest\/v1\/agents/, () => ok([{ id: "a1" }])],
+    [/rest\/v1\/profiles/, () => ok([{ display_name: "" }])],
+    [/rest\/v1\/notes/, () => new Response(null, { status: 201 })],
+  ]);
+  const res = await hunt.handler(post("hunt", { categories: ["sneakers"], text: "my go-to is women's 8 in Dunks" }, { Authorization: "Bearer user-jwt" }));
+  assert.equal(res.status, 200);
+  assert.deepEqual(saved[0]?.settings, { pushLevel: "best", department: "women" }, "setup remembers she shops women's");
+});
+
