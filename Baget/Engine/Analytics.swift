@@ -35,6 +35,7 @@ enum AnalyticsEvent: String {
     case findPassed = "find_passed"
     case findLiked = "find_liked"
     case reminderSet = "reminder_set"
+    case howToDone = "how_to_done"
     case findUnliked = "find_unliked"
     // notifications
     case notificationSent = "notification_sent"

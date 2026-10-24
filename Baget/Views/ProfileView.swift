@@ -37,6 +37,7 @@ struct ProfileView: View {
     @State private var editing: Avatar.Style = .initials
     @State private var pick: PhotosPickerItem?
     @State private var loadingPhoto = false
+    @State private var showHowTo = false
     @State private var photoFailed = false
     @State private var customEmoji = ""
     @State private var name = ""
@@ -267,6 +268,10 @@ struct ProfileView: View {
             Button { router.sheet = .taste } label: {
                 Label("What Baget knows about you", systemImage: "brain.head.profile")
             }
+            Button { showHowTo = true } label: {
+                Label("How Baget works", systemImage: "questionmark.circle")
+            }
+            .fullScreenCover(isPresented: $showHowTo) { HowToView() }
             NavigationLink {
                 AlertSettingsForm()
                     .background(LitBackground())

@@ -156,6 +156,12 @@ final class QAWalkthrough: XCTestCase {
         snap("setup-5-end", wait: 1)
         if !tap("Not now, see my finds", timeout: 3) && !tap("Not now, show me Today", timeout: 3) { _ = tap("See my finds", timeout: 2) || tap("Show me Today", timeout: 2) }
 
+        // How Baget works, right after setup.
+        if app.staticTexts["How Baget works"].waitForExistence(timeout: 6) {
+            for i in 1...5 { snap("howto-\(i)", wait: 1.2); if i < 5 { tap("Next", timeout: 2) } }
+            tap("Start exploring", timeout: 3)
+        } else { note("MISSING how-to after setup") }
+
         // Today.
         snap("today", wait: 4)
         app.swipeUp(); snap("today-scroll-1", wait: 2)

@@ -5,6 +5,8 @@ struct RootView: View {
     @Environment(Router.self) private var router
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("baget.onboarded") private var onboarded = false
+    @AppStorage("baget.howToSeen") private var howToSeen = false
+    @State private var showHowTo = false
 
     var body: some View {
         @Bindable var router = router
@@ -89,6 +91,17 @@ struct RootView: View {
         .fullScreenCover(isPresented: Binding(get: { !store.needsWelcome && store.isCloud && store.state.agents.isEmpty && !onboarded && store.state.lastSynced != nil },
                                               set: { if !$0 { onboarded = true } })) {
             OnboardingView().environment(store)
+        }
+        // Right after setup, before Today: a short "How Baget works", once.
+        .onChange(of: onboarded) { _, done in
+            guard done, !howToSeen, store.isCloud else { return }
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(0.7))
+                showHowTo = true
+            }
+        }
+        .fullScreenCover(isPresented: $showHowTo, onDismiss: { howToSeen = true }) {
+            HowToView()
         }
         .onReceive(NotificationCenter.default.publisher(for: FeedbackCapture.shake)) { _ in
             // Shake anywhere: send feedback with a screenshot of what was on screen.
