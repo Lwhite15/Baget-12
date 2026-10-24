@@ -103,6 +103,12 @@ struct RootView: View {
         .fullScreenCover(isPresented: $showHowTo, onDismiss: { howToSeen = true }) {
             HowToView()
         }
+        #if DEBUG
+        .sheet(isPresented: .constant(FriendPreview.enabled && !store.needsWelcome)) {
+            FriendProfileView(friend: FriendPreview.friend, preview: FriendPreview.profile).environment(store).environment(router)
+                .presentationDetents([.large]).presentationBackground(Theme.panel).preferredColorScheme(.dark)
+        }
+        #endif
         .onReceive(NotificationCenter.default.publisher(for: FeedbackCapture.shake)) { _ in
             // Shake anywhere: send feedback with a screenshot of what was on screen.
             guard store.isCloud, router.sheet == nil else { return }

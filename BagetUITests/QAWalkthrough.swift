@@ -233,5 +233,16 @@ final class QAWalkthrough: XCTestCase {
         let you = app.navigationBars.buttons.firstMatch
         if you.waitForExistence(timeout: 3) { you.tap(); snap("\(lang)-you", wait: 2); app.swipeUp(); snap("\(lang)-you-scrolled", wait: 1.5) }
     }
-}
 
+    /// Friend profile and Taste Card with sample data (QA_FRIENDS=1).
+    func testFriendPreview() throws {
+        guard ProcessInfo.processInfo.environment["QA_FRIENDS"] == "1" else { throw XCTSkip("no QA_FRIENDS") }
+        app.launchArguments += ["-BagetFriendPreview"]
+        app.launch()
+        if let look = app.buttons.allElementsBoundByIndex.filter({ $0.isHittable }).last { look.tap() }   // sample tour
+        Thread.sleep(forTimeInterval: 3)
+        snap("friend-1", wait: 2)
+        for i in 2...6 { app.swipeUp(); snap("friend-\(i)", wait: 1.2) }
+        if tap("Swap Taste Cards", timeout: 3) { snap("card-theirs", wait: 2); tap("See mine", timeout: 2); snap("card-mine", wait: 1.5) }
+    }
+}

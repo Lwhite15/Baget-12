@@ -93,6 +93,8 @@ struct FriendProfileView: View {
     @Environment(Router.self) private var router
     @Environment(\.dismiss) private var dismiss
     let friend: Friend
+    /// Debug screenshots only: show this instead of loading.
+    var preview: FriendProfile? = nil
     @State private var profile: FriendProfile?
     @State private var loading = true
     @State private var confirmRemove = false
@@ -148,6 +150,7 @@ struct FriendProfileView: View {
     }
 
     private func load() async {
+        if let preview { profile = preview; loading = false; return }
         if friend.isSample { loading = false; return }
         profile = await store.friendProfile(friend.id)
         loading = false
@@ -661,3 +664,38 @@ struct BirthdayRow: View {
         Task { await store.setBirthday(value) }
     }
 }
+
+#if DEBUG
+/// Launched with -BagetFriendPreview (QA walkthrough): the friend profile and Taste Card with sample data.
+enum FriendPreview {
+    static var enabled: Bool { ProcessInfo.processInfo.arguments.contains("-BagetFriendPreview") }
+    static let friend = Friend(id: "preview", name: "Hetty", handle: "@hetty", hunts: [.fragrance, .cars], likes: [], isSample: false, replies: [])
+    static func listing(_ id: String, _ title: String, _ brand: String, _ price: Double, _ source: String) -> ListingRow {
+        ListingRow(id: id, title: title, brand: brand, category: "fragrance", sku: "", price: price, market: nil, source: source, url: "https://example.com/\(id)",
+                   imageUrl: nil, dropAt: nil, soldOut: false, creator: nil, traits: [], tags: [], sizesInStock: nil, firstSeenAt: nil, offers: nil,
+                   lowPrice: nil, lowStore: nil, about: nil, brandAbout: nil)
+    }
+    static var card: TasteCard { TasteCard(archetype: "The Fresh Minimalist", signature: ["Le Labo", "Frédéric Malle"], notes: ["vetiver", "lime", "sandalwood"],
+                                           hunts: ["Fragrance", "Cars"], grail: "Vetiver Extraordinaire", palette: ["#d9e8c4", "#9fb88a", "#e9dcc3", "#6f5a43", "#f4f1ea"], number: 42) }
+    static var profile: FriendProfile {
+        var p = FriendProfile(friendId: "preview", handle: "hetty", name: "Hetty", since: Calendar.current.date(byAdding: .day, value: -8, to: .now), shares: true, theyShare: true)
+        p.match = 78
+        p.dna = [.init(label: "Woody", who: "both", strength: 0.9), .init(label: "Niche", who: "both", strength: 0.75),
+                 .init(label: "Citrus", who: "them", strength: 0.82), .init(label: "Le Labo", who: "them", strength: 0.7), .init(label: "Oud", who: "you", strength: 0.9)]
+        p.bothLove = ["Extrait", "Le Labo", "Sandalwood", "Vetiver", "Long lasting"]
+        p.theirWorld = ["Vetiver Extraordinaire", "Limette 37", "Frédéric Malle", "BMW X5 PHEV"]
+        p.hunts = ["fragrance", "cars"]
+        p.grails = [.init(listing: listing("g1", "Vetiver Extraordinaire", "Frédéric Malle", 310, "Twisted Lily"), tag: "watching"),
+                    .init(listing: listing("g2", "Limette 37", "Le Labo", 335, "Le Labo"), tag: "liked")]
+        p.twins = [listing("t1", "Cologne Indélébile", "Frédéric Malle", 285, "Frédéric Malle")]
+        p.gifts = [listing("x1", "Santal 26 Candle", "Le Labo", 92, "Le Labo"), listing("x2", "Vetiver Discovery Set", "Maison Crivelli", 48, "Luckyscent"),
+                   listing("x3", "Hinoki Body Wash", "Aesop", 45, "Aesop")]
+        p.birthday = "11-12"
+        p.card = card
+        p.myCard = TasteCard(archetype: "The Oud Collector", signature: ["Amouage", "Roja"], notes: ["oud", "amber", "leather"], hunts: ["Fragrance"],
+                             grail: "Amouage Interlude Man", palette: ["#3a2418", "#8c5a2b", "#c9a46a", "#1d1a17", "#e8dcc4"], number: 1)
+        return p
+    }
+}
+#endif
+
