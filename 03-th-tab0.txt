@@ -1,0 +1,327 @@
+Optional(Attributes: Application, 0x107049180, pid: 10804, label: 'Baget'
+Element subtree:
+ →Application, 0x107049180, pid: 10804, label: 'Baget'
+    Window (Main), 0x1070492c0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x107049400, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x107049540, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x107049680, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1070497c0, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x107049900, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x107049a40, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x107049b80, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x107049cc0, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x107049e00, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x107049f40, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x10704ad00, {{0.0, 0.0}, {402.0, 874.0}}
+                            NavigationBar, 0x10704abc0, {{0.0, 62.0}, {402.0, 54.0}}, identifier: '_TtGC7SwiftUI32NavigationStackHosting'
+                              Other, 0x10704aa80, {{20.0, 66.0}, {42.0, 36.0}}, label: 'คุณ: ไอคอน การตั้งค่า และบัญชี'
+                                Other, 0x10704a080, {{20.0, 66.0}, {42.0, 36.0}}
+                                  Button, 0x10704a800, {{20.0, 66.0}, {42.0, 36.0}}, label: 'คุณ: ไอคอน การตั้งค่า และบัญชี'
+                                    StaticText, 0x10704a940, {{20.0, 66.0}, {42.0, 36.0}}, label: 'B'
+                              Other, 0x10704a300, {{151.3, 70.7}, {99.0, 26.7}}
+                                Other, 0x10704a440, {{151.3, 70.7}, {99.0, 26.7}}
+                                  StaticText, 0x10704a580, {{151.3, 71.0}, {26.0, 26.0}}
+                                  StaticText, 0x11516c000, {{185.3, 70.8}, {59.0, 26.3}}, label: 'Baget'
+                                  StaticText, 0x11516c140, {{244.3, 70.8}, {6.0, 26.3}}, label: '.'
+                              Other, 0x11516c280, {{346.0, 66.0}, {36.0, 36.0}}, identifier: 'bell.fill', label: 'การแจ้งเตือน ยังไม่อ่าน 11 รายการ'
+                                Other, 0x11516c3c0, {{346.0, 66.0}, {36.0, 36.0}}
+                                  Button, 0x11516c500, {{349.3, 66.0}, {29.3, 36.0}}, label: 'การแจ้งเตือน ยังไม่อ่าน 11 รายการ'
+                                    Image, 0x11516c640, {{349.3, 66.0}, {29.3, 36.0}}, identifier: 'bell.fill', label: 'การแจ้งเตือน'
+                                    StaticText, 0x11516c780, {{370.0, 65.7}, {12.7, 11.0}}, label: '9+'
+                            Other, 0x11516c8c0, {{0.0, 0.0}, {402.0, 874.0}}
+                              Other, 0x11516ca00, {{0.0, 0.0}, {402.0, 874.0}}
+                                Other, 0x11516cb40, {{0.0, 0.0}, {402.0, 874.0}}
+                                  Other, 0x11516cc80, {{0.0, 0.0}, {402.0, 874.0}}
+                                    ScrollView, 0x11516cdc0, {{0.0, 0.0}, {402.3, 874.0}}
+                                      Other, 0x11516cf00, {{0.0, 0.0}, {402.3, 874.0}}
+                                        Other, 0x11516d040, {{0.0, 0.0}, {402.3, 170.8}}
+                                        Other, 0x11516d180, {{0.0, 726.2}, {402.3, 147.8}}
+                                      Other, 0x11516d2c0, {{0.0, 0.0}, {402.3, 874.0}}
+                                        Other, 0x11516d400, {{0.0, 726.2}, {402.3, 147.8}}
+                                          Image, 0x11516d540, {{-120.0, 731.0}, {642.3, 286.0}}, identifier: 'AdditionalDimmingOverlay'
+                                          Other, 0x11516d680, {{0.0, 726.2}, {402.3, 147.8}}
+                                            Other, 0x11516d7c0, {{0.0, 726.2}, {402.3, 147.8}}
+                                          Other, 0x11516d900, {{0.0, 726.2}, {402.3, 147.8}}
+                                            Other, 0x11516da40, {{0.0, 726.2}, {402.3, 147.8}}
+                                            Other, 0x11516db80, {{0.0, 726.2}, {402.3, 147.8}}
+                                      Other, 0x11516dcc0, {{0.0, 116.0}, {402.2, 8123.7}}
+                                        StaticText, 0x11516de00, {{16.0, 120.0}, {151.7, 33.7}}, label: 'สวัสดีตอนเช้า'
+                                        StaticText, 0x11516df40, {{16.0, 156.7}, {237.0, 18.7}}, label: '5 ตัวแทน กำลังล่าให้คุณ · วันเสาร์ที่ 24 ต.ค.'
+                                        Button, 0x11516e080, {{16.2, 195.3}, {370.3, 90.7}}, label: 'ปัดดู 10 ของที่เจอใหม่, ปัดขวาถูกใจ ปัดซ้ายข้าม ปัดขึ้นซื้อ ทุกการปัดช่วยสอนทีมของคุณ'
+                                          StaticText, 0x11516e1c0, {{94.0, 209.3}, {153.3, 24.3}}, label: 'ปัดดู 10 ของที่เจอใหม่'
+                                          StaticText, 0x11516e300, {{94.0, 235.7}, {222.0, 36.3}}, label: 'ปัดขวาถูกใจ ปัดซ้ายข้าม ปัดขึ้นซื้อ ทุกการปัดช่วยสอนทีมของคุณ'
+                                          Image, 0x11516e440, {{363.2, 233.3}, {8.3, 14.7}}, identifier: 'chevron.right', label: 'ไปข้างหน้า'
+                                        StaticText, 0x11516e580, {{16.0, 306.0}, {128.3, 28.0}}, label: 'Today's Drop'
+                                        Button, 0x11516e6c0, {{338.8, 313.0}, {47.7, 18.7}}, label: 'ดูทั้งหมด'
+                                        StaticText, 0x11516e800, {{16.0, 344.0}, {142.0, 17.3}}, label: '5 อันดับเด่นของทีมคุณตอนนี้'
+                                        Button, 0x11516e940, {{16.2, 371.3}, {370.3, 112.7}}, label: '1, Air Jordan 1 Retro High OG 'Red Suede', 🟢, ดีลสุดคุ้ม, Nike SNKRS · $180, ตรงกับคีย์เวิร์ดของคุณ: aj1, retro'
+                                          StaticText, 0x11516ea80, {{29.8, 381.3}, {10.3, 24.0}}, label: '1'
+                                          Image, 0x11516ebc0, {{56.2, 381.3}, {60.0, 60.0}}
+                                          StaticText, 0x11516ed00, {{128.0, 381.3}, {194.7, 44.0}}, label: 'Air Jordan 1 Retro High OG 'Red Suede''
+                                          StaticText, 0x11516ee40, {{128.2, 429.3}, {82.0, 23.3}}, label: '🟢, ดีลสุดคุ้ม'
+                                            StaticText, 0x11516ef80, {{136.0, 432.8}, {16.0, 16.3}}, label: '🟢'
+                                            StaticText, 0x11516f0c0, {{157.0, 432.3}, {45.0, 17.3}}, label: 'ดีลสุดคุ้ม'
+                                          StaticText, 0x11516f200, {{216.0, 432.3}, {107.0, 17.3}}, label: 'Nike SNKRS · $180'
+                                          StaticText, 0x11516f340, {{128.0, 456.7}, {166.7, 17.3}}, label: 'ตรงกับคีย์เวิร์ดของคุณ: aj1, retro'
+                                        Button, 0x11516f480, {{16.2, 492.0}, {370.3, 106.7}}, label: '2, Frédéric Malle Portrait of a Lady, Limited Edition, Frédéric Malle · $470, จาก Frédéric Malle เฮาส์ ที่คุณน่าจะชอบ'
+                                          StaticText, 0x11516f5c0, {{28.7, 502.0}, {12.7, 24.0}}, label: '2'
+                                          Image, 0x11516f700, {{56.2, 502.0}, {60.0, 60.0}}
+                                          StaticText, 0x11516f840, {{128.0, 502.0}, {235.3, 44.0}}, label: 'Frédéric Malle Portrait of a Lady, Limited Edition'
+                                          StaticText, 0x11516f980, {{128.0, 550.0}, {120.0, 17.3}}, label: 'Frédéric Malle · $470'
+                                          StaticText, 0x11516fac0, {{128.0, 571.3}, {206.3, 17.3}}, label: 'จาก Frédéric Malle เฮาส์ ที่คุณน่าจะชอบ'
+                                        Button, 0x11516fc00, {{16.2, 606.7}, {370.3, 112.7}}, label: '3, Maison Francis Kurkdjian Oud Satin Mood Extrait, 70ml, 🟢, ดีลสุดคุ้ม, Jomashop · $425, จาก Maison Francis Kurkdjian เฮาส์ ที่คุณน่าจะชอบ'
+                                          StaticText, 0x11516fd40, {{28.3, 616.7}, {13.3, 24.0}}, label: '3'
+                                          Image, 0x11516fe80, {{56.2, 616.7}, {60.0, 60.0}}
+                                          StaticText, 0x115174000, {{128.0, 616.7}, {215.3, 44.0}}, label: 'Maison Francis Kurkdjian Oud Satin Mood Extrait, 70ml'
+                                          StaticText, 0x115174140, {{128.2, 664.7}, {82.0, 23.3}}, label: '🟢, ดีลสุดคุ้ม'
+                                            StaticText, 0x115174280, {{136.0, 668.2}, {16.0, 16.3}}, label: '🟢'
+                                            StaticText, 0x1151743c0, {{157.0, 667.7}, {45.0, 17.3}}, label: 'ดีลสุดคุ้ม'
+                                          StaticText, 0x115174500, {{216.0, 667.7}, {98.7, 17.3}}, label: 'Jomashop · $425'
+                                          StaticText, 0x115174640, {{128.0, 692.0}, {229.7, 17.3}}, label: 'จาก Maison Francis Kurkdjian เฮาส์ ที่คุณน่าจะชอบ'
+                                        Button, 0x115174780, {{16.2, 727.3}, {370.3, 112.7}}, label: '4, Supreme Small Box Logo Hooded Sweatshirt, 🟢, ดีลสุดคุ้ม, Supreme webstore · $168, ตรงกับคีย์เวิร์ดของคุณ: box logo'
+                                          StaticText, 0x1151748c0, {{28.2, 737.3}, {13.7, 24.0}}, label: '4'
+                                          Image, 0x115174a00, {{56.2, 737.3}, {60.0, 60.0}}
+                                          StaticText, 0x115174b40, {{128.0, 737.3}, {180.7, 44.0}}, label: 'Supreme Small Box Logo Hooded Sweatshirt'
+                                          StaticText, 0x115174c80, {{128.2, 785.3}, {82.0, 23.3}}, label: '🟢, ดีลสุดคุ้ม'
+                                            StaticText, 0x115174dc0, {{136.0, 788.8}, {16.0, 16.3}}, label: '🟢'
+                                            StaticText, 0x115174f00, {{157.0, 788.3}, {45.0, 17.3}}, label: 'ดีลสุดคุ้ม'
+                                          StaticText, 0x115175040, {{216.0, 788.3}, {145.0, 17.3}}, label: 'Supreme webstore · $168'
+                                          StaticText, 0x115175180, {{128.0, 812.7}, {166.0, 17.3}}, label: 'ตรงกับคีย์เวิร์ดของคุณ: box logo'
+                                        Button, 0x1151752c0, {{16.2, 848.0}, {370.3, 106.7}}, label: '5, Ormonde Jayne Nawab of Oudh Intensivo, Luckyscent · $365, แชร์ oud, rose, saffron โน้ต ของคุณ'
+                                          StaticText, 0x115175400, {{28.3, 858.0}, {13.3, 24.0}}, label: '5'
+                                          Image, 0x115175540, {{56.2, 858.0}, {60.0, 60.0}}
+                                          StaticText, 0x115175680, {{128.0, 858.0}, {188.0, 44.0}}, label: 'Ormonde Jayne Nawab of Oudh Intensivo'
+                                          StaticText, 0x1151757c0, {{128.0, 906.0}, {105.3, 17.3}}, label: 'Luckyscent · $365'
+                                          StaticText, 0x115175900, {{128.0, 927.3}, {188.3, 17.3}}, label: 'แชร์ oud, rose, saffron โน้ต ของคุณ'
+                                        StaticText, 0x115175a40, {{16.0, 974.7}, {87.3, 28.0}}, label: 'สำหรับคุณ'
+                                        StaticText, 0x115175b80, {{16.0, 1014.7}, {369.3, 36.3}}, label: 'คัดมาจากทุกอย่างที่สเคาท์ของ Baget เจอ จัดอันดับตามรสนิยมของคุณ ทุก ♥ และ ✕ ช่วยให้แม่นขึ้น'
+                                        Other, 0x115175cc0, {{16.0, 1063.0}, {370.5, 636.7}}
+                                          Button, 0x115175e00, {{16.2, 1066.0}, {179.0, 150.0}}, label: 'Gramicci WR Cargo Pant, Gramicci, G4FU-P004 · END.'
+                                            Image, 0x115175f40, {{73.8, 1116.0}, {63.3, 76.0}}, label: 'Gramicci WR Cargo Pant'
+                                            StaticText, 0x115176080, {{28.0, 1077.8}, {70.7, 20.3}}, label: 'Gramicci'
+                                            StaticText, 0x1151761c0, {{28.0, 1191.8}, {90.7, 12.0}}, label: 'G4FU-P004 · END.'
+                                          StaticText, 0x115176300, {{16.0, 1221.8}, {154.3, 18.7}}, label: 'Gramicci WR Cargo Pant'
+                                          StaticText, 0x115176440, {{16.0, 1261.8}, {61.0, 16.3}}, label: '$170 · END.'
+                                          StaticText, 0x115176580, {{16.0, 1284.2}, {3.3, 16.3}}, label: ' '
+                                          Image, 0x1151766c0, {{17.2, 1319.0}, {8.7, 10.3}}, identifier: 'sparkles', label: 'ประกาย'
+                                          StaticText, 0x115176800, {{30.7, 1316.2}, {66.3, 16.3}}, label: 'ลองอะไรใหม่ๆ'
+                                          Button, 0x115176940, {{16.2, 1338.3}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'ถูกใจ'
+                                          Button, 0x115176a80, {{109.5, 1338.3}, {85.7, 34.0}}, identifier: 'xmark', label: 'ไม่เอา'
+                                          Button, 0x115176bc0, {{207.2, 1063.0}, {179.3, 150.0}}, label: 'New Balance 990v6 Made in USA, New Balance, M990GL6 · Kith'
+                                            Image, 0x115176d00, {{258.8, 1113.0}, {76.0, 76.0}}, label: 'New Balance 990v6 Made in USA'
+                                            StaticText, 0x115176e40, {{219.2, 1075.0}, {103.0, 20.3}}, label: 'New Balance'
+                                            StaticText, 0x115176f80, {{219.2, 1189.0}, {76.0, 12.0}}, label: 'M990GL6 · Kith'
+                                          StaticText, 0x1151770c0, {{207.2, 1219.0}, {168.0, 39.7}}, label: 'New Balance 990v6 Made in USA'
+                                          StaticText, 0x115177200, {{207.2, 1264.7}, {58.3, 16.3}}, label: '$200 · Kith'
+                                          StaticText, 0x115177340, {{207.2, 1287.0}, {3.3, 16.3}}, label: ' '
+                                          Image, 0x115177480, {{208.2, 1322.0}, {8.7, 10.3}}, identifier: 'sparkles', label: 'ประกาย'
+                                          StaticText, 0x1151775c0, {{221.8, 1319.0}, {66.3, 16.3}}, label: 'ลองอะไรใหม่ๆ'
+                                          Button, 0x115177700, {{207.2, 1341.3}, {85.7, 34.0}}, identifier: 'heart.fill', label: 'ถูกใจ'
+                                          Button, 0x115177840, {{300.8, 1341.3}, {85.7, 34.0}}, identifier: 'xmark', label: 'ไม่เอา'
+                                          Button, 0x115177980, {{16.2, 1387.3}, {179.0, 150.0}}, label: 'Air Jordan 1 Mid 'Black Gum', Jordan, FQ1925-001 · Nike SNKRS'
+                                            Image, 0x115177ac0, {{51.2, 1437.3}, {108.7, 76.0}}, label: 'Air Jordan 1 Mid 'Black Gum''
+                                            StaticText, 0x115177c00, {{28.0, 1399.3}, {55.3, 20.3}}, label: 'Jordan'
+                                            StaticText, 0x115177d40, {{28.0, 1513.3}, {130.7, 12.0}}, label: 'FQ1925-001 · Nike SNKRS'
+                                          StaticText, 0x115177e80, {{16.0, 1543.3}, {105.0, 39.7}}, label: 'Air Jordan 1 Mid 'Black Gum''
+                                          StaticText, 0x115180000, {{16.0, 1589.0}, {99.3, 16.3}}, label: '$140 · Nike SNKRS'
+                                          StaticText, 0x115180140, {{16.0, 1611.3}, {3.3, 16.3}}, label: ' '
+                                          Image, 0x115180280, {{17.2, 1646.3}, {8.7, 10.3}}, identifier: 'sparkles', label: 'ประกาย'
+                                          StaticText, 0x1151803c0, {{30.7, 1643.3}, {66.3, 16.3}}, label: 'ลองอะไรใหม่ๆ'
+                                          Button, 0x115180500, {{16.2, 1665.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'ถูกใจ'
+                                          Button, 0x115180640, {{109.5, 1665.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'ไม่เอา'
+                                          Button, 0x115180780, {{207.2, 1390.3}, {179.3, 150.0}}, label: 'Saucony Shadow 5000, Saucony, S70665 · Saucony'
+                                            Image, 0x1151808c0, {{225.2, 1440.3}, {143.0, 76.0}}, label: 'Saucony Shadow 5000'
+                                            StaticText, 0x115180a00, {{219.2, 1402.2}, {68.7, 20.3}}, label: 'Saucony'
+                                            StaticText, 0x115180b40, {{219.2, 1516.2}, {88.7, 12.0}}, label: 'S70665 · Saucony'
+                                          StaticText, 0x115180c80, {{207.2, 1546.2}, {145.3, 18.7}}, label: 'Saucony Shadow 5000'
+                                          StaticText, 0x115180dc0, {{207.2, 1586.2}, {79.0, 16.3}}, label: '$110 · Saucony'
+                                          StaticText, 0x115180f00, {{207.2, 1608.5}, {3.3, 16.3}}, label: ' '
+                                          Image, 0x115181040, {{208.2, 1643.7}, {8.7, 10.3}}, identifier: 'sparkles', label: 'ประกาย'
+                                          StaticText, 0x115181180, {{221.8, 1640.5}, {66.3, 16.3}}, label: 'ลองอะไรใหม่ๆ'
+                                          Button, 0x1151812c0, {{207.2, 1663.0}, {85.7, 34.0}}, identifier: 'heart.fill', label: 'ถูกใจ'
+                                          Button, 0x115181400, {{300.8, 1663.0}, {85.7, 34.0}}, identifier: 'xmark', label: 'ไม่เอา'
+                                        Button, 0x115181540, {{16.2, 4955.0}, {370.3, 41.0}}, label: 'ดูเพิ่มเติม'
+                                        StaticText, 0x115181680, {{32.0, 5032.0}, {119.0, 24.3}}, label: 'กำลังล่าอะไรอยู่?'
+                                        Image, 0x1151817c0, {{46.2, 5083.0}, {16.3, 16.7}}, identifier: 'sparkle.magnifyingglass', label: 'sparkle.magnifyingglass'
+                                        TextField, 0x115181900, {{72.3, 5078.3}, {286.0, 26.0}}, placeholderValue: 'เช่น mid-century walnut credenza'
+                                          Other, 0x115181a40, {{72.3, 5088.3}, {286.0, 13.0}}, label: 'แถบเลื่อนแนวนอน, 1 หน้า', value: 0%
+                                            Other, 0x115181b80, {{75.3, 5098.3}, {279.7, 3.0}}
+                                        StaticText, 0x115181cc0, {{32.0, 5126.3}, {319.0, 36.3}}, label: 'พิมพ์หรือพูดด้วยคำของคุณเอง Baget จะสร้างสเกาต์ที่ใช่ แล้วเริ่มค้นหาทันที'
+                                        StaticText, 0x115181e00, {{16.0, 5198.7}, {105.3, 17.3}}, label: 'สดจากแก๊งของคุณ'
+                                        ScrollView, 0x115181f40, {{16.0, 5226.0}, {370.3, 45.0}}
+                                          Other, 0x115182080, {{16.0, 5226.0}, {1029.7, 45.0}}
+                                            Button, 0x1151821c0, {{16.2, 5230.0}, {115.7, 37.0}}, label: 'สำหรับคุณ · 8'
+                                            Button, 0x115182300, {{139.8, 5230.0}, {63.0, 37.0}}, label: 'ล่าสุด'
+                                            Button, 0x115182440, {{210.8, 5230.0}, {85.7, 37.0}}, label: 'สนีกเกอร์'
+                                            Button, 0x115182580, {{304.5, 5230.0}, {67.3, 37.0}}, label: 'เสื้อผ้า'
+                                            Button, 0x1151826c0, {{379.8, 5230.0}, {72.7, 37.0}}, label: 'น้ำหอม'
+                                            Button, 0x115182800, {{460.5, 5230.0}, {72.0, 37.0}}, label: 'นาฬิกา'
+                                            Button, 0x115182940, {{540.5, 5230.0}, {73.0, 37.0}}, label: 'รถยนต์'
+                                            Button, 0x115182a80, {{621.5, 5230.0}, {98.0, 37.0}}, label: 'เฟอร์นิเจอร์'
+                                            Button, 0x115182bc0, {{727.5, 5230.0}, {106.3, 37.0}}, label: 'อุปกรณ์เสริม'
+                                            Button, 0x115182d00, {{841.8, 5230.0}, {87.3, 37.0}}, label: 'ของสะสม'
+                                            Button, 0x115182e40, {{937.2, 5230.0}, {108.7, 37.0}}, label: 'ปรับแต่ง'
+                                              Image, 0x115182f80, {{953.2, 5241.7}, {15.7, 13.3}}, identifier: 'slider.horizontal.3', label: 'แก้ไข'
+                                              StaticText, 0x1151830c0, {{937.2, 5230.0}, {108.7, 37.0}}, label: 'ปรับแต่ง'
+                                        Button, 0x115183200, {{28.0, 5301.0}, {68.7, 20.3}}, label: 'มีขายแล้ว'
+                                        Button, 0x115183340, {{142.8, 5339.0}, {117.0, 156.0}}, label: 'Air Jordan 1 Retro High OG 'Red Suede''
+                                        Button, 0x115183480, {{28.0, 5495.0}, {129.7, 12.0}}, label: '555088-606 · Nike SNKRS'
+                                        Button, 0x1151835c0, {{16.0, 5533.0}, {46.0, 12.7}}, label: 'สนีกเกอร์'
+                                        Button, 0x115183700, {{70.0, 5533.0}, {28.3, 12.7}}, label: 'ตลาด'
+                                        Button, 0x115183840, {{106.3, 5533.0}, {58.7, 12.7}}, label: '1 HR ที่แล้ว'
+                                        Button, 0x115183980, {{180.0, 5533.0}, {89.7, 12.7}}, label: 'สำหรับคุณ · 77%'
+                                        Button, 0x115183ac0, {{16.0, 5559.7}, {370.3, 107.7}}, label: 'Air Jordan 1 Retro High OG 'Red Suede' ซื้อขายสูงกว่าราคาตั้ง 44%'
+                                        Button, 0x115183c00, {{16.0, 5679.3}, {346.0, 48.3}}, label: 'Jordan 1, high top, suede. $180 at Nike SNKRS, $260 ในตลาด.'
+                                        StaticText, 0x115183d40, {{16.0, 5739.7}, {277.3, 18.7}}, label: 'เหตุผลที่เจอชิ้นนี้: ตรงกับคีย์เวิร์ดของคุณ: aj1, retro'
+                                        Button, 0x115183e80, {{16.2, 5770.3}, {308.3, 41.0}}, label: 'ดูในของที่เจอ'
+                                          StaticText, 0x115184000, {{121.8, 5780.3}, {82.3, 21.0}}, label: 'ดูในของที่เจอ'
+                                          Image, 0x115184140, {{211.5, 5785.7}, {6.3, 10.7}}, identifier: 'chevron.right', label: 'ไปข้างหน้า'
+                                        Button, 0x115184280, {{332.5, 5770.3}, {54.0, 41.0}}, identifier: 'square.and.arrow.up', label: 'แชร์กับเพื่อน'
+                                        Button, 0x1151843c0, {{134.0, 5842.7}, {35.3, 12.7}}, label: 'น้ำหอม'
+                                        Button, 0x115184500, {{177.3, 5842.7}, {38.3, 12.7}}, label: 'วางขาย'
+                                        Button, 0x115184640, {{223.7, 5842.7}, {58.7, 12.7}}, label: '1 HR ที่แล้ว'
+                                        Button, 0x115184780, {{297.3, 5843.3}, {80.7, 11.3}}, label: 'สำหรับคุณ · 74%'
+                                        StaticText, 0x1151848c0, {{28.0, 5853.3}, {70.0, 40.7}}, label: 'อีก 4 ชม. 59 น.'
+                                        StaticText, 0x115184a00, {{28.0, 5921.3}, {76.3, 12.0}}, label: 'FM-POAL-LE · Frédéric Malle'
+                                        Image, 0x115184b40, {{52.5, 5891.3}, {31.0, 30.0}}, label: 'Frédéric Malle Portrait of a Lady, Limited Edition'
+                                        Button, 0x115184c80, {{134.0, 5863.7}, {221.0, 76.3}}, label: 'Frédéric Malle Portrait of a Lady, Limited Edition Drops Today at Frédéric Malle'
+                                        Button, 0x115184dc0, {{134.0, 5947.0}, {252.3, 60.7}}, label: 'แต่งกลิ่นโดย Dominique Ropion. Turkish rose, patchouli, incense. $470 at Frédéric Malle.'
+                                        Button, 0x115184f00, {{134.0, 6014.7}, {209.7, 17.3}}, label: 'จาก Frédéric Malle เฮาส์ ที่คุณน่าจะชอบ'
+                                        Button, 0x115185040, {{134.2, 6039.0}, {190.3, 41.0}}, label: 'ดูในของที่เจอ'
+                                          StaticText, 0x115185180, {{180.8, 6049.0}, {82.3, 21.0}}, label: 'ดูในของที่เจอ'
+                                          Image, 0x1151852c0, {{270.5, 6054.3}, {6.3, 10.7}}, identifier: 'chevron.right', label: 'ไปข้างหน้า'
+                                        Button, 0x115185400, {{332.5, 6039.0}, {54.0, 41.0}}, identifier: 'square.and.arrow.up', label: 'แชร์กับเพื่อน'
+                                        StaticText, 0x115185540, {{37.0, 6140.3}, {41.3, 20.3}}, label: 'NOW'
+                                        StaticText, 0x115185680, {{28.0, 6204.3}, {79.0, 12.0}}, label: 'ES670-671 · eBay'
+                                        Image, 0x1151857c0, {{41.2, 6174.3}, {53.7, 30.0}}, label: 'Eames Lounge Chair and Ottoman, Walnut'
+                                        Button, 0x115185900, {{134.0, 6125.2}, {56.3, 12.7}}, label: 'เฟอร์นิเจอร์'
+                                        Button, 0x115185a40, {{198.3, 6125.2}, {28.3, 12.7}}, label: 'ตลาด'
+                                        Button, 0x115185b80, {{234.7, 6125.2}, {58.7, 12.7}}, label: '1 HR ที่แล้ว'
+                                        Button, 0x115185cc0, {{308.3, 6126.3}, {68.3, 10.3}}, label: 'สำหรับคุณ · 73%'
+                                        Button, 0x115185e00, {{134.0, 6145.7}, {233.3, 76.3}}, label: 'Eames Lounge Chair and Ottoman, Walnut ซื้อขายสูงกว่าราคาตั้ง 83%'
+                                        Button, 0x115185f40, {{134.0, 6229.0}, {250.3, 60.7}}, label: 'ออกแบบโดย Charles and Ray Eames. Mid-century, walnut, leather. $4,100 at eBay, $7,495 ในตลาด.'
+                                        Button, 0x115186080, {{134.0, 6296.7}, {214.0, 17.3}}, label: 'จาก Herman Miller ผู้ผลิต ที่คุณน่าจะชอบ'
+                                        Button, 0x1151861c0, {{134.2, 6321.0}, {190.3, 43.0}}, label: 'ส่งถึง Studio Hunter'
+                                        Button, 0x115186300, {{332.5, 6322.0}, {54.0, 41.0}}, identifier: 'square.and.arrow.up', label: 'แชร์กับเพื่อน'
+                                        StaticText, 0x115186440, {{37.0, 6424.3}, {41.3, 20.3}}, label: 'NOW'
+                                        StaticText, 0x115186580, {{28.0, 6488.3}, {78.7, 12.0}}, label: 'LCW-WAL · Design Warehouse'
+                                        Image, 0x1151866c0, {{55.8, 6458.3}, {24.3, 30.0}}, label: 'Eames Molded Plywood Lounge Chair, Walnut'
+                                        Button, 0x115186800, {{134.0, 6409.2}, {56.3, 12.7}}, label: 'เฟอร์นิเจอร์'
+                                        Button, 0x115186940, {{198.3, 6410.3}, {56.0, 10.3}}, label: 'พร้อมขายตอนนี้'
+                                        Button, 0x115186a80, {{262.3, 6409.5}, {56.3, 12.0}}, label: '1 HR ที่แล้ว'
+                                        Button, 0x115186bc0, {{333.7, 6410.3}, {44.0, 10.3}}, label: 'สำหรับคุณ · 73%'
+                                        Button, 0x115186d00, {{134.0, 6429.7}, {252.3, 76.3}}, label: 'Eames Molded Plywood Lounge Chair, Walnut มีขายแล้วที่ Design Warehouse'
+                                        Button, 0x115186e40, {{134.0, 6513.0}, {252.3, 60.7}}, label: 'ออกแบบโดย Charles and Ray Eames. Mid-century, walnut, molded plywood. $2,285 at Design Warehouse.'
+                                        Button, 0x115186f80, {{134.0, 6580.7}, {214.0, 17.3}}, label: 'จาก Herman Miller ผู้ผลิต ที่คุณน่าจะชอบ'
+                                        Button, 0x1151870c0, {{134.2, 6605.0}, {190.3, 43.0}}, label: 'ส่งถึง Studio Hunter'
+                                        Button, 0x115187200, {{332.5, 6606.0}, {54.0, 41.0}}, identifier: 'square.and.arrow.up', label: 'แชร์กับเพื่อน'
+                                        StaticText, 0x115187340, {{28.0, 6704.3}, {58.0, 20.3}}, label: 'อีก 2 วัน'
+                                        StaticText, 0x115187480, {{28.0, 6772.3}, {77.0, 12.0}}, label: '992-SPIRIT70 · Porsche USA'
+                                        Image, 0x1151875c0, {{26.2, 6745.0}, {84.0, 24.7}}, label: 'Porsche 911 Spirit 70'
+                                        Button, 0x115187700, {{134.0, 6693.7}, {35.3, 12.7}}, label: 'รถยนต์'
+                                        Button, 0x115187840, {{177.3, 6693.7}, {38.3, 12.7}}, label: 'วางขาย'
+                                        Button, 0x115187980, {{223.7, 6693.7}, {58.7, 12.7}}, label: '1 HR ที่แล้ว'
+                                        Button, 0x115187ac0, {{297.3, 6694.3}, {81.7, 11.3}}, label: 'สำหรับคุณ · 65%'
+                                        Button, 0x115187c00, {{134.0, 6714.7}, {222.7, 50.3}}, label: 'Porsche 911 Spirit 70 Drops Tomorrow at Porsche USA'
+                                        Button, 0x115187d40, {{134.0, 6772.0}, {242.3, 60.7}}, label: 'Coupe, limited edition, heritage design. $254,300 at Porsche USA, $300,000 ในตลาด.'
+                                        Button, 0x115187e80, {{134.0, 6839.7}, {137.7, 17.3}}, label: 'ตรงกับคีย์เวิร์ดของคุณ: 911'
+                                        Button, 0x115198000, {{134.2, 6864.0}, {190.3, 43.0}}, label: 'ส่งถึง Air-Cooled Desk'
+                                        Button, 0x115198140, {{332.5, 6865.0}, {54.0, 41.0}}, identifier: 'square.and.arrow.up', label: 'แชร์กับเพื่อน'
+                                        StaticText, 0x115198280, {{37.0, 6967.3}, {41.3, 20.3}}, label: 'NOW'
+                                        StaticText, 0x1151983c0, {{28.0, 7031.3}, {74.3, 12.0}}, label: 'MFK-OSM-EX · Jomashop'
+                                        Image, 0x115198500, {{55.5, 7001.3}, {25.0, 30.0}}, label: 'Maison Francis Kurkdjian Oud Satin Mood Extrait, 70ml'
+                                        Button, 0x115198640, {{134.0, 6952.2}, {35.3, 12.7}}, label: 'น้ำหอม'
+                                        Button, 0x115198780, {{177.3, 6953.2}, {66.3, 10.7}}, label: 'พร้อมขายตอนนี้'
+                                        Button, 0x1151988c0, {{251.7, 6952.2}, {58.7, 12.7}}, label: '1 HR ที่แล้ว'
+                                        Button, 0x115198a00, {{325.3, 6953.3}, {52.0, 10.3}}, label: 'สำหรับคุณ · 64%'
+                                        Button, 0x115198b40, {{134.0, 6972.7}, {239.3, 76.3}}, label: 'Maison Francis Kurkdjian Oud Satin Mood Extrait, 70ml มีขายแล้วที่ Jomashop'
+                                        Button, 0x115198c80, {{134.0, 7056.0}, {251.7, 39.7}}, label: 'แต่งกลิ่นโดย Francis Kurkdjian. Oud, rose, vanilla. $425 at Jomashop, $495 ในตลาด.'
+                                        Button, 0x115198dc0, {{134.0, 7102.7}, {239.0, 36.3}}, label: 'จาก Maison Francis Kurkdjian เฮาส์ ที่คุณน่าจะชอบ'
+                                        Button, 0x115198f00, {{134.2, 7146.0}, {190.3, 41.0}}, label: 'ดูในของที่เจอ'
+                                          StaticText, 0x115199040, {{180.8, 7156.0}, {82.3, 21.0}}, label: 'ดูในของที่เจอ'
+                                          Image, 0x115199180, {{270.5, 7161.3}, {6.3, 10.7}}, identifier: 'chevron.right', label: 'ไปข้างหน้า'
+                                        Button, 0x1151992c0, {{332.5, 7146.0}, {54.0, 41.0}}, identifier: 'square.and.arrow.up', label: 'แชร์กับเพื่อน'
+                                        StaticText, 0x115199400, {{28.0, 7243.3}, {55.7, 20.3}}, label: 'อีก 1 วัน'
+                                        StaticText, 0x115199540, {{28.0, 7311.3}, {76.7, 12.0}}, label: 'SS22-SW · Supreme webstore'
+                                        Image, 0x115199680, {{55.5, 7281.3}, {25.0, 30.0}}, label: 'Supreme Small Box Logo Hooded Sweatshirt'
+                                        Button, 0x1151997c0, {{134.0, 7232.8}, {31.7, 12.7}}, label: 'เสื้อผ้า'
+                                        Button, 0x115199900, {{173.7, 7232.8}, {38.3, 12.7}}, label: 'วางขาย'
+                                        Button, 0x115199a40, {{220.0, 7232.8}, {60.0, 12.7}}, label: '2 HR ที่แล้ว'
+                                        Button, 0x115199b80, {{295.0, 7233.3}, {84.0, 11.7}}, label: 'สำหรับคุณ · 64%'
+                                        Button, 0x115199cc0, {{134.0, 7254.0}, {208.3, 102.3}}, label: 'Supreme Small Box Logo Hooded Sweatshirt Drops Tomorrow at Supreme webstore'
+                                        Button, 0x115199e00, {{134.0, 7363.3}, {233.7, 60.7}}, label: 'Hoodie, heavyweight fleece, box logo. $168 at Supreme webstore, $260 ในตลาด.'
+                                        Button, 0x115199f40, {{134.0, 7431.0}, {168.0, 17.3}}, label: 'ตรงกับคีย์เวิร์ดของคุณ: box logo'
+                                        Button, 0x11519a080, {{134.2, 7455.3}, {190.3, 41.0}}, label: 'ดูในของที่เจอ'
+                                          StaticText, 0x11519a1c0, {{180.8, 7465.3}, {82.3, 21.0}}, label: 'ดูในของที่เจอ'
+                                          Image, 0x11519a300, {{270.5, 7470.7}, {6.3, 10.7}}, identifier: 'chevron.right', label: 'ไปข้างหน้า'
+                                        Button, 0x11519a440, {{332.5, 7455.3}, {54.0, 41.0}}, identifier: 'square.and.arrow.up', label: 'แชร์กับเพื่อน'
+                                        StaticText, 0x11519a580, {{37.0, 7556.7}, {41.3, 20.3}}, label: 'NOW'
+                                        StaticText, 0x11519a6c0, {{28.0, 7620.7}, {75.7, 12.0}}, label: 'LOT E82-1M · Classic.com'
+                                        Image, 0x11519a800, {{41.5, 7590.7}, {53.3, 30.0}}, label: '2011 BMW 1M Coupe, 6-speed manual'
+                                        Button, 0x11519a940, {{134.0, 7541.5}, {35.3, 12.7}}, label: 'รถยนต์'
+                                        Button, 0x11519aa80, {{177.3, 7542.5}, {66.3, 10.7}}, label: 'พร้อมขายตอนนี้'
+                                        Button, 0x11519abc0, {{251.7, 7541.5}, {58.7, 12.7}}, label: '1 HR ที่แล้ว'
+                                        Button, 0x11519ad00, {{325.3, 7542.7}, {52.0, 10.3}}, label: 'สำหรับคุณ · 63%'
+                                        Button, 0x11519ae40, {{134.0, 7562.0}, {247.3, 50.3}}, label: '2011 BMW 1M Coupe, 6-speed manual มีขายแล้วที่ Classic.com'
+                                        Button, 0x11519af80, {{134.0, 7619.3}, {228.7, 39.7}}, label: 'Manual, coupe, inline-six. $64,993 at Classic.com, $70,000 ในตลาด.'
+                                        Button, 0x11519b0c0, {{134.0, 7666.0}, {169.0, 17.3}}, label: 'จาก BMW M ยี่ห้อ ที่คุณน่าจะชอบ'
+                                        Button, 0x11519b200, {{134.2, 7690.3}, {190.3, 43.0}}, label: 'ส่งถึง Air-Cooled Desk'
+                                        Button, 0x11519b340, {{332.5, 7691.3}, {54.0, 41.0}}, identifier: 'square.and.arrow.up', label: 'แชร์กับเพื่อน'
+                                        StaticText, 0x11519b480, {{32.0, 7789.7}, {172.7, 17.3}}, label: 'มาแรงตามความฮอตของตลาด'
+                                        StaticText, 0x11519b5c0, {{37.8, 7817.0}, {12.3, 28.7}}, label: '1'
+                                        StaticText, 0x11519b700, {{68.0, 7824.3}, {300.7, 21.0}}, label: 'Eames Lounge Chair and Ottoman, Walnut'
+                                        StaticText, 0x11519b840, {{68.0, 7847.3}, {168.7, 17.3}}, label: '+83% เทียบราคาตั้ง · เฟอร์นิเจอร์'
+                                        StaticText, 0x11519b980, {{36.3, 7874.7}, {15.3, 28.7}}, label: '2'
+                                        StaticText, 0x11519bac0, {{68.0, 7882.0}, {180.7, 44.0}}, label: 'Supreme Small Box Logo Hooded Sweatshirt'
+                                        StaticText, 0x11519bc00, {{68.0, 7928.0}, {145.0, 17.3}}, label: '+55% เทียบราคาตั้ง · เสื้อผ้า'
+                                        StaticText, 0x11519bd40, {{36.0, 7955.3}, {16.0, 28.7}}, label: '3'
+                                        StaticText, 0x11519be80, {{68.0, 7962.7}, {280.7, 21.0}}, label: 'Air Jordan 1 Retro High OG 'Red Suede''
+                                        StaticText, 0x11519c000, {{68.0, 7985.7}, {159.3, 17.3}}, label: '+44% เทียบราคาตั้ง · สนีกเกอร์'
+                                        StaticText, 0x11519c140, {{35.8, 8013.0}, {16.3, 28.7}}, label: '4'
+                                        StaticText, 0x11519c280, {{68.0, 8020.3}, {241.3, 44.0}}, label: 'Nike Air Bakin High SP 'Black and Varsity Red''
+                                        StaticText, 0x11519c3c0, {{68.0, 8066.3}, {159.3, 17.3}}, label: '+35% เทียบราคาตั้ง · สนีกเกอร์'
+                                        StaticText, 0x11519c500, {{36.0, 8093.7}, {16.0, 28.7}}, label: '5'
+                                        StaticText, 0x11519c640, {{68.0, 8101.0}, {277.0, 44.0}}, label: 'BE@RBRICK Coca-Cola Georgia Green 100% & 400%'
+                                        StaticText, 0x11519c780, {{68.0, 8147.0}, {160.0, 17.3}}, label: '+28% เทียบราคาตั้ง · ของสะสม'
+                                        StaticText, 0x11519c8c0, {{16.0, 8198.3}, {287.7, 17.3}}, label: 'ข้อมูลตัวอย่าง เข้าสู่ระบบเพื่อให้ทีมของคุณค้นหาบนเว็บจริง'
+                            Other, 0x11519ca00, {{0.0, 0.0}, {402.0, 874.0}}
+                              Other, 0x11519cb40, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x11519cc80, {{0.0, 791.0}, {402.0, 83.0}}
+                  Other, 0x11519cdc0, {{0.0, 0.0}, {402.0, 874.0}}
+                    TabBar, 0x11519cf00, {{0.0, 791.0}, {402.0, 83.0}}, label: 'รายการแถบ'
+                      Other, 0x11519d040, {{21.0, 791.0}, {360.0, 62.0}}
+                        Other, 0x11519d180, {{21.0, 791.0}, {95.0, 54.0}}
+                        Other, 0x11519d2c0, {{21.0, 791.0}, {360.0, 62.0}}
+                          Button, 0x11519d400, {{25.0, 795.0}, {95.0, 54.0}}, label: 'วันนี้', Selected
+                            Image, 0x11519d540, {{58.0, 800.0}, {29.0, 29.3}}, identifier: 'sun.max.fill', label: 'สว่างมากขึ้น'
+                          Button, 0x11519d680, {{110.7, 795.0}, {95.0, 54.0}}, label: 'ของที่เจอ'
+                            Image, 0x11519d7c0, {{145.7, 799.0}, {26.0, 30.0}}, identifier: 'sparkles', label: 'ประกาย'
+                          Button, 0x11519d900, {{196.3, 795.0}, {95.0, 54.0}}, label: 'ทีม'
+                            Image, 0x11519da40, {{219.3, 802.7}, {49.0, 26.0}}, identifier: 'person.3.fill', label: 'person.3.fill'
+                          Button, 0x11519db80, {{282.0, 795.0}, {95.0, 54.0}}, label: 'เพื่อน'
+                            Image, 0x11519dcc0, {{316.0, 801.3}, {27.3, 27.3}}, identifier: 'heart.circle.fill', label: 'ชอบ'
+                        Other, 0x11519de00, {{25.0, 795.0}, {95.0, 54.0}}
+                          Other, 0x11519df40, {{25.0, 795.0}, {95.0, 54.0}}
+                            Other, 0x11519e080, {{25.0, 795.0}, {95.0, 54.0}}
+                            Other, 0x11519e1c0, {{25.0, 795.0}, {95.0, 54.0}}
+                              Other, 0x11519e300, {{25.0, 795.0}, {95.0, 54.0}}
+                                Other, 0x11519e440, {{25.0, 795.0}, {95.0, 54.0}}
+                                  Other, 0x11519e580, {{25.0, 795.0}, {95.0, 54.0}}
+                                Other, 0x11519e6c0, {{25.0, 795.0}, {95.0, 54.0}}
+                              Other, 0x11519e800, {{25.0, 795.0}, {95.0, 54.0}}
+                  Other, 0x11519e940, {{0.0, 791.0}, {402.0, 83.0}}
+                    Other, 0x11519ea80, {{0.0, 791.0}, {402.0, 83.0}}
+                      Other, 0x11519ebc0, {{0.0, 791.0}, {402.0, 83.0}}
+                        Other, 0x11519ed00, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x11519ee40, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x11519ef80, {{0.0, 791.0}, {402.0, 83.0}}
+                        Other, 0x11519f0c0, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x11519f200, {{0.0, 791.0}, {402.0, 83.0}}
+Path to element:
+ →Application, 0x107049180, pid: 10804, label: 'Baget'
+Query chain:
+ →Find: Target Application 'app.baget.ios'
+  Output: {
+    Application, 0x11519f340, pid: 10804, label: 'Baget'
+  }
+)

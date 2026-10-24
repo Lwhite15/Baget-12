@@ -1,0 +1,274 @@
+Command line invocation:
+    /Applications/Xcode_26.6.app/Contents/Developer/usr/bin/xcodebuild test-without-building "-only-testing:BagetUITests/QAWalkthrough/testLanguageTour" -project Baget.xcodeproj -scheme BagetQA -derivedDataPath build -destination id=0183276C-C5F7-4A53-B0AF-C3D9117595F6 -resultBundlePath /Users/runner/work/_temp/qa.xcresult
+
+Writing result bundle at path:
+	/Users/runner/work/_temp/qa.xcresult
+
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:iOS Simulator, arch:arm64, id:0183276C-C5F7-4A53-B0AF-C3D9117595F6, OS:26.4.1, name:iPhone 17 Pro }
+{ platform:iOS Simulator, arch:x86_64, id:0183276C-C5F7-4A53-B0AF-C3D9117595F6, OS:26.4.1, name:iPhone 17 Pro }
+2026-10-24 03:54:30.035016+0000 BagetUITests-Runner[10267:34822] [Default] Running tests...
+2026-10-24 03:54:30.137806+0000 BagetUITests-Runner[10267:35233] [General] Failed to send CA Event for app launch measurements for ca_event_type: 0 event_name: com.apple.app_launch_measurement.FirstFramePresentationMetric
+2026-10-24 03:54:30.182120+0000 BagetUITests-Runner[10267:35232] [General] Failed to send CA Event for app launch measurements for ca_event_type: 1 event_name: com.apple.app_launch_measurement.ExtendedLaunchMetrics
+objc[10267]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23E254a/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.4.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x103550310) and /Library/Developer/CoreSimulator/Volumes/iOS_23E254a/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.4.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x106d6c398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-10-24 03:54:41.304.
+Test Suite 'BagetUITests.xctest' started at 2026-10-24 03:54:41.305.
+Test Suite 'QAWalkthrough' started at 2026-10-24 03:54:41.306.
+Test Case '-[BagetUITests.QAWalkthrough testLanguageTour]' started.
+    t =     0.00s Start Test at 2026-10-24 03:54:41.307
+    t =     1.02s Set Up
+    t =     1.03s Open app.baget.ios
+    t =     1.03s     Launch app.baget.ios
+2026-10-24 03:54:43.417 xcodebuild[9520:32753] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-24 03:54:43.417 xcodebuild[9520:32753] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     8.21s         Setting up automation session
+    t =     9.08s         Wait for app.baget.ios to idle
+    t =    18.23s Added attachment named '01-th-welcome'
+    t =    18.23s Requesting snapshot of accessibility hierarchy for app with pid 10804
+    t =    19.66s Requesting snapshot of accessibility hierarchy for app with pid 10804
+QA: [01] snap 01-th-welcome
+    t =    20.41s Swipe up Target Application 'app.baget.ios'
+    t =    20.41s     Wait for app.baget.ios to idle
+    t =    20.42s     Find the Target Application 'app.baget.ios'
+    t =    20.54s     Check for interrupting elements affecting "Baget" Application
+    t =    20.79s     Synthesize event
+    t =    21.36s     Wait for app.baget.ios to idle
+    t =    23.16s Added attachment named '02-th-welcome-scrolled'
+    t =    23.17s Requesting snapshot of accessibility hierarchy for app with pid 10804
+    t =    23.91s Requesting snapshot of accessibility hierarchy for app with pid 10804
+QA: [02] snap 02-th-welcome-scrolled
+    t =    24.12s Get all elements bound by index for: Descendants matching type Button
+    t =    24.27s Find the Button (Element at index 0)
+    t =    24.44s Find the Button (Element at index 1)
+    t =    24.58s Find the Button (Element at index 2)
+    t =    24.70s Find the Button (Element at index 3)
+    t =    24.91s Find the Button (Element at index 4)
+    t =    25.12s Find the Button (Element at index 5)
+    t =    25.28s Find the Button (Element at index 6)
+    t =    25.40s Find the Button (Element at index 7)
+    t =    25.53s Find the Button (Element at index 8)
+    t =    25.65s Find the Button (Element at index 9)
+    t =    25.75s Find the Button (Element at index 10)
+    t =    25.87s Find the Button (Element at index 11)
+    t =    25.98s Find the Button (Element at index 12)
+    t =    26.11s Find the Button (Element at index 13)
+    t =    26.23s Find the Button (Element at index 14)
+    t =    26.34s Find the Button (Element at index 15)
+    t =    26.45s Find the Button (Element at index 16)
+    t =    26.57s Find the Button (Element at index 17)
+    t =    26.69s Find the Button (Element at index 18)
+    t =    26.82s Find the Button (Element at index 19)
+    t =    26.95s Find the Button (Element at index 20)
+    t =    27.07s Find the Button (Element at index 21)
+    t =    27.20s Find the Button (Element at index 22)
+    t =    27.35s Find the Button (Element at index 23)
+    t =    27.47s Find the Button (Element at index 24)
+    t =    27.58s Find the Button (Element at index 25)
+    t =    27.73s Find the Button (Element at index 26)
+    t =    27.88s Find the Button (Element at index 27)
+    t =    28.01s Find the Button (Element at index 28)
+    t =    28.14s Find the Button (Element at index 29)
+    t =    28.27s Find the Button (Element at index 30)
+    t =    28.40s Find the Button (Element at index 31)
+    t =    28.55s Find the Button (Element at index 32)
+    t =    28.67s Find the Button (Element at index 33)
+    t =    28.78s Find the Button (Element at index 34)
+    t =    28.89s Find the Button (Element at index 35)
+    t =    29.02s Find the Button (Element at index 36)
+    t =    29.16s Find the Button (Element at index 37)
+    t =    29.33s Find the Button (Element at index 38)
+    t =    29.48s Find the Button (Element at index 39)
+    t =    29.61s Find the Button (Element at index 40)
+    t =    29.76s Find the Button (Element at index 41)
+    t =    29.95s Find the Button (Element at index 42)
+    t =    30.13s Find the Button (Element at index 43)
+    t =    30.33s Find the Button (Element at index 44)
+    t =    30.50s Tap "ขอดูก่อน" Button
+    t =    30.50s     Wait for app.baget.ios to idle
+    t =    30.51s     Find the "ขอดูก่อน" Button
+    t =    30.75s     Check for interrupting elements affecting "ขอดูก่อน" Button
+    t =    30.87s     Synthesize event
+    t =    32.22s     Wait for app.baget.ios to idle
+QA: [02] tap sample tour
+    t =    41.25s Get number of matches for: Descendants matching type Button
+    t =    49.48s Get number of matches for: Descendants matching type Button
+    t =    51.69s Tap Button (Element at index 0)
+    t =    51.69s     Wait for app.baget.ios to idle
+    t =    51.70s     Find the Button (Element at index 0)
+    t =    53.54s     Check for interrupting elements affecting "วันนี้" Button
+    t =    55.19s     Synthesize event
+    t =    56.28s     Wait for app.baget.ios to idle
+    t =    60.80s Added attachment named '03-th-tab0'
+    t =    60.80s Requesting snapshot of accessibility hierarchy for app with pid 10804
+    t =    65.78s Requesting snapshot of accessibility hierarchy for app with pid 10804
+QA: [03] snap 03-th-tab0
+    t =    66.36s Swipe up Target Application 'app.baget.ios'
+    t =    66.36s     Wait for app.baget.ios to idle
+    t =    66.76s     Find the Target Application 'app.baget.ios'
+    t =    67.71s     Check for interrupting elements affecting "Baget" Application
+    t =    68.46s     Synthesize event
+    t =    69.06s     Wait for app.baget.ios to idle
+    t =    72.92s Added attachment named '04-th-tab0-scrolled'
+    t =    72.92s Requesting snapshot of accessibility hierarchy for app with pid 10804
+    t =    74.19s Requesting snapshot of accessibility hierarchy for app with pid 10804
+QA: [04] snap 04-th-tab0-scrolled
+    t =    74.89s Swipe down Target Application 'app.baget.ios'
+    t =    74.89s     Wait for app.baget.ios to idle
+    t =    74.89s     Find the Target Application 'app.baget.ios'
+    t =    75.20s     Check for interrupting elements affecting "Baget" Application
+    t =    75.60s     Synthesize event
+    t =    76.03s     Wait for app.baget.ios to idle
+    t =    78.11s Swipe down Target Application 'app.baget.ios'
+    t =    78.11s     Wait for app.baget.ios to idle
+    t =    78.12s     Find the Target Application 'app.baget.ios'
+    t =    78.38s     Check for interrupting elements affecting "Baget" Application
+    t =    78.59s     Synthesize event
+    t =    79.09s     Wait for app.baget.ios to idle
+    t =    80.13s Get number of matches for: Descendants matching type Button
+    t =    80.44s Tap Button (Element at index 1)
+    t =    80.44s     Wait for app.baget.ios to idle
+    t =    80.44s     Find the Button (Element at index 1)
+    t =    80.69s     Check for interrupting elements affecting "ของที่เจอ" Button
+    t =    81.08s     Synthesize event
+    t =    81.44s     Wait for app.baget.ios to idle
+    t =    87.96s Added attachment named '05-th-tab1'
+    t =    87.97s Requesting snapshot of accessibility hierarchy for app with pid 10804
+    t =    89.38s Requesting snapshot of accessibility hierarchy for app with pid 10804
+QA: [05] snap 05-th-tab1
+    t =    89.78s Swipe up Target Application 'app.baget.ios'
+    t =    89.78s     Wait for app.baget.ios to idle
+    t =    89.90s     Find the Target Application 'app.baget.ios'
+    t =    90.58s     Check for interrupting elements affecting "Baget" Application
+    t =    91.24s     Synthesize event
+    t =    91.72s     Wait for app.baget.ios to idle
+    t =    95.97s Added attachment named '06-th-tab1-scrolled'
+    t =    95.98s Requesting snapshot of accessibility hierarchy for app with pid 10804
+    t =    96.96s Requesting snapshot of accessibility hierarchy for app with pid 10804
+QA: [06] snap 06-th-tab1-scrolled
+    t =    97.23s Swipe down Target Application 'app.baget.ios'
+    t =    97.23s     Wait for app.baget.ios to idle
+    t =    97.23s     Find the Target Application 'app.baget.ios'
+    t =    97.44s     Check for interrupting elements affecting "Baget" Application
+    t =    97.72s     Synthesize event
+    t =    98.16s     Wait for app.baget.ios to idle
+    t =   100.38s Swipe down Target Application 'app.baget.ios'
+    t =   100.38s     Wait for app.baget.ios to idle
+    t =   100.39s     Find the Target Application 'app.baget.ios'
+    t =   100.76s     Check for interrupting elements affecting "Baget" Application
+    t =   101.23s     Synthesize event
+    t =   101.67s     Wait for app.baget.ios to idle
+    t =   102.16s Get number of matches for: Descendants matching type Button
+    t =   102.64s Tap Button (Element at index 2)
+    t =   102.64s     Wait for app.baget.ios to idle
+    t =   102.66s     Find the Button (Element at index 2)
+    t =   102.91s     Check for interrupting elements affecting "ทีม" Button
+    t =   103.06s     Synthesize event
+    t =   103.39s     Wait for app.baget.ios to idle
+    t =   109.34s Added attachment named '07-th-tab2'
+    t =   109.35s Requesting snapshot of accessibility hierarchy for app with pid 10804
+    t =   110.22s Requesting snapshot of accessibility hierarchy for app with pid 10804
+QA: [07] snap 07-th-tab2
+    t =   110.47s Swipe up Target Application 'app.baget.ios'
+    t =   110.47s     Wait for app.baget.ios to idle
+    t =   110.47s     Find the Target Application 'app.baget.ios'
+    t =   110.72s     Check for interrupting elements affecting "Baget" Application
+    t =   111.07s     Synthesize event
+    t =   111.55s     Wait for app.baget.ios to idle
+    t =   116.20s Added attachment named '08-th-tab2-scrolled'
+    t =   116.20s Requesting snapshot of accessibility hierarchy for app with pid 10804
+    t =   117.08s Requesting snapshot of accessibility hierarchy for app with pid 10804
+QA: [08] snap 08-th-tab2-scrolled
+    t =   117.48s Swipe down Target Application 'app.baget.ios'
+    t =   117.48s     Wait for app.baget.ios to idle
+    t =   117.48s     Find the Target Application 'app.baget.ios'
+    t =   117.87s     Check for interrupting elements affecting "Baget" Application
+    t =   118.17s     Synthesize event
+    t =   118.65s     Wait for app.baget.ios to idle
+    t =   121.04s Swipe down Target Application 'app.baget.ios'
+    t =   121.05s     Wait for app.baget.ios to idle
+    t =   121.05s     Find the Target Application 'app.baget.ios'
+    t =   121.25s     Check for interrupting elements affecting "Baget" Application
+    t =   121.45s     Synthesize event
+    t =   121.88s     Wait for app.baget.ios to idle
+    t =   122.38s Get number of matches for: Descendants matching type Button
+    t =   122.67s Tap Button (Element at index 3)
+    t =   122.67s     Wait for app.baget.ios to idle
+    t =   122.67s     Find the Button (Element at index 3)
+    t =   122.89s     Check for interrupting elements affecting "เพื่อน" Button
+    t =   123.12s     Synthesize event
+    t =   123.43s     Wait for app.baget.ios to idle
+    t =   128.60s Added attachment named '09-th-tab3'
+    t =   128.60s Requesting snapshot of accessibility hierarchy for app with pid 10804
+    t =   129.03s Requesting snapshot of accessibility hierarchy for app with pid 10804
+QA: [09] snap 09-th-tab3
+    t =   129.15s Swipe up Target Application 'app.baget.ios'
+    t =   129.15s     Wait for app.baget.ios to idle
+    t =   129.15s     Find the Target Application 'app.baget.ios'
+    t =   129.24s     Check for interrupting elements affecting "Baget" Application
+    t =   129.35s     Synthesize event
+    t =   129.78s     Wait for app.baget.ios to idle
+    t =   133.45s Added attachment named '10-th-tab3-scrolled'
+    t =   133.45s Requesting snapshot of accessibility hierarchy for app with pid 10804
+    t =   133.77s Requesting snapshot of accessibility hierarchy for app with pid 10804
+QA: [10] snap 10-th-tab3-scrolled
+    t =   133.89s Swipe down Target Application 'app.baget.ios'
+    t =   133.89s     Wait for app.baget.ios to idle
+    t =   133.89s     Find the Target Application 'app.baget.ios'
+    t =   133.97s     Check for interrupting elements affecting "Baget" Application
+    t =   134.04s     Synthesize event
+    t =   134.47s     Wait for app.baget.ios to idle
+    t =   136.35s Swipe down Target Application 'app.baget.ios'
+    t =   136.35s     Wait for app.baget.ios to idle
+    t =   136.39s     Find the Target Application 'app.baget.ios'
+    t =   136.54s     Check for interrupting elements affecting "Baget" Application
+    t =   136.64s     Synthesize event
+    t =   137.09s     Wait for app.baget.ios to idle
+    t =   138.12s Get number of matches for: Descendants matching type Button
+    t =   138.23s Tap Button (Element at index 0)
+    t =   138.23s     Wait for app.baget.ios to idle
+    t =   138.23s     Find the Button (Element at index 0)
+    t =   138.34s     Check for interrupting elements affecting "วันนี้" Button
+    t =   138.42s     Synthesize event
+    t =   138.93s     Wait for app.baget.ios to idle
+    t =   140.80s Waiting 3.0s for Button (First Match) to exist
+    t =   141.82s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =   141.84s         Checking existence of `Button (First Match)`
+    t =   141.97s Tap Button (First Match)
+    t =   141.97s     Wait for app.baget.ios to idle
+    t =   141.97s     Find the Button (First Match)
+    t =   142.09s     Check for interrupting elements affecting "คุณ: ไอคอน การตั้งค่า และบัญชี" Button
+    t =   142.96s     Synthesize event
+    t =   143.45s     Wait for app.baget.ios to idle
+    t =   146.99s Added attachment named '11-th-you'
+    t =   147.00s Requesting snapshot of accessibility hierarchy for app with pid 10804
+    t =   150.03s Requesting snapshot of accessibility hierarchy for app with pid 10804
+QA: [11] snap 11-th-you
+    t =   150.96s Swipe up Target Application 'app.baget.ios'
+    t =   150.96s     Wait for app.baget.ios to idle
+    t =   150.96s     Find the Target Application 'app.baget.ios'
+    t =   151.22s     Check for interrupting elements affecting "Baget" Application
+    t =   151.58s     Synthesize event
+    t =   152.05s     Wait for app.baget.ios to idle
+    t =   154.66s Added attachment named '12-th-you-scrolled'
+    t =   154.67s Requesting snapshot of accessibility hierarchy for app with pid 10804
+    t =   156.09s Requesting snapshot of accessibility hierarchy for app with pid 10804
+QA: [12] snap 12-th-you-scrolled
+    t =   156.44s Tear Down
+Test Case '-[BagetUITests.QAWalkthrough testLanguageTour]' passed (159.299 seconds).
+Test Suite 'QAWalkthrough' passed at 2026-10-24 03:57:20.608.
+	 Executed 1 test, with 0 failures (0 unexpected) in 159.299 (159.302) seconds
+Test Suite 'BagetUITests.xctest' passed at 2026-10-24 03:57:20.609.
+	 Executed 1 test, with 0 failures (0 unexpected) in 159.299 (159.303) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 03:57:20.609.
+	 Executed 1 test, with 0 failures (0 unexpected) in 159.299 (159.305) seconds
+2026-10-24 03:57:22.656 xcodebuild[9520:32753] [MT] IDETestOperationsObserverDebug: 192.512 elapsed -- Testing started completed.
+2026-10-24 03:57:22.656 xcodebuild[9520:32753] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-24 03:57:22.656 xcodebuild[9520:32753] [MT] IDETestOperationsObserverDebug: 192.512 sec, +192.512 sec -- end
+
+Test session results, code coverage, and logs:
+	/Users/runner/work/_temp/qa.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started

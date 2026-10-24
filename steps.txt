@@ -1,0 +1,13 @@
+[01] snap 01-th-welcome
+[02] snap 02-th-welcome-scrolled
+[02] tap sample tour
+[03] snap 03-th-tab0
+[04] snap 04-th-tab0-scrolled
+[05] snap 05-th-tab1
+[06] snap 06-th-tab1-scrolled
+[07] snap 07-th-tab2
+[08] snap 08-th-tab2-scrolled
+[09] snap 09-th-tab3
+[10] snap 10-th-tab3-scrolled
+[11] snap 11-th-you
+[12] snap 12-th-you-scrolled
