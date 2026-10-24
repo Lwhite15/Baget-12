@@ -1456,6 +1456,82 @@
         }
       }
     },
+    "%@ is into %@. A good way to find something new.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ is into %2$@. A good way to find something new."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@喜欢%2$@。发现新好物的好办法。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ aime %2$@. Une bonne façon de découvrir du nouveau."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 님은 %2$@에 푹 빠져 있어요. 새로운 걸 찾기 좋은 방법이에요."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ mê %2$@. Một cách hay để tìm món mới."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@さんは%2$@が好きです。新しい発見のきっかけになりますよ。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 喜歡 %2$@，是發現新鮮好物的好方法。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A %1$@ le gusta %2$@. Una buena forma de descubrir algo nuevo."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ को %2$@ पसंद है। कुछ नया खोजने का अच्छा तरीका।"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ชอบ%2$@ เป็นวิธีเจอของใหม่ๆ ที่ดีเลย"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ suka %2$@. Cara bagus buat menemukan hal baru."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ay mahilig sa %2$@. Magandang paraan para makahanap ng bago."
+          }
+        }
+      }
+    },
     "%@ is off": {
       "localizations": {
         "es": {
@@ -1802,6 +1878,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ 已售完。已開啟補貨提醒。"
+          }
+        }
+      }
+    },
+    "%@ keeps their taste private. When you both share taste, you'll see your match, their grails, gift ideas and swap Taste Cards.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@未公开自己的品味。双方都分享品味后,你就能看到你们的契合度、对方的心头好、送礼灵感,还能交换品味卡。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ garde ses goûts privés. Quand vous partagez tous les deux vos goûts, vous verrez votre match, ses grails, des idées de cadeaux, et vous pourrez échanger vos Taste Cards."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 님은 취향을 비공개로 해뒀어요. 서로 취향을 공유하면 매치, 그레일, 선물 아이디어를 보고 취향 카드도 교환할 수 있어요."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ đang giữ kín gu của mình. Khi cả hai cùng chia sẻ gu, bạn sẽ thấy độ hợp, grail của họ, ý tưởng quà tặng và có thể đổi Taste Card."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@さんはテイストを非公開にしています。お互いにテイストを共有すると、マッチ度、憧れの一品、ギフトのアイデアが表示され、テイストカードも交換できます。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 的品味不公開。等你們都分享品味後，就能看到契合度、對方的夢幻單品、送禮靈感，還能交換品味卡。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ mantiene su gusto en privado. Cuando ambos compartan sus gustos, verán su afinidad, sus grails e ideas de regalo, y podrán intercambiar Tarjetas de gusto."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ने अपनी पसंद प्राइवेट रखी है। जब आप दोनों पसंद शेयर करेंगे, तो आपको अपना मैच, उनके ग्रेल और गिफ्ट आइडिया दिखेंगे, और टेस्ट कार्ड की अदला-बदली होगी।"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ตั้งรสนิยมเป็นส่วนตัว เมื่อทั้งคู่แชร์รสนิยม คุณจะเห็นความเข้ากัน ของในฝันของเขา ไอเดียของขวัญ และแลกการ์ดรสนิยมกันได้"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ merahasiakan seleranya. Kalau kalian sama-sama berbagi selera, kamu bisa lihat kecocokan, grail mereka, ide hadiah, dan saling tukar Taste Card."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pribado ang taste ni %@. Kapag pareho kayong nagshe-share ng taste, makikita n'yo ang match n'yo, ang mga grail niya, at gift ideas, at puwede kayong magpalitan ng Taste Cards."
           }
         }
       }
@@ -2633,6 +2779,12 @@
             "value": "%1$@ · %2$lld hallazgo%3$@"
           }
         },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$lld find%3$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2686,11 +2838,81 @@
             "state": "translated",
             "value": "%1$@ · %2$lld 個發現%3$@"
           }
+        }
+      }
+    },
+    "%@ · friends since %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ · friends since %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · 自%2$@成为好友"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · amis depuis %2$@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@부터 친구"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · bạn bè từ %2$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@から友だち"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · 自 %2$@ 成為好友"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · amigos desde %2$@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@ से दोस्त"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · เป็นเพื่อนกันตั้งแต่ %2$@"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · berteman sejak %2$@"
+          }
         },
         "fil": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ · %2$lld find%3$@"
+            "value": "%1$@ · magkaibigan mula %2$@"
           }
         }
       }
@@ -2767,6 +2989,146 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@%2$@"
+          }
+        }
+      }
+    },
+    "%@'S TASTE CARD": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@的品味卡"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TASTE CARD DE %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 님의 취향 카드"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TASTE CARD CỦA %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@さんのテイストカード"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@的品味卡"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TARJETA DE GUSTO DE %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ का टेस्ट कार्ड"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "การ์ดรสนิยมของ %@"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TASTE CARD MILIK %@"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TASTE CARD NI %@"
+          }
+        }
+      }
+    },
+    "%@'s grails": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@的心头好"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les grails de %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 님의 그레일"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grail của %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@さんの憧れの一品"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@的夢幻單品"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los grails de %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ के ग्रेल"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ของในฝันของ %@"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grail %@"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mga grail ni %@"
           }
         }
       }
@@ -3586,6 +3948,12 @@
             "value": "%1$lld agente%2$@ buscando para ti · %3$@"
           }
         },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld scout%2$@ ang naghahanap para sa iyo · %3$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3638,12 +4006,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$lld 個探員%2$@正在為你搜尋 · %3$@"
-          }
-        },
-        "fil": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$lld scout%2$@ ang naghahanap para sa iyo · %3$@"
           }
         }
       }
@@ -3949,6 +4311,12 @@
             "value": "%1$lld new find%2$@"
           }
         },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld bagong find%2$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4002,12 +4370,6 @@
             "state": "translated",
             "value": "%1$lld 個新發現%2$@"
           }
-        },
-        "fil": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$lld bagong find%2$@"
-          }
         }
       }
     },
@@ -4024,6 +4386,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$lld alerta%2$@"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld notification%2$@"
           }
         },
         "fr": {
@@ -4078,12 +4446,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$lld 則通知%2$@"
-          }
-        },
-        "fil": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$lld notification%2$@"
           }
         }
       }
@@ -4325,6 +4687,12 @@
             "value": "%1$lld explorador%2$@ buscando · %3$lld nuevos · %4$lld favoritos"
           }
         },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld scout%2$@ ang naghahanap · %3$lld bago · %4$lld nagustuhan"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4377,12 +4745,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$lld 個探員%2$@搜尋中 · %3$lld 個新發現 · %4$lld 個喜歡"
-          }
-        },
-        "fil": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$lld scout%2$@ ang naghahanap · %3$lld bago · %4$lld nagustuhan"
           }
         }
       }
@@ -4457,6 +4819,76 @@
         }
       }
     },
+    "%lld%%": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld%%"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld %%"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld%%"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld%%"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld%%"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld%%"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld%%"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld%%"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld%%"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld%%"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld%%"
+          }
+        }
+      }
+    },
     "%lld%% match": {
       "localizations": {
         "es": {
@@ -4523,6 +4955,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld%% 相符"
+          }
+        }
+      }
+    },
+    "%lld%% match with you": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "与你契合度 %lld%%"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld %% de match avec vous"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "나와 %lld%% 일치"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hợp với bạn %lld%%"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あなたとのマッチ度 %lld%%"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "與你契合度 %lld%%"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld%% de afinidad contigo"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपसे %lld%% मैच"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เข้ากับคุณ %lld%%"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cocok %lld%% denganmu"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld%% match sa iyo"
           }
         }
       }
@@ -5731,6 +6233,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "你心儀的商品發售、補貨或特價時,馬上通知你。"
+          }
+        }
+      }
+    },
+    "A new scout hunts it for you, the way %@ loves it.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新侦察员会按%@喜欢的方式为你搜寻。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un nouvel éclaireur part à sa chasse, comme %@ l'aime."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새 스카우트가 %@ 님이 좋아하는 방식으로 찾아줄 거예요."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Một scout mới sẽ săn món này cho bạn, đúng gu %@."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@さんの好みに合わせて、新しいスカウトが探します。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新探員會依 %@ 喜歡的方式幫你搜尋。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un nuevo explorador lo busca para ti, como a %@ le encanta."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एक नया स्काउट इसे आपके लिए ढूँढेगा, वैसे ही जैसे %@ को पसंद है।"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "สเกาต์ตัวใหม่จะตามหาให้คุณ ในสไตล์ที่ %@ ชอบ"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scout baru memburunya untukmu, sesuai selera %@."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "May bagong scout na maghahanap nito para sa iyo, gaya ng gusto ni %@."
           }
         }
       }
@@ -9376,6 +9948,76 @@
         }
       }
     },
+    "BAGET · TASTE CARD": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BAGET · 品味卡"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BAGET · TASTE CARD"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BAGET · 취향 카드"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BAGET · TASTE CARD"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BAGET · テイストカード"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BAGET · 品味卡"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BAGET · TARJETA DE GUSTO"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BAGET · टेस्ट कार्ड"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BAGET · การ์ดรสนิยม"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BAGET · TASTE CARD"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BAGET · TASTE CARD"
+          }
+        }
+      }
+    },
     "Back": {
       "localizations": {
         "es": {
@@ -10006,6 +10648,76 @@
         }
       }
     },
+    "Baget writes a Taste Card from what someone likes and passes on. Check back after a few more likes.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baget 会根据一个人的喜欢和略过生成品味卡。多点几个喜欢后再来看看。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baget crée une Taste Card à partir de ce qu'une personne aime et ignore. Revenez après quelques likes de plus."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baget은 좋아요와 패스를 바탕으로 취향 카드를 만들어요. 좋아요를 조금 더 누른 뒤에 다시 확인해 주세요."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baget viết Taste Card dựa trên những gì ai đó thích và bỏ qua. Hãy quay lại sau vài lượt thích nữa nhé."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baget は、その人のいいねとパスからテイストカードを作ります。もう少しいいねしてから、また見に来てください。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baget 會根據某人的喜歡與略過來製作品味卡。多按幾個喜歡後再來看看。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baget crea una Tarjeta de gusto con lo que a alguien le gusta y descarta. Vuelve después de unos «me gusta» más."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baget किसी की लाइक और पास की हुई चीज़ों से टेस्ट कार्ड बनाता है। कुछ और लाइक के बाद फिर देखें।"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baget สร้างการ์ดรสนิยมจากสิ่งที่ใครสักคนชอบและข้าม กดถูกใจเพิ่มอีกหน่อยแล้วกลับมาดูนะ"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baget membuat Taste Card dari apa yang disukai dan dilewati seseorang. Cek lagi setelah beberapa suka lagi."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gumagawa ang Baget ng Taste Card base sa mga gusto at nilampasan ng isang tao. Bumalik pagkatapos ng ilan pang like."
+          }
+        }
+      }
+    },
     "Bags": {
       "localizations": {
         "es": {
@@ -10496,6 +11208,146 @@
         }
       }
     },
+    "Birthday": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生日"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anniversaire"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "생일"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sinh nhật"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "誕生日"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生日"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cumpleaños"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जन्मदिन"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "วันเกิด"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ulang tahun"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Birthday"
+          }
+        }
+      }
+    },
+    "Birthday · %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生日 · %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anniversaire · %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "생일 · %@"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sinh nhật · %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "誕生日 · %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生日 · %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cumpleaños · %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जन्मदिन · %@"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "วันเกิด · %@"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ulang tahun · %@"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Birthday · %@"
+          }
+        }
+      }
+    },
     "Bold & colorful": {
       "localizations": {
         "es": {
@@ -10772,6 +11624,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "書籍"
+          }
+        }
+      }
+    },
+    "Both your scouts found this": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你们的侦察员都发现了这个"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vos deux éclaireurs l'ont trouvé"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "두 사람의 스카우트가 모두 찾았어요"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scout của cả hai bạn đều tìm thấy món này"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2人のスカウトが見つけました"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你們的探員都發現了這個"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los dos exploradores encontraron esto"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपके दोनों स्काउट्स को यह मिला"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "สเกาต์ของคุณทั้งคู่เจอชิ้นนี้"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kedua scout kalian menemukan ini"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nahanap ito ng dalawa n'yong scout"
           }
         }
       }
@@ -12248,6 +13170,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "取消請求"
+          }
+        }
+      }
+    },
+    "Cards swap when you both share taste, and they update as your taste changes. Tap the card to flip.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "双方都分享品味后即可交换卡片,卡片会随品味变化而更新。点按卡片可翻面。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les cartes s'échangent quand vous partagez tous les deux vos goûts, et elles évoluent avec eux. Touchez la carte pour la retourner."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "서로 취향을 공유하면 카드가 교환되고, 취향이 바뀌면 함께 업데이트돼요. 카드를 탭하면 뒤집혀요."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thẻ chỉ được đổi khi cả hai cùng chia sẻ gu, và sẽ cập nhật khi gu của bạn thay đổi. Chạm vào thẻ để lật."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "お互いにテイストを共有するとカードを交換でき、テイストの変化に合わせて更新されます。カードをタップすると裏返せます。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "雙方都分享品味時就會交換卡片，並隨你的品味變化更新。點一下卡片即可翻面。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las tarjetas se intercambian cuando ambos comparten sus gustos y se actualizan cuando estos cambian. Toca la tarjeta para voltearla."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जब आप दोनों पसंद शेयर करते हैं, कार्ड की अदला-बदली होती है, और पसंद बदलने पर वे अपडेट होते हैं। पलटने के लिए कार्ड पर टैप करें।"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "การ์ดจะสลับกันเมื่อทั้งคู่แชร์รสนิยม และอัปเดตตามรสนิยมที่เปลี่ยนไป แตะการ์ดเพื่อพลิก"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kartu bertukar saat kalian sama-sama berbagi selera, dan diperbarui seiring seleramu berubah. Ketuk kartu untuk membaliknya."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nagpapalitan ang mga card kapag pareho kayong nagshe-share ng taste, at nag-a-update ito habang nagbabago ang taste n'yo. I-tap ang card para i-flip."
           }
         }
       }
@@ -18356,6 +19348,54 @@
     },
     "Each scout hunts one thing for you, and every one is yours to shape. Change what it hunts, its brands, styles, size and budget, or how often it texts you, any time.": {
       "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada explorador busca una cosa para ti, y tú decides cómo ajustarlo. Cambia lo que busca, sus marcas, estilos, talla y presupuesto, o cada cuánto te escribe, cuando quieras."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Isang bagay ang hinahanap ng bawat scout para sa iyo, at ikaw ang bahala sa bawat isa. Puwede mong baguhin anumang oras ang hinahanap nito, mga brand, style, size at budget, o kung gaano kadalas ito magte-text sa iyo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chaque éclaireur traque une chose pour vous, et chacun se règle à votre goût. Modifiez à tout moment ce qu'il cherche, ses marques, styles, taille et budget, ou la fréquence de ses messages."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "हर स्काउट आपके लिए एक चीज़ ढूंढता है, और उसे आप अपने हिसाब से बदल सकते हैं। वह क्या ढूंढे, उसके ब्रांड, स्टाइल, साइज़ और बजट, या वह कितनी बार आपको मैसेज करे, यह सब कभी भी बदलें।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setiap scout memburu satu hal untukmu, dan semuanya bisa kamu atur sendiri. Ubah buruannya, merek, gaya, ukuran, dan budget, atau seberapa sering ia mengirim pesan, kapan saja."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スカウトはそれぞれ1つのものを探し、すべてあなた好みに調整できます。探すもの、ブランド、スタイル、サイズ、予算、メッセージの頻度は、いつでも変更できます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "스카우트는 하나당 한 가지씩 찾아 주고, 모두 원하는 대로 바꿀 수 있어요. 찾는 상품, 브랜드, 스타일, 사이즈, 예산, 문자 받는 빈도를 언제든 바꿀 수 있어요."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "สเกาต์แต่ละตัวจะตามหาของให้คุณอย่างหนึ่ง และปรับแต่งได้ตามใจคุณ เปลี่ยนสิ่งที่ตามหา แบรนด์ สไตล์ ไซส์ และงบ หรือความถี่ที่ส่งข้อความหาคุณได้ทุกเมื่อ"
+          }
+        },
         "vi": {
           "stringUnit": {
             "state": "translated",
@@ -18368,58 +19408,10 @@
             "value": "每个侦察员专为你搜寻一件东西,而且都可以由你随心调整。你可以随时更改它搜寻的内容、品牌、风格、尺码和预算,或是它给你发消息的频率。"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "스카우트는 하나당 한 가지씩 찾아 주고, 모두 원하는 대로 바꿀 수 있어요. 찾는 상품, 브랜드, 스타일, 사이즈, 예산, 문자 받는 빈도를 언제든 바꿀 수 있어요."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cada explorador busca una cosa para ti, y tú decides cómo ajustarlo. Cambia lo que busca, sus marcas, estilos, talla y presupuesto, o cada cuánto te escribe, cuando quieras."
-          }
-        },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "每位獵手只為你尋找一樣東西,而且完全由你決定。你可以隨時更改它要找的目標、品牌、款式、尺寸和預算,或是傳訊息給你的頻率。"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chaque éclaireur traque une chose pour vous, et chacun se règle à votre goût. Modifiez à tout moment ce qu'il cherche, ses marques, styles, taille et budget, ou la fréquence de ses messages."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "スカウトはそれぞれ1つのものを探し、すべてあなた好みに調整できます。探すもの、ブランド、スタイル、サイズ、予算、メッセージの頻度は、いつでも変更できます。"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "हर स्काउट आपके लिए एक चीज़ ढूंढता है, और उसे आप अपने हिसाब से बदल सकते हैं। वह क्या ढूंढे, उसके ब्रांड, स्टाइल, साइज़ और बजट, या वह कितनी बार आपको मैसेज करे, यह सब कभी भी बदलें।"
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "สเกาต์แต่ละตัวจะตามหาของให้คุณอย่างหนึ่ง และปรับแต่งได้ตามใจคุณ เปลี่ยนสิ่งที่ตามหา แบรนด์ สไตล์ ไซส์ และงบ หรือความถี่ที่ส่งข้อความหาคุณได้ทุกเมื่อ"
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Setiap scout memburu satu hal untukmu, dan semuanya bisa kamu atur sendiri. Ubah buruannya, merek, gaya, ukuran, dan budget, atau seberapa sering ia mengirim pesan, kapan saja."
-          }
-        },
-        "fil": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Isang bagay ang hinahanap ng bawat scout para sa iyo, at ikaw ang bahala sa bawat isa. Puwede mong baguhin anumang oras ang hinahanap nito, mga brand, style, size at budget, o kung gaano kadalas ito magte-text sa iyo."
           }
         }
       }
@@ -22853,6 +23845,76 @@
         }
       }
     },
+    "From %@'s world": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来自%@的世界"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dans l'univers de %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 님의 세계에서"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Từ thế giới của %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@さんの世界から"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "來自 %@ 的世界"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Del mundo de %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ की दुनिया से"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "จากโลกของ %@"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dari dunia %@"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mula sa mundo ni %@"
+          }
+        }
+      }
+    },
     "From %@, a %@ you like": {
       "localizations": {
         "en": {
@@ -23139,6 +24201,146 @@
         }
       }
     },
+    "GOT IT": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "知道了"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "확인"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ĐÃ HIỂU"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "知道了"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ENTENDIDO"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "समझ गया"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เข้าใจแล้ว"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MENGERTI"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GETS KO"
+          }
+        }
+      }
+    },
+    "GRAIL": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "心头好"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GRAIL"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "그레일"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GRAIL"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "憧れ"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "夢幻單品"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GRAIL"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ग्रेल"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ของในฝัน"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GRAIL"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GRAIL"
+          }
+        }
+      }
+    },
     "Gift": {
       "localizations": {
         "es": {
@@ -23205,6 +24407,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "禮物"
+          }
+        }
+      }
+    },
+    "Gift radar": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "送礼雷达"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radar cadeaux"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "선물 레이더"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radar quà tặng"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ギフトレーダー"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "送禮雷達"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radar de regalos"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "गिफ्ट रडार"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เรดาร์ของขวัญ"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radar hadiah"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gift radar"
           }
         }
       }
@@ -24617,6 +25889,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gérald Genta"
+          }
+        }
+      }
+    },
+    "HUNTS": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜寻"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CHASSES"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "탐색 중"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ĐANG SĂN"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ハント"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜尋中"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BÚSQUEDAS"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "तलाश"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "การล่า"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BERBURU"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MGA HUNT"
           }
         }
       }
@@ -27624,6 +28966,12 @@
             "value": "Kapantay ng %1$lld pang store%2$@"
           }
         },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aligné sur %1$lld boutique%2$@ de plus"
+          }
+        },
         "hi": {
           "stringUnit": {
             "state": "translated",
@@ -27670,12 +29018,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "與其他 %1$lld 間商店價格相當%2$@"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aligné sur %1$lld boutique%2$@ de plus"
           }
         }
       }
@@ -29290,6 +30632,76 @@
         }
       }
     },
+    "LIKED": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喜欢"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AIMÉ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "좋아요"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ĐÃ THÍCH"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "いいね"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喜歡"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ME GUSTAN"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "लाइक किए"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ที่ถูกใจ"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DISUKAI"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NI-LIKE"
+          }
+        }
+      }
+    },
     "LIMITED": {
       "localizations": {
         "es": {
@@ -29776,6 +31188,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "就像朋友傳商品照片給你。頻率可在「設定」中選擇。"
+          }
+        }
+      }
+    },
+    "Like and pass a few more finds and this gets sharper.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再多喜欢或略过几个发现,结果会更精准。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Likez et ignorez encore quelques trouvailles pour affiner tout ça."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "발견을 좋아요 하거나 패스하면 더 정확해져요."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thích và bỏ qua thêm vài món tìm thấy để gu rõ nét hơn."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "もう少し発見にいいねやパスをすると、精度が上がります。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "多喜歡或略過幾個發現，這裡會更精準。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dale «me gusta» o descarta unos hallazgos más y esto será más preciso."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कुछ और खोज लाइक करें या पास करें, तो यह और सटीक हो जाएगा।"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "กดถูกใจและข้ามของที่เจออีกหน่อย แล้วจะแม่นขึ้น"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sukai dan lewati beberapa temuan lagi, hasilnya jadi makin tajam."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mag-like at mag-pass ng ilan pang nahanap para mas tumpak ito."
           }
         }
       }
@@ -32026,6 +33508,76 @@
         }
       }
     },
+    "Month and day only. Friends who share taste see it next to gift ideas for you.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅显示月和日。品味相同的好友会在送礼灵感旁看到它。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jour et mois uniquement. Les amis qui partagent leurs goûts le voient à côté des idées de cadeaux pour vous."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "월과 일만 표시돼요. 취향을 공유하는 친구에게 선물 아이디어와 함께 보여요."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chỉ cần tháng và ngày. Bạn bè cùng chia sẻ gu sẽ thấy ngày này cạnh các ý tưởng quà tặng cho bạn."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月と日だけです。テイストを共有している友だちには、ギフトのアイデアと一緒に表示されます。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只需月份和日期。分享品味的好友會在送禮靈感旁看到。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo mes y día. Los amigos que comparten gustos lo ven junto a ideas de regalo para ti."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सिर्फ़ महीना और तारीख़। पसंद शेयर करने वाले दोस्त इसे आपके लिए गिफ्ट आइडिया के साथ देखते हैं।"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เฉพาะเดือนและวัน เพื่อนที่แชร์รสนิยมจะเห็นคู่กับไอเดียของขวัญสำหรับคุณ"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hanya bulan dan tanggal. Teman dengan selera sama bisa melihatnya di samping ide hadiah untukmu."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buwan at araw lang. Makikita ito ng mga kaibigang kapareho ng taste, katabi ng gift ideas para sa iyo."
+          }
+        }
+      }
+    },
     "Monthly": {
       "localizations": {
         "es": {
@@ -32166,6 +33718,146 @@
         }
       }
     },
+    "Mostly %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "多为%@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Surtout %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "대부분 %@"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chủ yếu là %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ほぼ%@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "多為%@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sobre todo %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ज़्यादातर %@"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ส่วนใหญ่ %@"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kebanyakan %@"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Karamihan %@"
+          }
+        }
+      }
+    },
+    "Mostly you": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "多为你"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Surtout vous"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "대부분 나"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chủ yếu là bạn"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ほぼあなた"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "多為你"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sobre todo tú"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ज़्यादातर आप"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ส่วนใหญ่คุณ"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kebanyakan kamu"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Karamihan ikaw"
+          }
+        }
+      }
+    },
     "Must-have keywords": {
       "localizations": {
         "es": {
@@ -32302,6 +33994,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "已靜音"
+          }
+        }
+      }
+    },
+    "My birthday": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的生日"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mon anniversaire"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내 생일"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sinh nhật của tôi"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "私の誕生日"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的生日"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mi cumpleaños"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मेरा जन्मदिन"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "วันเกิดฉัน"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ulang tahunku"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Birthday ko"
           }
         }
       }
@@ -32582,6 +34344,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "你的新發現"
+          }
+        }
+      }
+    },
+    "NOTES": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "笔记"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NOTES"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "노트"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GHI CHÚ"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ノート"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "筆記"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NOTAS"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "नोट्स"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "โน้ต"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NOTE"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NOTES"
           }
         }
       }
@@ -34262,6 +36094,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "不傳簡訊"
+          }
+        }
+      }
+    },
+    "No. %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %@ 号"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "N° %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No. %@"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Số %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No. %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No. %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "N.º %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "नं. %@"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No. %@"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No. %@"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No. %@"
           }
         }
       }
@@ -38895,6 +40797,54 @@
     },
     "Pause a scout, or delete it from its card in Squad": {
       "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausa un explorador o elimínalo desde su tarjeta en Squad"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I-pause ang scout, o i-delete ito mula sa card nito sa Squad"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mettez un éclaireur en pause, ou supprimez-le depuis sa carte dans Squad"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्काउट को पॉज़ करें, या Squad में उसके कार्ड से डिलीट करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeda atau hapus scout lewat kartunya di Squad"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スカウトは一時停止するか、Squadのカードから削除できます"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Squad의 스카우트 카드에서 일시 중지하거나 삭제할 수 있어요"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "หยุดสเกาต์ชั่วคราว หรือลบจากการ์ดใน Squad"
+          }
+        },
         "vi": {
           "stringUnit": {
             "state": "translated",
@@ -38907,58 +40857,10 @@
             "value": "可暂停侦察员,或在“Squad”中通过它的卡片删除"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Squad의 스카우트 카드에서 일시 중지하거나 삭제할 수 있어요"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pausa un explorador o elimínalo desde su tarjeta en Squad"
-          }
-        },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "暫停獵手,或從 Squad 裡的卡片刪除"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mettez un éclaireur en pause, ou supprimez-le depuis sa carte dans Squad"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "スカウトは一時停止するか、Squadのカードから削除できます"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "स्काउट को पॉज़ करें, या Squad में उसके कार्ड से डिलीट करें"
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "หยุดสเกาต์ชั่วคราว หรือลบจากการ์ดใน Squad"
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jeda atau hapus scout lewat kartunya di Squad"
-          }
-        },
-        "fil": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "I-pause ang scout, o i-delete ito mula sa card nito sa Squad"
           }
         }
       }
@@ -39729,6 +41631,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "請選擇你的%@。這位偵察員只會搜尋有你尺寸現貨的商品。"
+          }
+        }
+      }
+    },
+    "Picked for %@'s taste by your scouts, under $150.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "侦察员按%@的品味挑选,价格低于 $150。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisi pour les goûts de %@ par vos éclaireurs, moins de 150 $."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "스카우트가 %@ 님의 취향에 맞춰 고른 150달러 이하 상품이에요."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Các scout của bạn chọn theo gu của %@, dưới $150."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あなたのスカウトが%@さんのテイストに合わせて選んだ、150ドル以下のアイテムです。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的探員依 %@ 的品味挑選，$150 以下。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elegidos por tus exploradores para el gusto de %@, por menos de $150."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपके स्काउट्स ने %@ की पसंद के हिसाब से चुना, $150 से कम में।"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "สเกาต์ของคุณเลือกให้ตามรสนิยมของ %@ ราคาไม่เกิน $150"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dipilih scout-mu sesuai selera %@, di bawah $150."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pinili ng mga scout mo para sa taste ni %@, wala pang $150."
           }
         }
       }
@@ -43333,6 +45305,76 @@
         }
       }
     },
+    "Removed %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已移除%@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ retiré"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 삭제함"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã xóa %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@を削除しました"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已移除 %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ eliminado"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ हटाया गया"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ลบ %@ แล้ว"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ dihapus"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inalis ang %@"
+          }
+        }
+      }
+    },
     "Replace from library": {
       "localizations": {
         "es": {
@@ -43405,6 +45447,54 @@
     },
     "Replace it any time: type something new into \"What are you hunting?\" and a fresh scout starts right away": {
       "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reemplázalo cuando quieras: escribe algo nuevo en \"¿Qué estás buscando?\" y un explorador nuevo empieza al instante"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Palitan anumang oras: mag-type ng bago sa \"Ano ang hinahanap mo?\" at agad magsisimula ang bagong scout"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remplacez-le à tout moment : saisissez autre chose dans « Que cherchez-vous ? » et un nouvel éclaireur démarre aussitôt"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कभी भी बदलें: \"आप क्या ढूंढ रहे हैं?\" में कुछ नया लिखें और नया स्काउट तुरंत शुरू हो जाएगा"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ganti kapan saja: ketik hal baru di \"Apa yang kamu buru?\" dan scout baru langsung mulai bekerja"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "いつでも入れ替えOK。「何を探していますか?」に新しく入力すると、すぐに新しいスカウトが動き出します"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "언제든 바꿀 수 있어요. \"무엇을 찾고 있나요?\"에 새로 입력하면 새 스카우트가 바로 시작돼요"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เปลี่ยนได้ทุกเมื่อ แค่พิมพ์สิ่งใหม่ในช่อง \"คุณกำลังตามหาอะไร?\" แล้วสเกาต์ตัวใหม่จะเริ่มทำงานทันที"
+          }
+        },
         "vi": {
           "stringUnit": {
             "state": "translated",
@@ -43417,58 +45507,10 @@
             "value": "随时可以替换:在“你在找什么?”中输入新内容,新的侦察员会立刻开始工作"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "언제든 바꿀 수 있어요. \"무엇을 찾고 있나요?\"에 새로 입력하면 새 스카우트가 바로 시작돼요"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reemplázalo cuando quieras: escribe algo nuevo en \"¿Qué estás buscando?\" y un explorador nuevo empieza al instante"
-          }
-        },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "隨時都能替換:在「你在找什麼?」輸入新內容,新的獵手就會立刻開始"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Remplacez-le à tout moment : saisissez autre chose dans « Que cherchez-vous ? » et un nouvel éclaireur démarre aussitôt"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "いつでも入れ替えOK。「何を探していますか?」に新しく入力すると、すぐに新しいスカウトが動き出します"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "कभी भी बदलें: \"आप क्या ढूंढ रहे हैं?\" में कुछ नया लिखें और नया स्काउट तुरंत शुरू हो जाएगा"
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "เปลี่ยนได้ทุกเมื่อ แค่พิมพ์สิ่งใหม่ในช่อง \"คุณกำลังตามหาอะไร?\" แล้วสเกาต์ตัวใหม่จะเริ่มทำงานทันที"
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ganti kapan saja: ketik hal baru di \"Apa yang kamu buru?\" dan scout baru langsung mulai bekerja"
-          }
-        },
-        "fil": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Palitan anumang oras: mag-type ng bago sa \"Ano ang hinahanap mo?\" at agad magsisimula ang bagong scout"
           }
         }
       }
@@ -44809,6 +46851,76 @@
         }
       }
     },
+    "SIGNATURE": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标志性"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SIGNATURE"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "시그니처"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DẤU ẤN"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "シグネチャー"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "招牌"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FIRMA"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सिग्नेचर"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ลายเซ็น"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SIGNATURE"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SIGNATURE"
+          }
+        }
+      }
+    },
     "SOLD OUT": {
       "localizations": {
         "es": {
@@ -46139,6 +48251,76 @@
         }
       }
     },
+    "See %@'s": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看%@的"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voir celui de %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 님 보기"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xem của %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@さんのを見る"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "看 %@ 的"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver la de %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ का देखें"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ดูของ %@"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lihat milik %@"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tingnan ang kay %@"
+          }
+        }
+      }
+    },
     "See all": {
       "localizations": {
         "es": {
@@ -46205,6 +48387,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "查看全部"
+          }
+        }
+      }
+    },
+    "See mine": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看我的"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voir le mien"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내 것 보기"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xem của tôi"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自分のを見る"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "看我的"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver la mía"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मेरा देखें"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ดูของฉัน"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lihat milikku"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tingnan ang akin"
           }
         }
       }
@@ -51611,6 +53863,76 @@
         }
       }
     },
+    "Start a scout for %@?": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为%@创建侦察员?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lancer un éclaireur pour %@ ?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 님을 위한 스카우트를 시작할까요?"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tạo scout cho %@?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@さん向けのスカウトを始めますか?"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要為 %@ 啟動探員嗎？"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Iniciar un explorador para %@?"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ के लिए स्काउट शुरू करें?"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เริ่มสเกาต์สำหรับ %@ ไหม?"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mulai scout untuk %@?"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Magsimula ng scout para kay %@?"
+          }
+        }
+      }
+    },
     "Start exploring": {
       "localizations": {
         "es": {
@@ -52941,6 +55263,76 @@
         }
       }
     },
+    "Swap Taste Cards": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "交换品味卡"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Échanger les Taste Cards"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "취향 카드 교환"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đổi Taste Card"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テイストカードを交換"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "交換品味卡"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intercambiar Tarjetas de gusto"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "टेस्ट कार्ड की अदला-बदली"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "แลกการ์ดรสนิยม"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tukar Taste Card"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Magpalitan ng Taste Cards"
+          }
+        }
+      }
+    },
     "Sweet & cozy": {
       "localizations": {
         "es": {
@@ -53219,6 +55611,12 @@
             "state": "translated",
             "value": "瀏覽 %1$lld 個新發現%2$@"
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parcourez %1$lld nouvelle(s) trouvaille(s)%2$@"
+          }
         }
       }
     },
@@ -53358,6 +55756,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "喜好板%@"
+          }
+        }
+      }
+    },
+    "TASTE CARDS": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "品味卡"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TASTE CARDS"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "취향 카드"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TASTE CARD"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テイストカード"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "品味卡"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TARJETAS DE GUSTO"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "टेस्ट कार्ड"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "การ์ดรสนิยม"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TASTE CARD"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TASTE CARDS"
           }
         }
       }
@@ -53784,6 +56252,54 @@
     },
     "Talk to a scout or open Detailed setup to fine-tune it": {
       "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Habla con un explorador o abre Configuración detallada para afinarlo"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kausapin ang scout o buksan ang Detalyadong setup para i-fine-tune ito"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parlez à un éclaireur ou ouvrez la configuration détaillée pour l'affiner"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्काउट से बात करें या डिटेल्ड सेटअप खोलकर उसे बारीकी से सेट करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ngobrol dengan scout atau buka Pengaturan detail untuk menyetelnya"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スカウトに話しかけるか、「詳細設定」を開いて細かく調整できます"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "스카우트와 대화하거나 세부 설정을 열어 세밀하게 조정해 보세요"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "คุยกับสเกาต์ หรือเปิด \"การตั้งค่าแบบละเอียด\" เพื่อปรับแต่งเพิ่ม"
+          }
+        },
         "vi": {
           "stringUnit": {
             "state": "translated",
@@ -53796,58 +56312,10 @@
             "value": "与侦察员聊聊,或打开“详细设置”进行微调"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "스카우트와 대화하거나 세부 설정을 열어 세밀하게 조정해 보세요"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Habla con un explorador o abre Configuración detallada para afinarlo"
-          }
-        },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "和獵手聊聊,或開啟「詳細設定」進行微調"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Parlez à un éclaireur ou ouvrez la configuration détaillée pour l'affiner"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "スカウトに話しかけるか、「詳細設定」を開いて細かく調整できます"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "स्काउट से बात करें या डिटेल्ड सेटअप खोलकर उसे बारीकी से सेट करें"
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "คุยกับสเกาต์ หรือเปิด \"การตั้งค่าแบบละเอียด\" เพื่อปรับแต่งเพิ่ม"
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ngobrol dengan scout atau buka Pengaturan detail untuk menyetelnya"
-          }
-        },
-        "fil": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kausapin ang scout o buksan ang Detalyadong setup para i-fine-tune ito"
           }
         }
       }
@@ -54059,6 +56527,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "遇到喜歡的就點「喜歡」。你的偵察員會偏重該品牌與風格，找出更多類似的。"
+          }
+        }
+      }
+    },
+    "Tap one to hunt it": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点按即可搜寻"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Touchez-en un pour le chasser"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "탭해서 찾아보세요"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chạm vào một món để săn"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "タップしてハント"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "點一下開始搜尋"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toca uno para buscarlo"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "तलाश शुरू करने के लिए एक पर टैप करें"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "แตะเพื่อเริ่มล่า"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ketuk untuk memburunya"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I-tap ang isa para i-hunt"
           }
         }
       }
@@ -54415,6 +56953,496 @@
           "stringUnit": {
             "state": "translated",
             "value": "喜好 %1$@・購買 %2$@"
+          }
+        }
+      }
+    },
+    "Taste Card": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "品味卡"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taste Card"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "취향 카드"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taste Card"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テイストカード"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "品味卡"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tarjeta de gusto"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "टेस्ट कार्ड"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "การ์ดรสนิยม"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taste Card"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taste Card"
+          }
+        }
+      }
+    },
+    "Taste DNA": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "品味 DNA"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taste DNA"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "취향 DNA"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taste DNA"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テイストDNA"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "品味 DNA"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ADN de gusto"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "टेस्ट DNA"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DNA รสนิยม"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taste DNA"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taste DNA"
+          }
+        }
+      }
+    },
+    "Taste match is waiting": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "品味匹配等待中"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le match de goûts vous attend"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "취향 매치를 기다리는 중"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Độ hợp gu đang chờ bạn"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テイストマッチを待っています"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "品味配對等待中"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu afinidad de gustos te espera"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "टेस्ट मैच इंतज़ार में है"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ความเข้ากันของรสนิยมกำลังรออยู่"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kecocokan selera menunggumu"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naghihintay ang taste match"
+          }
+        }
+      }
+    },
+    "Taste match: different worlds": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "品味匹配:截然不同"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Match de goûts : mondes différents"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "취향 매치: 완전 다른 세계"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Độ hợp gu: hai thế giới khác nhau"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テイストマッチ:まったく違う世界"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "品味契合：截然不同"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afinidad: mundos distintos"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "टेस्ट मैच: अलग-अलग दुनिया"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "รสนิยมเข้ากัน: คนละโลก"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kecocokan selera: beda dunia"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taste match: magkaibang mundo"
+          }
+        }
+      }
+    },
+    "Taste match: really close": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "品味匹配:非常接近"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Match de goûts : très proches"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "취향 매치: 아주 비슷해요"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Độ hợp gu: cực kỳ gần nhau"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テイストマッチ:とても近い"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "品味契合：非常接近"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afinidad: muy cercana"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "टेस्ट मैच: बिल्कुल क़रीब"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "รสนิยมเข้ากัน: ใกล้มาก"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kecocokan selera: sangat mirip"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taste match: sobrang lapit"
+          }
+        }
+      }
+    },
+    "Taste match: some overlap": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "品味匹配:有些重合"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Match de goûts : quelques points communs"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "취향 매치: 겹치는 부분 있음"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Độ hợp gu: có điểm chung"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テイストマッチ:少し重なる"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "品味契合：有些重疊"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afinidad: algo en común"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "टेस्ट मैच: कुछ मिलता-जुलता"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "รสนิยมเข้ากัน: เหมือนกันบางส่วน"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kecocokan selera: ada kesamaan"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taste match: may pagkakapareho"
+          }
+        }
+      }
+    },
+    "Taste match: twins": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "品味匹配:双胞胎"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Match de goûts : jumeaux"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "취향 매치: 쌍둥이"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Độ hợp gu: sinh đôi"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テイストマッチ:双子レベル"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "品味契合：雙胞胎"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afinidad: gemelos"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "टेस्ट मैच: जुड़वाँ"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "รสนิยมเข้ากัน: ฝาแฝด"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kecocokan selera: kembar"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taste match: kambal"
           }
         }
       }
@@ -58007,6 +61035,76 @@
         }
       }
     },
+    "This card is being made": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在制作这张卡片"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette carte est en cours de création"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "카드를 만드는 중이에요"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thẻ này đang được tạo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このカードを作成中です"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這張卡片製作中"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta tarjeta se está creando"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह कार्ड बन रहा है"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "กำลังสร้างการ์ดนี้"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kartu ini sedang dibuat"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ginagawa pa ang card na ito"
+          }
+        }
+      }
+    },
     "This isn't available yet. Your scout will hold your spot and ask again at release.": {
       "localizations": {
         "es": {
@@ -59623,6 +62721,76 @@
         }
       }
     },
+    "Turn on sharing your taste (Friends, then What friends can see) to see your match, %@'s grails, gift ideas and swap Taste Cards.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开启分享你的品味(好友,然后选“好友可见内容”),即可查看你们的契合度、%@的心头好、送礼灵感,并交换品味卡。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activez le partage de vos goûts (Amis, puis Ce que les amis peuvent voir) pour voir votre match, les grails de %@, des idées de cadeaux et échanger vos Taste Cards."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "취향 공유를 켜면(친구 → 친구에게 보이는 정보) 매치, %@ 님의 그레일, 선물 아이디어를 보고 취향 카드도 교환할 수 있어요."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bật chia sẻ gu của bạn (Bạn bè, rồi Bạn bè có thể thấy gì) để xem độ hợp, grail của %@, ý tưởng quà tặng và đổi Taste Card."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テイストの共有をオンにすると(友だち → 友だちに見せる内容)、マッチ度、%@さんの憧れの一品、ギフトのアイデアが表示され、テイストカードも交換できます。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開啟分享你的品味（好友 › 好友可見內容），即可看到契合度、%@ 的夢幻單品、送禮靈感，並交換品味卡。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activa compartir tu gusto (Amigos, luego Lo que ven tus amigos) para ver tu afinidad, los grails de %@, ideas de regalo e intercambiar Tarjetas de gusto."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अपना मैच, %@ के ग्रेल और गिफ्ट आइडिया देखने और टेस्ट कार्ड की अदला-बदली के लिए अपनी पसंद शेयर करना चालू करें (दोस्त, फिर दोस्त क्या देख सकते हैं)।"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เปิดแชร์รสนิยมของคุณ (เพื่อน แล้วเลือก สิ่งที่เพื่อนเห็นได้) เพื่อดูความเข้ากัน ของในฝันของ %@ ไอเดียของขวัญ และแลกการ์ดรสนิยม"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktifkan berbagi selera (Teman, lalu Yang bisa dilihat teman) untuk melihat kecocokan, grail %@, ide hadiah, dan tukar Taste Card."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I-on ang pagshe-share ng taste mo (Friends, tapos What friends can see) para makita ang match mo, mga grail ni %@, at gift ideas, at makapagpalitan ng Taste Cards."
+          }
+        }
+      }
+    },
     "Twice a day": {
       "localizations": {
         "es": {
@@ -59759,6 +62927,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "搜尋深度加倍：12 次搜尋，更多商店"
+          }
+        }
+      }
+    },
+    "Twin finds": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "双胞胎发现"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trouvailles jumelles"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "쌍둥이 발견"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Món tìm thấy giống nhau"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ツイン発見"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "雙胞發現"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hallazgos gemelos"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जुड़वाँ खोज"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ของที่เจอตรงกัน"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temuan kembar"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Magkakambal na nahanap"
           }
         }
       }
@@ -61230,6 +64468,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "黑膠與音樂"
+          }
+        }
+      }
+    },
+    "WATCHING": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关注中"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SUIVIS"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "지켜보는 중"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ĐANG THEO DÕI"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ウォッチ中"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "關注中"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SIGUIENDO"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "निगरानी में"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "กำลังจับตา"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DIPANTAU"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BINABANTAYAN"
           }
         }
       }
@@ -64804,6 +68112,76 @@
         }
       }
     },
+    "YOUR TASTE CARD": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的品味卡"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VOTRE TASTE CARD"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내 취향 카드"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TASTE CARD CỦA BẠN"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あなたのテイストカード"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的品味卡"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TU TARJETA DE GUSTO"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपका टेस्ट कार्ड"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "การ์ดรสนิยมของคุณ"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TASTE CARD-MU"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IYONG TASTE CARD"
+          }
+        }
+      }
+    },
     "Yearly": {
       "localizations": {
         "es": {
@@ -65370,6 +68748,222 @@
         }
       }
     },
+    "You both": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你们都"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous deux"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "둘 다"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cả hai bạn"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2人とも"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你們都"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los dos"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आप दोनों"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "คุณทั้งคู่"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kalian berdua"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayong dalawa"
+          }
+        }
+      }
+    },
+    "You both go for %@.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你们都偏爱%@。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous aimez tous les deux %@."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "두 분 모두 %@을(를) 좋아해요."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cả hai đều mê %@."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2人とも%@が好きです。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你們都偏愛%@。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los dos van por %@."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आप दोनों को %@ पसंद है।"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "คุณทั้งคู่ชอบ %@"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kalian berdua suka %@."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pareho kayong mahilig sa %@."
+          }
+        }
+      }
+    },
+    "You both go for %@. %@ leans more %@ than you.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "You both go for %1$@. %2$@ leans more %3$@ than you."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你们都偏爱%1$@。%2$@比你更偏%3$@。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous aimez tous les deux %1$@. %2$@ penche plus %3$@ que vous."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "두 분 모두 %1$@을(를) 좋아해요. %2$@ 님이 나보다 %3$@ 쪽에 더 가까워요."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cả hai đều mê %1$@. %2$@ thiên về %3$@ hơn bạn."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2人とも%1$@が好きです。%2$@さんはあなたより%3$@寄りです。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你們都偏愛%1$@。%2$@比你更偏%3$@。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los dos van por %1$@. %2$@ se inclina más por %3$@ que tú."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आप दोनों को %1$@ पसंद है। %2$@ आपसे ज़्यादा %3$@ की ओर झुके हैं।"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "คุณทั้งคู่ชอบ %1$@ แต่ %2$@ เอนไปทาง%3$@มากกว่าคุณ"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kalian berdua suka %1$@. %2$@ lebih condong ke %3$@ daripada kamu."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pareho kayong mahilig sa %1$@. Mas %3$@ si %2$@ kaysa sa iyo."
+          }
+        }
+      }
+    },
     "You both like": {
       "localizations": {
         "es": {
@@ -65436,6 +69030,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "你們都喜歡"
+          }
+        }
+      }
+    },
+    "You both love": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你们都爱"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous aimez tous les deux"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "둘 다 좋아하는 것"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cả hai đều yêu"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2人とも大好き"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你們都愛"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A los dos les encanta"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आप दोनों को पसंद है"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "คุณทั้งคู่รัก"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kalian berdua suka"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pareho n'yong gusto"
           }
         }
       }
@@ -69298,6 +72962,76 @@
         }
       }
     },
+    "both": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "都是"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "les deux"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "둘 다"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "cả hai"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2人とも"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兩人"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ambos"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "दोनों"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ทั้งคู่"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "berdua"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pareho"
+          }
+        }
+      }
+    },
     "brand": {
       "localizations": {
         "es": {
@@ -71258,6 +74992,76 @@
         }
       }
     },
+    "you": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vous"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "나"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "bạn"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あなた"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tú"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आप"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "คุณ"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kamu"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ikaw"
+          }
+        }
+      }
+    },
     "·": {
       "localizations": {
         "es": {
@@ -71674,6 +75478,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "♥ 已喜歡 · %lld"
+          }
+        }
+      }
+    },
+    "✦ %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✦ %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✦ %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✦ %@"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✦ %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✦ %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✦ %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✦ %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✦ %@"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✦ %@"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✦ %@"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✦ %@"
           }
         }
       }
