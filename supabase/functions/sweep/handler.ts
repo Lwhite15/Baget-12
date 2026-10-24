@@ -283,9 +283,23 @@ const lastHunt: string[] = [];
  *  in-stock products as Sonnet at about a fifth of the cost. Chat and setup keep the app-wide model. */
 export const SWEEP_MODEL = () => env("SWEEP_MODEL") ?? "claude-haiku-5-5";
 
+/** A scout whose last 3 hunts found nothing new rests: scheduled hunts are skipped until 3 days after its last real
+ *  hunt, then it tries again (and rests again if that one is empty too). Hunting from the app always runs. */
+export const REST_AFTER_EMPTY = 3;
+export async function restingAfterNothing(agentId: string, now = new Date()): Promise<boolean> {
+  const last = await db.select<{ finds: number; created_at: string }>("sweep_runs",
+    `select=finds,created_at&agent_id=eq.${agentId}&trigger=in.(scheduled,manual)&error=is.null&order=created_at.desc&limit=${REST_AFTER_EMPTY}`).catch(() => []);
+  if (!Array.isArray(last) || last.length < REST_AFTER_EMPTY || last.some((r) => !r || r.finds > 0)) return false;
+  return now.getTime() - Date.parse(last[0].created_at) < num("REST_HOURS", 72) * 3600_000;
+}
+
 export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", now = new Date(),
                                  opts: { model?: string; provider?: "serper" | "claude" } = {}) {
   const run = { user_id: a.user_id, agent_id: a.id, trigger, searches: 0, listings: 0, finds: 0, tandem: 0, input_tokens: 0, output_tokens: 0, cache_write_tokens: 0, cache_read_tokens: 0, fetches: 0, error: null as string | null };
+  if (trigger === "scheduled" && await restingAfterNothing(a.id, now)) {
+    await db.rpc("record_finds", { p_agent: a.id, p_finds: [] }).catch(() => 0);   // stamps the sweep time so it isn't picked again right away
+    return run;
+  }
   try {
     const reactions = await reactionsFor(a.id).catch(() => undefined);
     // Extra sources (each only when its key is set): Google Shopping leads for Claude, and real eBay listings.

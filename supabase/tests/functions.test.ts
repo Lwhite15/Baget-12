@@ -172,7 +172,7 @@ await test("scheduled hunt (one scout, own worker): web search, continue a pause
   assert.equal(rec.p_finds.length, 1, "the AJ4 isn't in his size, so only one find");
   assert.equal(rec.p_finds[0].note, undefined, "no photo yet, so no text: it waits until the photo is found");
   assert.ok(rec.p_finds[0].why.includes("Like your taste photos: suede"));
-  const runLog = calls.find((c) => c.url.includes("sweep_runs"))!.body;
+  const runLog = calls.find((c) => c.url.includes("sweep_runs") && c.body)!.body;
   assert.equal(runLog.searches, 3);
   assert.equal(runLog.input_tokens, 2900);
 });
@@ -1603,5 +1603,19 @@ await test("women's sizes from setup are read right", () => {
   assert.equal(M.shoeUS("US W 8"), 6.5);
   assert.equal(M.topSize("M (womenswear)"), "M");
   assert.equal(M.topSize("S (womenswear)"), "S");
+});
+
+await test("a scout whose last 3 hunts found nothing rests for 3 days, then tries again", async () => {
+  const sweep = await import("../functions/sweep/handler.ts");
+  const now = new Date("2026-10-23T12:00:00Z");
+  const runs = (finds: number[], hoursAgo: number) => finds.map((f, i) => ({ finds: f, created_at: new Date(now.getTime() - (hoursAgo + i * 24) * 3600_000).toISOString() }));
+  reset([[/sweep_runs/, () => ok(runs([0, 0, 0], 20))]]);
+  assert.equal(await sweep.restingAfterNothing("a1", now), true);
+  reset([[/sweep_runs/, () => ok(runs([0, 0, 0], 80))]]);
+  assert.equal(await sweep.restingAfterNothing("a1", now), false, "3 days on, it hunts again");
+  reset([[/sweep_runs/, () => ok(runs([0, 2, 0], 20))]]);
+  assert.equal(await sweep.restingAfterNothing("a1", now), false, "anything found recently keeps it hunting");
+  reset([[/sweep_runs/, () => ok(runs([0, 0], 20))]]);
+  assert.equal(await sweep.restingAfterNothing("a1", now), false, "new scouts get their first hunts");
 });
 
