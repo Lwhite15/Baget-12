@@ -1654,3 +1654,14 @@ await test("language codes from any iPhone setting", () => {
   assert.equal(M.langOf("en"), null);
 });
 
+await test("taste cards are short, flattering and safe to show", async () => {
+  const sw = await import("../functions/sweep/handler.ts");
+  const c = sw.cleanCard({ archetype: "✦ Fresh Minimalist", signature: ["Le Labo", "Frédéric Malle", "Extra"], notes: ["vetiver", "lime", "sandalwood", "x"],
+    hunts: ["fragrance", "cars"], grail: "Vetiver Extraordinaire", palette: ["#d9e8c4", "red", "#9FB88A", "#e9dcc3", "#6f5a43"] })!;
+  assert.equal(c.archetype, "The Fresh Minimalist");
+  assert.deepEqual(c.signature, ["Le Labo", "Frédéric Malle"]);
+  assert.equal(c.notes.length, 3);
+  assert.deepEqual(c.palette, ["#d9e8c4", "#9FB88A", "#e9dcc3", "#6f5a43"]);
+  assert.equal(sw.cleanCard({ archetype: "" }), null);
+});
+

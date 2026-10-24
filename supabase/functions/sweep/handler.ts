@@ -678,9 +678,55 @@ export async function maintain() {
   out.refreshed = await refreshFinds(num("REFRESH_CHECKS", 40)).catch((e) => { console.error("refresh", e); return null; });
   out.prices = await repriceOld(num("PRICE_BACKFILL", 10)).catch((e) => { console.error("prices", e); return null; });
   out.stores = await db.rpc<number>("learn_stores", {}).catch((e) => { console.error("stores", e); return null; });
+  // Taste Cards for people who share their taste with friends, written fresh every few days.
+  out.cards = await refreshTasteCards(num("TASTE_CARDS", 5)).catch((e) => { console.error("cards", e); return null; });
   // Finds nobody touched in a week step aside so Finds stays a short list of what's worth a look.
   out.archived = await db.rpc<number>("archive_stale_finds", { p_days: 7 }).catch((e) => { console.error("archive", e); return null; });
   return out;
+}
+
+// ── Taste Cards ──
+
+export interface TasteCard { archetype: string; signature: string[]; notes: string[]; hunts: string[]; grail: string | null; palette: string[] }
+
+/** Cleans what the model wrote into a card the app can show: short strings, real hex colors. */
+export function cleanCard(raw: unknown): TasteCard | null {
+  const r = (raw ?? {}) as Record<string, unknown>;
+  const strs = (v: unknown, n: number, len: number) => Array.isArray(v) ? v.filter((x) => typeof x === "string" && x.trim()).map((x) => (x as string).trim().slice(0, len)).slice(0, n) : [];
+  let archetype = typeof r.archetype === "string" ? r.archetype.trim().replace(/^[✦*•\s]+/, "").slice(0, 40) : "";
+  if (!archetype) return null;
+  if (!/^the\b/i.test(archetype)) archetype = `The ${archetype}`;
+  const palette = strs(r.palette, 5, 7).filter((c) => /^#[0-9a-f]{6}$/i.test(c));
+  return {
+    archetype, signature: strs(r.signature, 2, 30), notes: strs(r.notes, 3, 24), hunts: strs(r.hunts, 3, 24),
+    grail: typeof r.grail === "string" && r.grail.trim() ? r.grail.trim().slice(0, 60) : null,
+    palette: palette.length >= 3 ? palette : ["#e9dcc3", "#9fb88a", "#6f5a43", "#f4f1ea", "#3b4a5c"],
+  };
+}
+
+export async function refreshTasteCards(limit: number) {
+  const due = await db.rpc<string[] | { taste_cards_due: string }[]>("taste_cards_due", { p_limit: limit });
+  const ids = (due as unknown[]).map((x) => typeof x === "string" ? x : (x as { taste_cards_due: string }).taste_cards_due).filter(Boolean);
+  let written = 0;
+  for (const id of ids) {
+    const input = await db.rpc<Record<string, unknown>>("taste_card_inputs", { uid: id }).catch(() => null);
+    if (!input) continue;
+    const res = await claude({ model: SWEEP_MODEL(), max_tokens: 800, purpose: "taste card", messages: [{ role: "user", content:
+`Write a collectible "Taste Card" for a shopper, from what they love (JSON):
+${JSON.stringify(input)}
+
+Reply with only JSON:
+{"archetype": a catchy 2-4 word title starting with "The" that sums up their taste (e.g. "The Fresh Minimalist", "The Oud Collector", "The Quiet Luxury Sneakerhead"),
+ "signature": their 1-2 signature brands, "notes": 3 short words for their style or scent (e.g. "vetiver", "earth tones", "suede"),
+ "hunts": what they hunt in 1-3 short words, "grail": the one item they'd most want (a short product name from what they liked, or null),
+ "palette": 5 hex colors that feel like their taste}
+Use only what's in the data. Keep it flattering and specific.` }] }).catch(() => null);
+    const card = res ? cleanCard(parseJSON(textOf(res.content))) : null;
+    // No card yet (nothing to go on): try again in 3 days rather than every 15 minutes.
+    await db.update("profiles", `id=eq.${id}`, card ? { taste_card: card, taste_card_at: new Date().toISOString() } : { taste_card_at: new Date().toISOString() }).catch(() => {});
+    if (card) written++;
+  }
+  return { due: ids.length, written };
 }
 
 /** Prices checked before samples and decants were filtered out (Oct 19, 2026): look them up again, newest first. */

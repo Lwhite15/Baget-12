@@ -90,6 +90,21 @@ select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001
 select t.ok(t.n($$select * from public.notes where body like '%accepted your friend request%'$$) = 1, 'larry notified of acceptance');
 select t.ok(t.n($$select * from public.my_friends() where status = 'accepted' and 'fragrance' = any(hunts) and 'oud' = any(likes)$$) = 1,
             'friend taste visible when shared');
+select t.ok((public.friend_profile('bbbbbbbb-0000-0000-0000-000000000002') ->> 'shares')::boolean
+        and public.friend_profile('bbbbbbbb-0000-0000-0000-000000000002') ? 'match'
+        and public.friend_profile('bbbbbbbb-0000-0000-0000-000000000002') -> 'hunts' ? 'fragrance', 'friend profile: match, DNA and hunts when both share taste');
+reset role;
+update public.profiles set share_taste = false where id = 'bbbbbbbb-0000-0000-0000-000000000002';
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
+select t.ok(not (public.friend_profile('bbbbbbbb-0000-0000-0000-000000000002') ->> 'shares')::boolean
+        and not public.friend_profile('bbbbbbbb-0000-0000-0000-000000000002') ? 'match', 'nothing beyond the name when they don''t share taste');
+select t.err($$select public.friend_profile('cccccccc-0000-0000-0000-000000000003')$$, 'no profile for someone who isn''t a friend');
+select t.ok(t.n('select * from public.friend_cards()') = 0, 'no cards from friends who don''t share');
+reset role;
+update public.profiles set share_taste = true where id = 'bbbbbbbb-0000-0000-0000-000000000002';
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
 
 -- ── server: a sweep finds listings for Larry ──
 reset role;
