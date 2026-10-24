@@ -704,6 +704,13 @@ export function cleanCard(raw: unknown): TasteCard | null {
   };
 }
 
+const HUNT_WORDS: Record<string, string> = { sneakers: "Sneakers", apparel: "Clothing", fragrance: "Fragrance", watches: "Watches",
+  cars: "Cars", furniture: "Furniture", accessories: "Accessories", collectibles: "Collectibles" };
+export function huntWords(v: unknown): string[] {
+  return (Array.isArray(v) ? v : []).filter((x) => typeof x === "string" && x.trim())
+    .map((x) => HUNT_WORDS[x as string] ?? (x as string).replace(/^./, (c) => c.toUpperCase()).slice(0, 24)).slice(0, 3);
+}
+
 export async function refreshTasteCards(limit: number) {
   const due = await db.rpc<string[] | { taste_cards_due: string }[]>("taste_cards_due", { p_limit: limit });
   const ids = (due as unknown[]).map((x) => typeof x === "string" ? x : (x as { taste_cards_due: string }).taste_cards_due).filter(Boolean);
@@ -722,6 +729,8 @@ Reply with only JSON:
  "palette": 5 hex colors that feel like their taste}
 Use only what's in the data. Keep it flattering and specific.` }] }).catch(() => null);
     const card = res ? cleanCard(parseJSON(textOf(res.content))) : null;
+    // What they hunt comes straight from their scouts, in plain words.
+    if (card && !card.hunts.length) card.hunts = huntWords(input.hunts);
     // No card yet (nothing to go on): try again in 3 days rather than every 15 minutes.
     await db.update("profiles", `id=eq.${id}`, card ? { taste_card: card, taste_card_at: new Date().toISOString() } : { taste_card_at: new Date().toISOString() }).catch(() => {});
     if (card) written++;
