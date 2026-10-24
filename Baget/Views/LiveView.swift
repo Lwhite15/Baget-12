@@ -21,7 +21,7 @@ struct LiveFeed: View {
                     emptyState(tab)
                 } else if tab == nil {
                     VStack(spacing: 12) {
-                        EmptyCard(text: "Your bar is empty.")
+                        EmptyCard(text: String(localized: "Your bar is empty."))
                         Button("Add sections") { router.sheet = .customizeBar }.buttonStyle(PrimaryButton())
                     }
                 } else if let lead = list.first {
@@ -51,7 +51,7 @@ struct LiveFeed: View {
                         selected = t.id; shown = 10
                         Analytics.track(.liveSectionViewed, ["section": t.label])
                     } label: {
-                        Pill(text: t.kind == .forYou && forYouCount > 0 ? "For you · \(forYouCount)" : t.label, selected: t.id == current?.id)
+                        Pill(text: t.kind == .forYou && forYouCount > 0 ? String(localized: "For you · \(forYouCount)") : t.label, selected: t.id == current?.id)
                     }
                 }
                 Button { router.sheet = .customizeBar } label: {
@@ -71,16 +71,16 @@ struct LiveFeed: View {
         switch tab.kind {
         case .custom(let q):
             VStack(spacing: 12) {
-                EmptyCard(text: "Nothing in today's stories matches “\(q)” yet.")
+                EmptyCard(text: String(localized: "Nothing in today's stories matches “\(q)” yet."))
                 Button("Set up a scout to hunt \(tab.label)") {
                     router.deployPrefill = .custom(q)
                     router.sheet = .deploy
                 }.buttonStyle(PrimaryButton())
             }
         case .forYou:
-            EmptyCard(text: "Your squad hasn't picked anything yet. Set up a scout or rate a few finds and this fills up.")
+            EmptyCard(text: String(localized: "Your squad hasn't picked anything yet. Set up a scout or rate a few finds and this fills up."))
         default:
-            EmptyCard(text: "No stories here yet.")
+            EmptyCard(text: String(localized: "No stories here yet."))
         }
     }
 }
@@ -90,7 +90,7 @@ struct Kicker: View {
     var body: some View {
         HStack(spacing: 8) {
             Text(story.item.category.info.label.uppercased()).foregroundStyle(Theme.cyan)
-            Text(story.kind.uppercased()).foregroundStyle(story.kind == "Release" || story.kind == "Market" ? Theme.hot : Theme.muted)
+            Text(story.kind.uppercased()).foregroundStyle(story.kind == String(localized: "Release") || story.kind == String(localized: "Market") ? Theme.hot : Theme.muted)
             Text("\(story.minutesAgo < 60 ? "\(story.minutesAgo) MIN" : "\(story.minutesAgo / 60) HR") AGO").foregroundStyle(Theme.muted)
             if story.forYou {
                 Text("FOR YOU · \(story.score)%")
@@ -118,7 +118,7 @@ struct StoryActions: View {
             if let agent, !(story.match?.notInSize ?? false) {
                 if tracked {
                     Button { router.openInFinds(story, store: store) } label: {
-                        IconText(icon: "chevron.right", text: "View in Finds", trailing: true)
+                        IconText(icon: "chevron.right", text: String(localized: "View in Finds"), trailing: true)
                     }
                     .buttonStyle(GhostButton())
                     .tint(Theme.green)
@@ -127,7 +127,7 @@ struct StoryActions: View {
                         store.ensureFind(agentID: agent.id, itemID: story.item.id)
                         store.log("You sent \(story.item.title) to \(agent.name)")
                         Analytics.track(.storySentToAgent, ["category": story.item.category.rawValue])
-                        router.say("Sent to \(agent.name). It's in your Finds.")
+                        router.say(String(localized: "Sent to \(agent.name). It's in your Finds."))
                     }.buttonStyle(PrimaryButton())
                 }
             } else if story.agentID == nil {
@@ -152,7 +152,7 @@ struct LeadStoryView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 12) {
-                Plate(item: story.item, label: story.isLive ? "AVAILABLE NOW" : store.whenLabel(story.item), height: 230, lead: true)
+                Plate(item: story.item, label: story.isLive ? String(localized: "AVAILABLE NOW") : store.whenLabel(story.item), height: 230, lead: true)
                     .shadow(color: Theme.cyan.opacity(0.35), radius: 24, y: 12)
                 Kicker(story: story)
                 Text(story.headline)
@@ -238,8 +238,8 @@ struct AwayCard: View {
             Text("WHILE YOU WERE AWAY · \(report.minutes >= 90 ? "\(Int(safe: (Double(report.minutes) / 60).rounded())) HOURS" : "\(report.minutes) MINUTES")")
                 .font(.caption.weight(.bold)).tracking(1).gradientText()
             Text(report.sweeps > 0
-                 ? "Your squad ran \(report.sweeps) sweep\(report.sweeps == 1 ? "" : "s"), checked about \(report.checked) listings and found \(report.found) new thing\(report.found == 1 ? "" : "s") for you.\(report.restocks > 0 ? " One of your watched items restocked." : "")\(report.bought > 0 ? " Auto-buy landed \(report.bought)." : "")"
-                 : "Your squad kept searching the web and found \(report.found) new thing\(report.found == 1 ? "" : "s") for you.\(report.restocks > 0 ? " Something you're watching restocked." : "")")
+                 ? String(localized: "Your squad ran \(report.sweeps) sweep\(report.sweeps == 1 ? "" : "s"), checked about \(report.checked) listings and found \(report.found) new thing\(report.found == 1 ? "" : "s") for you.\(report.restocks > 0 ? " One of your watched items restocked." : "")\(report.bought > 0 ? " Auto-buy landed \(report.bought)." : "")")
+                 : String(localized: "Your squad kept searching the web and found \(report.found) new thing\(report.found == 1 ? "" : "s") for you.\(report.restocks > 0 ? " Something you're watching restocked." : "")"))
                 .font(.subheadline).foregroundStyle(Theme.ink)
             HStack {
                 Button("\(report.notes) notification\(report.notes == 1 ? "" : "s")") { router.sheet = .inbox }.buttonStyle(PrimaryButton())

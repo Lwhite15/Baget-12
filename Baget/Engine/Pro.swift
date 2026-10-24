@@ -13,7 +13,7 @@ struct PlanInfo: Decodable, Equatable {
     var scouts: Int?
 
     /// "9am to 1pm"
-    var windowLabel: String { "\(Self.hourLabel(huntStart)) to \(Self.hourLabel((huntStart + hours) % 24))" }
+    var windowLabel: String { String(localized: "\(Self.hourLabel(huntStart)) to \(Self.hourLabel((huntStart + hours) % 24))") }
 
     static func hourLabel(_ h: Int) -> String {
         let x = ((h % 24) + 24) % 24
@@ -41,7 +41,7 @@ extension AppStore {
     /// How many scouts this account may have: Free 2, Pro 5 (the sample tour: no limit to speak of).
     var scoutLimit: Int { isCloud ? (plan?.scouts ?? (isPro ? 5 : 2)) : 12 }
     var squadFull: Bool { state.agents.count >= scoutLimit }
-    var scoutLimitMessage: String { isPro ? "Pro includes up to \(scoutLimit) scouts. Retire one to add another." : "Free includes 2 scouts. Go Pro for up to 5." }
+    var scoutLimitMessage: String { isPro ? String(localized: "Pro includes up to \(scoutLimit) scouts. Retire one to add another.") : String(localized: "Free includes 2 scouts. Go Pro for up to 5.") }
 
     func loadPlan() async {
         guard isCloud else { plan = nil; return }
@@ -90,18 +90,18 @@ extension AppStore {
         do {
             switch try await product.purchase(options: options) {
             case .success(let result):
-                guard case .verified(let tx) = result else { return "Apple couldn't verify that purchase." }
+                guard case .verified(let tx) = result else { return String(localized: "Apple couldn't verify that purchase.") }
                 let msg = await sendToServer(result.jwsRepresentation)
                 await tx.finish()
                 await loadPlan()
                 Analytics.track(.purchaseConfirmed, ["pro": product.id])
                 return msg
             case .userCancelled: return nil
-            case .pending: return "Your purchase is waiting for approval."
+            case .pending: return String(localized: "Your purchase is waiting for approval.")
             @unknown default: return nil
             }
         } catch {
-            return "The purchase didn't go through. \((error as? LocalizedError)?.errorDescription ?? "")"
+            return String(localized: "The purchase didn't go through. \((error as? LocalizedError)?.errorDescription ?? "")")
         }
     }
 
@@ -110,7 +110,7 @@ extension AppStore {
         try? await StoreKit.AppStore.sync()
         await syncProEntitlements()
         await loadPlan()
-        return isPro ? "Pro restored." : "No Baget Pro subscription found for this Apple ID."
+        return isPro ? String(localized: "Pro restored.") : String(localized: "No Baget Pro subscription found for this Apple ID.")
     }
 
     /// On launch and after any change: sends your current subscriptions to the server, so renewals,
@@ -141,9 +141,9 @@ extension AppStore {
     private func sendToServer(_ jws: String) async -> String? {
         do {
             let r: SubscriptionReply = try await api.function("subscription", ["signed_transaction": jws])
-            return r.pro == true ? nil : "That subscription has ended."
+            return r.pro == true ? nil : String(localized: "That subscription has ended.")
         } catch {
-            return (error as? LocalizedError)?.errorDescription ?? "Couldn't confirm the purchase. Try Restore in a minute."
+            return (error as? LocalizedError)?.errorDescription ?? String(localized: "Couldn't confirm the purchase. Try Restore in a minute.")
         }
     }
 

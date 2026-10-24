@@ -61,7 +61,7 @@ struct DeployAgentView: View {
                         ForEach(Category.allCases) { c in
                             Button { category = c } label: { Pill(text: c.info.label, selected: category == c) }.buttonStyle(.plain)
                         }
-                        Button { category = nil } label: { Pill(text: "Something else…", selected: category == nil) }.buttonStyle(.plain)
+                        Button { category = nil } label: { Pill(text: String(localized: "Something else…"), selected: category == nil) }.buttonStyle(.plain)
                     }
                     .padding(.vertical, 4)
                     if category == nil {
@@ -189,8 +189,8 @@ struct DeployAgentView: View {
 
     private func deploy() {
         var a = draft
-        if case .custom(let t) = a.mission, t.isEmpty { error = "Tell the scout what to hunt."; return }
-        if Sizes.required(a) && !Sizes.has(a) { error = "Pick your \(category == .sneakers ? "shoe size" : "size"). This scout only hunts things in stock in your size."; return }
+        if case .custom(let t) = a.mission, t.isEmpty { error = String(localized: "Tell the scout what to hunt."); return }
+        if Sizes.required(a) && !Sizes.has(a) { error = String(localized: "Pick your \(category == .sneakers ? "shoe size" : "size"). This scout only hunts things in stock in your size."); return }
         if a.name.isEmpty { a.name = String("\(a.mission.label.capitalizedFirst) Hunter".prefix(40)) }
         if store.squadFull {
             error = store.scoutLimitMessage
@@ -224,7 +224,7 @@ struct DeployAgentView: View {
                                          "mode": a.mode.rawValue, "voice": a.voice.rawValue, "hasSize": !a.size.isEmpty])
         router.deployPrefill = nil
         router.tab = .squad
-        if !store.isCloud { router.say("\(a.name) deployed and sweeping") } else { router.say("\(a.name) deployed. Searching the web now…") }
+        if !store.isCloud { router.say(String(localized: "\(a.name) deployed and sweeping")) } else { router.say(String(localized: "\(a.name) deployed. Searching the web now…")) }
         dismiss()
     }
 }

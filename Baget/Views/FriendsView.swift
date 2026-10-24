@@ -52,7 +52,7 @@ struct FriendsView: View {
                 }
                 .padding(.bottom, 10)
 
-                SectionHead(title: "Your circle")
+                SectionHead(title: String(localized: "Your circle"))
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(alignment: .top, spacing: 16) {
                         ForEach(circle) { f in
@@ -78,10 +78,10 @@ struct FriendsView: View {
 
                 ForEach(requests) { f in RequestRow(friend: f) }
 
-                SectionHead(title: "Sent to you", trailing: suggestions.isEmpty ? nil : "\(suggestions.count) new")
+                SectionHead(title: String(localized: "Sent to you"), trailing: suggestions.isEmpty ? nil : "\(suggestions.count) new")
                 if suggestions.isEmpty {
-                    Text(store.state.friends.isEmpty ? "Add a friend and the things they send you show up here."
-                                                     : "Nothing new from friends right now.")
+                    Text(store.state.friends.isEmpty ? String(localized: "Add a friend and the things they send you show up here.")
+                                                     : String(localized: "Nothing new from friends right now."))
                         .font(.footnote).foregroundStyle(Theme.muted)
                         .padding(.vertical, 12)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -90,7 +90,7 @@ struct FriendsView: View {
                 ForEach(suggestions) { s in SuggestionCard(suggestion: s) }
 
                 if !shares.isEmpty {
-                    SectionHead(title: "You sent").padding(.top, 8)
+                    SectionHead(title: String(localized: "You sent")).padding(.top, 8)
                     ForEach(shares) { sh in SentRow(share: sh) }
                 }
 
@@ -158,12 +158,12 @@ private struct CircleMember: View {
                     if hasNew { Circle().fill(Theme.warn).frame(width: 10, height: 10).overlay(Circle().strokeBorder(Theme.bg, lineWidth: 2)) }
                 }
                 .opacity(friend.isPending ? 0.55 : 1)
-            Text(friend.isPending ? "Invited" : (friend.name.split(separator: " ").first.map(String.init) ?? friend.name))
+            Text(friend.isPending ? String(localized: "Invited") : (friend.name.split(separator: " ").first.map(String.init) ?? friend.name))
                 .font(.caption).foregroundStyle(friend.isPending ? Theme.muted : Theme.ink.opacity(0.85))
                 .lineLimit(1)
         }
         .frame(width: 60)
-        .accessibilityLabel(friend.isPending ? "Request sent to \(friend.handle)" : friend.name)
+        .accessibilityLabel(friend.isPending ? String(localized: "Request sent to \(friend.handle)") : friend.name)
     }
 }
 
@@ -176,7 +176,7 @@ private struct RequestRow: View {
             FriendAvatar(friend: friend, size: 34)
             (Text(friend.name).bold() + Text(" wants to connect")).font(.subheadline).foregroundStyle(Theme.ink).lineLimit(1)
             Spacer(minLength: 8)
-            Button("Accept") { store.respondToFriend(friend, accept: true); router.say("You and \(friend.name) are now friends") }
+            Button("Accept") { store.respondToFriend(friend, accept: true); router.say(String(localized: "You and \(friend.name) are now friends")) }
                 .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
             Button("Decline") { store.respondToFriend(friend, accept: false) }
                 .font(.subheadline).foregroundStyle(Theme.muted)
@@ -227,18 +227,18 @@ struct SuggestionCard: View {
                     Button("Add to Finds") {
                         withAnimation(.snappy) { store.acceptSuggestion(suggestion.id) }
                         Analytics.track(.suggestionAccepted, ["category": item.category.rawValue])
-                        router.say(best != nil && !notInSize ? "Saved to Finds. \(best!.agent.name) learned from it." : "Saved to your Finds")
+                        router.say(best != nil && !notInSize ? String(localized: "Saved to Finds. \(best!.agent.name) learned from it.") : String(localized: "Saved to your Finds"))
                     }
                     .buttonStyle(QuietPrimary())
                     Button("Not for me") {
                         withAnimation(.snappy) { store.passSuggestion(suggestion.id) }
-                        router.say("Passed")
+                        router.say(String(localized: "Passed"))
                         Analytics.track(.suggestionPassed, ["category": item.category.rawValue])
                     }
                     .font(.subheadline).foregroundStyle(Theme.ink.opacity(0.8)).buttonStyle(.plain)
                     Spacer()
                     if store.isCloud && suggestion.shareID != nil && !replied {
-                        Button(replying ? "Cancel" : "Reply") { withAnimation(.snappy) { replying.toggle() } }
+                        Button(replying ? String(localized: "Cancel") : String(localized: "Reply")) { withAnimation(.snappy) { replying.toggle() } }
                             .font(.subheadline).foregroundStyle(Theme.muted).buttonStyle(.plain)
                     }
                 }
@@ -317,15 +317,15 @@ private struct FriendSheet: View {
             VStack(spacing: 0) {
                 FriendAvatar(friend: friend, size: 84).padding(.top, 28)
                 Text(friend.isPending ? friend.handle : friend.name).font(FriendsStyle.serif(26)).foregroundStyle(Theme.ink).padding(.top, 12)
-                Text(friend.isPending ? "Request sent · waiting for them to accept" : friend.handle)
+                Text(friend.isPending ? String(localized: "Request sent · waiting for them to accept") : friend.handle)
                     .font(.subheadline).foregroundStyle(Theme.muted).padding(.top, 4)
 
                 VStack(alignment: .leading, spacing: 18) {
-                    if !both.isEmpty { chips("You both like", Array(both.prefix(6))) }
+                    if !both.isEmpty { chips(String(localized: "You both like"), Array(both.prefix(6))) }
                     if !friend.hunts.isEmpty { chips("\(first) hunts", friend.hunts.map(\.info.label)) }
                     if !sent.isEmpty {
                         VStack(alignment: .leading, spacing: 10) {
-                            label("Recently sent you")
+                            label(String(localized: "Recently sent you"))
                             LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
                                 ForEach(Array(sent)) { item in ProductThumb(item: item, size: 150) }
                             }
@@ -387,7 +387,7 @@ private struct AddFriendSheet: View {
                     .textInputAutocapitalization(.never).autocorrectionDisabled()
                     .submitLabel(.go).onSubmit(add)
                     .padding(12).background(Color.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
-                Button(working ? "…" : "Add", action: add).buttonStyle(QuietPrimary()).disabled(working || handle.isEmpty)
+                Button(working ? "…" : String(localized: "Add"), action: add).buttonStyle(QuietPrimary()).disabled(working || handle.isEmpty)
             }
             if let error { Text(error).font(.footnote).foregroundStyle(Theme.hot) }
             Spacer()
@@ -478,12 +478,12 @@ struct ShareView: View {
                     }
                 }
                 Section("Add a note") {
-                    TextField(isSuggestion ? "Why it's perfect for them" : "What do you think?", text: $note)
+                    TextField(isSuggestion ? String(localized: "Why it's perfect for them") : String(localized: "What do you think?"), text: $note)
                 }
             }
             .scrollContentBackground(.hidden)
             .background(LitBackground())
-            .navigationTitle(isSuggestion ? "Suggest" : "Share")
+            .navigationTitle(isSuggestion ? String(localized: "Suggest") : String(localized: "Share"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
@@ -491,7 +491,7 @@ struct ShareView: View {
                     Button("Send") {
                         store.share(itemID: itemID, to: Array(picked), note: note.trimmingCharacters(in: .whitespaces), isSuggestion: isSuggestion)
                         Analytics.track(isSuggestion ? .suggestionSent : .itemShared, ["friends": picked.count, "hasNote": !note.isEmpty])
-                        router.say("Sent")
+                        router.say(String(localized: "Sent"))
                         dismiss()
                     }.bold().disabled(picked.isEmpty)
                 }

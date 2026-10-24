@@ -38,7 +38,7 @@ struct TastePhotoView: View {
                                     .buttonStyle(image == nil ? AnyButtonStyle(PrimaryButton()) : AnyButtonStyle(GhostButton()))
                             }
                             PhotosPicker(selection: $pick, matching: .images, photoLibrary: .shared()) {
-                                Label(image == nil ? "Choose a photo" : "Choose another", systemImage: "photo.on.rectangle.angled")
+                                Label(image == nil ? String(localized: "Choose a photo") : String(localized: "Choose another"), systemImage: "photo.on.rectangle.angled")
                             }
                             .buttonStyle(image == nil && !CameraPicker.available ? AnyButtonStyle(PrimaryButton()) : AnyButtonStyle(GhostButton()))
                         }
@@ -48,8 +48,8 @@ struct TastePhotoView: View {
 
                         if image == nil {
                             Text(store.isCloud
-                                 ? "Show \(a.name) something you love, like a fit, a shelf, a car or a room. It reads the style and hunts for more of it. The photo is saved privately to your account."
-                                 : "Show \(a.name) something you love, like a fit, a shelf, a car or a room. It reads the style and hunts for more of it. The photo stays on your phone.")
+                                 ? String(localized: "Show \(a.name) something you love, like a fit, a shelf, a car or a room. It reads the style and hunts for more of it. The photo is saved privately to your account.")
+                                 : String(localized: "Show \(a.name) something you love, like a fit, a shelf, a car or a room. It reads the style and hunts for more of it. The photo stays on your phone."))
                                 .font(.footnote).foregroundStyle(Theme.muted)
                         }
                         if loading {
@@ -76,7 +76,7 @@ struct TastePhotoView: View {
                                 }
                             }
                             HStack {
-                                TextField(allTags.isEmpty ? "What do you love about it? e.g. suede, earth tones" : "Anything it missed", text: $own)
+                                TextField(allTags.isEmpty ? String(localized: "What do you love about it? e.g. suede, earth tones") : String(localized: "Anything it missed"), text: $own)
                                     .textInputAutocapitalization(.never)
                                     .padding(10).background(Theme.bg.opacity(0.6), in: RoundedRectangle(cornerRadius: 12))
                                     .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.line))
@@ -94,7 +94,7 @@ struct TastePhotoView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(kept.isEmpty ? "Teach" : "Teach \(kept.count)") { teach() }
+                    Button(kept.isEmpty ? String(localized: "Teach") : "Teach \(kept.count)") { teach() }
                         .bold().disabled(kept.isEmpty || image == nil)
                 }
             }
@@ -145,7 +145,7 @@ struct TastePhotoView: View {
         let creators = (reading?.creators ?? []).filter { kept.contains($0) }
         let tags = allTags.filter { kept.contains($0) && !makers.contains($0) && !creators.contains($0) }
         store.addTastePhoto(agentID: agentID, image: image, tags: tags, makers: makers, creators: creators, summary: reading?.summary ?? "")
-        router.say("\(a.name) learned from your photo")
+        router.say(String(localized: "\(a.name) learned from your photo"))
         dismiss()
     }
 }
@@ -203,7 +203,7 @@ struct TasteBoardRow: View {
                         .overlay(alignment: .topTrailing) {
                             Button {
                                 store.removeTastePhoto(agentID: agent.id, photoID: p.id)
-                                router.say("Photo removed")
+                                router.say(String(localized: "Photo removed"))
                             } label: {
                                 Image(systemName: "xmark").font(.system(size: 10, weight: .bold)).foregroundStyle(.white)
                                     .frame(width: 22, height: 22).background(Circle().fill(Theme.bg.opacity(0.75)))

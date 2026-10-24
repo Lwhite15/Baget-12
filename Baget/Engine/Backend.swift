@@ -7,8 +7,8 @@ struct BackendError: LocalizedError {
     let message: String
     var status: Int = 0
     var errorDescription: String? { message }
-    static let notSignedIn = BackendError(message: "Sign in to use this.")
-    static let offline = BackendError(message: "You're offline. Check your connection and try again.")
+    static let notSignedIn = BackendError(message: String(localized: "Sign in to use this."))
+    static let offline = BackendError(message: String(localized: "You're offline. Check your connection and try again."))
 }
 
 /// A minimal Supabase client: Sign in with Apple, database (PostgREST), RPC, edge functions and storage.
@@ -94,7 +94,7 @@ final class Backend {
         guard let obj = try JSONSerialization.jsonObject(with: data) as? [String: Any],
               let access = obj["access_token"] as? String, let refresh = obj["refresh_token"] as? String,
               let user = obj["user"] as? [String: Any], let uid = user["id"] as? String else {
-            throw BackendError(message: "Sign-in didn't complete. Try again.")
+            throw BackendError(message: String(localized: "Sign-in didn't complete. Try again."))
         }
         let expiresIn = (obj["expires_in"] as? Double) ?? 3600
         let s = Session(accessToken: access, refreshToken: refresh, expiresAt: Date().addingTimeInterval(expiresIn - 60), userID: uid)
@@ -114,7 +114,7 @@ final class Backend {
                 try self.store(sessionFrom: data)
             } catch let e as BackendError where e.status == 400 || e.status == 401 {
                 self.forgetSession()
-                throw BackendError(message: "Your session expired. Sign in again.", status: 401)
+                throw BackendError(message: String(localized: "Your session expired. Sign in again."), status: 401)
             }
         }
         refreshing = task
@@ -126,7 +126,7 @@ final class Backend {
     @discardableResult
     func raw(_ method: String, _ path: String, query: [URLQueryItem] = [], json: Any? = nil, body: Data? = nil,
              contentType: String? = nil, prefer: String? = nil, authorized: Bool = true) async throws -> Data {
-        guard let baseURL else { throw BackendError(message: "Baget isn't connected to a server yet.") }
+        guard let baseURL else { throw BackendError(message: String(localized: "Baget isn't connected to a server yet.")) }
         if authorized { try await refreshIfNeeded() }
         var comps = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
         if !query.isEmpty { comps.percentEncodedQuery = query.map { "\($0.name)=\(($0.value ?? "").addingPercentEncoding(withAllowedCharacters: .pgrst) ?? "")" }.joined(separator: "&") }
@@ -161,10 +161,10 @@ final class Backend {
             }
         }
         switch status {
-        case 401: return "Your session expired. Sign in again."
-        case 409: return "That's already taken."
-        case 429, 503: return "Busy right now. Try again in a minute."
-        default: return "Something went wrong (\(status)). Try again."
+        case 401: return String(localized: "Your session expired. Sign in again.")
+        case 409: return String(localized: "That's already taken.")
+        case 429, 503: return String(localized: "Busy right now. Try again in a minute.")
+        default: return String(localized: "Something went wrong (\(status)). Try again.")
         }
     }
 

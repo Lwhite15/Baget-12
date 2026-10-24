@@ -120,7 +120,7 @@ struct FindsView: View {
                 Button("\(clearLabel) (\(visible.count))", role: .destructive) {
                     let n = visible.count
                     store.removeFinds(visible.map(\.id))
-                    router.say(n == 1 ? "Cleared 1 find" : "Cleared \(n) finds")
+                    router.say(n == 1 ? String(localized: "Cleared 1 find") : String(localized: "Cleared \(n) finds"))
                 }
             } message: {
                 Text("They leave Finds and your scouts won't show them again. What your scouts learned about your taste stays.")
@@ -152,8 +152,8 @@ struct FindsView: View {
                     let label: String = {
                         switch f {
                         case .liked: return n > 0 ? "♥ Liked · \(n)" : "♥ Liked"
-                        case .watching: return n > 0 ? "Watching · \(n)" : "Watching"
-                        case .all: return "All"
+                        case .watching: return n > 0 ? "Watching · \(n)" : String(localized: "Watching")
+                        case .all: return String(localized: "All")
                         default: return n > 0 ? "\(f.rawValue) · \(n)" : f.rawValue
                         }
                     }()
@@ -175,22 +175,22 @@ struct FindsView: View {
 
     private var clearLabel: String {
         switch show {
-        case .all: return "Clear all"
-        case .new: return "Clear new"
-        case .liked: return "Clear liked"
-        case .watching: return "Clear watching"
-        case .intel: return "Clear intel"
+        case .all: return String(localized: "Clear all")
+        case .new: return String(localized: "Clear new")
+        case .liked: return String(localized: "Clear liked")
+        case .watching: return String(localized: "Clear watching")
+        case .intel: return String(localized: "Clear intel")
         }
     }
 
     private var emptyText: String {
-        if store.state.agents.isEmpty { return "Set up a scout first, then tap Hunt now." }
+        if store.state.agents.isEmpty { return String(localized: "Set up a scout first, then tap Hunt now.") }
         switch show {
-        case .new: return "You're all caught up. Your squad keeps hunting in the background."
-        case .liked: return "Nothing liked yet. Tap ♥ on a find you love and your scouts will find more like it."
-        case .all: return "Nothing here yet. Tap Hunt now, or pull down on Today."
-        case .watching: return "Nothing on watch. Tap Watch it for me on a find, or Notify me on something sold out, and it shows up here."
-        case .intel: return "No intel right now. Droplists, release calendars and news your scouts come across land here."
+        case .new: return String(localized: "You're all caught up. Your squad keeps hunting in the background.")
+        case .liked: return String(localized: "Nothing liked yet. Tap ♥ on a find you love and your scouts will find more like it.")
+        case .all: return String(localized: "Nothing here yet. Tap Hunt now, or pull down on Today.")
+        case .watching: return String(localized: "Nothing on watch. Tap Watch it for me on a find, or Notify me on something sold out, and it shows up here.")
+        case .intel: return String(localized: "No intel right now. Droplists, release calendars and news your scouts come across land here.")
         }
     }
 
@@ -213,10 +213,10 @@ struct FindsView: View {
                 } else {
                     let res = store.sweep()
                     Analytics.track(.sweepRun, ["found": res.found, "manual": true])
-                    if res.found == 0 { router.say("Nothing new fits you right now") }
+                    if res.found == 0 { router.say(String(localized: "Nothing new fits you right now")) }
                 }
             } label: {
-                if sweeping { ProgressView().tint(Theme.accent) } else { IconText(icon: "arrow.clockwise", text: "Hunt now") }
+                if sweeping { ProgressView().tint(Theme.accent) } else { IconText(icon: "arrow.clockwise", text: String(localized: "Hunt now")) }
             }
             .buttonStyle(GhostButton())
             .frame(width: 118)
@@ -269,7 +269,7 @@ struct FindsView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("\(g.title), \(g.finds.count) finds, \(g.newCount) new")
-            .accessibilityHint(isCollapsed ? "Expands the section" : "Collapses the section")
+            .accessibilityHint(isCollapsed ? String(localized: "Expands the section") : String(localized: "Collapses the section"))
 
             if !isCollapsed {
                 VStack(spacing: 10) {
@@ -341,7 +341,7 @@ struct FindCard: View {
             VStack(alignment: .leading, spacing: 10) {
                 Button { expanded.toggle() } label: { summary(item) }
                     .buttonStyle(.plain)
-                    .accessibilityHint(expanded ? "Hides details" : "Shows details")
+                    .accessibilityHint(expanded ? String(localized: "Hides details") : String(localized: "Shows details"))
                 if expanded { details(item, agent: agent) }
                 actions(item: item, agent: agent)
             }
@@ -364,7 +364,7 @@ struct FindCard: View {
                     Button(r.rawValue) {
                         store.pass(find.id, reason: r)
                         Analytics.track(.findPassed, ["reason": r.rawValue, "category": item.category.rawValue])
-                        router.say(r == .later ? "Passed" : "Passed. \(agent?.name ?? "Your scout") is learning from that")
+                        router.say(r == .later ? String(localized: "Passed") : String(localized: "Passed. \(agent?.name ?? "Your scout") is learning from that"))
                     }
                 }
             }
@@ -373,7 +373,7 @@ struct FindCard: View {
 
     private func remove() {
         withAnimation(.snappy) { store.removeFinds([find.id]) }
-        router.say("Removed")
+        router.say(String(localized: "Removed"))
     }
 
     // MARK: Collapsed row
@@ -386,7 +386,7 @@ struct FindCard: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 6) {
                     if isNew { badge("NEW", Theme.accent) }
-                    if store.isSoldOut(item) { badge("SOLD OUT", Theme.warn) }
+                    if store.isSoldOut(item) { badge(String(localized: "SOLD OUT"), Theme.warn) }
                     else if !store.isLive(item) { badge(store.whenLabel(item), Theme.blue) }
                     if item.tags.contains("limited") { badge("LIMITED", Theme.hot) }
                     if find.why.contains(where: { $0.hasPrefix("Discovery") }) { badge("NEW TO YOU", Theme.cyan) }
@@ -461,7 +461,7 @@ struct FindCard: View {
             }
             if item.isProduct {
             HStack {
-                priceCell("PRICE", known ? item.priceLabel : "See store", nil)
+                priceCell("PRICE", known ? item.priceLabel : String(localized: "See store"), nil)
                 priceCell("MARKET", known && item.market > 0 ? Fmt.money(item.market) : "—", nil)
                 priceCell("SPREAD", known && item.market > 0 ? "\(diff > 0 ? "+" : "")\(pct)%" : "—", diff > 0 ? Theme.green : diff < 0 ? Theme.hot : nil)
             }
@@ -495,11 +495,11 @@ struct FindCard: View {
                 }
             }
             HStack(spacing: 8) {
-                chip(find.watching ? "eye.fill" : "eye", find.watching ? "Watching" : "Watch it for me", tint: find.watching ? Theme.warn : nil) {
+                chip(find.watching ? "eye.fill" : "eye", find.watching ? String(localized: "Watching") : String(localized: "Watch it for me"), tint: find.watching ? Theme.warn : nil) {
                     store.toggleWatch(find.id)
-                    if !find.watching { router.say("\(agent?.name ?? "Your scout") will text you on a price drop, restock or release") }
+                    if !find.watching { router.say(String(localized: "\(agent?.name ?? "Your scout") will text you on a price drop, restock or release")) }
                 }
-                chip("bubble.left.and.text.bubble.right", "Ask about this") { router.sheet = .ask(find.id) }
+                chip("bubble.left.and.text.bubble.right", String(localized: "Ask about this")) { router.sheet = .ask(find.id) }
             }
             if find.watching {
                 Text("\(agent?.name ?? "Your scout") checks the price twice a day and texts you if it drops\(store.isSoldOut(item) ? ", or the moment it restocks" : !store.isLive(item) ? ", and at release" : "").")
@@ -512,12 +512,12 @@ struct FindCard: View {
     /// Intel or a results page: what it is, and a way to read it.
     private func infoRow(_ item: Item) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label(item.isIntel ? "Intel from \(item.source): worth knowing, not a product to buy" : "A page of listings on \(item.source), not a single item",
+            Label(item.isIntel ? String(localized: "Intel from \(item.source): worth knowing, not a product to buy") : String(localized: "A page of listings on \(item.source), not a single item"),
                   systemImage: item.isIntel ? "newspaper" : "list.bullet.rectangle")
                 .font(.footnote).foregroundStyle(Theme.ink)
             if let url = item.url.flatMap(URL.init(string:)) {
                 chip("arrow.up.right", item.isIntel ? "Read it" : "See listings") { openURL(url) }
-                    .accessibilityLabel(item.isIntel ? "Read it on \(item.source)" : "See the listings on \(item.source)")
+                    .accessibilityLabel(item.isIntel ? String(localized: "Read it on \(item.source)") : String(localized: "See the listings on \(item.source)"))
             }
         }
         .padding(10)
@@ -534,9 +534,9 @@ struct FindCard: View {
                 Text("Releases \(ReminderSheet.fmt(item.dropAt!))").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
                 if item.tags.contains("limited") { Text("· Limited").font(.footnote.weight(.semibold)).foregroundStyle(Theme.hot) }
             }
-            chip(r == nil ? "bell" : "bell.fill", r == nil ? "Remind me" : "Reminder · \(ReminderSheet.short(r!.remindAt))",
+            chip(r == nil ? "bell" : "bell.fill", r == nil ? String(localized: "Remind me") : "Reminder · \(ReminderSheet.short(r!.remindAt))",
                  primary: r == nil, tint: r == nil ? nil : Theme.blue) { reminding = true }
-                .accessibilityLabel(r == nil ? "Set a release reminder" : "Release reminder set. Tap to change")
+                .accessibilityLabel(r == nil ? String(localized: "Set a release reminder") : String(localized: "Release reminder set. Tap to change"))
         }
         .padding(10)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -557,32 +557,32 @@ struct FindCard: View {
         let link = BuyLink.url(item)
         HStack(spacing: 8) {
             if find.status == .liked {
-                chip("heart.fill", "Liked", tint: Theme.hot) { store.unlike(find.id) }
+                chip("heart.fill", String(localized: "Liked"), tint: Theme.hot) { store.unlike(find.id) }
                     .accessibilityHint("Tap to unlike")
             } else {
-                chip("heart", "Like", primary: true) {
+                chip("heart", String(localized: "Like"), primary: true) {
                     store.like(find.id)
-                    router.say("\(agent?.name ?? "Your scout") will find more like this")
+                    router.say(String(localized: "\(agent?.name ?? "Your scout") will find more like this"))
                 }
-                chip("xmark", "Pass") { askingWhy = true }
+                chip("xmark", String(localized: "Pass")) { askingWhy = true }
             }
             if item.isProduct && store.isSoldOut(item) && !item.isSample {
                 // Sold out: offer to watch the store's page and text when it's back.
                 let on = find.watching
-                chip(on ? "bell.fill" : "bell", on ? "Watching" : "Notify me", tint: on ? Theme.warn : nil) {
+                chip(on ? "bell.fill" : "bell", on ? String(localized: "Watching") : String(localized: "Notify me"), tint: on ? Theme.warn : nil) {
                     store.toggleWatch(find.id)
-                    router.say(on ? "Stopped watching this one" : "I'll check \(item.source) and text you the moment it's back")
+                    router.say(on ? String(localized: "Stopped watching this one") : String(localized: "I'll check \(item.source) and text you the moment it's back"))
                 }
-                .accessibilityLabel(on ? "Watching for a restock. Tap to stop" : "Notify me when it's back in stock")
+                .accessibilityLabel(on ? String(localized: "Watching for a restock. Tap to stop") : String(localized: "Notify me when it's back in stock"))
             } else if ReminderSheet.upcoming(item) {
                 let r = store.reminder(for: item)
-                chip(r == nil ? "bell" : "bell.fill", r == nil ? "Remind me" : "Reminder set", tint: r == nil ? nil : Theme.blue) { reminding = true }
-                    .accessibilityLabel(r == nil ? "Set a release reminder" : "Release reminder set. Tap to change")
+                chip(r == nil ? "bell" : "bell.fill", r == nil ? String(localized: "Remind me") : String(localized: "Reminder set"), tint: r == nil ? nil : Theme.blue) { reminding = true }
+                    .accessibilityLabel(r == nil ? String(localized: "Set a release reminder") : String(localized: "Release reminder set. Tap to change"))
             } else if !item.isProduct, let url = item.url.flatMap(URL.init(string:)) {
                 chip("arrow.up.right", item.isIntel ? "Read" : "See listings") { openURL(url) }
-                    .accessibilityLabel(item.isIntel ? "Read it on \(item.source)" : "See the listings on \(item.source)")
+                    .accessibilityLabel(item.isIntel ? String(localized: "Read it on \(item.source)") : String(localized: "See the listings on \(item.source)"))
             } else if let link {
-                chip("arrow.up.right", "Buy") {
+                chip("arrow.up.right", String(localized: "Buy")) {
                     Analytics.track(.checkoutOpened, ["category": item.category.rawValue, "toStore": true, "from": "find"])
                     router.buyOpened = find.id
                     openURL(BuyLink.tracked(item, from: "find") ?? link)
@@ -686,11 +686,11 @@ struct CheckoutView: View {
                 Text([item.source, item.sku].filter { !$0.isEmpty }.joined(separator: " · ")).font(.footnote).foregroundStyle(Theme.muted)
                 if AboutBlock.has(item) { AboutBlock(item: item).glassCard() }
                 Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 12) {
-                    GridRow { cell("Price", item.priceKnown ? item.priceLabel : "Not listed"); cell("Scout", a?.name ?? "—") }
+                    GridRow { cell(String(localized: "Price"), item.priceKnown ? item.priceLabel : String(localized: "Not listed")); cell(String(localized: "Scout"), a?.name ?? "—") }
                     GridRow {
-                        cell(item.category.info.sizeRequired ? (item.category.info.sizeLabel ?? "Size") : "Category",
-                             item.category.info.sizeRequired ? (a?.size.isEmpty == false ? a!.size : "Any") : item.category.info.label)
-                        cell("Store", item.source.isEmpty ? "—" : item.source)
+                        cell(item.category.info.sizeRequired ? (item.category.info.sizeLabel ?? String(localized: "Size")) : String(localized: "Category"),
+                             item.category.info.sizeRequired ? (a?.size.isEmpty == false ? a!.size : String(localized: "Any")) : item.category.info.label)
+                        cell(String(localized: "Store"), item.source.isEmpty ? "—" : item.source)
                     }
                 }
                 .glassCard()
@@ -713,17 +713,17 @@ struct CheckoutView: View {
                             .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.line))
                     }
                 } else {
-                    Text(block ?? "Sample checkout. No card is charged.")
+                    Text(block ?? String(localized: "Sample checkout. No card is charged."))
                         .font(.subheadline).foregroundStyle(Theme.muted)
                 }
                 Spacer()
                 HStack {
                     Button("Cancel") { dismiss() }.buttonStyle(GhostButton())
                     if soldOut || !live {
-                        Button(soldOut ? "Watch for restock" : "Remind me at release") {
+                        Button(soldOut ? String(localized: "Watch for restock") : String(localized: "Remind me at release")) {
                             store.watch(findID)
                             Analytics.track(.findWatched, ["category": item.category.rawValue])
-                            router.say(soldOut ? "Restock watch on" : "Got it. Your scout will ping you at release.")
+                            router.say(soldOut ? String(localized: "Restock watch on") : String(localized: "Got it. Your scout will ping you at release."))
                             dismiss()
                         }.buttonStyle(PrimaryButton())
                     } else if cloud {
@@ -731,7 +731,7 @@ struct CheckoutView: View {
                             let amount = item.priceKnown ? item.price : Double(amountText.replacingOccurrences(of: ",", with: "")) ?? 0
                             store.confirmPurchase(findID, amount: amount)
                             Analytics.track(.purchaseConfirmed, ["amount": amount, "category": item.category.rawValue, "score": f.score, "agentMode": a?.mode.rawValue ?? ""])
-                            router.say("Logged and off your list. \(a?.name ?? "Your scout") will learn from it.")
+                            router.say(String(localized: "Logged and off your list. \(a?.name ?? "Your scout") will learn from it."))
                             dismiss()
                         }
                         .buttonStyle(GhostButton())
@@ -740,7 +740,7 @@ struct CheckoutView: View {
                         Button("Confirm purchase") {
                             store.confirmPurchase(findID)
                             Analytics.track(.purchaseConfirmed, ["amount": item.price, "category": item.category.rawValue, "score": f.score, "agentMode": a?.mode.rawValue ?? ""])
-                            router.say("Bought. It's off your list.")
+                            router.say(String(localized: "Bought. It's off your list."))
                             dismiss()
                         }.buttonStyle(PrimaryButton())
                     }
@@ -754,14 +754,14 @@ struct CheckoutView: View {
 
     private func cloudNote(item: Item, block: String?, soldOut: Bool, live: Bool) -> String {
         if soldOut || !live { return block ?? "" }
-        let caution = block.map { "Heads up: \($0) " } ?? ""
-        return caution + "You buy it at \(item.source); Baget never charges you. Tap \"I bought it\" afterwards so your scout learns from it."
+        let caution = block.map { String(localized: "Heads up: \($0) ") } ?? ""
+        return caution + String(localized: "You buy it at \(item.source); Baget never charges you. Tap \"I bought it\" afterwards so your scout learns from it.")
     }
 
     private func blockReason(item: Item, agent a: Agent?, live: Bool, soldOut: Bool) -> String? {
-        let name = a?.name ?? "Your scout"
-        if soldOut { return "Sold out right now. \(name) will watch for a restock and tell you the moment it's back." }
-        if !live { return "This isn't available yet. Your scout will hold your spot and ask again at release." }
+        let name = a?.name ?? String(localized: "Your scout")
+        if soldOut { return String(localized: "Sold out right now. \(name) will watch for a restock and tell you the moment it's back.") }
+        if !live { return String(localized: "This isn't available yet. Your scout will hold your spot and ask again at release.") }
         _ = a
         return nil
     }
@@ -783,12 +783,12 @@ struct FindsTip {
     let title: String
     let body: String
     static let all: [FindsTip] = [
-        FindsTip(icon: "heart.fill", tint: Theme.hot, title: "Like teaches your scout",
-                 body: "Tap Like on anything that's your taste. Your scout leans into that brand and style and finds more like it."),
-        FindsTip(icon: "xmark", tint: Theme.accent, title: "Pass, and say why",
-                 body: "Too pricey, wrong style, not your brand: every reason sharpens the next hunt. The more you react, the better it gets."),
-        FindsTip(icon: "bell.fill", tint: Theme.warn, title: "Never miss a drop",
-                 body: "On something not out yet, tap Remind me and pick when. On something sold out, tap Notify me and you'll get a text when it's back."),
+        FindsTip(icon: "heart.fill", tint: Theme.hot, title: String(localized: "Like teaches your scout"),
+                 body: String(localized: "Tap Like on anything that's your taste. Your scout leans into that brand and style and finds more like it.")),
+        FindsTip(icon: "xmark", tint: Theme.accent, title: String(localized: "Pass, and say why"),
+                 body: String(localized: "Too pricey, wrong style, not your brand: every reason sharpens the next hunt. The more you react, the better it gets.")),
+        FindsTip(icon: "bell.fill", tint: Theme.warn, title: String(localized: "Never miss a drop"),
+                 body: String(localized: "On something not out yet, tap Remind me and pick when. On something sold out, tap Notify me and you'll get a text when it's back.")),
     ]
 }
 
@@ -821,7 +821,7 @@ struct FindsTipCard: View {
                     Button("Skip") { withAnimation(.snappy) { step = FindsTip.all.count } }
                         .font(.footnote).foregroundStyle(Theme.muted)
                 }
-                Button(last ? "Got it" : "Next") { withAnimation(.snappy) { step = i + 1 } }
+                Button(last ? String(localized: "Got it") : String(localized: "Next")) { withAnimation(.snappy) { step = i + 1 } }
                     .font(.footnote.weight(.bold))
                     .foregroundStyle(Theme.accentInk)
                     .padding(.horizontal, 14).padding(.vertical, 7)

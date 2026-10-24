@@ -81,7 +81,7 @@ struct SwipeDeckView: View {
                 Text("\(f.score)% match").font(.caption.monospacedDigit().weight(.bold)).foregroundStyle(f.score >= 80 ? Theme.green : Theme.accent)
             }
             Text(item.title).font(.title3.weight(.heavy)).foregroundStyle(Theme.ink).lineLimit(3)
-            Text([item.source, item.priceKnown && item.price > 0 ? item.priceLabel : "Price at store"].joined(separator: " · "))
+            Text([item.source, item.priceKnown && item.price > 0 ? item.priceLabel : String(localized: "Price at store")].joined(separator: " · "))
                 .font(.subheadline).foregroundStyle(Theme.muted)
             if AboutBlock.has(item) { AboutBlock(item: item, lines: 3) }
             if let v = DealVerdict.of(item) { VerdictChip(verdict: v, showDetail: true) }
@@ -95,10 +95,10 @@ struct SwipeDeckView: View {
 
     private func buttons(_ f: Find, _ item: Item) -> some View {
         HStack(spacing: 18) {
-            round("xmark", Theme.hot, "Pass") { act(.pass, f, item) }
-            if BuyLink.url(item) != nil { round("arrow.up.right", Theme.accent, "Buy") { act(.buy, f, item) } }
-            round(f.watching ? "eye.fill" : "eye", Theme.warn, f.watching ? "Watching" : "Watch") { store.toggleWatch(f.id) }
-            round("heart.fill", Theme.green, "Like", big: true) { act(.like, f, item) }
+            round("xmark", Theme.hot, String(localized: "Pass")) { act(.pass, f, item) }
+            if BuyLink.url(item) != nil { round("arrow.up.right", Theme.accent, String(localized: "Buy")) { act(.buy, f, item) } }
+            round(f.watching ? "eye.fill" : "eye", Theme.warn, f.watching ? String(localized: "Watching") : String(localized: "Watch")) { store.toggleWatch(f.id) }
+            round("heart.fill", Theme.green, String(localized: "Like"), big: true) { act(.like, f, item) }
         }
     }
 
@@ -141,9 +141,9 @@ struct SwipeDeckView: View {
         VStack(spacing: 14) {
             Spacer(minLength: 40)
             Image(systemName: "checkmark.seal.fill").font(.system(size: 54)).foregroundStyle(Theme.green)
-            Text(ids.isEmpty ? "No new finds right now" : "All caught up").font(.title2.weight(.heavy)).foregroundStyle(Theme.ink)
-            Text(ids.isEmpty ? "Your squad keeps hunting in the background and will text you." :
-                    "\(liked) liked, \(passed) passed. Your squad just got sharper; their next search uses it.")
+            Text(ids.isEmpty ? String(localized: "No new finds right now") : String(localized: "All caught up")).font(.title2.weight(.heavy)).foregroundStyle(Theme.ink)
+            Text(ids.isEmpty ? String(localized: "Your squad keeps hunting in the background and will text you.") :
+                    String(localized: "\(liked) liked, \(passed) passed. Your squad just got sharper; their next search uses it."))
                 .font(.subheadline).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
             Button("Back to Today") { dismiss() }.buttonStyle(PrimaryButton()).frame(maxWidth: 240)
         }

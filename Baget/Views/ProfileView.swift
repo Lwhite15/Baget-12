@@ -103,7 +103,7 @@ struct ProfileView: View {
         let n = store.state.profile?.displayName.trimmingCharacters(in: .whitespaces) ?? ""
         if !n.isEmpty { return n }
         if let h = store.state.profile?.handle, !h.isEmpty { return "@\(h)" }
-        return "You"
+        return String(localized: "You")
     }
 
     // MARK: Icon
@@ -149,7 +149,7 @@ struct ProfileView: View {
                 colorRow
             case .photo:
                 PhotosPicker(selection: $pick, matching: .images, photoLibrary: .shared()) {
-                    Label(store.state.avatar.photoID == nil ? "Choose a photo" : "Change photo", systemImage: "photo.on.rectangle")
+                    Label(store.state.avatar.photoID == nil ? String(localized: "Choose a photo") : String(localized: "Change photo"), systemImage: "photo.on.rectangle")
                 }
                 if photoFailed {
                     Text("Couldn't open that photo. Try another.").font(.footnote).foregroundStyle(Theme.hot)
@@ -163,8 +163,8 @@ struct ProfileView: View {
             }
         } header: { Text("Your icon") } footer: {
             Text(editing == .photo
-                 ? "Cropped to a circle. It's kept private in your account, so it follows you to a new phone."
-                 : "Shows at the top left of every screen.")
+                 ? String(localized: "Cropped to a circle. It's kept private in your account, so it follows you to a new phone.")
+                 : String(localized: "Shows at the top left of every screen."))
         }
     }
 
@@ -286,6 +286,18 @@ struct ProfileView: View {
             Button { router.sheet = .customizeBar } label: {
                 Label("Customize the Live bar", systemImage: "slider.horizontal.3")
             }
+            // iOS keeps each app's language in Settings; this opens Baget's page there, where Language is the first row.
+            Button {
+                if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+            } label: {
+                HStack {
+                    Label("Language", systemImage: "globe")
+                    Spacer()
+                    Text(Self.languageName).foregroundStyle(Theme.muted)
+                    Image(systemName: "arrow.up.forward.app").font(.caption).foregroundStyle(Theme.muted)
+                }
+            }
+            .accessibilityHint("Opens Baget's settings, where you can pick English, Español, Français or 한국어")
             if store.isAdmin {
                 NavigationLink { StatsView() } label: {
                     Label("Stats", systemImage: "chart.bar.xaxis")
@@ -293,6 +305,12 @@ struct ProfileView: View {
             }
         }
         .foregroundStyle(Theme.ink)
+    }
+
+    /// The language Baget is showing, in that language ("Español").
+    private static var languageName: String {
+        let code = Bundle.main.preferredLocalizations.first ?? "en"
+        return Locale(identifier: code).localizedString(forLanguageCode: code)?.capitalized(with: Locale(identifier: code)) ?? code
     }
 
     private static var version: String {

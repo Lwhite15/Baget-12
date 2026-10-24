@@ -22,39 +22,39 @@ enum Vibes {
 
     static func question(_ c: Category) -> String {
         switch c {
-        case .fragrance: return "What do you like to smell like?"
-        case .sneakers: return "What kind of sneakers?"
-        case .apparel: return "What's your style?"
-        case .watches: return "What kind of watch?"
-        case .cars: return "What kind of car?"
-        case .furniture: return "What's your home like?"
-        case .accessories: return "What kind of accessories?"
-        case .collectibles: return "What do you collect?"
-        case .other: return "What are you into?"
+        case .fragrance: return String(localized: "What do you like to smell like?")
+        case .sneakers: return String(localized: "What kind of sneakers?")
+        case .apparel: return String(localized: "What's your style?")
+        case .watches: return String(localized: "What kind of watch?")
+        case .cars: return String(localized: "What kind of car?")
+        case .furniture: return String(localized: "What's your home like?")
+        case .accessories: return String(localized: "What kind of accessories?")
+        case .collectibles: return String(localized: "What do you collect?")
+        case .other: return String(localized: "What are you into?")
         }
     }
 
     static func options(_ c: Category) -> [String] {
         switch c {
         case .fragrance:
-            return ["Fresh & clean", "Citrus & bright", "Sweet & cozy", "Vanilla", "Woody & warm", "Spicy", "Floral",
-                    "Smoky & leather", "Beachy & salty", "Earthy & green", "Every day", "Office", "Date night", "Summer", "Gift"]
+            return [String(localized: "Fresh & clean"), String(localized: "Citrus & bright"), String(localized: "Sweet & cozy"), String(localized: "Vanilla"), String(localized: "Woody & warm"), String(localized: "Spicy"), String(localized: "Floral"),
+                    String(localized: "Smoky & leather"), String(localized: "Beachy & salty"), String(localized: "Earthy & green"), String(localized: "Every day"), String(localized: "Office"), String(localized: "Date night"), String(localized: "Summer"), String(localized: "Gift")]
         case .sneakers:
-            return ["Everyday & comfy", "Classic & clean", "Bold colors", "Running & retro", "Basketball", "Skate",
-                    "Rare & hyped", "Under the radar"]
+            return [String(localized: "Everyday & comfy"), String(localized: "Classic & clean"), String(localized: "Bold colors"), String(localized: "Running & retro"), String(localized: "Basketball"), String(localized: "Skate"),
+                    String(localized: "Rare & hyped"), String(localized: "Under the radar")]
         case .apparel:
-            return ["Streetwear", "Minimal & clean", "Vintage", "Outdoor & workwear", "Smart casual", "Athletic",
-                    "Bold & loud", "Cozy basics"]
+            return [String(localized: "Streetwear"), String(localized: "Minimal & clean"), String(localized: "Vintage"), String(localized: "Outdoor & workwear"), String(localized: "Smart casual"), String(localized: "Athletic"),
+                    String(localized: "Bold & loud"), String(localized: "Cozy basics")]
         case .watches:
-            return ["Everyday", "Dressy", "Sporty & tough", "Dive", "Vintage", "Small & slim", "Big & bold", "Smart features"]
+            return [String(localized: "Everyday"), String(localized: "Dressy"), String(localized: "Sporty & tough"), String(localized: "Dive"), String(localized: "Vintage"), String(localized: "Small & slim"), String(localized: "Big & bold"), String(localized: "Smart features")]
         case .cars:
-            return ["Daily driver", "Sporty", "Luxury", "Classic", "Off-road", "Family & roomy", "Electric", "Good on gas"]
+            return [String(localized: "Daily driver"), String(localized: "Sporty"), String(localized: "Luxury"), String(localized: "Classic"), String(localized: "Off-road"), String(localized: "Family & roomy"), String(localized: "Electric"), String(localized: "Good on gas")]
         case .furniture:
-            return ["Cozy", "Modern & minimal", "Mid-century", "Vintage", "Natural wood", "Bold & colorful", "Small spaces"]
+            return [String(localized: "Cozy"), String(localized: "Modern & minimal"), String(localized: "Mid-century"), String(localized: "Vintage"), String(localized: "Natural wood"), String(localized: "Bold & colorful"), String(localized: "Small spaces")]
         case .accessories:
-            return ["Bags", "Hats", "Jewelry", "Sunglasses", "Wallets", "Everyday", "Statement pieces", "Minimal"]
+            return [String(localized: "Bags"), String(localized: "Hats"), String(localized: "Jewelry"), String(localized: "Sunglasses"), String(localized: "Wallets"), String(localized: "Everyday"), String(localized: "Statement pieces"), String(localized: "Minimal")]
         case .collectibles:
-            return ["Trading cards", "Toys & figures", "Art & prints", "Vinyl & music", "Sports", "Vintage", "Limited drops"]
+            return [String(localized: "Trading cards"), String(localized: "Toys & figures"), String(localized: "Art & prints"), String(localized: "Vinyl & music"), String(localized: "Sports"), String(localized: "Vintage"), String(localized: "Limited drops")]
         case .other:
             return []
         }
@@ -88,6 +88,6 @@ enum Vibes {
 
     /// The most someone usually spends on one item. 0 means no limit.
     static let budgets: [(label: String, cap: Int?)] = [
-        ("Under $50", 50), ("Up to $100", 100), ("Up to $250", 250), ("Up to $500", 500), ("Up to $1,000", 1000), ("No limit", 0),
+        ("Under $50", 50), (String(localized: "Up to $100"), 100), (String(localized: "Up to $250"), 250), (String(localized: "Up to $500"), 500), (String(localized: "Up to $1,000"), 1000), (String(localized: "No limit"), 0),
     ]
 }

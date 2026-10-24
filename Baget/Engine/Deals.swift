@@ -28,23 +28,23 @@ struct DealVerdict: Hashable {
             return low > 0 ? DealVerdict(level: .info, title: "From \(Fmt.money(low))", detail: "at \(store)") : nil
         }
         if low > 0 && low < p * 0.95 {
-            return DealVerdict(level: .wait, title: "Cheaper elsewhere", detail: "\(Fmt.money(low)) at \(store), \(Int(safe: ((1 - low / p) * 100).rounded()))% less")
+            return DealVerdict(level: .wait, title: String(localized: "Cheaper elsewhere"), detail: String(localized: "\(Fmt.money(low)) at \(store), \(Int(safe: ((1 - low / p) * 100).rounded()))% less"))
         }
         // The same store also shows it for much less: this price may be for another version, or out of date.
         if let same = offers.filter({ sameStore($0.store, item.source) && $0.price > 0 }).min(by: { $0.price < $1.price }), same.price < p * 0.9 {
-            return DealVerdict(level: .wait, title: "Check the price", detail: "\(item.source) also lists it for \(Fmt.money(same.price))")
+            return DealVerdict(level: .wait, title: String(localized: "Check the price"), detail: String(localized: "\(item.source) also lists it for \(Fmt.money(same.price))"))
         }
         if hasMarket && item.market > p * 1.15 {
-            return DealVerdict(level: .great, title: "Great deal", detail: "\(Int(safe: ((item.market / p - 1) * 100).rounded()))% under resale (\(Fmt.money(item.market)))")
+            return DealVerdict(level: .great, title: String(localized: "Great deal"), detail: String(localized: "\(Int(safe: ((item.market / p - 1) * 100).rounded()))% under resale (\(Fmt.money(item.market)))"))
         }
         if others >= 2 && (low == 0 || low >= p * 0.98) {
-            return DealVerdict(level: .great, title: "Best price", detail: "Lowest of \(others + 1) stores")
+            return DealVerdict(level: .great, title: String(localized: "Best price"), detail: String(localized: "Lowest of \(others + 1) stores"))
         }
         if hasMarket && item.market < p * 0.9 {
-            return DealVerdict(level: .wait, title: "Over resale", detail: "Goes for about \(Fmt.money(item.market)) secondhand")
+            return DealVerdict(level: .wait, title: String(localized: "Over resale"), detail: String(localized: "Goes for about \(Fmt.money(item.market)) secondhand"))
         }
         if others > 0 || hasMarket {
-            return DealVerdict(level: .fair, title: "Fair price", detail: others > 0 ? "In line with \(others) other store\(others == 1 ? "" : "s")" : "Around resale value")
+            return DealVerdict(level: .fair, title: String(localized: "Fair price"), detail: others > 0 ? String(localized: "In line with \(others) other store\(others == 1 ? "" : "s")") : String(localized: "Around resale value"))
         }
         return nil
     }
@@ -94,19 +94,19 @@ extension AppStore {
             let a = Agent(id: UUID().uuidString.lowercased(), name: String("\(t.capitalizedFirst) Hunter".prefix(40)), mission: .custom(String(t.prefix(80))),
                           keywords: [], style: StyleProfile(traits: [], makers: [], creators: []), size: "", mode: .ask, voice: .chill)
             deploy(a)
-            return (a.id, "I'm on it. I'll text you when I find something.", false)
+            return (a.id, String(localized: "I'm on it. I'll text you when I find something."), false)
         }
         if squadFull {
             syncProblem = scoutLimitMessage
             return nil
         }
         do {
-            let r: HuntReply = try await api.function("hunt", ["text": t])
+            let r: HuntReply = try await api.function("hunt", ["text": t, "lang": AppLanguage.code])
             await pull()
             Task { @MainActor in _ = await self.cloudSweep(agentID: r.agentId) }
-            return (r.agentId, r.intro.isEmpty ? "I'm on it." : r.intro, r.needsSize ?? false)
+            return (r.agentId, r.intro.isEmpty ? String(localized: "I'm on it.") : r.intro, r.needsSize ?? false)
         } catch {
-            syncProblem = (error as? LocalizedError)?.errorDescription ?? "Couldn't start that hunt. Try again."
+            syncProblem = (error as? LocalizedError)?.errorDescription ?? String(localized: "Couldn't start that hunt. Try again.")
             return nil
         }
     }
@@ -114,7 +114,7 @@ extension AppStore {
     /// First-run setup: interests, an optional sentence and up to three photos -> a squad, already searching.
     func onboard(categories: [Category], text: String, photos: [UIImage], liked: [String] = [], passed: [String] = [],
                  vibes: [Category: [String]] = [:], budget: Int? = nil, brands: [Category: [String]] = [:],
-                 interests: [String] = [], sizes: [Category: String] = [:]) async -> [String] {
+                 interests: [String] = [], sizes: [Category: String] = [:], department: String? = nil) async -> [String] {
         Analytics.track(.onboardingDone, ["categories": categories.count, "photos": photos.count, "text": !text.isEmpty, "rated": liked.count + passed.count])
         guard isCloud else {
             for c in categories {
@@ -137,6 +137,8 @@ extension AppStore {
                                        "vibes": Dictionary(uniqueKeysWithValues: vibes.filter { !$0.value.isEmpty }.map { ($0.key.rawValue, $0.value) })]
             if let budget { body["budget"] = budget }
             if !interests.isEmpty { body["interests"] = interests }
+            if let department { body["department"] = department }
+            body["lang"] = AppLanguage.code
             if !sizes.isEmpty { body["sizes"] = Dictionary(uniqueKeysWithValues: sizes.map { ($0.key.rawValue, $0.value) }) }
             let picks = brands.filter { !$0.value.isEmpty }
             if !picks.isEmpty { body["brands"] = Dictionary(uniqueKeysWithValues: picks.map { ($0.key.rawValue, $0.value) }) }
@@ -145,13 +147,13 @@ extension AppStore {
             Task { @MainActor in _ = await self.cloudSweep() }
             return r.agents.map(\.agentId)
         } catch {
-            syncProblem = (error as? LocalizedError)?.errorDescription ?? "Couldn't set up your squad. Try again."
+            syncProblem = (error as? LocalizedError)?.errorDescription ?? String(localized: "Couldn't set up your squad. Try again.")
             return []
         }
     }
 
     /// Setup's quick taste check: real products in the picked categories, photos only, leading with the brands picked.
-    func tasteQuiz(_ categories: [Category], brands: [String] = []) async -> [Item] {
+    func tasteQuiz(_ categories: [Category], brands: [String] = [], department: String? = nil) async -> [Item] {
         guard isCloud else {
             let cats = Set(categories)
             var seen = Set<String>()
@@ -159,7 +161,9 @@ extension AppStore {
             let pool = Catalog.items.filter { (cats.isEmpty || cats.contains($0.category)) && seen.insert($0.brand).inserted }
             return (pool.filter { picked.contains($0.brand.lowercased()) } + pool.filter { !picked.contains($0.brand.lowercased()) }).prefix(10).map { $0 }
         }
-        let rows: [ListingRow] = (try? await api.rpc("taste_quiz", ["p_categories": categories.map(\.rawValue), "p_limit": 10, "p_brands": brands])) ?? []
+        var args: [String: Any] = ["p_categories": categories.map(\.rawValue), "p_limit": 10, "p_brands": brands]
+        if let department { args["p_department"] = department }
+        let rows: [ListingRow] = (try? await api.rpc("taste_quiz", args)) ?? []
         for r in rows { Catalog.cloud[r.id] = r.item }
         return Array(rows.map(\.item).prefix(10))
     }

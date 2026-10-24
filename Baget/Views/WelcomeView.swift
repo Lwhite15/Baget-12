@@ -56,12 +56,12 @@ struct WelcomeView: View {
 
     private var features: some View {
         VStack(spacing: 10) {
-            feature("sparkle.magnifyingglass", "Whatever you're into, they find it",
-                    "Rare vinyl, a vintage chair, the perfect gift or your next car. Name it, and your scouts search stores, resale sites and small shops for you.")
-            feature("heart.text.square", "They learn your taste",
-                    "Every like and pass makes their next picks sharper.")
-            feature("bell.badge", "They tell you first",
-                    "A heads-up when something you'd love drops, restocks or goes on sale.")
+            feature("sparkle.magnifyingglass", String(localized: "Whatever you're into, they find it"),
+                    String(localized: "Rare vinyl, a vintage chair, the perfect gift or your next car. Name it, and your scouts search stores, resale sites and small shops for you."))
+            feature("heart.text.square", String(localized: "They learn your taste"),
+                    String(localized: "Every like and pass makes their next picks sharper."))
+            feature("bell.badge", String(localized: "They tell you first"),
+                    String(localized: "A heads-up when something you'd love drops, restocks or goes on sale."))
         }
     }
 
@@ -86,8 +86,8 @@ struct WelcomeView: View {
 
     /// "By continuing, you agree to the Terms of Use and Privacy Policy", both as links.
     private static let legal: AttributedString = {
-        let md = "By continuing, you agree to the [Terms of Use](\(AppStore.termsURL.absoluteString)) and [Privacy Policy](\(AppStore.privacyURL.absoluteString))."
-        return (try? AttributedString(markdown: md)) ?? AttributedString("By continuing, you agree to the Terms of Use and Privacy Policy.")
+        let md = String(localized: "By continuing, you agree to the [Terms of Use](\(AppStore.termsURL.absoluteString)) and [Privacy Policy](\(AppStore.privacyURL.absoluteString)).")
+        return (try? AttributedString(markdown: md)) ?? AttributedString(String(localized: "By continuing, you agree to the Terms of Use and Privacy Policy."))
     }()
 
     private var actions: some View {
@@ -128,11 +128,11 @@ struct WelcomeView: View {
         error = nil
         switch result {
         case .failure(let e):
-            if (e as? ASAuthorizationError)?.code != .canceled { error = "Sign in with Apple didn't finish. Try again." }
+            if (e as? ASAuthorizationError)?.code != .canceled { error = String(localized: "Sign in with Apple didn't finish. Try again.") }
         case .success(let auth):
             guard let cred = auth.credential as? ASAuthorizationAppleIDCredential,
                   let tokenData = cred.identityToken, let token = String(data: tokenData, encoding: .utf8) else {
-                error = "Apple didn't send a sign-in token. Try again."
+                error = String(localized: "Apple didn't send a sign-in token. Try again.")
                 return
             }
             working = true
@@ -142,7 +142,7 @@ struct WelcomeView: View {
                 let name = [cred.fullName?.givenName, cred.fullName?.familyName].compactMap { $0 }.joined(separator: " ")
                 await store.didSignIn(fullName: name.isEmpty ? nil : name)
             } catch {
-                self.error = (error as? LocalizedError)?.errorDescription ?? "Couldn't sign in. Try again."
+                self.error = (error as? LocalizedError)?.errorDescription ?? String(localized: "Couldn't sign in. Try again.")
             }
         }
     }
@@ -179,7 +179,7 @@ struct EmailSignInView: View {
                     TextField("Email", text: $email)
                         .textContentType(.emailAddress).keyboardType(.emailAddress)
                         .textInputAutocapitalization(.never).autocorrectionDisabled()
-                    SecureField(creating ? "Password (8 or more characters)" : "Password", text: $password)
+                    SecureField(creating ? String(localized: "Password (8 or more characters)") : String(localized: "Password"), text: $password)
                         .textContentType(creating ? .newPassword : .password)
                 } footer: {
                     if let error { Text(error).foregroundStyle(Theme.hot) }
@@ -188,14 +188,14 @@ struct EmailSignInView: View {
                     Button { Task { await submit() } } label: {
                         HStack {
                             Spacer()
-                            if working { ProgressView() } else { Text(creating ? "Create account" : "Sign in").bold() }
+                            if working { ProgressView() } else { Text(creating ? String(localized: "Create account") : String(localized: "Sign in")).bold() }
                             Spacer()
                         }
                     }
                     .disabled(!valid || working)
                 }
             }
-            .navigationTitle(creating ? "Create account" : "Sign in with email")
+            .navigationTitle(creating ? String(localized: "Create account") : String(localized: "Sign in with email"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
             .onChange(of: creating) { error = nil }
@@ -217,11 +217,11 @@ struct EmailSignInView: View {
             dismiss()
             await store.didSignIn(fullName: creating && !fullName.isEmpty ? fullName : nil)
         } catch {
-            let m = (error as? LocalizedError)?.errorDescription ?? "Couldn't sign in. Try again."
+            let m = (error as? LocalizedError)?.errorDescription ?? String(localized: "Couldn't sign in. Try again.")
             if m.localizedCaseInsensitiveContains("invalid login") {
-                self.error = "That email and password don't match. Check them, or switch to Create account."
+                self.error = String(localized: "That email and password don't match. Check them, or switch to Create account.")
             } else if m.localizedCaseInsensitiveContains("already registered") {
-                self.error = "There's already an account with that email. Switch to Sign in."
+                self.error = String(localized: "There's already an account with that email. Switch to Sign in.")
             } else {
                 self.error = m
             }
@@ -281,7 +281,7 @@ struct ChatView: View {
                                 .padding(10)
                                 .background(Theme.glass, in: RoundedRectangle(cornerRadius: 14))
                             }
-                            bubble(text: aboutItem != nil ? "What do you want to know about it?" : greeting(a), mine: false)
+                            bubble(text: aboutItem != nil ? String(localized: "What do you want to know about it?") : greeting(a), mine: false)
                             ForEach(turns) { t in
                                 bubble(text: t.text, mine: t.role == "user")
                                 ForEach(Array(t.actions.enumerated()), id: \.offset) { _, act in actionChip(act) }
@@ -300,8 +300,8 @@ struct ChatView: View {
                 if turns.isEmpty || (aboutItem != nil && !sentContext) {
                     ScrollView(.horizontal) {
                         HStack {
-                            ForEach(aboutItem != nil ? ["Is this a good price?", "Find it cheaper", "Will it restock in my size?", "Show me similar"]
-                                                     : ["Find me something new", "What have you learned about me?", "Anything worth buying this week?"], id: \.self) { s in
+                            ForEach(aboutItem != nil ? [String(localized: "Is this a good price?"), String(localized: "Find it cheaper"), String(localized: "Will it restock in my size?"), String(localized: "Show me similar")]
+                                                     : [String(localized: "Find me something new"), String(localized: "What have you learned about me?"), String(localized: "Anything worth buying this week?")], id: \.self) { s in
                                 Button { send(s) } label: { Pill(text: s) }.buttonStyle(.plain)
                             }
                         }.padding(.horizontal, 16)
@@ -321,18 +321,18 @@ struct ChatView: View {
                 .background(.ultraThinMaterial)
             }
             .background(LitBackground())
-            .navigationTitle(a?.name ?? "Scout")
+            .navigationTitle(a?.name ?? String(localized: "Scout"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
         }
     }
 
     private func greeting(_ a: Agent?) -> String {
-        guard let a else { return "Hi." }
+        guard let a else { return String(localized: "Hi.") }
         if Sizes.required(a) && !Sizes.has(a) {
-            return "Hey, I'm \(a.name). First thing: what size are you? I only hunt \(a.mission.category == .sneakers ? "pairs" : "pieces") that are in stock in your size."
+            return String(localized: "Hey, I'm \(a.name). First thing: what size are you? I only hunt \(a.mission.category == .sneakers ? "pairs" : "pieces") that are in stock in your size.")
         }
-        return "Hey, I'm \(a.name). Tell me what you've been into lately, what you can't stand, or what you're hunting for, and I'll remember it."
+        return String(localized: "Hey, I'm \(a.name). Tell me what you've been into lately, what you can't stand, or what you're hunting for, and I'll remember it.")
     }
 
     private func send(_ text: String) {
@@ -342,7 +342,7 @@ struct ChatView: View {
         if let item = aboutItem, !sentContext {
             // The first question carries the item, so the agent knows exactly what we're talking about.
             let price = item.priceKnown && item.price > 0 ? Fmt.money(item.price) : "price not listed"
-            t = "About the \(item.title) (\(price) at \(item.source)\(item.url.map { ", \($0)" } ?? "")): \(t)"
+            t = String(localized: "About the \(item.title) (\(price) at \(item.source)\(item.url.map { ", \($0)" } ?? "")): \(t)")
             sentContext = true
             Analytics.track(.askAbout, ["category": item.category.rawValue])
         }
@@ -415,7 +415,7 @@ struct AccountSection: View {
                 }
                 if let handleError { Text(handleError).font(.footnote).foregroundStyle(Theme.hot) }
                 Button("Sign out") { Task { await store.signOut() } }
-                Button(deleting ? "Deleting…" : "Delete my account", role: .destructive) { confirmDelete = true }
+                Button(deleting ? String(localized: "Deleting…") : String(localized: "Delete my account"), role: .destructive) { confirmDelete = true }
                     .disabled(deleting)
             } header: { Text("Account") } footer: {
                 Text("Friends add you by your handle. Deleting your account permanently removes your scouts, finds, purchases, photos and friends.")
@@ -426,7 +426,7 @@ struct AccountSection: View {
                     deleting = true
                     Task { @MainActor in
                         do { try await store.deleteAccount() } catch {
-                            router.say((error as? LocalizedError)?.errorDescription ?? "Couldn't delete your account. Try again.")
+                            router.say((error as? LocalizedError)?.errorDescription ?? String(localized: "Couldn't delete your account. Try again."))
                         }
                         deleting = false
                     }

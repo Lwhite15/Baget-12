@@ -3,6 +3,7 @@
 name: Baget
 options:
   bundleIdPrefix: app.baget
+  developmentLanguage: en
   deploymentTarget:
     iOS: "17.0"
   createIntermediateGroups: true
@@ -20,6 +21,9 @@ settings:
     BAGET_SUPABASE_ANON_KEY: ""
     # The app's bundle ID. The notification extension is this plus ".notify". The cloud build fills it in.
     BAGET_BUNDLE_ID: app.baget.ios
+    # Swift strings (Text, String(localized:)) are extracted into Localizable.xcstrings for translation.
+    SWIFT_EMIT_LOC_STRINGS: YES
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
 
 targets:
   Baget:
@@ -48,6 +52,9 @@ targets:
       path: Baget/Info.plist
       properties:
         CFBundleDisplayName: Baget
+        # The app's languages (Localizable.xcstrings). iOS shows a Language choice for Baget in Settings.
+        CFBundleLocalizations: [en, es, fr, ko]
+        CFBundleDevelopmentRegion: en
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen:

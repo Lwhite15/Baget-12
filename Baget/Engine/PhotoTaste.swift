@@ -30,14 +30,14 @@ enum PhotoTaste {
         traits = Array(traits.prefix(8))
         let summary: String
         if traits.isEmpty {
-            summary = "I couldn't make much out of that one. Tell me what you love about it and I'll remember."
+            summary = String(localized: "I couldn't make much out of that one. Tell me what you love about it and I'll remember.")
         } else {
             let lead = labels.prefix(3).joined(separator: ", ")
             let palette = colors.joined(separator: " and ")
             switch (lead.isEmpty, palette.isEmpty) {
-            case (false, false): summary = "I'm seeing \(lead), mostly in \(palette). I'll hunt \(agent.mission.label.lowercased()) with that energy."
-            case (false, true): summary = "I'm seeing \(lead). I'll hunt \(agent.mission.label.lowercased()) with that energy."
-            default: summary = "Love the palette: \(palette). I'll look for \(agent.mission.label.lowercased()) in those tones."
+            case (false, false): summary = String(localized: "I'm seeing \(lead), mostly in \(palette). I'll hunt \(agent.mission.label.lowercased()) with that energy.")
+            case (false, true): summary = String(localized: "I'm seeing \(lead). I'll hunt \(agent.mission.label.lowercased()) with that energy.")
+            default: summary = String(localized: "Love the palette: \(palette). I'll look for \(agent.mission.label.lowercased()) in those tones.")
             }
         }
         return PhotoReading(summary: summary, traits: traits)

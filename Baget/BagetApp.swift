@@ -148,13 +148,13 @@ final class Router {
             if find != nil { Analytics.track(.storySentToAgent, ["category": story.item.category.rawValue, "from": "tap"]) }
         }
         guard let f = find else {
-            say(story.agentID == nil ? "Set up a \(story.item.category.info.label.lowercased()) scout to track this" : "Not in your size, so it isn't in Finds")
+            say(story.agentID == nil ? String(localized: "Set up a \(story.item.category.info.label.lowercased()) scout to track this") : String(localized: "Not in your size, so it isn't in Finds"))
             return
         }
         switch f.status {
         case .passed: store.undoPass(f.id)            // you went looking for it, so bring it back
         case .removed: store.restoreFind(f.id)
-        case .acquired: say("You bought this one"); return
+        case .acquired: say(String(localized: "You bought this one")); return
         default: break
         }
         focusFind = f.id

@@ -42,7 +42,7 @@ struct FeedbackView: View {
                         }
                     }
                     PhotosPicker(selection: $pick, matching: .screenshots) {
-                        Label(photo == nil ? "Add a screenshot" : "Use a different one", systemImage: "photo")
+                        Label(photo == nil ? String(localized: "Add a screenshot") : String(localized: "Use a different one"), systemImage: "photo")
                     }
                 }
                 if let error { Text(error).foregroundStyle(Theme.hot).font(.footnote) }
@@ -67,9 +67,9 @@ struct FeedbackView: View {
 
     private var placeholder: String {
         switch kind {
-        case "bug": return "What happened, and what did you expect?"
-        case "idea": return "What would make Baget better for you?"
-        default: return "What do you love about it?"
+        case "bug": return String(localized: "What happened, and what did you expect?")
+        case "idea": return String(localized: "What would make Baget better for you?")
+        default: return String(localized: "What do you love about it?")
         }
     }
 
@@ -89,10 +89,10 @@ struct FeedbackView: View {
             }
             try await store.api.insert("feedback", row)
             Analytics.track(.profileOpened, ["feedback": kind])
-            router.say("Thanks! Sent straight to the Baget team.")
+            router.say(String(localized: "Thanks! Sent straight to the Baget team."))
             dismiss()
         } catch {
-            self.error = (error as? LocalizedError)?.errorDescription ?? "Couldn't send. Try again."
+            self.error = (error as? LocalizedError)?.errorDescription ?? String(localized: "Couldn't send. Try again.")
         }
     }
 }

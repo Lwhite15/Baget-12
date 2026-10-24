@@ -122,12 +122,12 @@ final class AppStore {
     func isLive(_ item: Item) -> Bool { !isSoldOut(item) && dropDate(item) <= .now }
 
     func whenLabel(_ item: Item) -> String {
-        if isSoldOut(item) { return "RESTOCK WATCH" }
+        if isSoldOut(item) { return String(localized: "RESTOCK WATCH") }
         let m = dropDate(item).timeIntervalSinceNow / 60
         if m <= 0 { return "AVAILABLE" }
-        if m < 60 { return "IN \(Int(m.rounded(.up)))M" }
-        if m < 1440 { return "IN \(Int(m / 60))H \(Int(m.truncatingRemainder(dividingBy: 60)))M" }
-        return "IN \(Int(safe: (m / 1440).rounded()))D"
+        if m < 60 { return String(localized: "IN \(Int(m.rounded(.up)))M") }
+        if m < 1440 { return String(localized: "IN \(Int(m / 60))H \(Int(m.truncatingRemainder(dividingBy: 60)))M") }
+        return String(localized: "IN \(Int(safe: (m / 1440).rounded()))D")
     }
 
     func whenText(_ item: Item) -> String {
@@ -159,12 +159,12 @@ final class AppStore {
     /// The honest friend's take on a find.
     func take(_ a: Agent, _ item: Item) -> FriendTake {
         let twin = owned(by: a).first { $0.id != item.id && $0.brand == item.brand && Set($0.traits).intersection(item.traits).count >= 2 }
-        if isSoldOut(item) { return FriendTake(text: "Sold out at the source. I'll watch for a restock and won't let you overpay resale.", caution: false) }
-        if let twin { return FriendTake(text: "You already picked up the \(twin.title). This is close. Sure you want both?", caution: true) }
-        if a.priceNote > 0 && item.price > a.priceNote { return FriendTake(text: "You've passed on things at this price before. Flagging it anyway because it fits you so well.", caution: true) }
-        if item.market < item.price * 0.97 { return FriendTake(text: "Market's below the asking price right now. I'd wait or buy it secondhand.", caution: true) }
-        if item.price > 0 && item.market > item.price * 1.25 { return FriendTake(text: "Asking is \(Int(safe: ((item.market / item.price - 1) * 100).rounded()))% under market. If you love it, this is the moment.", caution: false) }
-        return FriendTake(text: "Fair price, right in your lane.", caution: false)
+        if isSoldOut(item) { return FriendTake(text: String(localized: "Sold out at the source. I'll watch for a restock and won't let you overpay resale."), caution: false) }
+        if let twin { return FriendTake(text: String(localized: "You already picked up the \(twin.title). This is close. Sure you want both?"), caution: true) }
+        if a.priceNote > 0 && item.price > a.priceNote { return FriendTake(text: String(localized: "You've passed on things at this price before. Flagging it anyway because it fits you so well."), caution: true) }
+        if item.market < item.price * 0.97 { return FriendTake(text: String(localized: "Market's below the asking price right now. I'd wait or buy it secondhand."), caution: true) }
+        if item.price > 0 && item.market > item.price * 1.25 { return FriendTake(text: String(localized: "Asking is \(Int(safe: ((item.market / item.price - 1) * 100).rounded()))% under market. If you love it, this is the moment."), caution: false) }
+        return FriendTake(text: String(localized: "Fair price, right in your lane."), caution: false)
     }
 
     // MARK: - Sweeps
@@ -211,8 +211,8 @@ final class AppStore {
         }
         save()
         if background {
-            notes.filter { !$0.heldForMorning }.forEach { Notifier.post($0, title: agent($0.agentID)?.name ?? "Baget") }
-            notes.filter { $0.heldForMorning }.forEach { Notifier.postAtMorning($0, title: agent($0.agentID)?.name ?? "Baget") }
+            notes.filter { !$0.heldForMorning }.forEach { Notifier.post($0, title: agent($0.agentID)?.name ?? String(localized: "Baget")) }
+            notes.filter { $0.heldForMorning }.forEach { Notifier.postAtMorning($0, title: agent($0.agentID)?.name ?? String(localized: "Baget")) }
         } else if !quiet, let first = notes.first {
             showBanner(first)
         }
@@ -339,7 +339,7 @@ final class AppStore {
 
     func noteSender(_ n: AppNote) -> String {
         if let f = n.friendID { return state.friends.first { $0.id == f }?.name ?? "A friend" }
-        return agent(n.agentID)?.name ?? "Retired agent"
+        return agent(n.agentID)?.name ?? String(localized: "Retired agent")
     }
 
     // MARK: - Learning
@@ -691,16 +691,16 @@ final class AppStore {
             let pct = item.price > 0 ? Int(safe: ((item.market / item.price - 1) * 100).rounded()) : 0
             let drop = dropDate(item).timeIntervalSinceNow / 60
             let kind: String, head: String
-            if isSoldOut(item) { kind = "Restock watch"; head = "\(item.title) Sold Out Fast. Here's the Restock Play" }
-            else if drop > 0 { kind = "Release"; head = "\(item.title) \(drop < 1440 ? "Drops Today" : drop < 2880 ? "Drops Tomorrow" : "Lands This Week") at \(item.source)" }
-            else if pct >= 20 { kind = "Market"; head = "\(item.title) Is Trading \(pct)% Above Asking" }
-            else if pct <= -3 { kind = "Price watch"; head = "The Market Is Cooling on the \(item.title)" }
-            else { kind = "Available now"; head = "\(item.title) Is Available Now via \(item.source)" }
+            if isSoldOut(item) { kind = String(localized: "Restock watch"); head = String(localized: "\(item.title) Sold Out Fast. Here's the Restock Play") }
+            else if drop > 0 { kind = String(localized: "Release"); head = "\(item.title) \(drop < 1440 ? "Drops Today" : drop < 2880 ? "Drops Tomorrow" : "Lands This Week") at \(item.source)" }
+            else if pct >= 20 { kind = String(localized: "Market"); head = String(localized: "\(item.title) Is Trading \(pct)% Above Asking") }
+            else if pct <= -3 { kind = String(localized: "Price watch"); head = String(localized: "The Market Is Cooling on the \(item.title)") }
+            else { kind = String(localized: "Available now"); head = String(localized: "\(item.title) Is Available Now via \(item.source)") }
             let info = item.category.info
             var dek = item.creator.map { "\(info.creatorVerb) \($0). " } ?? ""
             dek += item.traits.prefix(3).joined(separator: ", ").capitalizedFirst + ". "
-            dek += item.priceKnown ? "\(Fmt.money(item.price)) at \(item.source)" : "Price TBA at \(item.source)"
-            if item.priceKnown && item.market != item.price { dek += ", \(Fmt.money(item.market)) on the market" }
+            dek += item.priceKnown ? "\(Fmt.money(item.price)) at \(item.source)" : String(localized: "Price TBA at \(item.source)")
+            if item.priceKnown && item.market != item.price { dek += String(localized: ", \(Fmt.money(item.market)) on the market") }
             dek += "."
             let b = best(for: item)
             return Story(item: item, kind: kind, headline: head, dek: dek, minutesAgo: minutesAgo(item),
@@ -745,7 +745,7 @@ final class AppStore {
         let target = best(for: item)?.agent ?? state.agents.first { Matcher.covers($0, item) }
             ?? state.agents.first { $0.mission.category == item.category } ?? state.agents.first
         let note = s.note.trimmingCharacters(in: .whitespacesAndNewlines)
-        let credit = note.isEmpty ? "\(f.name) suggested it" : "\(f.name) suggested it: “\(note)”"
+        let credit = note.isEmpty ? String(localized: "\(f.name) suggested it") : String(localized: "\(f.name) suggested it: “\(note)”")
         if let a = target, let find = ensureFind(agentID: a.id, itemID: item.id, why: credit), let fi = state.finds.firstIndex(where: { $0.id == find.id }) {
             state.finds[fi].why = [credit] + state.finds[fi].why.filter { !$0.contains("suggested it") }
             if state.finds[fi].status != .acquired && state.finds[fi].status != .liked { like(find.id) }
@@ -792,13 +792,13 @@ final class AppStore {
 
     func addFriend(_ raw: String) -> String? {
         let h = raw.trimmingCharacters(in: .whitespaces)
-        guard !h.isEmpty else { return "Enter a handle like @maya or an email address." }
+        guard !h.isEmpty else { return String(localized: "Enter a handle like @maya or an email address.") }
         let handle = (h.contains("@") && !h.hasPrefix("@")) ? h.lowercased() : (h.hasPrefix("@") ? h : "@" + h).lowercased()
-        if state.friends.contains(where: { $0.handle.lowercased() == handle }) { return "You've already added them." }
+        if state.friends.contains(where: { $0.handle.lowercased() == handle }) { return String(localized: "You've already added them.") }
         let base = handle.replacingOccurrences(of: "@", with: " ").split(whereSeparator: { " ._".contains($0) }).first.map(String.init) ?? "friend"
         let id = "u" + UUID().uuidString.prefix(6)
         state.friends.append(Friend(id: id, name: base.capitalized, handle: handle, hunts: [], likes: [], isPending: true,
-                                    replies: ["Love that. Thanks for thinking of me.", "Ooh, good find.", "Adding it to my list."]))
+                                    replies: [String(localized: "Love that. Thanks for thinking of me."), String(localized: "Ooh, good find."), String(localized: "Adding it to my list.")]))
         log("Friend invite sent to \(handle)")
         save()
         // Prototype: the invite is accepted a few seconds later.
@@ -808,7 +808,7 @@ final class AppStore {
             self.state.friends[i].isPending = false
             self.state.friends[i].hunts = [.sneakers, .fragrance]
             self.state.friends[i].likes = ["suede", "rose"]
-            let n = AppNote(friendID: id, kind: .friend, body: "\(self.state.friends[i].name) accepted your friend request. You can now swap suggestions.")
+            let n = AppNote(friendID: id, kind: .friend, body: String(localized: "\(self.state.friends[i].name) accepted your friend request. You can now swap suggestions."))
             self.state.notes.insert(n, at: 0)
             self.save()
             self.showBanner(n)

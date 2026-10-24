@@ -33,7 +33,7 @@ struct TodayView: View {
 
     private var greeting: some View {
         let h = Calendar.current.component(.hour, from: .now)
-        let hello = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening"
+        let hello = h < 12 ? String(localized: "Good morning") : h < 17 ? String(localized: "Good afternoon") : String(localized: "Good evening")
         let name = store.state.profile?.displayName.split(separator: " ").first.map(String.init)
         return VStack(alignment: .leading, spacing: 3) {
             Text(name.map { "\(hello), \($0)" } ?? hello)
@@ -77,11 +77,11 @@ struct TodayView: View {
                 Text("Nothing worth showing you yet").font(.subheadline.weight(.bold)).foregroundStyle(Theme.ink)
             }
             Text(noSize != nil
-                 ? "\(a.name) only flags \(a.mission.category == .sneakers ? "pairs" : "pieces") in stock in your size, and it doesn't know yours yet."
-                 : "\(a.name) is being picky so you only see good matches. A brand, model or budget gives it much more to go on.")
+                 ? String(localized: "\(a.name) only flags \(a.mission.category == .sneakers ? "pairs" : "pieces") in stock in your size, and it doesn't know yours yet.")
+                 : String(localized: "\(a.name) is being picky so you only see good matches. A brand, model or budget gives it much more to go on."))
                 .font(.caption).foregroundStyle(Theme.muted).fixedSize(horizontal: false, vertical: true)
             HStack(spacing: 10) {
-                Button(noSize != nil ? "Add your size" : "Tell \(a.name) more") { router.sheet = .chat(a.id) }
+                Button(noSize != nil ? String(localized: "Add your size") : String(localized: "Tell \(a.name) more")) { router.sheet = .chat(a.id) }
                     .font(.footnote.weight(.semibold)).foregroundStyle(Theme.accentInk)
                     .padding(.horizontal, 14).padding(.vertical, 8)
                     .background(Theme.gradient, in: Capsule())
@@ -280,14 +280,14 @@ struct ForYouSection: View {
             HStack(spacing: 8) {
                 Button {
                     withAnimation(.snappy) { store.reactForYou(p, .like) }
-                    router.say(store.state.agents.isEmpty ? "Liked. Baget will show more like this" : "Saved to Finds. More like this coming")
+                    router.say(store.state.agents.isEmpty ? String(localized: "Liked. Baget will show more like this") : String(localized: "Saved to Finds. More like this coming"))
                 } label: {
                     Image(systemName: "heart.fill").font(.footnote.weight(.bold)).foregroundStyle(Theme.accentInk)
                         .frame(maxWidth: .infinity).frame(height: 34)
                         .background(Theme.gradient, in: Capsule())
                 }
                 .accessibilityLabel("Like")
-                Button { withAnimation(.snappy) { store.reactForYou(p, .dismiss) }; router.say("Got it, fewer like this") } label: {
+                Button { withAnimation(.snappy) { store.reactForYou(p, .dismiss) }; router.say(String(localized: "Got it, fewer like this")) } label: {
                     Image(systemName: "xmark").font(.footnote.weight(.bold)).foregroundStyle(Theme.muted)
                         .frame(maxWidth: .infinity).frame(height: 34)
                         .background(Theme.glass, in: Capsule())
@@ -306,7 +306,7 @@ struct ForYouSection: View {
 
     private func open(_ p: ForYouItem, _ item: Item) {
         if let fid = p.findID { router.focusFind = fid; router.tab = .finds; return }
-        guard let url = BuyLink.tracked(item, from: "for_you") else { router.say("No store page for this one yet"); return }
+        guard let url = BuyLink.tracked(item, from: "for_you") else { router.say(String(localized: "No store page for this one yet")); return }
         store.reactForYou(p, .open)
         openURL(url)
     }
@@ -336,8 +336,8 @@ struct HuntBox: View {
     @State private var result: (agentID: String, intro: String)?
     @FocusState private var focused: Bool
 
-    private static let examples = ["oud fragrances like Frederic Malle", "a 992 GT3 under $200k", "Supreme box logo in size L",
-                                   "mid-century walnut credenza", "Jordan 1s in mocha, size 10.5", "vintage Rolex Explorer"]
+    private static let examples = ["oud fragrances like Frederic Malle", "a 992 GT3 under $200k", String(localized: "Supreme box logo in size L"),
+                                   "mid-century walnut credenza", String(localized: "Jordan 1s in mocha, size 10.5"), "vintage Rolex Explorer"]
     @State private var example = HuntBox.examples.randomElement()!
 
     var body: some View {
@@ -426,7 +426,7 @@ extension AppStore {
         } else {
             let res = sweep()
             Analytics.track(.sweepRun, ["found": res.found, "manual": true])
-            router.say(res.found > 0 ? "\(res.found) new find\(res.found == 1 ? "" : "s")" : "Nothing new fits you right now")
+            router.say(res.found > 0 ? String(localized: "\(res.found) new find\(res.found == 1 ? "" : "s")") : String(localized: "Nothing new fits you right now"))
         }
     }
 }

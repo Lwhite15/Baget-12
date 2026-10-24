@@ -162,19 +162,19 @@ enum Matcher {
         guard covers(a, item) else { return nil }
         if Sizes.required(a) && !Sizes.has(a) { return nil }           // no size, no hunting
         let fit = Sizes.fit(a, item)
-        if fit == false { return Match(score: 0, why: ["Not in stock in your size (\(a.size))"], notInSize: true) }
+        if fit == false { return Match(score: 0, why: [String(localized: "Not in stock in your size (\(a.size))")], notInSize: true) }
 
         let info = item.category.info
         var why: [String] = []
         var pts = 0.0
         let hay = TextMatch.norm(([item.title, item.brand] + item.tags + item.traits).joined(separator: " "))
         let hits = a.keywords.filter { !$0.isEmpty && hay.contains(TextMatch.norm($0)) }
-        if !hits.isEmpty { pts += Double(hits.count * 12); why.append("Matches your keywords: \(hits.prefix(3).joined(separator: ", "))") }
+        if !hits.isEmpty { pts += Double(hits.count * 12); why.append(String(localized: "Matches your keywords: \(hits.prefix(3).joined(separator: ", "))")) }
         if a.style.makers.contains(where: { TextMatch.loose($0, item.brand) }) {
-            pts += 20; why.append("From \(item.brand), a \(info.makerNoun) you like")
+            pts += 20; why.append(String(localized: "From \(item.brand), a \(info.makerNoun) you like"))
         }
         if let c = item.creator, a.style.creators.contains(where: { TextMatch.loose($0, c) }) {
-            pts += 18; why.append("\(info.creatorVerb) \(c), \(info.creatorNoun) you follow")
+            pts += 18; why.append(String(localized: "\(info.creatorVerb) \(c), \(info.creatorNoun) you follow"))
         }
         let shared = a.style.traits.filter { t in item.traits.contains { TextMatch.loose($0, t) } }
         if !shared.isEmpty {
@@ -182,10 +182,10 @@ enum Matcher {
             let photoTags = Set(a.tasteBoard.flatMap { $0.tags.map(TextMatch.norm) })
             let fromPhotos = shared.filter { photoTags.contains(TextMatch.norm($0)) }
             let fromBrief = shared.filter { !photoTags.contains(TextMatch.norm($0)) }
-            if !fromBrief.isEmpty { why.append("Shares your \(fromBrief.joined(separator: ", ")) \(info.traitNoun)") }
-            if !fromPhotos.isEmpty { why.append("Like your taste photos: \(fromPhotos.joined(separator: ", "))") }
+            if !fromBrief.isEmpty { why.append(String(localized: "Shares your \(fromBrief.joined(separator: ", ")) \(info.traitNoun)")) }
+            if !fromPhotos.isEmpty { why.append(String(localized: "Like your taste photos: \(fromPhotos.joined(separator: ", "))")) }
         }
-        if case .custom(let text) = a.mission, why.isEmpty { pts += 14; why.append("Fits your mission: \(text)") }
+        if case .custom(let text) = a.mission, why.isEmpty { pts += 14; why.append(String(localized: "Fits your mission: \(text)")) }
 
         // What the agent learned from your buys and passes
         let keys = item.traits + [item.brand]
@@ -193,17 +193,17 @@ enum Matcher {
         let disliked = keys.filter { (a.learned[TextMatch.norm($0)] ?? 0) < 0 }
         if !liked.isEmpty {
             pts += Double(liked.reduce(0) { $0 + min(3, a.learned[TextMatch.norm($1)] ?? 0) * 6 })
-            why.append("You've gone for \(liked.prefix(3).joined(separator: ", ")) before")
+            why.append(String(localized: "You've gone for \(liked.prefix(3).joined(separator: ", ")) before"))
         }
         if !disliked.isEmpty {
             pts += Double(disliked.reduce(0) { $0 + max(-3, a.learned[TextMatch.norm($1)] ?? 0) * 8 })
-            why.append("Heads up: you passed on \(disliked.prefix(2).joined(separator: ", ")) before")
+            why.append(String(localized: "Heads up: you passed on \(disliked.prefix(2).joined(separator: ", ")) before"))
         }
 
         let intelBoost = Double(intel(a))
-        if fit == true { why.append("In stock in your size, \(a.size)") }
+        if fit == true { why.append(String(localized: "In stock in your size, \(a.size)")) }
         if why.isEmpty || (why.count == 1 && fit == true) {
-            return Match(score: Int(safe: (28 + intelBoost * 0.12).rounded()), why: ["Broad mission match only"] + why)
+            return Match(score: Int(safe: (28 + intelBoost * 0.12).rounded()), why: [String(localized: "Broad mission match only")] + why)
         }
         let s = Int(safe: (35 + pts * 0.55 + intelBoost * 0.1).rounded())
         return Match(score: max(5, min(98, s)), why: why)
@@ -229,9 +229,9 @@ enum Fmt {
     static func ago(_ d: Date) -> String {
         let m = Int(Date.now.timeIntervalSince(d) / 60)
         if m < 1 { return "now" }
-        if m < 60 { return "\(m)m" }
-        if m < 1440 { return "\(m / 60)h" }
-        return "\(m / 1440)d"
+        if m < 60 { return String(localized: "\(m)m") }
+        if m < 1440 { return String(localized: "\(m / 60)h") }
+        return String(localized: "\(m / 1440)d")
     }
 }
 
@@ -248,41 +248,41 @@ enum FriendVoice {
         let market = item.map { Fmt.money($0.market) } ?? ""
 
         switch (kind, a.voice) {
-        case (.release, .hype): return "Yo! The \(t) drops \(when) at \(src). Total \(hook) energy. Want me to line up checkout?"
-        case (.release, .chill): return "Heads up, the \(t) drops \(when) at \(src). It's very your \(hook) thing. Want me to get checkout ready?"
-        case (.release, .straight): return "\(t) releases \(when) at \(src), \(price). Matches your \(hook) preference."
+        case (.release, .hype): return String(localized: "Yo! The \(t) drops \(when) at \(src). Total \(hook) energy. Want me to line up checkout?")
+        case (.release, .chill): return String(localized: "Heads up, the \(t) drops \(when) at \(src). It's very your \(hook) thing. Want me to get checkout ready?")
+        case (.release, .straight): return String(localized: "\(t) releases \(when) at \(src), \(price). Matches your \(hook) preference.")
 
-        case (.available, .hype): return "Found one for you! The \(t) is up right now at \(src) for \(price). It's so you."
-        case (.available, .chill): return "Found something you'll like: the \(t), \(price) at \(src). Has that \(hook) thing you're into."
-        case (.available, .straight): return "\(t) is available at \(src) for \(price).\(extra.isEmpty ? "" : " \(extra)% match.")"
+        case (.available, .hype): return String(localized: "Found one for you! The \(t) is up right now at \(src) for \(price). It's so you.")
+        case (.available, .chill): return String(localized: "Found something you'll like: the \(t), \(price) at \(src). Has that \(hook) thing you're into.")
+        case (.available, .straight): return String(localized: "\(t) is available at \(src) for \(price).\(extra.isEmpty ? "" : " \(extra)% match.")")
 
-        case (.steal, .hype): return "Okay this is a steal: the \(t) is \(price), about \(pct)% under what it trades for. Don't sleep on it."
-        case (.steal, .chill): return "The \(t) is going for \(price), roughly \(pct)% under market. Worth a look if you still want one."
-        case (.steal, .straight): return "\(t): asking \(price), market \(market). About \(pct)% under."
+        case (.steal, .hype): return String(localized: "Okay this is a steal: the \(t) is \(price), about \(pct)% under what it trades for. Don't sleep on it.")
+        case (.steal, .chill): return String(localized: "The \(t) is going for \(price), roughly \(pct)% under market. Worth a look if you still want one.")
+        case (.steal, .straight): return String(localized: "\(t): asking \(price), market \(market). About \(pct)% under.")
 
-        case (.watch, .hype): return "Ugh, the \(t) sold out before I could get to it. I'm camped out for the restock."
-        case (.watch, .chill): return "The \(t) is sold out right now. I'll keep watching and tell you the second it's back."
-        case (.watch, .straight): return "\(t) is sold out. Restock watch is on."
+        case (.watch, .hype): return String(localized: "Ugh, the \(t) sold out before I could get to it. I'm camped out for the restock.")
+        case (.watch, .chill): return String(localized: "The \(t) is sold out right now. I'll keep watching and tell you the second it's back.")
+        case (.watch, .straight): return String(localized: "\(t) is sold out. Restock watch is on.")
 
-        case (.restock, .hype): return "IT'S BACK. The \(t) just restocked at \(src). Want me to grab it before it's gone again?"
-        case (.restock, .chill): return "Good news, the \(t) is back in stock at \(src). Want it?"
-        case (.restock, .straight): return "Restock: \(t) at \(src), \(price). Tap to review checkout."
+        case (.restock, .hype): return String(localized: "IT'S BACK. The \(t) just restocked at \(src). Want me to grab it before it's gone again?")
+        case (.restock, .chill): return String(localized: "Good news, the \(t) is back in stock at \(src). Want it?")
+        case (.restock, .straight): return String(localized: "Restock: \(t) at \(src), \(price). Tap to review checkout.")
 
-        case (.bought, .hype): return "Done! Grabbed the \(t) for \(price). It's in your Finds."
-        case (.bought, .chill): return "Got it for you: the \(t), \(price). It's in your Finds."
-        case (.bought, .straight): return "Purchased \(t) for \(price). It's in your Finds."
+        case (.bought, .hype): return String(localized: "Done! Grabbed the \(t) for \(price). It's in your Finds.")
+        case (.bought, .chill): return String(localized: "Got it for you: the \(t), \(price). It's in your Finds.")
+        case (.bought, .straight): return String(localized: "Purchased \(t) for \(price). It's in your Finds.")
 
-        case (.budget, _): return "Still hunting for you."
+        case (.budget, _): return String(localized: "Still hunting for you.")
 
-        case (.learned, .hype): return "Noticed you're really into \(extra) lately. Hunting more of that now!"
-        case (.learned, .chill): return "Seems like \(extra) is your thing lately. I'll keep an eye out for more."
-        case (.learned, .straight): return "Profile updated: added \(extra)."
+        case (.learned, .hype): return String(localized: "Noticed you're really into \(extra) lately. Hunting more of that now!")
+        case (.learned, .chill): return String(localized: "Seems like \(extra) is your thing lately. I'll keep an eye out for more.")
+        case (.learned, .straight): return String(localized: "Profile updated: added \(extra).")
 
         case (.friend, _): return extra
-        case (.digest, _): return extra.isEmpty ? "Today's Drop is ready: your squad's best picks." : extra
-        case (.drop, _): return "Price drop: the \(t) is now \(price) at \(src)."
+        case (.digest, _): return extra.isEmpty ? String(localized: "Today's Drop is ready: your squad's best picks.") : extra
+        case (.drop, _): return String(localized: "Price drop: the \(t) is now \(price) at \(src).")
         case (.feedback, _): return extra
-        case (.reminder, _): return "Reminder: the \(t) releases \(when) at \(src)."
+        case (.reminder, _): return String(localized: "Reminder: the \(t) releases \(when) at \(src).")
         }
     }
 

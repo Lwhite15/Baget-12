@@ -33,67 +33,67 @@ extension Category {
     var info: CategoryInfo {
         switch self {
         case .sneakers:
-            return CategoryInfo(label: "Sneakers", symbol: "shoe.fill", sizeRequired: true, sizeLabel: "Shoe size",
-                                traitsLabel: "Silhouettes, colorways, materials", traitsPlaceholder: "Jordan 1, suede, low top",
-                                makersLabel: "Brands", makersPlaceholder: "Jordan, New Balance",
-                                creatorsLabel: "Collabs and designers", creatorsPlaceholder: "Travis Scott, Aimé Leon Dore",
-                                traitNoun: "details", makerNoun: "brand", creatorVerb: "Made with", creatorNoun: "a collaborator")
+            return CategoryInfo(label: String(localized: "Sneakers"), symbol: "shoe.fill", sizeRequired: true, sizeLabel: String(localized: "Shoe size"),
+                                traitsLabel: String(localized: "Silhouettes, colorways, materials"), traitsPlaceholder: String(localized: "Jordan 1, suede, low top"),
+                                makersLabel: String(localized: "Brands"), makersPlaceholder: String(localized: "Jordan, New Balance"),
+                                creatorsLabel: String(localized: "Collabs and designers"), creatorsPlaceholder: String(localized: "Travis Scott, Aimé Leon Dore"),
+                                traitNoun: "details", makerNoun: "brand", creatorVerb: String(localized: "Made with"), creatorNoun: "a collaborator")
         case .apparel:
-            return CategoryInfo(label: "Clothing", symbol: "tshirt.fill", sizeRequired: true, sizeLabel: "Clothing size",
-                                traitsLabel: "Fits, fabrics, pieces", traitsPlaceholder: "boxy, heavyweight fleece, outerwear",
-                                makersLabel: "Labels", makersPlaceholder: "Supreme, Stüssy",
-                                creatorsLabel: "Collabs and designers", creatorsPlaceholder: "The North Face",
-                                traitNoun: "details", makerNoun: "label", creatorVerb: "Made with", creatorNoun: "a collaborator")
+            return CategoryInfo(label: String(localized: "Clothing"), symbol: "tshirt.fill", sizeRequired: true, sizeLabel: String(localized: "Clothing size"),
+                                traitsLabel: String(localized: "Fits, fabrics, pieces"), traitsPlaceholder: "boxy, heavyweight fleece, outerwear",
+                                makersLabel: String(localized: "Labels"), makersPlaceholder: String(localized: "Supreme, Stüssy"),
+                                creatorsLabel: String(localized: "Collabs and designers"), creatorsPlaceholder: String(localized: "The North Face"),
+                                traitNoun: "details", makerNoun: "label", creatorVerb: String(localized: "Made with"), creatorNoun: "a collaborator")
         case .fragrance:
-            return CategoryInfo(label: "Fragrance", symbol: "drop.fill", sizeRequired: false, sizeLabel: "Bottle size",
-                                traitsLabel: "Notes you love", traitsPlaceholder: "oud, rose, saffron, incense",
-                                makersLabel: "Houses", makersPlaceholder: "Frédéric Malle, MFK",
-                                creatorsLabel: "Perfumers", creatorsPlaceholder: "Dominique Ropion",
-                                traitNoun: "notes", makerNoun: "house", creatorVerb: "Composed by", creatorNoun: "a perfumer")
+            return CategoryInfo(label: String(localized: "Fragrance"), symbol: "drop.fill", sizeRequired: false, sizeLabel: String(localized: "Bottle size"),
+                                traitsLabel: String(localized: "Notes you love"), traitsPlaceholder: "oud, rose, saffron, incense",
+                                makersLabel: String(localized: "Houses"), makersPlaceholder: String(localized: "Frédéric Malle, MFK"),
+                                creatorsLabel: String(localized: "Perfumers"), creatorsPlaceholder: String(localized: "Dominique Ropion"),
+                                traitNoun: "notes", makerNoun: "house", creatorVerb: String(localized: "Composed by"), creatorNoun: "a perfumer")
         case .watches:
-            return CategoryInfo(label: "Watches", symbol: "watch.analog", sizeRequired: false, sizeLabel: "Case size",
-                                traitsLabel: "Styles and specs", traitsPlaceholder: "integrated bracelet, steel, diver",
-                                makersLabel: "Manufactures", makersPlaceholder: "Audemars Piguet, Tudor",
-                                creatorsLabel: "Designers", creatorsPlaceholder: "Gérald Genta",
-                                traitNoun: "specs", makerNoun: "manufacture", creatorVerb: "Designed by", creatorNoun: "a designer")
+            return CategoryInfo(label: String(localized: "Watches"), symbol: "watch.analog", sizeRequired: false, sizeLabel: String(localized: "Case size"),
+                                traitsLabel: String(localized: "Styles and specs"), traitsPlaceholder: "integrated bracelet, steel, diver",
+                                makersLabel: String(localized: "Manufactures"), makersPlaceholder: String(localized: "Audemars Piguet, Tudor"),
+                                creatorsLabel: String(localized: "Designers"), creatorsPlaceholder: String(localized: "Gérald Genta"),
+                                traitNoun: "specs", makerNoun: "manufacture", creatorVerb: String(localized: "Designed by"), creatorNoun: "a designer")
         case .cars:
-            return CategoryInfo(label: "Cars", symbol: "car.fill", sizeRequired: false, sizeLabel: nil,
-                                traitsLabel: "Eras, body styles, specs", traitsPlaceholder: "air-cooled, manual, coupe",
-                                makersLabel: "Makes", makersPlaceholder: "Porsche, BMW M",
-                                creatorsLabel: "Tuners and builders", creatorsPlaceholder: "Singer, RUF",
-                                traitNoun: "specs", makerNoun: "make", creatorVerb: "Built by", creatorNoun: "a builder")
+            return CategoryInfo(label: String(localized: "Cars"), symbol: "car.fill", sizeRequired: false, sizeLabel: nil,
+                                traitsLabel: String(localized: "Eras, body styles, specs"), traitsPlaceholder: "air-cooled, manual, coupe",
+                                makersLabel: String(localized: "Makes"), makersPlaceholder: String(localized: "Porsche, BMW M"),
+                                creatorsLabel: String(localized: "Tuners and builders"), creatorsPlaceholder: String(localized: "Singer, RUF"),
+                                traitNoun: "specs", makerNoun: "make", creatorVerb: String(localized: "Built by"), creatorNoun: "a builder")
         case .furniture:
-            return CategoryInfo(label: "Furniture", symbol: "sofa.fill", sizeRequired: false, sizeLabel: nil,
-                                traitsLabel: "Periods, materials, forms", traitsPlaceholder: "mid-century, walnut, cane",
-                                makersLabel: "Makers", makersPlaceholder: "Herman Miller, Cassina",
-                                creatorsLabel: "Designers", creatorsPlaceholder: "Pierre Jeanneret, Eames",
-                                traitNoun: "details", makerNoun: "maker", creatorVerb: "Designed by", creatorNoun: "a designer")
+            return CategoryInfo(label: String(localized: "Furniture"), symbol: "sofa.fill", sizeRequired: false, sizeLabel: nil,
+                                traitsLabel: String(localized: "Periods, materials, forms"), traitsPlaceholder: "mid-century, walnut, cane",
+                                makersLabel: String(localized: "Makers"), makersPlaceholder: String(localized: "Herman Miller, Cassina"),
+                                creatorsLabel: String(localized: "Designers"), creatorsPlaceholder: String(localized: "Pierre Jeanneret, Eames"),
+                                traitNoun: "details", makerNoun: "maker", creatorVerb: String(localized: "Designed by"), creatorNoun: "a designer")
         case .accessories:
-            return CategoryInfo(label: "Accessories", symbol: "bag.fill", sizeRequired: false, sizeLabel: nil,
-                                traitsLabel: "Materials and pieces", traitsPlaceholder: "sterling silver, leather, rings",
-                                makersLabel: "Makers", makersPlaceholder: "Chrome Hearts, Goyard",
-                                creatorsLabel: "Designers", creatorsPlaceholder: "Richard Stark",
-                                traitNoun: "details", makerNoun: "maker", creatorVerb: "Designed by", creatorNoun: "a designer")
+            return CategoryInfo(label: String(localized: "Accessories"), symbol: "bag.fill", sizeRequired: false, sizeLabel: nil,
+                                traitsLabel: String(localized: "Materials and pieces"), traitsPlaceholder: "sterling silver, leather, rings",
+                                makersLabel: String(localized: "Makers"), makersPlaceholder: String(localized: "Chrome Hearts, Goyard"),
+                                creatorsLabel: String(localized: "Designers"), creatorsPlaceholder: String(localized: "Richard Stark"),
+                                traitNoun: "details", makerNoun: "maker", creatorVerb: String(localized: "Designed by"), creatorNoun: "a designer")
         case .other:
-            return CategoryInfo(label: "Other", symbol: "sparkles", sizeRequired: false, sizeLabel: nil,
-                                traitsLabel: "Traits", traitsPlaceholder: "", makersLabel: "Makers", makersPlaceholder: "",
-                                creatorsLabel: "Creators", creatorsPlaceholder: "",
-                                traitNoun: "traits", makerNoun: "maker", creatorVerb: "By", creatorNoun: "a creator")
+            return CategoryInfo(label: String(localized: "Other"), symbol: "sparkles", sizeRequired: false, sizeLabel: nil,
+                                traitsLabel: String(localized: "Traits"), traitsPlaceholder: "", makersLabel: String(localized: "Makers"), makersPlaceholder: "",
+                                creatorsLabel: String(localized: "Creators"), creatorsPlaceholder: "",
+                                traitNoun: "traits", makerNoun: "maker", creatorVerb: String(localized: "By"), creatorNoun: "a creator")
         case .collectibles:
-            return CategoryInfo(label: "Collectibles", symbol: "star.square.fill", sizeRequired: false, sizeLabel: nil,
-                                traitsLabel: "Sets, grades, formats", traitsPlaceholder: "Base Set, PSA 9, first press",
-                                makersLabel: "Brands and labels", makersPlaceholder: "Pokémon, Medicom",
-                                creatorsLabel: "Artists", creatorsPlaceholder: "KAWS, Daft Punk",
-                                traitNoun: "details", makerNoun: "brand", creatorVerb: "By", creatorNoun: "an artist")
+            return CategoryInfo(label: String(localized: "Collectibles"), symbol: "star.square.fill", sizeRequired: false, sizeLabel: nil,
+                                traitsLabel: String(localized: "Sets, grades, formats"), traitsPlaceholder: String(localized: "Base Set, PSA 9, first press"),
+                                makersLabel: String(localized: "Brands and labels"), makersPlaceholder: String(localized: "Pokémon, Medicom"),
+                                creatorsLabel: String(localized: "Artists"), creatorsPlaceholder: String(localized: "KAWS, Daft Punk"),
+                                traitNoun: "details", makerNoun: "brand", creatorVerb: String(localized: "By"), creatorNoun: "an artist")
         }
     }
 }
 
-let customMissionInfo = CategoryInfo(label: "Custom", symbol: "sparkle.magnifyingglass", sizeRequired: false, sizeLabel: "Sizes or specs",
-                                      traitsLabel: "Traits you want", traitsPlaceholder: "condition, era, color, material",
-                                      makersLabel: "Brands or makers", makersPlaceholder: "Any you trust",
-                                      creatorsLabel: "Creators or designers", creatorsPlaceholder: "Anyone you follow",
-                                      traitNoun: "traits", makerNoun: "maker", creatorVerb: "By", creatorNoun: "a creator")
+let customMissionInfo = CategoryInfo(label: String(localized: "Custom"), symbol: "sparkle.magnifyingglass", sizeRequired: false, sizeLabel: String(localized: "Sizes or specs"),
+                                      traitsLabel: String(localized: "Traits you want"), traitsPlaceholder: "condition, era, color, material",
+                                      makersLabel: String(localized: "Brands or makers"), makersPlaceholder: String(localized: "Any you trust"),
+                                      creatorsLabel: String(localized: "Creators or designers"), creatorsPlaceholder: String(localized: "Anyone you follow"),
+                                      traitNoun: "traits", makerNoun: "maker", creatorVerb: String(localized: "By"), creatorNoun: "a creator")
 
 // MARK: - Catalog items
 
@@ -172,16 +172,16 @@ enum BuyMode: String, Codable, CaseIterable, Identifiable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .alert: return "Alert only"
-        case .ask: return "Ask before buying"
-        case .auto: return "Auto-buy (beta)"
+        case .alert: return String(localized: "Alert only")
+        case .ask: return String(localized: "Ask before buying")
+        case .auto: return String(localized: "Auto-buy (beta)")
         }
     }
     var short: String {
         switch self {
-        case .alert: return "Alert only"
-        case .ask: return "Asks to buy"
-        case .auto: return "Auto-buy"
+        case .alert: return String(localized: "Alert only")
+        case .ask: return String(localized: "Asks to buy")
+        case .auto: return String(localized: "Auto-buy")
         }
     }
 }
@@ -191,16 +191,16 @@ enum Voice: String, Codable, CaseIterable, Identifiable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .hype: return "Hype friend"
-        case .chill: return "Chill friend"
-        case .straight: return "Straight shooter"
+        case .hype: return String(localized: "Hype friend")
+        case .chill: return String(localized: "Chill friend")
+        case .straight: return String(localized: "Straight shooter")
         }
     }
     var blurb: String {
         switch self {
-        case .hype: return "Excited, never lets you miss a drop"
-        case .chill: return "Easygoing, gives you the gist"
-        case .straight: return "Just the facts and the price"
+        case .hype: return String(localized: "Excited, never lets you miss a drop")
+        case .chill: return String(localized: "Easygoing, gives you the gist")
+        case .straight: return String(localized: "Just the facts and the price")
         }
     }
 }
@@ -249,16 +249,16 @@ enum AgentAlerts: String, Codable, CaseIterable, Identifiable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .normal: return "Normal texts"
-        case .quiet: return "Only the very best"
-        case .off: return "No texts"
+        case .normal: return String(localized: "Normal texts")
+        case .quiet: return String(localized: "Only the very best")
+        case .off: return String(localized: "No texts")
         }
     }
     var short: String {
         switch self {
-        case .normal: return "Texts"
-        case .quiet: return "Quiet"
-        case .off: return "Muted"
+        case .normal: return String(localized: "Texts")
+        case .quiet: return String(localized: "Quiet")
+        case .off: return String(localized: "Muted")
         }
     }
     var icon: String {
@@ -270,9 +270,9 @@ enum AgentAlerts: String, Codable, CaseIterable, Identifiable {
     }
     var blurb: String {
         switch self {
-        case .normal: return "Follows your texting setting"
-        case .quiet: return "Only standout finds buzz your phone"
-        case .off: return "Finds still show up in the app, silently"
+        case .normal: return String(localized: "Follows your texting setting")
+        case .quiet: return String(localized: "Only standout finds buzz your phone")
+        case .off: return String(localized: "Finds still show up in the app, silently")
         }
     }
 }
@@ -340,11 +340,11 @@ enum NoteGroup: String, Codable, CaseIterable, Identifiable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .finds: return "New finds and drops"
-        case .restocks: return "Restocks"
-        case .steals: return "Prices well under market"
-        case .money: return "Purchases"
-        case .learning: return "What my scouts learn"
+        case .finds: return String(localized: "New finds and drops")
+        case .restocks: return String(localized: "Restocks")
+        case .steals: return String(localized: "Prices well under market")
+        case .money: return String(localized: "Purchases")
+        case .learning: return String(localized: "What my scouts learn")
         }
     }
 }
@@ -434,8 +434,8 @@ struct LiveTab: Codable, Identifiable, Hashable {
     var label: String
 
     static var presets: [LiveTab] {
-        [LiveTab(id: "foryou", kind: .forYou, label: "For you"),
-         LiveTab(id: "latest", kind: .latest, label: "Latest")]
+        [LiveTab(id: "foryou", kind: .forYou, label: String(localized: "For you")),
+         LiveTab(id: "latest", kind: .latest, label: String(localized: "Latest"))]
         + Category.allCases.map { LiveTab(id: $0.rawValue, kind: .category($0), label: $0.info.label) }
     }
 }
@@ -457,16 +457,16 @@ enum PushLevel: String, Codable, CaseIterable, Identifiable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .best: return "Only the best"
-        case .all: return "Everything"
-        case .daily: return "Daily only"
+        case .best: return String(localized: "Only the best")
+        case .all: return String(localized: "Everything")
+        case .daily: return String(localized: "Daily only")
         }
     }
     var blurb: String {
         switch self {
-        case .best: return "Texts for strong matches (85%+) only, at most 6 a day, plus price drops, restocks, Today's Drop and friends."
-        case .all: return "Every find, as it happens."
-        case .daily: return "Just the 8am Today's Drop, plus price drops and restocks on things you're watching."
+        case .best: return String(localized: "Texts for strong matches (85%+) only, at most 6 a day, plus price drops, restocks, Today's Drop and friends.")
+        case .all: return String(localized: "Every find, as it happens.")
+        case .daily: return String(localized: "Just the 8am Today's Drop, plus price drops and restocks on things you're watching.")
         }
     }
 }

@@ -179,6 +179,12 @@ struct SettingsBlob: Codable {
     var avatar: Avatar?
     var pushLevel: String?
     var huntStart: Int?
+    /// The app's language ("en", "es", "fr", "ko"), so scouts text and chat in it.
+    var lang: String?
+}
+
+enum AppLanguage {
+    static var code: String { Bundle.main.preferredLocalizations.first.map { String($0.prefix(2)) } ?? "en" }
 }
 
 private struct SweepReply: Decodable { let swept: Int?; let found: Int?; let message: String? }
@@ -203,7 +209,7 @@ extension AppStore {
         guard isCloud else { return }
         Task { @MainActor in
             do { try await work(self.api) } catch {
-                self.syncProblem = (error as? LocalizedError)?.errorDescription ?? "Couldn't save that. Check your connection."
+                self.syncProblem = (error as? LocalizedError)?.errorDescription ?? String(localized: "Couldn't save that. Check your connection.")
                 await self.pull()
             }
         }
@@ -339,7 +345,7 @@ extension AppStore {
             save()
         } catch {
             if !api.isSignedIn { resetToWelcome(); return }
-            syncProblem = (error as? LocalizedError)?.errorDescription ?? "Couldn't refresh. Check your connection."
+            syncProblem = (error as? LocalizedError)?.errorDescription ?? String(localized: "Couldn't refresh. Check your connection.")
         }
     }
 
@@ -359,6 +365,11 @@ extension AppStore {
             state.settings.huntStart = blob.huntStart
         }
         lastSettingsSnapshot = settingsSnapshot()
+        // The language changed since the server last heard (or it never did): tell it, so scouts write in it.
+        if ((p["settings"] as? [String: Any])?["lang"] as? String) != AppLanguage.code {
+            lastSettingsSnapshot = nil
+            syncSettingsIfChanged()
+        }
     }
 
     /// What the server should hold for settings; compared on every save so any screen's change syncs.
@@ -366,7 +377,7 @@ extension AppStore {
         let blob = SettingsBlob(sweepMinutes: state.settings.sweepMinutes, quietHours: state.settings.quietHours,
                                 groups: state.settings.groups.map(\.rawValue).sorted(), liveTabs: state.liveTabs,
                                 avatar: state.avatar, pushLevel: (state.settings.pushLevel ?? .best).rawValue,
-                                huntStart: state.settings.huntStart ?? 9)
+                                huntStart: state.settings.huntStart ?? 9, lang: AppLanguage.code)
         var obj: [String: Any] = [:]
         if let d = try? JSONEncoder().encode(blob), let j = try? JSONSerialization.jsonObject(with: d) { obj["settings"] = j }
         obj["share_taste"] = state.settings.shareTasteWithFriends
@@ -384,7 +395,7 @@ extension AppStore {
     func updateHandle(_ raw: String) async -> String? {
         let h = raw.trimmingCharacters(in: CharacterSet(charactersIn: "@ ")).lowercased()
         guard h.range(of: "^[a-z0-9._]{3,24}$", options: .regularExpression) != nil else {
-            return "Use 3 to 24 letters, numbers, dots or underscores."
+            return String(localized: "Use 3 to 24 letters, numbers, dots or underscores.")
         }
         guard let uid = api.userID else { return BackendError.notSignedIn.message }
         do {
@@ -393,7 +404,7 @@ extension AppStore {
             save()
             return nil
         } catch let e as BackendError where e.status == 409 {
-            return "@\(h) is taken. Try another."
+            return String(localized: "@\(h) is taken. Try another.")
         } catch {
             return (error as? LocalizedError)?.errorDescription
         }
@@ -435,7 +446,7 @@ extension AppStore {
             let msg = (error as? LocalizedError)?.errorDescription ?? ""
             return msg.contains("agent_limit") ? scoutLimitMessage : "Couldn't deploy \(a.name). \(msg)"
         }
-        return await cloudSweep(agentID: a.id, quietIfNone: true) ?? "\(a.name) is out hunting. Finds land here as it spots them."
+        return await cloudSweep(agentID: a.id, quietIfNone: true) ?? String(localized: "\(a.name) is out hunting. Finds land here as it spots them.")
     }
 
     /// Asks the server to sweep now. Returns what to tell the person.
@@ -449,9 +460,9 @@ extension AppStore {
             if let m = r.message { return m }
             let n = r.found ?? 0
             if n == 0 && quietIfNone { return nil }
-            return n > 0 ? "\(n) new find\(n == 1 ? "" : "s")" : "Your squad looked. Nothing new fits you right now."
+            return n > 0 ? String(localized: "\(n) new find\(n == 1 ? "" : "s")") : String(localized: "Your squad looked. Nothing new fits you right now.")
         } catch {
-            return (error as? LocalizedError)?.errorDescription ?? "Your squad couldn't reach the web just now."
+            return (error as? LocalizedError)?.errorDescription ?? String(localized: "Your squad couldn't reach the web just now.")
         }
     }
 
@@ -513,13 +524,13 @@ extension AppStore {
         defer { chatBusy = nil }
         let history = turns.suffix(14).map { ["role": $0.role, "content": $0.text] }
         do {
-            let r: ChatReply = try await api.function("chat", ["agent_id": agentID, "messages": Array(history)])
+            let r: ChatReply = try await api.function("chat", ["agent_id": agentID, "messages": Array(history), "lang": AppLanguage.code])
             let actions = r.actions.map { ChatAction(type: $0.type, findID: $0.findId, title: $0.title) }
             state.chats[agentID, default: []].append(ChatTurn(role: "assistant", text: r.reply, actions: actions))
             Analytics.track(.chatSent, ["actions": actions.count])
             if !actions.isEmpty { await pull() }
         } catch {
-            state.chats[agentID, default: []].append(ChatTurn(role: "assistant", text: (error as? LocalizedError)?.errorDescription ?? "I lost the connection there. Send that again?"))
+            state.chats[agentID, default: []].append(ChatTurn(role: "assistant", text: (error as? LocalizedError)?.errorDescription ?? String(localized: "I lost the connection there. Send that again?")))
         }
         if (state.chats[agentID]?.count ?? 0) > 60 { state.chats[agentID]?.removeFirst((state.chats[agentID]?.count ?? 0) - 60) }
         save()
@@ -529,19 +540,19 @@ extension AppStore {
 
     func addFriendCloud(_ raw: String) async -> (ok: Bool, message: String) {
         let h = raw.trimmingCharacters(in: CharacterSet(charactersIn: "@ ")).lowercased()
-        guard !h.isEmpty else { return (false, "Enter a friend's handle, like @maya.") }
+        guard !h.isEmpty else { return (false, String(localized: "Enter a friend's handle, like @maya.")) }
         do {
             let r: FriendResult = try await api.rpc("request_friend", ["p_handle": h])
             await pull()
             switch r.status {
             case "requested": Analytics.track(.friendInvited, [:]); return (true, "Request sent to @\(h)")
-            case "accepted": return (true, "You and @\(h) are now friends")
-            case "exists": return (false, "You've already added @\(h).")
-            case "self": return (false, "That's your own handle.")
-            default: return (false, "No one on Baget goes by @\(h). Check the spelling.")
+            case "accepted": return (true, String(localized: "You and @\(h) are now friends"))
+            case "exists": return (false, String(localized: "You've already added @\(h)."))
+            case "self": return (false, String(localized: "That's your own handle."))
+            default: return (false, String(localized: "No one on Baget goes by @\(h). Check the spelling."))
             }
         } catch {
-            return (false, (error as? LocalizedError)?.errorDescription ?? "Couldn't send that request.")
+            return (false, (error as? LocalizedError)?.errorDescription ?? String(localized: "Couldn't send that request."))
         }
     }
 

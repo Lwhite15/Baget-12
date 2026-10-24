@@ -25,7 +25,7 @@ struct ReminderSheet: View {
             : d.formatted(.dateTime.month(.abbreviated).day().hour().minute())
     }
 
-    private let choices: [(String, Int)] = [("When it drops", 0), ("15 minutes before", 15), ("1 hour before", 60),
+    private let choices: [(String, Int)] = [(String(localized: "When it drops"), 0), ("15 minutes before", 15), ("1 hour before", 60),
                                             ("1 day before", 1440), ("3 days before", 4320)]
 
     var body: some View {
@@ -92,7 +92,7 @@ struct ReminderSheet: View {
                     if current != nil {
                         Button(role: .destructive) {
                             store.removeReminder(item)
-                            router.say("Reminder removed")
+                            router.say(String(localized: "Reminder removed"))
                             dismiss()
                         } label: { Text("Remove reminder").font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity) }
                             .padding(.top, 4)
@@ -120,10 +120,10 @@ struct ReminderSheet: View {
     private func set(offset: Int? = nil, at: Date? = nil) {
         if store.setReminder(item, findID: findID, offsetMinutes: offset, at: at) {
             Task { await Notifier.requestPermission() }
-            router.say("I'll text you \(Self.short(offset.map { (item.dropAt ?? .now).addingTimeInterval(-Double($0) * 60) } ?? at ?? .now))")
+            router.say(String(localized: "I'll text you \(Self.short(offset.map { (item.dropAt ?? .now).addingTimeInterval(-Double($0) * 60) } ?? at ?? .now))"))
             dismiss()
         } else {
-            router.say("That time has already passed")
+            router.say(String(localized: "That time has already passed"))
         }
     }
 }

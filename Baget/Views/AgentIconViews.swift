@@ -15,7 +15,7 @@ struct AgentAvatarView: View {
 
     var body: some View {
         let icon = preview ?? agent?.icon
-        let name = nameOverride ?? agent?.name ?? "Scout"
+        let name = nameOverride ?? agent?.name ?? String(localized: "Scout")
         ZStack {
             if icon?.style == .photo, let img = previewPhoto ?? store.iconImage(icon?.photoID) {
                 Image(uiImage: img).resizable().scaledToFill()
@@ -86,7 +86,7 @@ struct IconPickerRows: View {
         case .photo:
             PhotosPicker(selection: $pick, matching: .images, photoLibrary: .shared()) {
                 HStack {
-                    Label(photo != nil || hasSavedPhoto ? "Change photo" : "Choose a photo", systemImage: "photo.on.rectangle")
+                    Label(photo != nil || hasSavedPhoto ? String(localized: "Change photo") : String(localized: "Choose a photo"), systemImage: "photo.on.rectangle")
                     if loading { Spacer(); ProgressView() }
                 }
             }

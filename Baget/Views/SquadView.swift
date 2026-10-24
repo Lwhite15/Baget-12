@@ -7,19 +7,19 @@ struct SquadView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                SectionTitle(text: "Your squad")
+                SectionTitle(text: String(localized: "Your squad"))
                 HuntBox()
                 HStack(spacing: 8) {
-                    Button { router.sheet = .taste } label: { IconText(icon: "brain.head.profile", text: "What Baget knows") }
+                    Button { router.sheet = .taste } label: { IconText(icon: "brain.head.profile", text: String(localized: "What Baget knows")) }
                         .buttonStyle(GhostButton())
                     Button {
                         router.deployPrefill = nil
                         router.sheet = .deploy
-                    } label: { IconText(icon: "slider.horizontal.3", text: "Detailed setup") }
+                    } label: { IconText(icon: "slider.horizontal.3", text: String(localized: "Detailed setup")) }
                         .buttonStyle(GhostButton())
                 }
                 if store.state.agents.isEmpty {
-                    EmptyCard(text: "No scouts yet. Tell Baget what you're hunting above.")
+                    EmptyCard(text: String(localized: "No scouts yet. Tell Baget what you're hunting above."))
                 }
                 ForEach(store.state.agents) { a in AgentCard(agent: a) }
 
@@ -79,10 +79,10 @@ struct AgentCard: View {
                     Toggle("", isOn: Binding(get: { !agent.isOff }, set: { on in
                         store.setOff(agent.id, !on)
                         Analytics.track(.agentSettingChanged, ["setting": "on"])
-                        router.say(on ? "\(agent.name) is back on the hunt" : "\(agent.name) is off. No searching, no texts.")
+                        router.say(on ? String(localized: "\(agent.name) is back on the hunt") : String(localized: "\(agent.name) is off. No searching, no texts."))
                     }))
                     .labelsHidden().tint(Theme.green)
-                    .accessibilityLabel(agent.isOff ? "Turn \(agent.name) on" : "Turn \(agent.name) off")
+                    .accessibilityLabel(agent.isOff ? String(localized: "Turn \(agent.name) on") : String(localized: "Turn \(agent.name) off"))
                     Text(agent.isOff ? "OFF" : "ON").font(.system(size: 9, weight: .bold)).tracking(1)
                         .foregroundStyle(agent.isOff ? Theme.muted : Theme.green)
                 }
@@ -92,7 +92,7 @@ struct AgentCard: View {
                     HStack(spacing: 8) {
                         Image(systemName: "bed.double.fill").foregroundStyle(Theme.warn)
                         Text("Resting on Free, which includes \(store.scoutLimit) scouts. ").foregroundStyle(Theme.ink)
-                            + Text(store.proTrial.map { "Try Pro free for \(AppStore.spoken($0)) to wake it" } ?? "Go Pro to wake it").foregroundStyle(Theme.accent).bold()
+                            + Text(store.proTrial.map { String(localized: "Try Pro free for \(AppStore.spoken($0)) to wake it") } ?? String(localized: "Go Pro to wake it")).foregroundStyle(Theme.accent).bold()
                     }
                     .font(.footnote)
                     .padding(10).frame(maxWidth: .infinity, alignment: .leading)
@@ -115,7 +115,7 @@ struct AgentCard: View {
             }
             TasteBoardRow(agent: agent)
             Button {
-                if store.isCloud { router.sheet = .chat(agent.id) } else { router.say("Sign in to talk to your scouts. They need the internet to search.") }
+                if store.isCloud { router.sheet = .chat(agent.id) } else { router.say(String(localized: "Sign in to talk to your scouts. They need the internet to search.")) }
             } label: { Label("Talk to \(agent.name)", systemImage: "bubble.left.and.text.bubble.right.fill") }
                 .buttonStyle(PrimaryButton())
             if Sizes.required(agent) && !Sizes.has(agent) {
@@ -125,9 +125,9 @@ struct AgentCard: View {
             }
 
             HStack {
-                stat(agent.mission.info.sizeRequired ? (agent.mission.info.sizeLabel ?? "Size") : "Mission",
-                     agent.mission.info.sizeRequired ? (agent.size.isEmpty ? "Any" : agent.size) : agent.mission.label)
-                stat("When it finds something", agent.mode.short)
+                stat(agent.mission.info.sizeRequired ? (agent.mission.info.sizeLabel ?? String(localized: "Size")) : String(localized: "Mission"),
+                     agent.mission.info.sizeRequired ? (agent.size.isEmpty ? String(localized: "Any") : agent.size) : agent.mission.label)
+                stat(String(localized: "When it finds something"), agent.mode.short)
             }
 
             VStack(alignment: .leading, spacing: 6) {
@@ -145,7 +145,7 @@ struct AgentCard: View {
                             learnedChip(text: "\(l.weight > 0 ? "Likes" : "Not into") \(l.key)", like: l.weight > 0) { store.unlearn(agent.id, key: l.key) }
                         }
                         if agent.priceNote > 0 {
-                            learnedChip(text: "Prefers under \(Fmt.money(agent.priceNote))", like: nil) { store.unlearn(agent.id, key: "__price") }
+                            learnedChip(text: String(localized: "Prefers under \(Fmt.money(agent.priceNote))"), like: nil) { store.unlearn(agent.id, key: "__price") }
                         }
                     }
                 }
@@ -185,7 +185,7 @@ struct AgentCard: View {
                 router.say("\(agent.name) deleted")
             }
             if !agent.isOff {
-                Button("Just turn it off") { store.setOff(agent.id, true); router.say("\(agent.name) is off") }
+                Button("Just turn it off") { store.setOff(agent.id, true); router.say(String(localized: "\(agent.name) is off")) }
             }
         } message: { Text("It stops hunting for good and what it learned is lost. Its finds stay in your Finds.") }
     }

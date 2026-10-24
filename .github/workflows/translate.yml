@@ -1,0 +1,44 @@
+# Translates the app into Spanish, French and Korean: Xcode extracts every string the app shows, Claude translates the
+# ones not done yet, and the updated Baget/Localizable.xcstrings is committed to main. Run it after changing app text.
+name: Translate
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  translate:
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+      - name: Use Xcode 26
+        run: |
+          X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | grep -v -i beta | sort -V | tail -1)
+          [ -z "$X" ] && X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          sudo xcode-select -s "$X"
+      - name: Extract the app's strings
+        run: |
+          brew install xcodegen >/dev/null
+          xcodegen generate
+          set -o pipefail
+          xcodebuild -exportLocalizations -project Baget.xcodeproj -localizationPath loc \
+            -exportLanguage es -exportLanguage fr -exportLanguage ko \
+            -sdk iphonesimulator CODE_SIGNING_ALLOWED=NO > export.log 2>&1 \
+            || { tail -40 export.log; exit 1; }
+          ls loc
+      - name: Translate
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_MODEL: ${{ secrets.ANTHROPIC_MODEL }}
+          LOC_DIR: loc
+        run: |
+          pip3 install -q requests --break-system-packages 2>/dev/null || pip3 install -q requests
+          python3 scripts/translate_strings.py
+      - name: Commit the catalog
+        run: |
+          git config user.name "baget-translate"
+          git config user.email "ci@users.noreply.github.com"
+          git add Baget/Localizable.xcstrings
+          git diff --cached --quiet && { echo "::notice::Nothing new to translate"; exit 0; }
+          git commit -qm "Translations: Spanish, French, Korean"
+          git pull -q --rebase origin main
+          git push -q origin HEAD:main

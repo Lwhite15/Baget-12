@@ -39,7 +39,7 @@ struct InboxView: View {
         ScrollView {
             LazyVStack(spacing: 10) {
                 if store.state.notes.isEmpty {
-                    EmptyCard(text: "Nothing yet. When your squad finds something, it'll text you here.")
+                    EmptyCard(text: String(localized: "Nothing yet. When your squad finds something, it'll text you here."))
                 }
                 ForEach(store.state.notes) { n in
                     Button { open(n) } label: {
@@ -112,8 +112,8 @@ struct AlertSettingsForm: View {
                 }
             } footer: {
                 Text(store.isCloud
-                     ? "Your squad searches on our servers even when your phone is off. Each search costs a little, so less often is cheaper. You can always pull down on Live to check now."
-                     : "In the sample tour, sweeps are simulated each time you come back to the app.")
+                     ? String(localized: "Your squad searches on our servers even when your phone is off. Each search costs a little, so less often is cheaper. You can always pull down on Live to check now.")
+                     : String(localized: "In the sample tour, sweeps are simulated each time you come back to the app."))
             }
             Section {
                 Picker("How often Baget texts you", selection: Binding(
@@ -124,7 +124,7 @@ struct AlertSettingsForm: View {
                 .pickerStyle(.inline)
                 .labelsHidden()
             } header: { Text("How often Baget texts you") } footer: {
-                Text((store.state.settings.pushLevel ?? .best).blurb + " Everything else still shows up in your inbox.")
+                Text((store.state.settings.pushLevel ?? .best).blurb + String(localized: " Everything else still shows up in your inbox."))
             }
             Section {
                 Toggle(isOn: $store.state.settings.quietHours) {
@@ -234,24 +234,24 @@ struct CustomizeBarView: View {
 
     private func describe(_ t: LiveTab) -> String {
         switch t.kind {
-        case .forYou: return "Ranked by what your squad knows you like"
-        case .latest: return "Everything, newest first"
-        case .category: return "Category"
-        case .custom(let q): return "Your section · matches “\(q)”"
+        case .forYou: return String(localized: "Ranked by what your squad knows you like")
+        case .latest: return String(localized: "Everything, newest first")
+        case .category: return String(localized: "Category")
+        case .custom(let q): return String(localized: "Your section · matches “\(q)”")
         }
     }
 
     private func add() {
         let q = newSection.trimmingCharacters(in: .whitespaces)
-        guard !TextMatch.words(q).isEmpty else { error = "Type what this section should show, like “vinyl” or “Porsche”."; return }
-        guard !store.state.liveTabs.contains(where: { TextMatch.norm($0.label) == TextMatch.norm(q) }) else { error = "You already have that section."; return }
+        guard !TextMatch.words(q).isEmpty else { error = String(localized: "Type what this section should show, like “vinyl” or “Porsche”."); return }
+        guard !store.state.liveTabs.contains(where: { TextMatch.norm($0.label) == TextMatch.norm(q) }) else { error = String(localized: "You already have that section."); return }
         error = nil
         let label = q.capitalized
         store.state.liveTabs.append(LiveTab(id: "c" + UUID().uuidString.prefix(6), kind: .custom(q), label: label))
         store.save()
         Analytics.track(.customSectionAdded, ["words": TextMatch.words(q).count])
         let n = Catalog.all.filter { TextMatch.matches($0, query: q) }.count
-        router.say(n > 0 ? "Added \(label) · \(n) stor\(n == 1 ? "y" : "ies") today" : "Added \(label). Set up a scout to hunt it.")
+        router.say(n > 0 ? String(localized: "Added \(label) · \(n) stor\(n == 1 ? "y" : "ies") today") : String(localized: "Added \(label). Set up a scout to hunt it."))
         newSection = ""
     }
 }

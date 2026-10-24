@@ -38,7 +38,7 @@ struct PaywallView: View {
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
         }
         .task { await store.loadProProducts() }
-        .onChange(of: store.isPro) { _, pro in if pro { router.say("You're Pro. Your scouts hunt around the clock now."); dismiss() } }
+        .onChange(of: store.isPro) { _, pro in if pro { router.say(String(localized: "You're Pro. Your scouts hunt around the clock now.")); dismiss() } }
     }
 
     private var header: some View {
@@ -58,12 +58,12 @@ struct PaywallView: View {
 
     private var compare: some View {
         VStack(spacing: 0) {
-            row("", "Free", "Pro", head: true)
-            row("Scouts", "2", "Up to 5")
-            row("Hunting", "4 hours a day", "Around the clock")
-            row("Hunts", "1 a day each", "Every 6 hours")
-            row("Search depth", "Checks product pages", "Twice as deep: 12 searches, more stores")
-            row("Everything else", "Included", "Included")
+            row("", String(localized: "Free"), String(localized: "Pro"), head: true)
+            row(String(localized: "Scouts"), "2", String(localized: "Up to 5"))
+            row(String(localized: "Hunting"), "4 hours a day", String(localized: "Around the clock"))
+            row(String(localized: "Hunts"), "1 a day each", String(localized: "Every 6 hours"))
+            row(String(localized: "Search depth"), String(localized: "Checks product pages"), String(localized: "Twice as deep: 12 searches, more stores"))
+            row(String(localized: "Everything else"), String(localized: "Included"), String(localized: "Included"))
         }
         .background(Theme.glass, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.line))
@@ -86,8 +86,8 @@ struct PaywallView: View {
         let yearly = store.proProducts.first { $0.id == "baget.pro.yearly" }
         if monthly == nil && yearly == nil {
             guard Self.screenshotMode else { return [] }
-            return [PlanOption(id: "baget.pro.yearly", title: "Yearly", price: "$99.99 / year", note: "Save 44%"),
-                    PlanOption(id: "baget.pro.monthly", title: "Monthly", price: "$14.99 / month", note: nil)]
+            return [PlanOption(id: "baget.pro.yearly", title: String(localized: "Yearly"), price: "$99.99 / year", note: "Save 44%"),
+                    PlanOption(id: "baget.pro.monthly", title: String(localized: "Monthly"), price: "$14.99 / month", note: nil)]
         }
         var out: [PlanOption] = []
         if let y = yearly {
@@ -96,9 +96,9 @@ struct PaywallView: View {
                 let pct = Int(((1 - (y.price as NSDecimalNumber).doubleValue / ((m.price as NSDecimalNumber).doubleValue * 12)) * 100).rounded())
                 if pct > 0 { save = "Save \(pct)%" }
             }
-            out.append(PlanOption(id: y.id, title: "Yearly", price: "\(y.displayPrice) / year", note: save))
+            out.append(PlanOption(id: y.id, title: String(localized: "Yearly"), price: "\(y.displayPrice) / year", note: save))
         }
-        if let m = monthly { out.append(PlanOption(id: m.id, title: "Monthly", price: "\(m.displayPrice) / month", note: nil)) }
+        if let m = monthly { out.append(PlanOption(id: m.id, title: String(localized: "Monthly"), price: "\(m.displayPrice) / month", note: nil)) }
         return out
     }
 
@@ -134,12 +134,12 @@ struct PaywallView: View {
         return VStack(spacing: 8) {
             Button {
             guard let product = store.proProducts.first(where: { $0.id == selected }) ?? store.proProducts.first else {
-                message = "Plans aren't available right now. Try again in a minute."
+                message = String(localized: "Plans aren't available right now. Try again in a minute.")
                 return
             }
             Task { message = await store.buyPro(product) }
         } label: {
-                if store.purchasing { ProgressView().tint(Theme.accentInk) } else { Text(trial.map { "Start \($0) free trial" } ?? "Go Pro") }
+                if store.purchasing { ProgressView().tint(Theme.accentInk) } else { Text(trial.map { String(localized: "Start \($0) free trial") } ?? String(localized: "Go Pro")) }
             }
             .buttonStyle(PrimaryButton())
             .disabled(store.purchasing || store.isPro)
@@ -178,10 +178,10 @@ struct PlanStatusPill: View {
     }
 
     private func text(_ p: PlanInfo) -> String {
-        if p.pro { return "Pro · hunting around the clock" }
+        if p.pro { return String(localized: "Pro · hunting around the clock") }
         let m = p.minutesToChange()
-        let left = m >= 60 ? "\(m / 60)h \(m % 60)m" : "\(m)m"
-        return p.huntingNow ? "Hunting now · \(left) left today" : "Scouts resting · back at \(PlanInfo.hourLabel(p.huntStart))"
+        let left = m >= 60 ? String(localized: "\(m / 60)h \(m % 60)m") : String(localized: "\(m)m")
+        return p.huntingNow ? String(localized: "Hunting now · \(left) left today") : String(localized: "Scouts resting · back at \(PlanInfo.hourLabel(p.huntStart))")
     }
 }
 
@@ -195,7 +195,7 @@ struct PlanSettingsRows: View {
         if store.isCloud {
             Button { router.sheet = .pro } label: {
                 HStack {
-                    Label(store.isPro ? "Baget Pro" : "Go Pro: hunt around the clock", systemImage: "bolt.fill")
+                    Label(store.isPro ? String(localized: "Baget Pro") : String(localized: "Go Pro: hunt around the clock"), systemImage: "bolt.fill")
                     Spacer()
                     if store.isPro { Text("Active").font(.footnote).foregroundStyle(Theme.green) }
                 }

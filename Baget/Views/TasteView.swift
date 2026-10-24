@@ -13,7 +13,7 @@ struct TasteView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     Text("Tap ✕ on anything that isn't you. Scouts stop using it on their next search. Like, pass and chat to teach them more.")
                         .font(.footnote).foregroundStyle(Theme.muted)
-                    if store.state.agents.isEmpty { EmptyCard(text: "No scouts yet. Tell Baget what you're hunting on Today.") }
+                    if store.state.agents.isEmpty { EmptyCard(text: String(localized: "No scouts yet. Tell Baget what you're hunting on Today.")) }
                     ForEach(store.state.agents) { a in agentCard(a) }
                 }
                 .padding(16)
@@ -39,10 +39,10 @@ struct TasteView: View {
                 Spacer()
                 Button("Teach more") { router.sheet = .chat(a.id) }.font(.caption.weight(.semibold)).foregroundStyle(Theme.accent)
             }
-            if !a.size.isEmpty { group("Size", [a.size], a.id, tint: Theme.accent) }
-            if a.priceNote > 0 { group("Price", ["Prefers under \(Fmt.money(a.priceNote))"], a.id, tint: Theme.warn, keys: ["__price"]) }
-            if !likes.isEmpty { group("Into", likes, a.id, tint: Theme.green) }
-            if !dislikes.isEmpty { group("Not into", dislikes, a.id, tint: Theme.hot) }
+            if !a.size.isEmpty { group(String(localized: "Size"), [a.size], a.id, tint: Theme.accent) }
+            if a.priceNote > 0 { group(String(localized: "Price"), [String(localized: "Prefers under \(Fmt.money(a.priceNote))")], a.id, tint: Theme.warn, keys: ["__price"]) }
+            if !likes.isEmpty { group(String(localized: "Into"), likes, a.id, tint: Theme.green) }
+            if !dislikes.isEmpty { group(String(localized: "Not into"), dislikes, a.id, tint: Theme.hot) }
             if likes.isEmpty && dislikes.isEmpty && a.size.isEmpty {
                 Text("Nothing yet. Like or pass a few finds, or tell it what you love.").font(.caption).foregroundStyle(Theme.muted)
             }
@@ -105,6 +105,11 @@ struct OnboardingView: View {
     @State private var brands: [Category: Set<String>] = [:]
     @State private var sizes: [Category: String] = [:]
     @State private var womens: Set<Category> = []
+    /// Who they shop for, from the size step: Women's picked anywhere means women's; a size picked on Men's means men's.
+    private var department: String? {
+        if !womens.isEmpty { return "women" }
+        return sizes.isEmpty ? nil : "men"
+    }
     @State private var editingWords = false
     // First hunt
     @State private var pushOn = false
@@ -148,8 +153,8 @@ struct OnboardingView: View {
     // MARK: 1. Interests
 
     /// Interests beyond the built-in categories. Each becomes its own scout with a custom mission.
-    static let moreInterests = ["Tech & gadgets", "Home decor", "Bags", "Jewelry", "Beauty & skincare", "Vinyl & music",
-                                "Art & prints", "Outdoor gear", "Toys & games", "Books", "Vintage", "Gifts"]
+    static let moreInterests = [String(localized: "Tech & gadgets"), String(localized: "Home decor"), String(localized: "Bags"), String(localized: "Jewelry"), String(localized: "Beauty & skincare"), String(localized: "Vinyl & music"),
+                                String(localized: "Art & prints"), String(localized: "Outdoor gear"), String(localized: "Toys & games"), String(localized: "Books"), String(localized: "Vintage"), String(localized: "Gifts")]
 
     private var pickedCount: Int { picked.count + extras.count }
     private var full: Bool { pickedCount >= store.scoutLimit }
@@ -157,8 +162,8 @@ struct OnboardingView: View {
     private var interests: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("What are you into?").font(.system(size: 30, weight: .heavy)).foregroundStyle(Theme.ink)
-            Text(store.scoutLimit >= 5 ? "Pick a few. You'll get a personal scout for each, hunting drops, restocks and deals."
-                                       : "Pick up to \(store.scoutLimit). You'll get a personal scout for each, hunting drops, restocks and deals.")
+            Text(store.scoutLimit >= 5 ? String(localized: "Pick a few. You'll get a personal scout for each, hunting drops, restocks and deals.")
+                                       : String(localized: "Pick up to \(store.scoutLimit). You'll get a personal scout for each, hunting drops, restocks and deals."))
                 .font(.subheadline).foregroundStyle(Theme.muted)
                 .fixedSize(horizontal: false, vertical: true)
             ScrollView {
@@ -202,7 +207,7 @@ struct OnboardingView: View {
                         // Opens a full-height editor, so what you write stays readable while you type.
                         Button { editingWords = true } label: {
                             HStack(alignment: .top, spacing: 10) {
-                                Text(text.isEmpty ? "Describe what you love and what you're looking for" : text)
+                                Text(text.isEmpty ? String(localized: "Describe what you love and what you're looking for") : text)
                                     .font(.body).foregroundStyle(text.isEmpty ? Theme.muted : Theme.ink)
                                     .multilineTextAlignment(.leading).lineLimit(6)
                                     .frame(maxWidth: .infinity, minHeight: 66, alignment: .topLeading)
@@ -213,7 +218,7 @@ struct OnboardingView: View {
                             .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Theme.line))
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel(text.isEmpty ? "Describe what you love and what you're looking for" : "Your description: \(text)")
+                        .accessibilityLabel(text.isEmpty ? String(localized: "Describe what you love and what you're looking for") : String(localized: "Your description: \(text)"))
                     }
                     .padding(.top, 4)
                 }
@@ -253,7 +258,7 @@ struct OnboardingView: View {
                             if let options = Vibes.sizes(c, women: womens.contains(c)) {
                                 // Sneaker and clothing scouts only flag what's in stock in your size, so ask here.
                                 HStack {
-                                    Text(c == .sneakers ? "Your shoe size (US)" : "Your size").font(.caption.weight(.semibold)).foregroundStyle(Theme.muted)
+                                    Text(c == .sneakers ? String(localized: "Your shoe size (US)") : String(localized: "Your size")).font(.caption.weight(.semibold)).foregroundStyle(Theme.muted)
                                     Spacer()
                                     Picker("Fit", selection: Binding(get: { womens.contains(c) }, set: { w in
                                         if w { womens.insert(c) } else { womens.remove(c) }
@@ -278,7 +283,7 @@ struct OnboardingView: View {
                                 }
                                 .scrollIndicators(.hidden)
                                 if sizes[c] == nil {
-                                    Text(c == .sneakers ? "EU or UK sizing? Put it in your own words on the first screen." : "Pants or a specific fit? Put it in your own words on the first screen.")
+                                    Text(c == .sneakers ? String(localized: "EU or UK sizing? Put it in your own words on the first screen.") : String(localized: "Pants or a specific fit? Put it in your own words on the first screen."))
                                         .font(.caption2).foregroundStyle(Theme.muted)
                                 }
                             }
@@ -311,7 +316,7 @@ struct OnboardingView: View {
                 }
                 .padding(.bottom, 8)
             }
-            Button(vibes.values.allSatisfy(\.isEmpty) && brands.values.allSatisfy(\.isEmpty) && budget == nil && sizes.isEmpty ? "Skip" : "Next") { startQuiz() }
+            Button(vibes.values.allSatisfy(\.isEmpty) && brands.values.allSatisfy(\.isEmpty) && budget == nil && sizes.isEmpty ? String(localized: "Skip") : String(localized: "Next")) { startQuiz() }
                 .buttonStyle(PrimaryButton())
             Button("Back") { withAnimation { step = 0 } }.font(.footnote).foregroundStyle(Theme.muted).frame(maxWidth: .infinity)
         }
@@ -323,7 +328,7 @@ struct OnboardingView: View {
         withAnimation { step = 2 }
         quizLoading = true
         Task { @MainActor in
-            quiz = await store.tasteQuiz(Array(picked), brands: brands.values.flatMap { Array($0) })
+            quiz = await store.tasteQuiz(Array(picked), brands: brands.values.flatMap { Array($0) }, department: department)
             quizIndex = 0
             quizLoading = false
             if quiz.isEmpty { withAnimation { step = 3 } }   // nothing to rate yet: go straight on
@@ -371,7 +376,7 @@ struct OnboardingView: View {
                 }
             } else {
                 Spacer()
-                Text(liked.isEmpty ? "Got it." : "Nice taste. \(liked.count) noted.").font(.title3.weight(.bold)).foregroundStyle(Theme.ink)
+                Text(liked.isEmpty ? String(localized: "Got it.") : String(localized: "Nice taste. \(liked.count) noted.")).font(.title3.weight(.bold)).foregroundStyle(Theme.ink)
                 Spacer()
                 Button("Next") { withAnimation { step = 3 } }.buttonStyle(PrimaryButton())
             }
@@ -396,7 +401,7 @@ struct OnboardingView: View {
             HStack(alignment: .firstTextBaseline) {
                 Text("Got photos of things you love?").font(.system(size: 30, weight: .heavy)).foregroundStyle(Theme.ink)
             }
-            Tag(text: "Optional", tint: Theme.muted)
+            Tag(text: String(localized: "Optional"), tint: Theme.muted)
             Text("Add up to 3 screenshots or photos of pieces you own or want and your scouts read your taste from them. No photos? Skip it.")
                 .font(.subheadline).foregroundStyle(Theme.muted)
             HStack(spacing: 10) {
@@ -419,15 +424,15 @@ struct OnboardingView: View {
                         .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(i == photos.count ? Theme.accent.opacity(0.5) : Theme.line))
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel(i < photos.count ? "Photo \(i + 1)" : "Add a photo")
+                    .accessibilityLabel(i < photos.count ? "Photo \(i + 1)" : String(localized: "Add a photo"))
                 }
             }
             .confirmationDialog("Photo", isPresented: Binding(get: { tileMenu != nil }, set: { if !$0 { tileMenu = nil } }), titleVisibility: .hidden) {
                 let i = tileMenu ?? 0
                 if CameraPicker.available {
-                    Button(i < photos.count ? "Retake photo" : "Take a photo") { replacing = i < photos.count ? i : nil; showCamera = true }
+                    Button(i < photos.count ? String(localized: "Retake photo") : String(localized: "Take a photo")) { replacing = i < photos.count ? i : nil; showCamera = true }
                 }
-                Button(i < photos.count ? "Replace from library" : "Choose from library") { replacing = i < photos.count ? i : nil; showLibrary = true }
+                Button(i < photos.count ? String(localized: "Replace from library") : String(localized: "Choose from library")) { replacing = i < photos.count ? i : nil; showLibrary = true }
                 if i < photos.count { Button("Remove", role: .destructive) { photos.remove(at: i) } }
             }
             .fullScreenCover(isPresented: $showCamera) {
@@ -439,7 +444,7 @@ struct OnboardingView: View {
             if working {
                 HStack { Spacer(); ProgressView().tint(Theme.cyan); Text("Building your squad…").foregroundStyle(Theme.muted); Spacer() }
             } else {
-                Button(photos.isEmpty ? "Skip and build my squad" : "Build my squad with these") { build() }.buttonStyle(PrimaryButton())
+                Button(photos.isEmpty ? String(localized: "Skip and build my squad") : String(localized: "Build my squad with these")) { build() }.buttonStyle(PrimaryButton())
                 if !photos.isEmpty {
                     Button("Build without photos") { photos = []; pickerItems = []; build() }
                         .font(.footnote.weight(.semibold)).foregroundStyle(Theme.accent).frame(maxWidth: .infinity)
@@ -463,7 +468,8 @@ struct OnboardingView: View {
                                           liked: liked, passed: passed,
                                           vibes: vibes.mapValues { Array($0) }, budget: budget.flatMap { $0 > 0 ? $0 : nil },
                                           brands: brands.mapValues { Array($0) }, interests: Array(extras),
-                                          sizes: Dictionary(uniqueKeysWithValues: sizes.map { ($0.key, Vibes.sizeValue($0.key, $0.value, women: womens.contains($0.key))) }))
+                                          sizes: Dictionary(uniqueKeysWithValues: sizes.map { ($0.key, Vibes.sizeValue($0.key, $0.value, women: womens.contains($0.key))) }),
+                                          department: department)
             working = false
             made = ids.count
             pushOn = await store.pushAllowed
@@ -479,9 +485,9 @@ struct OnboardingView: View {
     private var firstHunt: some View {
         let newest = store.state.finds.filter { $0.status == .open }.sorted { $0.foundAt > $1.foundAt }.prefix(3)
         return VStack(alignment: .leading, spacing: 14) {
-            Text(newest.isEmpty ? "Your squad is hunting" : "First finds are in").font(.system(size: 30, weight: .heavy)).foregroundStyle(Theme.ink)
-            Text(made > 0 ? "They're searching stores, release calendars and resale sites for you right now."
-                          : "Tell Baget what you're hunting on Today and a scout starts right away.")
+            Text(newest.isEmpty ? String(localized: "Your squad is hunting") : String(localized: "First finds are in")).font(.system(size: 30, weight: .heavy)).foregroundStyle(Theme.ink)
+            Text(made > 0 ? String(localized: "They're searching stores, release calendars and resale sites for you right now.")
+                          : String(localized: "Tell Baget what you're hunting on Today and a scout starts right away."))
                 .font(.subheadline).foregroundStyle(Theme.muted)
             ViewThatFits(in: .vertical) {
                 scoutList
@@ -506,11 +512,11 @@ struct OnboardingView: View {
                     .buttonStyle(PrimaryButton())
                 Text("Like a friend texting you a photo of the thing. You choose how often in Settings.")
                     .font(.caption).foregroundStyle(Theme.muted).frame(maxWidth: .infinity)
-                Button(newest.isEmpty ? "Not now, show me Today" : "Not now, see my finds") { finish() }
+                Button(newest.isEmpty ? String(localized: "Not now, show me Today") : String(localized: "Not now, see my finds")) { finish() }
                     .font(.footnote).foregroundStyle(Theme.muted).frame(maxWidth: .infinity)
             } else {
                 if pushOn { Label("Texts are on", systemImage: "checkmark.circle.fill").font(.footnote).foregroundStyle(Theme.green) }
-                Button(newest.isEmpty ? "Show me Today" : "See my finds") { finish() }.buttonStyle(PrimaryButton())
+                Button(newest.isEmpty ? String(localized: "Show me Today") : String(localized: "See my finds")) { finish() }.buttonStyle(PrimaryButton())
             }
         }
     }
@@ -523,7 +529,7 @@ struct OnboardingView: View {
                         AgentAvatarView(agent: a, size: 32)
                         VStack(alignment: .leading, spacing: 1) {
                             Text(a.name).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
-                            (Text(n > 0 ? "Found \(n)" : "Searching").foregroundStyle(n > 0 ? Theme.green : Theme.cyan)
+                            (Text(n > 0 ? "Found \(n)" : String(localized: "Searching")).foregroundStyle(n > 0 ? Theme.green : Theme.cyan)
                              + Text(" · \(a.mission.label.lowercased())").foregroundStyle(Theme.muted))
                                 .font(.caption).lineLimit(1)
                         }
@@ -566,9 +572,9 @@ struct OnboardingView: View {
     private var whatsNext: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("WHAT HAPPENS NEXT").font(.system(size: 10, weight: .semibold)).tracking(1).foregroundStyle(Theme.muted)
-            nextRow("clock", "First finds land in a few minutes, right in Finds")
-            nextRow("arrow.triangle.2.circlepath", store.isPro ? "Then they hunt every 6 hours, around the clock" : "Then they hunt every day and keep your finds fresh")
-            nextRow("heart", "Like or pass what they bring, and they learn your taste fast")
+            nextRow("clock", String(localized: "First finds land in a few minutes, right in Finds"))
+            nextRow("arrow.triangle.2.circlepath", store.isPro ? String(localized: "Then they hunt every 6 hours, around the clock") : String(localized: "Then they hunt every day and keep your finds fresh"))
+            nextRow("heart", String(localized: "Like or pass what they bring, and they learn your taste fast"))
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)

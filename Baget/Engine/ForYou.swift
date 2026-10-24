@@ -98,7 +98,7 @@ extension AppStore {
         state.finds.filter { ($0.status == .open || $0.status == .liked) && Catalog.item($0.itemID) != nil }
             .sorted { $0.score > $1.score }
             .prefix(limit)
-            .map { ForYouItem(id: $0.itemID, reason: "From your finds", kind: "yours", findID: $0.id) }
+            .map { ForYouItem(id: $0.itemID, reason: String(localized: "From your finds"), kind: "yours", findID: $0.id) }
     }
 
     /// The sample tour: rank the tour catalog with the same matcher the agents use, shuffled a little each day.
@@ -109,8 +109,8 @@ extension AppStore {
         let ranked = Catalog.items
             .filter { !found.contains($0.id) && !forYouDismissed.contains($0.id) }
             .map { item -> (Item, Double, String, Bool) in
-                if let b = best(for: item) { return (item, Double(b.match.score) / 20 + jitter(item.id), b.match.why.first ?? "Fits your taste", true) }
-                return (item, jitter(item.id), "Something new to try", false)
+                if let b = best(for: item) { return (item, Double(b.match.score) / 20 + jitter(item.id), b.match.why.first ?? String(localized: "Fits your taste"), true) }
+                return (item, jitter(item.id), String(localized: "Something new to try"), false)
             }
             .sorted { $0.1 > $1.1 }
         var out: [ForYouItem] = []

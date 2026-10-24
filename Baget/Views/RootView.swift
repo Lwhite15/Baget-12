@@ -77,7 +77,7 @@ struct RootView: View {
                     let amount = item.priceKnown ? item.price : 0
                     store.confirmPurchase(id, amount: amount)
                     Analytics.track(.purchaseConfirmed, ["amount": amount, "category": item.category.rawValue, "score": f.score, "from": "buy"])
-                    router.say("Nice. It's off your list, and \(store.agent(f.agentID)?.name ?? "your agent") will find more like it.")
+                    router.say(String(localized: "Nice. It's off your list, and \(store.agent(f.agentID)?.name ?? "your agent") will find more like it."))
                 }
                 router.askBought = nil
             }
@@ -148,8 +148,8 @@ struct RootView: View {
 
     private var boughtTitle: String {
         guard let id = router.askBought, let f = store.state.finds.first(where: { $0.id == id }),
-              let item = Catalog.item(f.itemID) else { return "Did you buy it?" }
-        return "Did you buy the \(item.title)?"
+              let item = Catalog.item(f.itemID) else { return String(localized: "Did you buy it?") }
+        return String(localized: "Did you buy the \(item.title)?")
     }
 
     @ViewBuilder private var bannerView: some View {
