@@ -297,7 +297,7 @@ struct ProfileView: View {
                     Image(systemName: "arrow.up.forward.app").font(.caption).foregroundStyle(Theme.muted)
                 }
             }
-            .accessibilityHint("Opens Baget's settings, where you can pick English, Español, Français or 한국어")
+            .accessibilityHint("Opens Baget's settings, where you can pick its language")
             if store.isAdmin {
                 NavigationLink { StatsView() } label: {
                     Label("Stats", systemImage: "chart.bar.xaxis")

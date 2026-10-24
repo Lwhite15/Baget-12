@@ -4,11 +4,16 @@ Reads the strings Xcode extracted (xcodebuild -exportLocalizations → <lang>.xc
 doesn't have yet with Claude, checks that placeholders (%@, %lld, %1$@ …) survive, and writes the catalog back.
 Env: ANTHROPIC_API_KEY, ANTHROPIC_MODEL (optional), LOC_DIR (the export folder). Usage: python3 scripts/translate_strings.py
 """
-import glob, json, os, re, sys, time
+import concurrent.futures, glob, json, os, re, sys, threading, time
 import xml.etree.ElementTree as ET
 import requests
 
-LANGS = {"es": "Spanish (United States, neutral Latin American)", "fr": "French (France)", "ko": "Korean (polite 해요체)"}
+LANGS = {
+    "es": "Spanish (United States, neutral Latin American)", "fr": "French (France)", "ko": "Korean (polite 해요체)",
+    "vi": "Vietnamese", "zh-Hans": "Simplified Chinese (Mainland China)", "zh-Hant": "Traditional Chinese (Taiwan)",
+    "ja": "Japanese (polite です/ます)", "th": "Thai", "id": "Indonesian", "hi": "Hindi (Devanagari, everyday conversational)",
+    "fil": "Filipino (Tagalog, natural Taglish where English shopping words are normal)",
+}
 CATALOG = "Baget/Localizable.xcstrings"
 MODEL = os.environ.get("ANTHROPIC_MODEL") or "claude-sonnet-5-5"
 KEY = os.environ["ANTHROPIC_API_KEY"]
@@ -37,8 +42,9 @@ Rules:
 - Natural, short, friendly app copy, the way a native speaker would write a button, label or message. Match the length of the English.
 - Keep every placeholder exactly as written (%@, %lld, %1$@, %%, and so on), in an order that reads naturally.
 - Keep brand and product names, "Baget", "Pro", "Today's Drop" style proper names, and emoji as they are.
-- "scout" is the app's word for an AI shopping agent: translate it consistently (Spanish "explorador", French "éclaireur", Korean "스카우트").
-- A "find" is a product a scout found (Spanish "hallazgo", French "trouvaille", Korean "발견").
+- "scout" is the app's word for an AI shopping agent: translate it consistently (Spanish "explorador", French "éclaireur", Korean "스카우트",
+  Japanese "スカウト"; for other languages pick one natural word and use it every time).
+- A "find" is a product a scout found (Spanish "hallazgo", French "trouvaille", Korean "발견"); translate it consistently too.
 Reply with only JSON: an object mapping each id to its translation.
 
 {json.dumps({str(i): s for i, (s, _) in enumerate(items)}, ensure_ascii=False, indent=0)}"""
@@ -63,21 +69,29 @@ def main():
     for key in src:
         strings.setdefault(key, {})
     added = {l: 0 for l in LANGS}
-    for lang, name in LANGS.items():
-        todo = [k for k in src if not src[k][0].strip() == "" and lang not in strings[k].get("localizations", {})]
-        for i in range(0, len(todo), 80):
-            batch = todo[i:i + 80]
+    lock = threading.Lock()
+
+    def one_language(lang, name):
+        # Languages run side by side; each one's batches go in order.
+        todo = [k for k in src if src[k][0].strip() and lang not in strings[k].get("localizations", {})]
+        for i in range(0, len(todo), 100):
+            batch = todo[i:i + 100]
             got = ask(name, [src[k] for k in batch])
-            for j, k in enumerate(batch):
-                t = got.get(str(j))
-                if not isinstance(t, str) or not t.strip():
-                    continue
-                if sorted(PH.findall(t)) != sorted(PH.findall(src[k][0])):
-                    print(f"::warning::{lang}: placeholders changed, skipped: {src[k][0][:60]}")
-                    continue
-                strings[k].setdefault("localizations", {})[lang] = {"stringUnit": {"state": "translated", "value": t}}
-                added[lang] += 1
-            print(f"{lang}: {min(i + 80, len(todo))}/{len(todo)}")
+            with lock:
+                for j, k in enumerate(batch):
+                    t = got.get(str(j))
+                    if not isinstance(t, str) or not t.strip():
+                        continue
+                    if sorted(PH.findall(t)) != sorted(PH.findall(src[k][0])):
+                        print(f"::warning::{lang}: placeholders changed, skipped: {src[k][0][:60]}")
+                        continue
+                    strings[k].setdefault("localizations", {})[lang] = {"stringUnit": {"state": "translated", "value": t}}
+                    added[lang] += 1
+                print(f"{lang}: {min(i + 100, len(todo))}/{len(todo)}", flush=True)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
+        for f in [pool.submit(one_language, l, n) for l, n in LANGS.items()]:
+            f.result()
     cat["strings"] = dict(sorted(strings.items()))
     with open(CATALOG, "w") as f:
         json.dump(cat, f, ensure_ascii=False, indent=2)

@@ -1,6 +1,6 @@
 // "What are you hunting?" One sentence in, a ready agent out.
 // Claude turns the sentence into a brief (mission, brands, styles, keywords, size) and the agent is created for the person.
-import { CATEGORIES, firstName, langOf } from "../_shared/match.ts";
+import { CATEGORIES, firstName, langCode, langOf } from "../_shared/match.ts";
 import { HttpError, claude, db, handle, json, parseJSON, quota, requireUser, textOf } from "../_shared/platform.ts";
 
 export interface Plan {
@@ -86,6 +86,14 @@ const INTRO: Record<string, (name: string, scout: string, intro: string) => stri
   es: (n, s, i) => `${n ? `¡Hola, ${n}! ` : "¡Hola! "}Soy ${s}. ${i || "Ya estoy buscando para ti."} Estoy buscando ahora; mis primeros hallazgos suelen llegar en unos minutos.`,
   fr: (n, s, i) => `${n ? `Salut ${n}, ` : "Salut, "}c'est ${s}. ${i || "Je pars à la chasse pour toi."} Je cherche en ce moment ; mes premières trouvailles arrivent en général en quelques minutes.`,
   ko: (n, s, i) => `${n ? `${n}님, 안녕하세요! ` : "안녕하세요! "}${s}예요. ${i || "지금부터 찾아볼게요."} 지금 찾고 있어요. 첫 결과는 보통 몇 분 안에 도착해요.`,
+  vi: (n, s, i) => `${n ? `Chào ${n}, ` : "Chào bạn, "}mình là ${s}. ${i || "Mình bắt đầu săn cho bạn đây."} Mình đang tìm ngay bây giờ; những món đầu tiên thường có trong vài phút.`,
+  "zh-Hans": (n, s, i) => `${n ? `${n}，你好！` : "你好！"}我是${s}。${i || "我这就开始帮你找。"}我正在搜索，第一批发现通常几分钟内就到。`,
+  "zh-Hant": (n, s, i) => `${n ? `${n}，你好！` : "你好！"}我是${s}。${i || "我這就開始幫你找。"}我正在搜尋，第一批發現通常幾分鐘內就到。`,
+  ja: (n, s, i) => `${n ? `${n}さん、こんにちは！` : "こんにちは！"}${s}です。${i || "さっそく探しますね。"}いま探しています。最初の発見はたいてい数分で届きます。`,
+  th: (n, s, i) => `${n ? `สวัสดี ${n}! ` : "สวัสดี! "}${s} เองนะ ${i || "เริ่มตามหาให้แล้ว"} กำลังค้นหาอยู่ตอนนี้ ของชิ้นแรกมักมาถึงภายในไม่กี่นาที`,
+  id: (n, s, i) => `${n ? `Hai ${n}, ` : "Hai, "}ini ${s}. ${i || "Aku mulai berburu untukmu."} Aku sedang mencari sekarang; temuan pertama biasanya datang dalam beberapa menit.`,
+  hi: (n, s, i) => `${n ? `नमस्ते ${n}, ` : "नमस्ते, "}मैं ${s} हूँ। ${i || "मैं आपके लिए खोज शुरू कर रहा हूँ।"} मैं अभी खोज रहा हूँ; पहली चीज़ें आमतौर पर कुछ ही मिनटों में आ जाती हैं।`,
+  fil: (n, s, i) => `${n ? `Hi ${n}, ` : "Hi, "}si ${s} ito. ${i || "Hahanapan na kita."} Naghahanap na ako ngayon; kadalasan dumarating ang unang finds sa loob ng ilang minuto.`,
 };
 
 async function introNotes(userId: string, agents: { agent_id: string; name: string; intro: string }[], lang = "en") {
@@ -198,7 +206,7 @@ Use only what they said, picked or showed. Keep every list item short (1-4 words
     const id = await insertAgent(userId, p, budget);
     agents.push({ agent_id: id, ...p, needs_size: needsSize(p) });
   }
-  await introNotes(userId, agents, langOf(lang) ? lang : "en");
+  await introNotes(userId, agents, langOf(lang) ? langCode(lang) : "en");
   return { agents };
 }
 
@@ -215,7 +223,7 @@ export const handler = handle(async (req) => {
       ? v.filter((x) => typeof x === "string" && x.trim()).map((x) => (x as string).trim().slice(0, 80)).slice(0, 12) : [];
     return json(await onboard(user.id, body.categories, text, body.size, images, titles(body.liked), titles(body.passed),
       cleanVibes(body.vibes), cleanBudget(body.budget), cleanVibes(body.brands, false), cleanInterests(body.interests), cleanSizes(body.sizes), cleanDepartment(body.department),
-      typeof body.lang === "string" ? body.lang.slice(0, 2).toLowerCase() : "en"));
+      langCode(body.lang)));
   }
   if (text.length < 2) throw new HttpError(400, "Tell me what to hunt for");
 

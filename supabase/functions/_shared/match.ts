@@ -139,10 +139,20 @@ export function covers(a: Agent, l: Listing): boolean {
   return missionCovers(a.mission_custom ?? "", haystack(l));
 }
 /** The app's language, for what scouts write to them. English is the default (null). */
-export const LANG_NAMES: Record<string, string> = { es: "Spanish", fr: "French", ko: "Korean" };
+export const LANG_NAMES: Record<string, string> = {
+  es: "Spanish", fr: "French", ko: "Korean", vi: "Vietnamese", "zh-Hans": "Simplified Chinese", "zh-Hant": "Traditional Chinese",
+  ja: "Japanese", th: "Thai", id: "Indonesian", hi: "Hindi", fil: "Filipino",
+};
+/** "zh-Hans-US", "zh_TW", "fil-PH", "es-MX" → the app's language codes. */
+export function langCode(v: unknown): string {
+  const c = typeof v === "string" ? v.trim().replace(/_/g, "-").toLowerCase() : "";
+  if (!c) return "en";
+  if (c.startsWith("zh")) return /hant|-tw|-hk|-mo/.test(c) ? "zh-Hant" : "zh-Hans";
+  if (c.startsWith("fil") || c.startsWith("tl")) return "fil";
+  return c.slice(0, 2);
+}
 export function langOf(v: unknown): string | null {
-  const code = typeof v === "string" ? v.slice(0, 2).toLowerCase() : "";
-  return LANG_NAMES[code] ?? null;
+  return LANG_NAMES[langCode(v)] ?? null;
 }
 
 /** Who they shop for, from setup (their Men's/Women's pick, or what they said and showed). */

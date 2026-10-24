@@ -1,4 +1,4 @@
-# Translates the app into Spanish, French and Korean: Xcode extracts every string the app shows, Claude translates the
+# Translates the app into Spanish, French, Korean, Vietnamese, Chinese, Japanese, Thai, Indonesian, Hindi and Filipino: Xcode extracts every string the app shows, Claude translates the
 # ones not done yet, and the updated Baget/Localizable.xcstrings is committed to main. Run it after changing app text.
 name: Translate
 on: workflow_dispatch
@@ -7,7 +7,7 @@ permissions:
 jobs:
   translate:
     runs-on: macos-26
-    timeout-minutes: 60
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v5
       - name: Use Xcode 26
@@ -39,6 +39,6 @@ jobs:
           git config user.email "ci@users.noreply.github.com"
           git add Baget/Localizable.xcstrings
           git diff --cached --quiet && { echo "::notice::Nothing new to translate"; exit 0; }
-          git commit -qm "Translations: Spanish, French, Korean"
+          git commit -qm "Translations"
           git pull -q --rebase origin main
           git push -q origin HEAD:main

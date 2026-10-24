@@ -184,7 +184,8 @@ struct SettingsBlob: Codable {
 }
 
 enum AppLanguage {
-    static var code: String { Bundle.main.preferredLocalizations.first.map { String($0.prefix(2)) } ?? "en" }
+    /// "en", "es", "zh-Hans", "fil"… (Chinese keeps its script: Simplified and Traditional read differently).
+    static var code: String { Bundle.main.preferredLocalizations.first ?? "en" }
 }
 
 private struct SweepReply: Decodable { let swept: Int?; let found: Int?; let message: String? }

@@ -1645,3 +1645,12 @@ await test("women's and men's departments", async () => {
   assert.deepEqual(saved[0]?.settings, { pushLevel: "best", department: "women" }, "setup remembers she shops women's");
 });
 
+await test("language codes from any iPhone setting", () => {
+  assert.equal(M.langCode("zh-Hans-US"), "zh-Hans");
+  assert.equal(M.langCode("zh_TW"), "zh-Hant");
+  assert.equal(M.langCode("fil-PH"), "fil");
+  assert.equal(M.langCode("es-MX"), "es");
+  assert.equal(M.langOf("vi"), "Vietnamese");
+  assert.equal(M.langOf("en"), null);
+});
+

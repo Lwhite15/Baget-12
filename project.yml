@@ -53,7 +53,7 @@ targets:
       properties:
         CFBundleDisplayName: Baget
         # The app's languages (Localizable.xcstrings). iOS shows a Language choice for Baget in Settings.
-        CFBundleLocalizations: [en, es, fr, ko]
+        CFBundleLocalizations: [en, es, fr, ko, vi, zh-Hans, zh-Hant, ja, th, id, hi, fil]
         CFBundleDevelopmentRegion: en
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
