@@ -38,7 +38,7 @@ struct TodayView: View {
         return VStack(alignment: .leading, spacing: 3) {
             Text(name.map { "\(hello), \($0)" } ?? hello)
                 .font(.system(size: 28, weight: .heavy)).tracking(-0.6).foregroundStyle(Theme.ink)
-            Text("\(store.state.agents.count) agent\(store.state.agents.count == 1 ? "" : "s") hunting for you · \(Date.now.formatted(.dateTime.weekday(.wide).month().day()))")
+            Text("\(store.state.agents.count) \(store.state.agents.count == 1 ? String(localized: "agent") : String(localized: "agents")) hunting for you · \(Date.now.formatted(.dateTime.weekday(.wide).month().day()))")
                 .font(.footnote).foregroundStyle(Theme.muted)
         }
         .padding(.top, 4)
@@ -128,7 +128,7 @@ struct TodayView: View {
                 }
                 .frame(width: 50)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Swipe through \(n) new find\(n == 1 ? "" : "s")").font(.headline).foregroundStyle(Theme.ink)
+                    Text("Swipe through \(n) new \(n == 1 ? String(localized: "find") : String(localized: "finds"))").font(.headline).foregroundStyle(Theme.ink)
                     Text("Right to like, left to pass, up to buy. Every swipe teaches your squad.")
                         .font(.caption).foregroundStyle(Theme.muted).multilineTextAlignment(.leading)
                 }
@@ -426,7 +426,7 @@ extension AppStore {
         } else {
             let res = sweep()
             Analytics.track(.sweepRun, ["found": res.found, "manual": true])
-            router.say(res.found > 0 ? String(localized: "\(res.found) new find\(res.found == 1 ? "" : "s")") : String(localized: "Nothing new fits you right now"))
+            router.say(res.found > 0 ? String(localized: "\(res.found) new \(res.found == 1 ? String(localized: "find") : String(localized: "finds"))") : String(localized: "Nothing new fits you right now"))
         }
     }
 }

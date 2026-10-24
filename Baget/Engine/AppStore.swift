@@ -240,7 +240,7 @@ final class AppStore {
         }
         state.awayReport = AwayReport(date: .now, minutes: Int(minutes), sweeps: runs, checked: runs * Catalog.items.count * 3,
                                       found: found, bought: bought, notes: notes, restocks: restocks)
-        log("Background: \(runs) sweep\(runs > 1 ? "s" : "") while you were away, \(found) new find\(found == 1 ? "" : "s")")
+        log("Background: \(runs) sweep\(runs > 1 ? "s" : "") while you were away, \(found) new \(found == 1 ? String(localized: "find") : String(localized: "finds"))")
         save()
     }
 
@@ -488,6 +488,15 @@ final class AppStore {
     enum PassReason: String, CaseIterable, Identifiable {
         case style = "Not my style", price = "Too pricey", own = "Have one like it", later = "Just not now"
         var id: String { rawValue }
+        /// What the button says, in the app's language (the raw value is what the server stores).
+        var label: String {
+            switch self {
+            case .style: return String(localized: "Not my style")
+            case .price: return String(localized: "Too pricey")
+            case .own: return String(localized: "Have one like it")
+            case .later: return String(localized: "Just not now")
+            }
+        }
     }
 
     func pass(_ findID: String, reason: PassReason) {

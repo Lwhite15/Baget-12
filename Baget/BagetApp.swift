@@ -47,7 +47,7 @@ struct BagetApp: App {
                     if PaywallView.screenshotMode { router.sheet = .pro; return }
                     #endif
                     // New accounts are asked during setup, when it means something ("text me when they find something").
-                    if store.isCloud { await store.registerForPushIfAsked() } else { await Notifier.requestPermission() }
+                    if store.isCloud { await store.registerForPushIfAsked() }   // never a cold prompt at launch; setup asks with a reason
                     store.listenForProUpdates()
                     await store.syncProEntitlements()
                     await store.loadProProducts()

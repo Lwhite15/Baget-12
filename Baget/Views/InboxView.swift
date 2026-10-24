@@ -251,7 +251,7 @@ struct CustomizeBarView: View {
         store.save()
         Analytics.track(.customSectionAdded, ["words": TextMatch.words(q).count])
         let n = Catalog.all.filter { TextMatch.matches($0, query: q) }.count
-        router.say(n > 0 ? String(localized: "Added \(label) · \(n) stor\(n == 1 ? "y" : "ies") today") : String(localized: "Added \(label). Set up a scout to hunt it."))
+        router.say(n > 0 ? String(localized: "Added \(label) · \(n) \(n == 1 ? String(localized: "story") : String(localized: "stories")) today") : String(localized: "Added \(label). Set up a scout to hunt it."))
         newSection = ""
     }
 }

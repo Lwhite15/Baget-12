@@ -72,7 +72,7 @@ struct AgentCard: View {
                     .accessibilityLabel("Change \(agent.name)'s icon")
                 VStack(alignment: .leading, spacing: 2) {
                     Text(agent.name).font(.title3.weight(.heavy)).foregroundStyle(Theme.ink)
-                    Text("\(agent.mission.label) · \(finds) find\(finds == 1 ? "" : "s")").font(.caption.monospacedDigit()).foregroundStyle(Theme.muted)
+                    Text("\(agent.mission.label) · \(finds) \(finds == 1 ? String(localized: "find") : String(localized: "finds"))").font(.caption.monospacedDigit()).foregroundStyle(Theme.muted)
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 2) {

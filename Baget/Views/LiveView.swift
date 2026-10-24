@@ -238,11 +238,11 @@ struct AwayCard: View {
             Text("WHILE YOU WERE AWAY · \(report.minutes >= 90 ? "\(Int(safe: (Double(report.minutes) / 60).rounded())) HOURS" : "\(report.minutes) MINUTES")")
                 .font(.caption.weight(.bold)).tracking(1).gradientText()
             Text(report.sweeps > 0
-                 ? String(localized: "Your squad ran \(report.sweeps) sweep\(report.sweeps == 1 ? "" : "s"), checked about \(report.checked) listings and found \(report.found) new thing\(report.found == 1 ? "" : "s") for you.\(report.restocks > 0 ? " One of your watched items restocked." : "")\(report.bought > 0 ? " Auto-buy landed \(report.bought)." : "")")
-                 : String(localized: "Your squad kept searching the web and found \(report.found) new thing\(report.found == 1 ? "" : "s") for you.\(report.restocks > 0 ? " Something you're watching restocked." : "")"))
+                 ? String(localized: "Your squad ran \(report.sweeps) \(report.sweeps == 1 ? String(localized: "sweep") : String(localized: "sweeps")), checked about \(report.checked) listings and found \(report.found) new \(report.found == 1 ? String(localized: "thing") : String(localized: "things")) for you.\(report.restocks > 0 ? " One of your watched items restocked." : "")\(report.bought > 0 ? " Auto-buy landed \(report.bought)." : "")")
+                 : String(localized: "Your squad kept searching the web and found \(report.found) new \(report.found == 1 ? String(localized: "thing") : String(localized: "things")) for you.\(report.restocks > 0 ? " Something you're watching restocked." : "")"))
                 .font(.subheadline).foregroundStyle(Theme.ink)
             HStack {
-                Button("\(report.notes) notification\(report.notes == 1 ? "" : "s")") { router.sheet = .inbox }.buttonStyle(PrimaryButton())
+                Button("\(report.notes) \(report.notes == 1 ? String(localized: "notification") : String(localized: "notifications"))") { router.sheet = .inbox }.buttonStyle(PrimaryButton())
                 Button("Dismiss") { store.state.awayReport = nil; store.save() }.buttonStyle(GhostButton())
             }
         }

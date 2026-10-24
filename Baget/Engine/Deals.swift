@@ -44,7 +44,7 @@ struct DealVerdict: Hashable {
             return DealVerdict(level: .wait, title: String(localized: "Over resale"), detail: String(localized: "Goes for about \(Fmt.money(item.market)) secondhand"))
         }
         if others > 0 || hasMarket {
-            return DealVerdict(level: .fair, title: String(localized: "Fair price"), detail: others > 0 ? String(localized: "In line with \(others) other store\(others == 1 ? "" : "s")") : String(localized: "Around resale value"))
+            return DealVerdict(level: .fair, title: String(localized: "Fair price"), detail: others > 0 ? String(localized: "In line with \(others) other \(others == 1 ? String(localized: "store") : String(localized: "stores"))") : String(localized: "Around resale value"))
         }
         return nil
     }

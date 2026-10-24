@@ -151,10 +151,11 @@ struct FindsView: View {
                     let n = counts[f] ?? 0
                     let label: String = {
                         switch f {
-                        case .liked: return n > 0 ? "♥ Liked · \(n)" : "♥ Liked"
-                        case .watching: return n > 0 ? "Watching · \(n)" : String(localized: "Watching")
+                        case .liked: return n > 0 ? String(localized: "♥ Liked · \(n)") : String(localized: "♥ Liked")
+                        case .watching: return n > 0 ? String(localized: "Watching · \(n)") : String(localized: "Watching")
                         case .all: return String(localized: "All")
-                        default: return n > 0 ? "\(f.rawValue) · \(n)" : f.rawValue
+                        case .new: return n > 0 ? String(localized: "New · \(n)") : String(localized: "New")
+                        case .intel: return n > 0 ? String(localized: "Intel · \(n)") : String(localized: "Intel")
                         }
                     }()
                     let on = show == f
@@ -198,7 +199,7 @@ struct FindsView: View {
         HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Finds").font(.system(size: 30, weight: .heavy)).tracking(-0.8).foregroundStyle(Theme.ink)
-                Text("\(store.state.agents.count) scout\(store.state.agents.count == 1 ? "" : "s") hunting · \(newTotal) new · \(likedTotal) liked")
+                Text("\(store.state.agents.count) \(store.state.agents.count == 1 ? String(localized: "scout") : String(localized: "scouts")) hunting · \(newTotal) new · \(likedTotal) liked")
                     .font(.footnote).foregroundStyle(Theme.muted)
             }
             Spacer()
@@ -251,7 +252,7 @@ struct FindsView: View {
                         .background(Theme.gradient, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
                     VStack(alignment: .leading, spacing: 1) {
                         Text(g.title).font(.headline).foregroundStyle(Theme.ink).lineLimit(1)
-                        Text([g.agent?.name, "\(g.finds.count) find\(g.finds.count == 1 ? "" : "s")"].compactMap { $0 }.joined(separator: " · "))
+                        Text([g.agent?.name, "\(g.finds.count) \(g.finds.count == 1 ? String(localized: "find") : String(localized: "finds"))"].compactMap { $0 }.joined(separator: " · "))
                             .font(.caption).foregroundStyle(Theme.muted).lineLimit(1)
                     }
                     Spacer()
@@ -361,7 +362,7 @@ struct FindCard: View {
             }
             .confirmationDialog("What was off? \(agent?.name ?? "Your scout") will learn from it.", isPresented: $askingWhy, titleVisibility: .visible) {
                 ForEach(AppStore.PassReason.allCases) { r in
-                    Button(r.rawValue) {
+                    Button(r.label) {
                         store.pass(find.id, reason: r)
                         Analytics.track(.findPassed, ["reason": r.rawValue, "category": item.category.rawValue])
                         router.say(r == .later ? String(localized: "Passed") : String(localized: "Passed. \(agent?.name ?? "Your scout") is learning from that"))
@@ -385,13 +386,13 @@ struct FindCard: View {
             ProductThumb(item: item)
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 6) {
-                    if isNew { badge("NEW", Theme.accent) }
+                    if isNew { badge(String(localized: "NEW"), Theme.accent) }
                     if store.isSoldOut(item) { badge(String(localized: "SOLD OUT"), Theme.warn) }
                     else if !store.isLive(item) { badge(store.whenLabel(item), Theme.blue) }
-                    if item.tags.contains("limited") { badge("LIMITED", Theme.hot) }
-                    if find.why.contains(where: { $0.hasPrefix("Discovery") }) { badge("NEW TO YOU", Theme.cyan) }
-                    if item.isIntel { badge("INTEL", Theme.cyan) }
-                    if item.isSearchLink { badge("SEARCH", Theme.cyan) }
+                    if item.tags.contains("limited") { badge(String(localized: "LIMITED"), Theme.hot) }
+                    if find.why.contains(where: { $0.hasPrefix("Discovery") }) { badge(String(localized: "NEW TO YOU"), Theme.cyan) }
+                    if item.isIntel { badge(String(localized: "INTEL"), Theme.cyan) }
+                    if item.isSearchLink { badge(String(localized: "SEARCH"), Theme.cyan) }
                     if store.reminder(for: item) != nil { Image(systemName: "bell.fill").font(.caption2).foregroundStyle(Theme.blue).accessibilityLabel("Reminder set") }
                     if find.status == .liked { Image(systemName: "heart.fill").font(.caption).foregroundStyle(Theme.hot) }
                     Spacer(minLength: 0)
