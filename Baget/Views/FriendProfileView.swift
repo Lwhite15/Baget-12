@@ -267,13 +267,11 @@ struct FriendProfileView: View {
             FlowRow {
                 ForEach(items, id: \.self) { t in
                     let tint = style == .both ? Theme.green : Theme.cyan
-                    Button { action?(t) } label: {
-                        Text(t).font(.footnote).foregroundStyle(tint.opacity(0.95))
-                            .padding(.horizontal, 12).padding(.vertical, 7)
-                            .background(tint.opacity(0.10), in: Capsule())
-                            .overlay(Capsule().strokeBorder(tint.opacity(0.45)))
-                    }
-                    .buttonStyle(.plain).disabled(action == nil)
+                    let chip = Text(t).font(.footnote).foregroundStyle(tint.opacity(0.95))
+                        .padding(.horizontal, 12).padding(.vertical, 7)
+                        .background(tint.opacity(0.10), in: Capsule())
+                        .overlay(Capsule().strokeBorder(tint.opacity(0.45)))
+                    if let action { Button { action(t) } label: { chip }.buttonStyle(.plain) } else { chip }
                 }
             }
         }
@@ -287,7 +285,7 @@ struct FriendProfileView: View {
         VStack(alignment: .leading, spacing: 10) {
             header(String(localized: "\(first)'s grails"))
             ScrollView(.horizontal) {
-                HStack(spacing: 10) {
+                HStack(alignment: .top, spacing: 10) {
                     ForEach(g, id: \.listing.id) { x in
                         tile(x.listing.item, tag: x.tag == "watching" ? String(localized: "WATCHING") : x.tag == "got" ? String(localized: "GOT IT") : String(localized: "LIKED"))
                     }
@@ -331,7 +329,7 @@ struct FriendProfileView: View {
             }
             Text("Picked for \(first)'s taste by your scouts, under $150.").font(.footnote).foregroundStyle(Theme.muted)
             ScrollView(.horizontal) {
-                HStack(spacing: 10) { ForEach(gifts, id: \.id) { tile($0.item, tag: nil) } }
+                HStack(alignment: .top, spacing: 10) { ForEach(gifts, id: \.id) { tile($0.item, tag: nil) } }
             }
             .scrollIndicators(.hidden)
         }
@@ -357,7 +355,7 @@ struct FriendProfileView: View {
         if !sent.isEmpty {
             VStack(alignment: .leading, spacing: 10) {
                 header(String(localized: "Recently sent you"))
-                ScrollView(.horizontal) { HStack(spacing: 10) { ForEach(Array(sent)) { tile($0, tag: nil) } } }.scrollIndicators(.hidden)
+                ScrollView(.horizontal) { HStack(alignment: .top, spacing: 10) { ForEach(Array(sent)) { tile($0, tag: nil) } } }.scrollIndicators(.hidden)
             }
         }
     }
