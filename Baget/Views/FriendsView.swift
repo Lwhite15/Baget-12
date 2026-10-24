@@ -78,6 +78,8 @@ struct FriendsView: View {
 
                 ForEach(requests) { f in RequestRow(friend: f) }
 
+                if store.isCloud { TasteCardsRow().padding(.top, 6) }
+
                 SectionHead(title: String(localized: "Sent to you"), trailing: suggestions.isEmpty ? nil : "\(suggestions.count) new")
                 if suggestions.isEmpty {
                     Text(store.state.friends.isEmpty ? String(localized: "Add a friend and the things they send you show up here.")
@@ -120,8 +122,11 @@ struct FriendsView: View {
         .dismissKeyboardOnTap()
         .scrollIndicators(.hidden)
         .sheet(item: $open) { f in
-            FriendSheet(friend: f).environment(store).environment(router)
-                .presentationDetents([.medium, .large]).presentationBackground(Theme.panel).preferredColorScheme(.dark)
+            Group {
+                if f.isPending || f.isSample { FriendSheet(friend: f) } else { FriendProfileView(friend: f) }
+            }
+            .environment(store).environment(router)
+                .presentationDetents(f.isPending || f.isSample ? [.medium, .large] : [.large]).presentationBackground(Theme.panel).preferredColorScheme(.dark)
         }
         .sheet(isPresented: $adding) {
             AddFriendSheet().environment(store).environment(router)
@@ -423,6 +428,7 @@ private struct FriendsPrivacySheet: View {
                     Text("The styles, brands and creators your scouts hunt, so what friends send you lands better.").font(.caption).foregroundStyle(Theme.muted)
                 }
             }
+            BirthdayRow()
             Toggle(isOn: $store.state.settings.sharePurchasesWithFriends) {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("What I buy").foregroundStyle(Theme.ink)
