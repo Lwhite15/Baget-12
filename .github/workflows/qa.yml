@@ -3,7 +3,12 @@
 # first hunt and tours every screen. Screenshots and screen trees come back as the "qa" artifact (not committed).
 # The account stays so its finds can be checked afterwards; remove it with the "Delete account" workflow.
 name: QA walkthrough
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      lang:
+        description: "Language check instead (es, fr or ko): screenshots of the sample tour in that language"
+        default: ""
 permissions:
   contents: write
 jobs:
@@ -46,13 +51,14 @@ jobs:
           xcrun simctl ui "$UDID" appearance dark
           pw=$(python3 -c "import secrets,string; print('Qa-' + ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(20)))")
           echo "::add-mask::$pw"
-          r=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "https://${PROJECT_REF}.supabase.co/auth/v1/signup" -H "apikey: ${SUPABASE_ANON_KEY}" \
+          [ -n "${{ inputs.lang }}" ] || r=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "https://${PROJECT_REF}.supabase.co/auth/v1/signup" -H "apikey: ${SUPABASE_ANON_KEY}" \
                 -H "Content-Type: application/json" -d "$(jq -nc --arg e "qa-${GITHUB_RUN_ID}@example.com" --arg p "$pw" '{email:$e,password:$p,data:{full_name:"Claude Tester"}}')")
           echo "::notice::sign-up HTTP $r"
           mkdir -p "$RUNNER_TEMP/out"
           echo "::notice::Account: qa-${GITHUB_RUN_ID}@example.com"
+          if [ -n "${{ inputs.lang }}" ]; then ONLY="-only-testing:BagetUITests/QAWalkthrough/testLanguageTour"; else ONLY="-only-testing:BagetUITests/QAWalkthrough/testNewCustomer"; fi
           TEST_RUNNER_QA_EMAIL="qa-${GITHUB_RUN_ID}@example.com" TEST_RUNNER_QA_PASSWORD="$pw" TEST_RUNNER_QA_OUT="$RUNNER_TEMP/out" \
-            xcodebuild test-without-building -project Baget.xcodeproj -scheme BagetQA -derivedDataPath build \
+            TEST_RUNNER_QA_LANG="${{ inputs.lang }}" xcodebuild test-without-building $ONLY -project Baget.xcodeproj -scheme BagetQA -derivedDataPath build \
             -destination "id=$UDID" -resultBundlePath "$RUNNER_TEMP/qa.xcresult" > test.log 2>&1 || echo "::warning::The walkthrough reported failures (see steps.txt)"
           grep "QA: " test.log | sed 's/.*QA: //' | tail -150
           # Screenshots also live in the result bundle, in case the simulator couldn't write to the runner's folder.

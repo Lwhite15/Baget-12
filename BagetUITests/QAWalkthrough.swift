@@ -202,4 +202,30 @@ final class QAWalkthrough: XCTestCase {
         tap("Finds"); snap("finds-later", wait: 3)
         timed("whole session", t0)
     }
+
+    /// Language check: the sample tour in another language (QA_LANG, e.g. "ko"), tapping by position so it works in any
+    /// language. Screenshots of the welcome screen, every tab and settings.
+    func testLanguageTour() throws {
+        let env = ProcessInfo.processInfo.environment
+        guard let lang = env["QA_LANG"], !lang.isEmpty else { throw XCTSkip("no QA_LANG") }
+        app.launchArguments += ["-AppleLanguages", "(\(lang))", "-AppleLocale", "\(lang)_US"]
+        app.launch()
+        snap("\(lang)-welcome", wait: 3)
+        app.swipeUp(); snap("\(lang)-welcome-scrolled", wait: 1)
+        // "Take a look first" is the last button on the welcome screen.
+        if let look = app.buttons.allElementsBoundByIndex.filter({ $0.isHittable }).last { look.tap(); note("tap sample tour") }
+        Thread.sleep(forTimeInterval: 3)
+        let tabs = app.tabBars.buttons
+        for i in 0..<max(tabs.count, 1) {
+            if tabs.count > i { tabs.element(boundBy: i).tap() }
+            snap("\(lang)-tab\(i)", wait: 2.5)
+            app.swipeUp(); snap("\(lang)-tab\(i)-scrolled", wait: 1.5)
+            app.swipeDown(); app.swipeDown()
+        }
+        // Settings: the icon at the top left.
+        if tabs.count > 0 { tabs.element(boundBy: 0).tap() }
+        let you = app.navigationBars.buttons.firstMatch
+        if you.waitForExistence(timeout: 3) { you.tap(); snap("\(lang)-you", wait: 2); app.swipeUp(); snap("\(lang)-you-scrolled", wait: 1.5) }
+    }
 }
+
