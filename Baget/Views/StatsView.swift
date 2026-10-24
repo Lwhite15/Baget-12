@@ -192,8 +192,6 @@ struct StatsView: View {
             ProgressView(value: Double(min(r.users, r.goal)), total: Double(r.goal)).tint(Theme.cyan)
             Text(paceLine(left: left, pace: r.weekPace)).font(.footnote).foregroundStyle(Theme.muted)
             grid([
-                ("Still here after 4 weeks", pct(r.week4, of: r.week4Base), r.week4Base == 0 ? "no one 4 weeks in yet" : "of \(r.week4Base) · aim 30%+"),
-                ("Active this week", pct(min(activeWeek, r.users), of: r.users), "of \(r.users) people"),
                 ("Paying for Pro", pct(r.pro, of: r.paidBase), "\(r.pro) people · aim 5%+"),
                 ("Connected to a friend", pct(r.withFriends, of: r.users), "\(r.withFriends) people"),
             ])
