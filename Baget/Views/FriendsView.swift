@@ -1,3 +1,4 @@
+import SafariServices
 import SwiftUI
 
 /// The Friends tab's quieter look: headings in the system font, semibold (same as product titles).
@@ -429,6 +430,7 @@ struct SuggestionCard: View {
     @State private var reply = ""
     @State private var replying = false
     @State private var replied = false
+    @State private var viewing: URL?
 
     var body: some View {
         if let f = store.friend(suggestion.friendID), let item = Catalog.item(suggestion.itemID) {
@@ -441,16 +443,29 @@ struct SuggestionCard: View {
                     (Text(f.name).bold().foregroundStyle(Theme.ink) + Text(" · \(Fmt.ago(suggestion.date))").foregroundStyle(Theme.muted))
                         .font(.footnote)
                 }
-                HStack(alignment: .center, spacing: 16) {
-                    ProductThumb(item: item, size: 104)
-                    VStack(alignment: .leading, spacing: 3) {
-                        if !item.brand.isEmpty { Text(item.brand).font(FriendsStyle.serif(16)).foregroundStyle(Theme.ink) }
-                        Text(item.title).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink).lineLimit(3)
-                        Text([item.priceKnown && item.price > 0 ? item.priceLabel : nil, item.source, notInSize ? "not in your size" : nil]
-                                .compactMap { $0 }.joined(separator: " · "))
-                            .font(.footnote).foregroundStyle(Theme.muted).padding(.top, 2)
+                // Tap the product to see the store's page in Baget before deciding.
+                let link = BuyLink.tracked(item, from: "suggestion")
+                Button { viewing = link } label: {
+                    HStack(alignment: .center, spacing: 16) {
+                        ProductThumb(item: item, size: 104)
+                        VStack(alignment: .leading, spacing: 3) {
+                            if !item.brand.isEmpty { Text(item.brand).font(FriendsStyle.serif(16)).foregroundStyle(Theme.ink) }
+                            Text(item.title).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink).lineLimit(3).multilineTextAlignment(.leading)
+                            Text([item.priceKnown && item.price > 0 ? item.priceLabel : nil, item.source, notInSize ? "not in your size" : nil]
+                                    .compactMap { $0 }.joined(separator: " · "))
+                                .font(.footnote).foregroundStyle(Theme.muted).padding(.top, 2)
+                            if link != nil {
+                                Label(String(localized: "View it at \(item.source)"), systemImage: "arrow.up.right.square")
+                                    .font(.footnote.weight(.semibold)).foregroundStyle(Theme.cyan).padding(.top, 4)
+                            }
+                        }
+                        Spacer(minLength: 0)
                     }
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
+                .disabled(link == nil)
+                .accessibilityHint("Opens the store's page so you can look before deciding")
                 if !note.isEmpty {
                     Text(note)
                         .font(.system(size: 16).italic()).foregroundStyle(Theme.ink.opacity(0.9))
@@ -492,6 +507,9 @@ struct SuggestionCard: View {
             }
             .padding(.vertical, 18)
             .overlay(alignment: .top) { Divider().overlay(FriendsStyle.rule) }
+            .sheet(item: Binding(get: { viewing.map { IdentifiedURL(url: $0) } }, set: { viewing = $0?.url })) { x in
+                SafariView(url: x.url).ignoresSafeArea()
+            }
         }
     }
 
@@ -777,4 +795,19 @@ struct SuggestForView: View {
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
         }
     }
+}
+
+
+struct IdentifiedURL: Identifiable { let url: URL; var id: String { url.absoluteString } }
+
+/// A store page inside Baget (Done brings you right back).
+struct SafariView: UIViewControllerRepresentable {
+    let url: URL
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        let vc = SFSafariViewController(url: url)
+        vc.preferredControlTintColor = UIColor(Theme.cyan)
+        vc.dismissButtonStyle = .done
+        return vc
+    }
+    func updateUIViewController(_ vc: SFSafariViewController, context: Context) {}
 }
