@@ -11,7 +11,7 @@ import { blockedDomains, notAProduct, pageKind, storeFeeds, storeLeads } from ".
 import { geminiHunt, geminiOn } from "../_shared/gemini.ts";
 import { SEARCH_TOOL, hitsText, serperSearch, serperUsable } from "../_shared/search.ts";
 export { firstName };
-import { type Lead, attachOffers, ebayConfigured, ebaySearch, queriesFor, shoppingLeads, shoppingOffers } from "../_shared/sources.ts";
+import { type Lead, attachOffers, scrubOffers, ebayConfigured, ebaySearch, queriesFor, shoppingLeads, shoppingOffers } from "../_shared/sources.ts";
 
 const num = (name: string, fallback: number) => {
   const v = Number(env(name));
@@ -426,7 +426,7 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
     const ids = new Map(saved.map((s) => [s.fingerprint, s]));
     // Other stores' prices for new listings, for the deal verdict.
     const isProduct = (fp: string) => { const t = listings.find((l) => l.fingerprint === fp)?.tags ?? []; return !t.includes("intel") && !t.includes("search"); };
-    await attachOffers(saved.filter((s) => !s.already_found && isProduct(s.fingerprint)).map((s) => ({ id: s.id, title: listings.find((l) => l.fingerprint === s.fingerprint)?.title ?? "" }))
+    await attachOffers(saved.filter((s) => !s.already_found && isProduct(s.fingerprint)).map((s) => { const l = listings.find((x) => x.fingerprint === s.fingerprint); return { id: s.id, title: l?.title ?? "", brand: l?.brand, price: l?.price }; })
       .filter((r) => r.title), (id, patch) => db.update("listings", `id=eq.${id}`, patch)).catch(() => 0);
     const photos = await db.select<{ tags: string[] }>("taste_photos", `select=tags&agent_id=eq.${a.id}`);
     const photoTags = photos.flatMap((p) => p.tags);
@@ -676,6 +676,7 @@ export async function maintain() {
   }
   out.restocks = await restockCheck(num("RESTOCK_CHECKS", 15)).catch((e) => { console.error("restocks", e); return null; });
   out.refreshed = await refreshFinds(num("REFRESH_CHECKS", 40)).catch((e) => { console.error("refresh", e); return null; });
+  out.scrubbed = await scrubOffers(400).catch((e) => { console.error("scrub", e); return null; });
   out.prices = await repriceOld(num("PRICE_BACKFILL", 10)).catch((e) => { console.error("prices", e); return null; });
   out.stores = await db.rpc<number>("learn_stores", {}).catch((e) => { console.error("stores", e); return null; });
   // Taste Cards for people who share their taste with friends, written fresh every few days.
@@ -741,8 +742,8 @@ Use only what's in the data. Keep it flattering and specific.` }] }).catch(() =>
 /** Prices checked before samples and decants were filtered out (Oct 19, 2026): look them up again, newest first. */
 const PRICE_FIX = "2026-10-19T13:30:00Z";
 export async function repriceOld(limit: number) {
-  const rows = await db.select<{ id: string; title: string }>("listings",
-    `select=id,title&offers_checked_at=lt.${PRICE_FIX}&order=last_seen_at.desc&limit=${limit}`);
+  const rows = await db.select<{ id: string; title: string; brand: string | null; price: number | null }>("listings",
+    `select=id,title,brand,price&offers_checked_at=lt.${PRICE_FIX}&order=last_seen_at.desc&limit=${limit}`);
   const priced = await attachOffers(rows, (id, patch) => db.update("listings", `id=eq.${id}`, patch).then(() => {}));
   return { checked: rows.length, priced };
 }

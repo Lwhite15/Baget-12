@@ -3,7 +3,7 @@
 //  * eBay Browse API (EBAY_CLIENT_ID + EBAY_CLIENT_SECRET): real fixed-price listings with exact item pages and photos.
 //  * Google Shopping via Serper (SERPER_API_KEY): current products, prices and stores, handed to Claude as leads to verify.
 import { type Agent, norm } from "./match.ts";
-import { env } from "./platform.ts";
+import { db, env } from "./platform.ts";
 
 type FetchFn = (input: string, init?: RequestInit) => Promise<Response>;
 
@@ -178,8 +178,85 @@ export function partialSize(offerTitle: string, productTitle: string): boolean {
   return got < 30;
 }
 
-/** What other stores charge for this product right now (Google Shopping), cheapest first. */
-export async function shoppingOffers(title: string, fetchFn: FetchFn = fetch): Promise<Offer[]> {
+// ── Who counts as a real store ──
+// Google Shopping mixes real stores with replica shops ("Saint store", "suntreeshopping.com") and one-person sellers on
+// marketplaces. "Cheaper elsewhere" only shows stores you can trust to send the real thing: big retailers, known
+// boutiques, authenticated resale, brands' own shops, and the stores on Baget's map. Everything else is dropped.
+
+/** "Saks Fifth Avenue" → "saksfifthavenue", "Jomashop.com" → "jomashop", "snkrdunk.com/en" → "snkrdunk". */
+export function sellerKey(name: string): string {
+  return name.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+    .replace(/\/.*$/, "").replace(/^(www\.|us\.|shop\.|store\.)/, "")
+    .replace(/\.(com|net|co|us|shop|store|co\.uk|com\.au|jp)\b.*$/, "").replace(/^the\s+/, "")
+    .replace(/&/g, "and").replace(/[^a-z0-9]/g, "");
+}
+
+const TRUSTED = new Set([
+  // Department stores and big retail
+  "nordstrom", "nordstromrack", "macys", "bloomingdales", "saks", "saksfifthavenue", "saksoff5th", "neimanmarcus", "bergdorfgoodman",
+  "dillards", "kohls", "target", "walmart", "amazon", "bestbuy", "costco", "jcpenney", "belk", "harrods", "selfridges", "liberty",
+  "libertyus", "libertylondon", "harveynichols", "johnlewis", "shopsimon", "bluefly", "ruelala", "gilt", "theoutnet", "yoox",
+  // Sneakers and streetwear
+  "footlocker", "champssports", "finishline", "jdsports", "dtlr", "hibbett", "shoepalace", "snipes", "snipesusa", "shiekh", "pacsun",
+  "dickssportinggoods", "dicks", "academy", "rei", "zappos", "eastbay", "kith", "endclothing", "end", "hbx", "doverstreetmarket",
+  "extrabutter", "sneakerpolitics", "nicekicks", "socialstatus", "bait", "feature", "undefeated", "concepts", "cncpts", "bodega",
+  "notre", "amamaniere", "lapstoneandhammer", "fivestory", "lncc", "garmentory", "huckberry", "nepenthesnewyork", "nepenthes",
+  "sneakersnstuff", "offspring", "atmos", "atmosusa", "stussy", "supreme", "palace", "aimeleondore", "fearofgod",
+  "lemaire", "martinerose", "kapital", "nike", "adidas", "newbalance", "converse", "vans", "puma", "asics", "reebok",
+  "jordan", "salomon", "hoka", "onrunning", "birkenstock", "drmartens", "timberland", "carhartt", "carharttwip", "patagonia",
+  "thenorthface", "arcteryx", "levis", "uniqlo", "gap", "oldnavy", "jcrew", "hm", "zara", "cos", "urbanoutfitters", "asos",
+  "revolve", "fwrd", "ssense", "farfetch", "mrporter", "netaporter", "mytheresa", "matchesfashion", "cettire", "lyst", "modesens",
+  "editorialist", "24s", "luisaviaroma", "brownsfashion", "goodhoodstore", "slamjam", "nordstromcom",
+  // Authenticated resale and vetted dealers
+  "stockx", "goat", "flightclub", "stadiumgoods", "novelship", "snkrdunk", "kickscrew", "therealreal", "vestiairecollective",
+  "fashionphile", "rebag", "theluxurycloset", "luxurycloset", "chrono24", "1stdibs", "chairish", "pamono", "bezel",
+  "crownandcaliber", "bobswatches", "the1916company", "europeanwatch", "analogshift", "watchbox", "2ndstreet", "2ndstreetusa",
+  // Fragrance and beauty
+  "sephora", "ulta", "ultabeauty", "fragrancenet", "fragrancex", "jomashop", "luckyscent", "aedes", "aedesperfumery", "twistedlily",
+  "osswald", "osswaldnyc", "beautyhabit", "maxaroma", "byredo", "lelabo", "lelabofragrances", "creed", "creedboutique",
+  "diptyque", "aesop", "cultbeauty", "spacenk", "bluemercury", "smallflower", "thefragranceshop", "fragranceshop", "notino",
+  "strawberrynet", "sweetcare", "beautylish", "dermstore", "lookfantastic", "beautyliv", "nose", "thedrydown", "drydown",
+  "houseofamouage", "amouage", "maisonfranciskurkdjian", "parfumsdemarly", "xerjoff", "tomford", "jomalone", "penhaligons",
+  // Watches and jewelry
+  "watchmaxx", "teddybaldassarre", "hodinkee", "hodinkeeshop", "christopherward", "islandwatch", "longislandwatch",
+  "windupwatchshop", "gnomonwatches", "vaerwatches", "worldofwatches", "ashford", "benbridge", "tourneau", "tiffany",
+  "tiffanyandco", "cartier", "baltic", "timeandtideus", "timeandtide",
+  // Home and design
+  "designwithinreach", "dwr", "hermanmiller", "hermanmillerstore", "momadesignstore", "moma", "wayfair", "lumens", "finnishdesignshop",
+  "ylighting", "hivemodern", "hive", "crateandbarrel", "cb2", "westelm", "rh", "rejuvenation", "allmodern", "potterybarn", "ikea",
+  "knoll", "vitra", "audo",
+  // Toys, collectibles, books
+  "bigbadtoystore", "sideshow", "entertainmentearth", "hlj", "hobbylinkjapan", "barnesandnoble", "booksamillion", "lego",
+]);
+// One-person sellers on marketplaces, and shops known for replicas: never "cheaper elsewhere".
+const UNTRUSTED = /\b(ebay|etsy|poshmark|mercari|depop|vinted|whatnot|tiktok|shein|temu|aliexpress|alibaba|dhgate|wish|joom|shop app|walmart -|amazon -|seller|outlet sale|wholesale|factory|replica|reps?)\b/i;
+
+let mapped: { at: number; set: Set<string> } | null = null;
+/** Stores on Baget's own map (seeded, not learned): retailers, boutiques, brands, resale, dealers. */
+async function mapStores(): Promise<Set<string>> {
+  if (mapped && Date.now() - mapped.at < 30 * 60_000) return mapped.set;
+  const rows = await db.select<{ name: string | null; domain: string; kind: string }>("stores",
+    "select=name,domain,kind&source=eq.seed&kind=in.(retailer,boutique,brand,resale,dealer,auction,discount)").catch(() => []);
+  const set = new Set<string>();
+  for (const r of rows) { if (r.name) set.add(sellerKey(r.name)); set.add(sellerKey(r.domain)); }
+  mapped = { at: Date.now(), set };
+  return set;
+}
+export function resetMapStores(set?: Set<string>) { mapped = set ? { at: Date.now(), set } : null; }
+
+/** True when a Google Shopping seller is a store you can trust (see above). `brand` lets a brand's own shop count. */
+export function trustedSeller(store: string, brand?: string | null, extra?: Set<string>): boolean {
+  if (UNTRUSTED.test(store)) return false;
+  const k = sellerKey(store);
+  if (!k) return false;
+  if (TRUSTED.has(k) || extra?.has(k)) return true;
+  const b = brand ? sellerKey(brand) : "";
+  // The brand's own shop: "Le Labo", "The House of Amouage", "Fear of God" (but not "Nike Outlet Deals 2026").
+  return b.length >= 3 && k.includes(b) && k.length <= b.length + 10 && !/outlet|deal|sale|cheap|discount/.test(k);
+}
+
+/** What other stores charge for this product right now (Google Shopping), cheapest first. Only trusted stores. */
+export async function shoppingOffers(title: string, fetchFn: FetchFn = fetch, opts: { brand?: string | null; price?: number | null } = {}): Promise<Offer[]> {
   const key = env("SERPER_API_KEY");
   if (!key || title.trim().length < 3) return [];
   try {
@@ -191,10 +268,14 @@ export async function shoppingOffers(title: string, fetchFn: FetchFn = fetch): P
     if (!r.ok) return [];
     const j = await r.json() as { shopping?: { title?: string; source?: string; price?: string }[] };
     const want = new Set(norm(title).split(/\s+/).filter((w) => w.length > 2));
+    const known = await mapStores();
     const out: Offer[] = [];
     for (const s of j.shopping ?? []) {
       const p = money(s.price);
       if (!s.source || p === null || p <= 0) continue;
+      if (!trustedSeller(s.source, opts.brand, known)) continue;
+      // Even a real store's price under half of what this is selling for is almost always the wrong item.
+      if (opts.price && p < opts.price * 0.5) continue;
       // Only the same product: most of the title's words must appear.
       const words = norm(s.title ?? "").split(/\s+/);
       const overlap = words.filter((w) => want.has(w)).length / Math.max(1, Math.min(want.size, 8));
@@ -215,16 +296,36 @@ export async function shoppingOffers(title: string, fetchFn: FetchFn = fetch): P
 }
 
 /** Looks up other stores' prices for saved listings and stores them (best effort). */
-export async function attachOffers(rows: { id: string; title: string }[], update: (id: string, patch: Record<string, unknown>) => Promise<void>,
+export async function attachOffers(rows: { id: string; title: string; brand?: string | null; price?: number | null }[],
+                                   update: (id: string, patch: Record<string, unknown>) => Promise<void>,
                                    fetchFn: FetchFn = fetch): Promise<number> {
   if (!env("SERPER_API_KEY")) return 0;
   let n = 0;
   await Promise.all(rows.slice(0, 10).map(async (r) => {
-    const offers = await shoppingOffers(r.title, fetchFn);
+    const offers = await shoppingOffers(r.title, fetchFn, { brand: r.brand, price: r.price });
     await update(r.id, {
       offers, low_price: offers[0]?.price ?? null, low_store: offers[0]?.store ?? null, offers_checked_at: new Date().toISOString(),
     }).catch(() => {});
     if (offers.length) n++;
   }));
   return n;
+}
+
+/** Prices saved before the trusted-store check (Oct 26, 2026): drop untrusted stores from them, no new lookups. */
+export const TRUST_FIX = "2026-10-26T18:00:00Z";
+export async function scrubOffers(limit = 400): Promise<{ checked: number; changed: number }> {
+  const rows = await db.select<{ id: string; brand: string | null; price: number | null; offers: Offer[] | null }>("listings",
+    `select=id,brand,price,offers&offers_checked_at=lt.${TRUST_FIX}&order=last_seen_at.desc&limit=${limit}`);
+  const known = await mapStores();
+  let changed = 0;
+  for (const r of rows) {
+    const before = Array.isArray(r.offers) ? r.offers : [];
+    const offers = before.filter((o) => o && trustedSeller(o.store, r.brand, known) && !(r.price && o.price < r.price * 0.5))
+      .sort((a, b) => a.price - b.price);
+    if (offers.length !== before.length) changed++;
+    await db.update("listings", `id=eq.${r.id}`, {
+      offers, low_price: offers[0]?.price ?? null, low_store: offers[0]?.store ?? null, offers_checked_at: TRUST_FIX,
+    }).catch(() => {});
+  }
+  return { checked: rows.length, changed };
 }

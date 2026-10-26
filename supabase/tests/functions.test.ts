@@ -709,6 +709,30 @@ await test("other stores' prices skip samples, decants and odd low prices", asyn
     assert.equal(SRC.partialSize("Amouage Material 10ml travel", "Amouage Material Eau de Parfum 100ml"), true);
   } finally { delete process.env.SERPER_API_KEY; }
 });
+await test("cheaper elsewhere only lists stores you can trust", async () => {
+  process.env.SERPER_API_KEY = "serper-test";
+  SRC.resetMapStores(new Set(["cojpgallery"]));
+  try {
+    const fake = async () => ok({ shopping: [
+      { title: "adidas Pharrell Jellyfish Hu NMD", source: "Saint store", price: "$128.00" },
+      { title: "adidas Pharrell Jellyfish Hu NMD", source: "badmintonrivet.com", price: "$147.00" },
+      { title: "adidas Pharrell Jellyfish Hu NMD", source: "eBay - sole_b1ock", price: "$150.00" },
+      { title: "adidas Pharrell Jellyfish Hu NMD", source: "DurbanStore", price: "$160.00" },
+      { title: "adidas Pharrell Jellyfish Hu NMD", source: "StockX", price: "$290.00" },
+      { title: "adidas Pharrell Jellyfish Hu NMD", source: "GOAT", price: "$310.00" },
+      { title: "adidas Pharrell Jellyfish Hu NMD", source: "adidas", price: "$300.00" },
+      { title: "adidas Pharrell Jellyfish Hu NMD", source: "COJP Gallery", price: "$305.00" },
+      { title: "adidas Pharrell Jellyfish Hu NMD", source: "Foot Locker", price: "$120.00" },
+    ] });
+    const offers = await SRC.shoppingOffers("adidas Pharrell Jellyfish Hu NMD", fake as never, { brand: "adidas", price: 300 });
+    assert.deepEqual(offers.map((o: any) => o.store), ["StockX", "adidas", "COJP Gallery", "GOAT"]);
+    assert.equal(SRC.trustedSeller("The House of Amouage", "Amouage"), true);
+    assert.equal(SRC.trustedSeller("Jomashop.com"), true);
+    assert.equal(SRC.trustedSeller("Nike Outlet Deals", "Nike"), false);
+    assert.equal(SRC.trustedSeller("Walmart - Fashiongalaxy"), false);
+    assert.equal(SRC.trustedSeller("suntreeshopping.com"), false);
+  } finally { delete process.env.SERPER_API_KEY; SRC.resetMapStores(); }
+});
 await test("watched finds text you when the price drops 5% or more", async () => {
   process.env.SERPER_API_KEY = "serper-test";
   try {
