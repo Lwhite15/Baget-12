@@ -225,7 +225,7 @@ private struct InviteHero: View {
                         .background(Theme.gradient, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
                 }
                 Button { adding = true } label: {
-                    Text("Add by handle").font(.subheadline.weight(.heavy)).foregroundStyle(Theme.ink)
+                    Text("Add by username").font(.subheadline.weight(.heavy)).foregroundStyle(Theme.ink)
                         .frame(maxWidth: .infinity).padding(.vertical, 13)
                         .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 15, style: .continuous))
                         .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous).strokeBorder(Color.white.opacity(0.16)))
@@ -235,10 +235,10 @@ private struct InviteHero: View {
             .padding(.top, 16)
             if let h = store.state.profile?.handle, !h.isEmpty {
                 HStack(spacing: 8) {
-                    Text("Your handle").foregroundStyle(Theme.muted)
+                    Text("Your username").foregroundStyle(Theme.muted)
                     Text("@\(h)").fontWeight(.bold).foregroundStyle(Theme.ink)
                         .padding(.horizontal, 10).padding(.vertical, 5).background(Capsule().fill(Color.black.opacity(0.25)))
-                    Button("Copy") { UIPasteboard.general.string = "@\(h)"; router.say(String(localized: "Handle copied")) }
+                    Button("Copy") { UIPasteboard.general.string = "@\(h)"; router.say(String(localized: "Username copied")) }
                         .fontWeight(.bold).foregroundStyle(Theme.cyan).buttonStyle(.plain)
                 }
                 .font(.footnote)
@@ -289,7 +289,7 @@ private struct InviteBanner: View {
         .background(LinearGradient(colors: [Theme.blue.opacity(0.22), Theme.green.opacity(0.14)], startPoint: .leading, endPoint: .trailing),
                     in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Color.white.opacity(0.14)))
-        .contextMenu { Button("Add by handle") { adding = true } }
+        .contextMenu { Button("Add by username") { adding = true } }
     }
 }
 
