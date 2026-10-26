@@ -133,6 +133,11 @@ struct FriendsView: View {
         .task(id: "\(accepted.count)-\(store.state.settings.shareTasteWithFriends)") {
             matches = await store.friendMatches()
             birthdays = await store.upcomingBirthdays()
+            #if DEBUG
+            if FriendPreview.enabled {
+                birthdays = [UpcomingBirthday(friendId: store.state.friends.first?.id ?? "preview", name: "Hetty", handle: "hetty", birthday: "11-02", days: 7, shares: true)]
+            }
+            #endif
         }
         .sheet(item: $open) { f in
             Group {

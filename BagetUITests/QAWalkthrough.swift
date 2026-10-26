@@ -243,6 +243,9 @@ final class QAWalkthrough: XCTestCase {
         Thread.sleep(forTimeInterval: 3)
         snap("friend-1", wait: 2)
         for i in 2...6 { app.swipeUp(); snap("friend-\(i)", wait: 1.2) }
-        if tap("Swap Taste Cards", timeout: 3) { snap("card-theirs", wait: 2); tap("See mine", timeout: 2); snap("card-mine", wait: 1.5) }
+        if tap("Swap Taste Cards", timeout: 3) { snap("card-theirs", wait: 2); tap("See mine", timeout: 2); snap("card-mine", wait: 1.5); tap("Close", timeout: 2) }
+        // The ✕ closes the profile; then the Friends tab with a birthday coming up, and Settings' birthday row.
+        if tap("Close", timeout: 3) { snap("friend-closed", wait: 1.5) }
+        if tap("Friends", timeout: 3) { snap("friends-birthday", wait: 2) }
     }
 }

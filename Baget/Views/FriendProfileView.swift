@@ -784,6 +784,9 @@ struct BirthdayCard: View {
                     in: RoundedRectangle(cornerRadius: 20, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Theme.warn.opacity(0.32)))
         .task(id: birthday.id) {
+            #if DEBUG
+            if FriendPreview.enabled { gifts = (FriendPreview.profile.gifts ?? []).map(\.item); return }
+            #endif
             guard birthday.shares, let p = await store.friendProfile(birthday.friendId) else { return }
             gifts = (p.gifts ?? []).prefix(6).map(\.item)
         }

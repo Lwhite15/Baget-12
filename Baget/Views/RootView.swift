@@ -7,6 +7,9 @@ struct RootView: View {
     @AppStorage("baget.onboarded") private var onboarded = false
     @AppStorage("baget.howToSeen") private var howToSeen = false
     @State private var showHowTo = false
+    #if DEBUG
+    @State private var friendPreview = FriendPreview.enabled
+    #endif
 
     var body: some View {
         @Bindable var router = router
@@ -104,7 +107,7 @@ struct RootView: View {
             HowToView()
         }
         #if DEBUG
-        .sheet(isPresented: .constant(FriendPreview.enabled && !store.needsWelcome)) {
+        .sheet(isPresented: Binding(get: { friendPreview && !store.needsWelcome }, set: { friendPreview = $0 })) {
             FriendProfileView(friend: FriendPreview.friend, preview: FriendPreview.profile).environment(store).environment(router)
                 .presentationDetents([.large]).presentationBackground(Theme.panel).preferredColorScheme(.dark)
         }
