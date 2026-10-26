@@ -56,6 +56,7 @@ struct ProfileView: View {
                 header
                 iconSection
                 if store.isCloud { nameSection }
+                if store.isCloud { UsernameSection() }
                 if store.isCloud {
                     Section {
                         BirthdayRow(showsCaption: false)
@@ -361,5 +362,83 @@ struct FriendsPrivacyForm: View {
         .tint(Theme.cyan)
         .scrollContentBackground(.hidden)
         .onChange(of: store.state.settings) { _, _ in store.save() }
+    }
+}
+
+/// Your @username: how friends add you. Usernames are unique, so this checks as you type and only saves a free one.
+struct UsernameSection: View {
+    @Environment(AppStore.self) private var store
+    @State private var text = ""
+    @State private var status: String?          // invalid, yours, taken, available
+    @State private var error: String?
+    @State private var save: SaveState = .idle
+    @FocusState private var focused: Bool
+
+    private var current: String { store.state.profile?.handle ?? "" }
+    private var cleaned: String { text.trimmingCharacters(in: CharacterSet(charactersIn: "@ ")).lowercased() }
+
+    var body: some View {
+        Section {
+            HStack(spacing: 4) {
+                Text("@").foregroundStyle(Theme.muted)
+                TextField("username", text: $text)
+                    .textInputAutocapitalization(.never).autocorrectionDisabled()
+                    .textContentType(.username)
+                    .focused($focused)
+                    .submitLabel(.done)
+                    .onSubmit(commit)
+                InlineSave(state: save, dirty: cleaned != current && status == "available", action: commit)
+            }
+            if let line = statusLine {
+                Label(line.text, systemImage: line.icon).font(.footnote).foregroundStyle(line.color)
+            }
+        } header: { Text("Username") } footer: {
+            Text("Friends add you by your username. No two people can have the same one.")
+        }
+        .onAppear { if text.isEmpty { text = current } }
+        .task(id: cleaned) {
+            error = nil
+            guard cleaned != current else { status = cleaned.isEmpty ? nil : "yours"; return }
+            guard cleaned.range(of: "^[a-z0-9._]{3,24}$", options: .regularExpression) != nil else { status = cleaned.isEmpty ? nil : "invalid"; return }
+            status = nil
+            try? await Task.sleep(for: .milliseconds(350))
+            guard !Task.isCancelled else { return }
+            status = await store.handleAvailability(cleaned)
+        }
+    }
+
+    private var statusLine: (text: String, icon: String, color: Color)? {
+        if let error { return (error, "exclamationmark.circle.fill", Theme.hot) }
+        switch status {
+        case "invalid": return (String(localized: "Use 3 to 24 lowercase letters, numbers, dots or underscores."), "info.circle", Theme.muted)
+        case "taken": return (String(localized: "@\(cleaned) is taken. Try another."), "xmark.circle.fill", Theme.hot)
+        case "available": return (String(localized: "@\(cleaned) is available"), "checkmark.circle.fill", Theme.green)
+        default: return nil
+        }
+    }
+
+    private func commit() {
+        guard cleaned != current, status == "available" else { return }
+        focused = false
+        withAnimation { save = .saving }
+        Task { @MainActor in
+            error = await store.updateHandle(cleaned)
+            if error == nil {
+                text = current; status = "yours"
+                withAnimation { save = .saved }
+                try? await Task.sleep(for: .seconds(2.5))
+                withAnimation { if save == .saved { save = .idle } }
+            } else {
+                withAnimation { save = .idle }
+            }
+        }
+    }
+}
+
+extension AppStore {
+    /// "available", "taken", "yours" or "invalid" for a username (server: handle_available).
+    func handleAvailability(_ handle: String) async -> String? {
+        guard isCloud else { return nil }
+        return try? await api.rpc("handle_available", ["p_handle": handle], as: String.self)
     }
 }

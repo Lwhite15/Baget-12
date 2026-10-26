@@ -116,6 +116,9 @@ select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001
 select t.ok((select days from public.upcoming_birthdays(21) where friend_id = 'bbbbbbbb-0000-0000-0000-000000000002') = 7
             and (select shares from public.upcoming_birthdays(21) where friend_id = 'bbbbbbbb-0000-0000-0000-000000000002'), 'friend''s birthday in 7 days shows up');
 select t.ok(t.n('select * from public.upcoming_birthdays(3)') = 0, 'not when it''s further out than asked');
+select t.ok(public.handle_available((select '@' || upper(handle) from public.profiles where id = 'bbbbbbbb-0000-0000-0000-000000000002')) = 'taken'
+            and public.handle_available((select handle from public.profiles where id = 'aaaaaaaa-0000-0000-0000-000000000001')) = 'yours'
+            and public.handle_available('brand.new_name') = 'available' and public.handle_available('a!') = 'invalid', 'usernames: taken, yours, available, invalid');
 select t.err($$select public.birthday_nudges()$$, 'people cannot send birthday nudges');
 reset role;
 set role service_role;

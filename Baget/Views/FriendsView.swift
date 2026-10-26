@@ -76,16 +76,17 @@ struct FriendsView: View {
                                 }
                                 .buttonStyle(.plain)
                             }
-                            InviteLink {
+                            Button { adding = true } label: {
                                 VStack(spacing: 7) {
-                                    Circle().strokeBorder(Theme.muted.opacity(0.6), style: StrokeStyle(lineWidth: 1.5, dash: [4, 4]))
+                                    Circle().strokeBorder(Theme.cyan.opacity(0.7), style: StrokeStyle(lineWidth: 1.5, dash: [4, 4]))
                                         .frame(width: 58, height: 58)
-                                        .overlay(Image(systemName: "plus").font(.title3.weight(.light)).foregroundStyle(Theme.muted))
-                                    Text("Invite").font(.caption).foregroundStyle(Theme.muted)
+                                        .overlay(Image(systemName: "person.badge.plus").font(.title3).foregroundStyle(Theme.cyan))
+                                    Text("Add").font(.caption.weight(.semibold)).foregroundStyle(Theme.cyan)
                                 }
                                 .frame(width: 62)
                             }
-                            .accessibilityLabel("Invite a friend")
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Add a friend by username")
                         }
                         .padding(.vertical, 2)
                     }
@@ -610,14 +611,16 @@ private struct AddFriendSheet: View {
     @State private var handle = ""
     @State private var error: String?
     @State private var working = false
+    @FocusState private var fieldFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Add a friend").font(FriendsStyle.serif(24)).foregroundStyle(Theme.ink)
-            Text("Your handle is @\(store.state.profile?.handle ?? "you"). Friends can send you things and see what you share.")
+            Text("Type their username. Yours is @\(store.state.profile?.handle ?? "you"), and you can change it in Settings.")
                 .font(.footnote).foregroundStyle(Theme.muted)
             HStack {
-                TextField(store.isCloud ? "@handle" : "@handle or email", text: $handle)
+                TextField(store.isCloud ? "@username" : "@username or email", text: $handle)
+                    .focused($fieldFocused)
                     .textInputAutocapitalization(.never).autocorrectionDisabled()
                     .submitLabel(.go).onSubmit(add)
                     .padding(12).background(Color.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
@@ -627,6 +630,7 @@ private struct AddFriendSheet: View {
             Spacer()
         }
         .padding(24)
+        .onAppear { fieldFocused = true }
     }
 
     private func add() {
