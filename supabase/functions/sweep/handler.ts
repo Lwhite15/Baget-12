@@ -677,6 +677,7 @@ export async function maintain() {
   out.restocks = await restockCheck(num("RESTOCK_CHECKS", 15)).catch((e) => { console.error("restocks", e); return null; });
   out.refreshed = await refreshFinds(num("REFRESH_CHECKS", 40)).catch((e) => { console.error("refresh", e); return null; });
   out.scrubbed = await scrubOffers(400).catch((e) => { console.error("scrub", e); return null; });
+  out.birthdays = await db.rpc<number>("birthday_nudges", {}).catch((e) => { console.error("birthdays", e); return null; });
   out.prices = await repriceOld(num("PRICE_BACKFILL", 10)).catch((e) => { console.error("prices", e); return null; });
   out.stores = await db.rpc<number>("learn_stores", {}).catch((e) => { console.error("stores", e); return null; });
   // Taste Cards for people who share their taste with friends, written fresh every few days.

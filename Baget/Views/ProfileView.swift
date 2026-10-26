@@ -56,6 +56,13 @@ struct ProfileView: View {
                 header
                 iconSection
                 if store.isCloud { nameSection }
+                if store.isCloud {
+                    Section {
+                        BirthdayRow(showsCaption: false)
+                    } header: { Text("Birthday") } footer: {
+                        Text("Month and day only. Friends get a heads-up a week before, with gift ideas for your taste when you both share taste.")
+                    }
+                }
                 AccountSection()
                 settingsSection
                 Section {} footer: {

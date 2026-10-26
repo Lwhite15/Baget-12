@@ -127,6 +127,7 @@ struct FriendProfileView: View {
             .padding(.horizontal, 20).padding(.top, 24).padding(.bottom, 30)
         }
         .scrollIndicators(.hidden)
+        .overlay(alignment: .topTrailing) { CloseButton { dismiss() }.padding(.top, 14).padding(.trailing, 16) }
         .task { await load() }
         .refreshable { await load() }
         .sheet(isPresented: $showCards) {
@@ -213,9 +214,9 @@ struct FriendProfileView: View {
         let both = (p.bothLove ?? []).prefix(2).joined(separator: ", ")
         let theirs = (p.dna ?? []).first { $0.who == "them" }?.label
         switch (both.isEmpty, theirs) {
-        case (false, let t?): return String(localized: "You both go for \(both). \(first) leans more \(t.lowercased()) than you.")
+        case (false, let t?): return String(localized: "You both go for \(both). \(first) leans more \(t) than you.")
         case (false, nil): return String(localized: "You both go for \(both).")
-        case (true, let t?): return String(localized: "\(first) is into \(t.lowercased()). A good way to find something new.")
+        case (true, let t?): return String(localized: "\(first) is into \(t). A good way to find something new.")
         default: return String(localized: "Like and pass a few more finds and this gets sharper.")
         }
     }
@@ -564,6 +565,7 @@ struct TasteCardSwapView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity)
+        .overlay(alignment: .topTrailing) { CloseButton { dismiss() }.padding(.top, 14).padding(.trailing, 16) }
         .background(LitBackground())
         .preferredColorScheme(.dark)
     }
@@ -610,7 +612,9 @@ struct TasteCardsRow: View {
                 TasteCardView(card: x.card, name: x.card.name ?? store.state.profile?.displayName ?? "").padding(.top, 40)
                 Spacer()
             }
-            .frame(maxWidth: .infinity).background(LitBackground()).presentationDetents([.large])
+            .frame(maxWidth: .infinity)
+            .overlay(alignment: .topTrailing) { CloseButton { open = nil }.padding(.top, 14).padding(.trailing, 16) }
+            .background(LitBackground()).presentationDetents([.large])
         }
     }
 
@@ -625,41 +629,164 @@ struct TasteCardsRow: View {
 private struct IdentifiedCard: Identifiable { let card: TasteCard; var id: String { (card.friendId ?? "me") + card.archetype } }
 
 /// Friends privacy: your birthday (month and day), so friends' gift radar can mention it.
+/// Your birthday (month and day). Friends see it when it's coming up, with gift ideas for your taste if you both share taste.
 struct BirthdayRow: View {
     @Environment(AppStore.self) private var store
     @State private var on = false
-    @State private var date = Date.now
+    @State private var month = Calendar.current.component(.month, from: .now)
+    @State private var day = Calendar.current.component(.day, from: .now)
     @State private var loaded = false
+    var showsCaption = true
+
+    private static let months: [String] = {
+        let f = DateFormatter(); f.locale = .current
+        return f.standaloneMonthSymbols ?? f.monthSymbols ?? (1...12).map(String.init)
+    }()
+    private var daysIn: Int { [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][max(0, min(11, month - 1))] }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             Toggle(isOn: $on) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("My birthday").foregroundStyle(Theme.ink)
-                    Text("Month and day only. Friends who share taste see it next to gift ideas for you.").font(.caption).foregroundStyle(Theme.muted)
+                    Label("My birthday", systemImage: "gift").foregroundStyle(Theme.ink)
+                    if showsCaption {
+                        Text("Month and day only. Friends get a heads-up when it's coming up, with gift ideas for your taste.")
+                            .font(.caption).foregroundStyle(Theme.muted).fixedSize(horizontal: false, vertical: true)
+                    }
                 }
             }
+            .disabled(!loaded)
             if on {
-                DatePicker("Birthday", selection: $date, displayedComponents: .date)
-                    .datePickerStyle(.compact).labelsHidden()
+                HStack(spacing: 10) {
+                    Picker("Month", selection: $month) {
+                        ForEach(1...12, id: \.self) { m in Text(Self.months[m - 1]).tag(m) }
+                    }
+                    Picker("Day", selection: $day) {
+                        ForEach(1...daysIn, id: \.self) { d in Text("\(d)").tag(d) }
+                    }
+                    Spacer()
+                }
+                .pickerStyle(.menu)
+                .tint(Theme.cyan)
             }
         }
         .task {
-            if let b = await store.myBirthday(), b.count == 5, let m = Int(b.prefix(2)), let d = Int(b.suffix(2)),
-               let dt = Calendar.current.date(from: DateComponents(year: 2000, month: m, day: d)) {
-                date = dt; on = true
+            if let b = await store.myBirthday(), b.count == 5, let m = Int(b.prefix(2)), let d = Int(b.suffix(2)) {
+                month = m; day = d; on = true
             }
             loaded = true
         }
         .onChange(of: on) { _, _ in save() }
-        .onChange(of: date) { _, _ in save() }
+        .onChange(of: month) { _, _ in
+            if day > daysIn { day = daysIn }
+            save()
+        }
+        .onChange(of: day) { _, _ in save() }
     }
 
     private func save() {
         guard loaded else { return }
-        let c = Calendar.current.dateComponents([.month, .day], from: date)
-        let value = on ? String(format: "%02d-%02d", c.month ?? 1, c.day ?? 1) : nil
+        let value = on ? String(format: "%02d-%02d", month, min(day, daysIn)) : nil
         Task { await store.setBirthday(value) }
+    }
+}
+
+// MARK: - Upcoming birthdays (Friends tab)
+
+struct UpcomingBirthday: Decodable, Identifiable, Hashable {
+    let friendId: String
+    let name: String?
+    let handle: String?
+    let birthday: String
+    let days: Int
+    let shares: Bool
+    var id: String { friendId }
+    var first: String {
+        let n = (name ?? "").trimmingCharacters(in: .whitespaces)
+        return n.isEmpty ? "@\(handle ?? "")" : (n.split(separator: " ").first.map(String.init) ?? n)
+    }
+    var when: String {
+        switch days {
+        case 0: return String(localized: "Today")
+        case 1: return String(localized: "Tomorrow")
+        default: return String(localized: "In \(days) days")
+        }
+    }
+}
+
+extension AppStore {
+    /// Friends whose birthday is within the next three weeks, soonest first.
+    func upcomingBirthdays() async -> [UpcomingBirthday] {
+        guard isCloud else { return [] }
+        return (try? await api.rpc("upcoming_birthdays", ["p_days": 21])) ?? []
+    }
+}
+
+/// A friend's birthday coming up: when it is, gift picks for their taste, and a way to send them something.
+struct BirthdayCard: View {
+    @Environment(AppStore.self) private var store
+    let birthday: UpcomingBirthday
+    let friend: Friend?
+    let openProfile: () -> Void
+    @State private var gifts: [Item] = []
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 12) {
+                Text(birthday.days == 0 ? "🎂" : "🎁").font(.system(size: 24))
+                    .frame(width: 46, height: 46)
+                    .background(Theme.warn.opacity(0.16), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(birthday.days == 0 ? String(localized: "It's \(birthday.first)'s birthday!") : String(localized: "\(birthday.first)'s birthday is coming up"))
+                        .font(.headline).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
+                    Text("\(birthday.when) · \(Birthday.label(birthday.birthday) ?? "")")
+                        .font(.footnote.weight(.semibold)).foregroundStyle(Color(red: 1, green: 0.85, blue: 0.54))
+                }
+                Spacer(minLength: 0)
+            }
+            if !gifts.isEmpty {
+                Text("Picked for \(birthday.first)'s taste by your scouts:").font(.footnote).foregroundStyle(Theme.muted)
+                ScrollView(.horizontal) {
+                    HStack(alignment: .top, spacing: 10) {
+                        ForEach(gifts) { item in
+                            Button { if let url = BuyLink.url(item) { UIApplication.shared.open(url) } } label: {
+                                VStack(alignment: .leading, spacing: 5) {
+                                    ProductThumb(item: item, size: 104)
+                                    Text(item.title).font(.caption.weight(.semibold)).foregroundStyle(Theme.ink).lineLimit(2).multilineTextAlignment(.leading)
+                                    Text([item.brand.isEmpty ? nil : item.brand, item.priceKnown ? item.priceLabel : nil].compactMap { $0 }.joined(separator: " · "))
+                                        .font(.caption2).foregroundStyle(Theme.muted).lineLimit(1)
+                                }
+                                .frame(width: 104, alignment: .leading)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+                .scrollIndicators(.hidden)
+            } else if !birthday.shares {
+                Text("When you both share taste, your scouts pick gift ideas for \(birthday.first) here.")
+                    .font(.footnote).foregroundStyle(Theme.muted).fixedSize(horizontal: false, vertical: true)
+            }
+            HStack(spacing: 10) {
+                if friend != nil {
+                    Button(action: openProfile) {
+                        Text(birthday.shares ? String(localized: "More gift ideas") : String(localized: "See \(birthday.first)'s profile"))
+                            .font(.subheadline.weight(.heavy)).foregroundStyle(Color(red: 0.11, green: 0.08, blue: 0.02))
+                            .frame(maxWidth: .infinity).padding(.vertical, 11)
+                            .background(Theme.warn, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding(16)
+        .background(LinearGradient(colors: [Theme.warn.opacity(0.14), Theme.hot.opacity(0.10)], startPoint: .topLeading, endPoint: .bottomTrailing),
+                    in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Theme.warn.opacity(0.32)))
+        .task(id: birthday.id) {
+            guard birthday.shares, let p = await store.friendProfile(birthday.friendId) else { return }
+            gifts = (p.gifts ?? []).prefix(6).map(\.item)
+        }
     }
 }
 
@@ -697,3 +824,18 @@ enum FriendPreview {
 }
 #endif
 
+
+/// The round ✕ in the top corner of a sheet.
+struct CloseButton: View {
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "xmark").font(.system(size: 14, weight: .bold)).foregroundStyle(Theme.ink)
+                .frame(width: 34, height: 34)
+                .background(Circle().fill(.ultraThinMaterial))
+                .overlay(Circle().strokeBorder(Color.white.opacity(0.12)))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Close")
+    }
+}

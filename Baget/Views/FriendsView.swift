@@ -37,6 +37,7 @@ struct FriendsView: View {
     @State private var adding = false
     @State private var privacy = false
     @State private var matches: [String: Int] = [:]
+    @State private var birthdays: [UpcomingBirthday] = []
 
     var body: some View {
         // Only suggestions you haven't acted on: adding saves it to Finds and passing dismisses it; either way it leaves.
@@ -55,6 +56,12 @@ struct FriendsView: View {
                 .padding(.bottom, 4)
 
                 ForEach(requests) { f in RequestRow(friend: f) }
+
+                ForEach(birthdays) { b in
+                    BirthdayCard(birthday: b, friend: accepted.first { $0.id == b.friendId }) {
+                        open = accepted.first { $0.id == b.friendId }
+                    }
+                }
 
                 if circle.isEmpty {
                     InviteHero(adding: $adding)
@@ -123,7 +130,10 @@ struct FriendsView: View {
         }
         .dismissKeyboardOnTap()
         .scrollIndicators(.hidden)
-        .task(id: "\(accepted.count)-\(store.state.settings.shareTasteWithFriends)") { matches = await store.friendMatches() }
+        .task(id: "\(accepted.count)-\(store.state.settings.shareTasteWithFriends)") {
+            matches = await store.friendMatches()
+            birthdays = await store.upcomingBirthdays()
+        }
         .sheet(item: $open) { f in
             Group {
                 if f.isPending || f.isSample { FriendSheet(friend: f) } else { FriendProfileView(friend: f) }
@@ -533,7 +543,8 @@ private struct FriendSheet: View {
         let sent = store.state.suggestions.filter { $0.friendID == friend.id }.sorted { $0.date > $1.date }.compactMap { Catalog.item($0.itemID) }.prefix(4)
         ScrollView {
             VStack(spacing: 0) {
-                FriendAvatar(friend: friend, size: 84).padding(.top, 28)
+                HStack { Spacer(); CloseButton { dismiss() } }.padding(.top, 14)
+                FriendAvatar(friend: friend, size: 84).padding(.top, 2)
                 Text(friend.isPending ? friend.handle : friend.name).font(FriendsStyle.serif(26)).foregroundStyle(Theme.ink).padding(.top, 12)
                 Text(friend.isPending ? String(localized: "Request sent · waiting for them to accept") : friend.handle)
                     .font(.subheadline).foregroundStyle(Theme.muted).padding(.top, 4)

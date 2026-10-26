@@ -108,6 +108,26 @@ reset role;
 update public.profiles set share_taste = true where id = 'bbbbbbbb-0000-0000-0000-000000000002';
 set role authenticated;
 select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
+-- Birthdays: a friend's coming up shows on the Friends tab, with a heads-up note a week before and on the day.
+reset role;
+update public.profiles set birthday = to_char((now() at time zone tz)::date + 7, 'MM-DD') where id = 'bbbbbbbb-0000-0000-0000-000000000002';
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
+select t.ok((select days from public.upcoming_birthdays(21) where friend_id = 'bbbbbbbb-0000-0000-0000-000000000002') = 7
+            and (select shares from public.upcoming_birthdays(21) where friend_id = 'bbbbbbbb-0000-0000-0000-000000000002'), 'friend''s birthday in 7 days shows up');
+select t.ok(t.n('select * from public.upcoming_birthdays(3)') = 0, 'not when it''s further out than asked');
+select t.err($$select public.birthday_nudges()$$, 'people cannot send birthday nudges');
+reset role;
+set role service_role;
+select t.ok(public.birthday_nudges() >= 1 and public.birthday_nudges() = 0, 'a week-before nudge, once');
+reset role;
+select t.ok(exists (select 1 from public.notes where user_id = 'aaaaaaaa-0000-0000-0000-000000000001'
+                     and friend_id = 'bbbbbbbb-0000-0000-0000-000000000002' and body like '%birthday is in a week%'), 'larry gets the heads-up');
+select t.ok(public.next_birthday('02-29', '2027-01-10') = '2027-02-28' and public.next_birthday('01-05', '2027-01-10') = '2028-01-05'
+            and public.next_birthday('04-31', '2027-04-01') = '2027-04-30', 'birthday dates roll over and clamp');
+update public.profiles set birthday = null where id = 'bbbbbbbb-0000-0000-0000-000000000002';
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
 
 -- ── server: a sweep finds listings for Larry ──
 reset role;
