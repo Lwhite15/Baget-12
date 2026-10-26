@@ -198,7 +198,7 @@ const TRUSTED = new Set([
   "libertyus", "libertylondon", "harveynichols", "johnlewis", "shopsimon", "bluefly", "ruelala", "gilt", "theoutnet", "yoox",
   // Sneakers and streetwear
   "footlocker", "champssports", "finishline", "jdsports", "dtlr", "hibbett", "shoepalace", "snipes", "snipesusa", "shiekh", "pacsun",
-  "dickssportinggoods", "dicks", "academy", "rei", "zappos", "eastbay", "kith", "endclothing", "end", "hbx", "doverstreetmarket",
+  "dickssportinggoods", "dicks", "academy", "cabelas", "basspro", "bassproshops", "rei", "zappos", "eastbay", "kith", "endclothing", "end", "hbx", "doverstreetmarket",
   "extrabutter", "sneakerpolitics", "nicekicks", "socialstatus", "bait", "feature", "wishatl", "undefeated", "concepts", "cncpts", "bodega",
   "notre", "amamaniere", "lapstoneandhammer", "fivestory", "lncc", "garmentory", "huckberry", "nepenthesnewyork", "nepenthes",
   "sneakersnstuff", "offspring", "atmos", "atmosusa", "stussy", "supreme", "palace", "aimeleondore", "fearofgod",
