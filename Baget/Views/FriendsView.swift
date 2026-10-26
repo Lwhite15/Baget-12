@@ -36,6 +36,7 @@ struct FriendsView: View {
     @State private var open: Friend?
     @State private var adding = false
     @State private var privacy = false
+    @State private var matches: [String: Int] = [:]
 
     var body: some View {
         // Only suggestions you haven't acted on: adding saves it to Finds and passing dismisses it; either way it leaves.
@@ -43,51 +44,65 @@ struct FriendsView: View {
         let circle = store.state.friends.filter { !$0.isPending || !$0.incoming }
         let requests = store.state.friends.filter { $0.isPending && $0.incoming }
         let shares = store.state.shares.filter { Catalog.item($0.itemID) != nil }
+        let accepted = circle.filter { !$0.isPending }
 
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Friends").font(FriendsStyle.serif(36)).foregroundStyle(Theme.ink)
-                    Text("What the people whose taste you trust are finding.").font(.subheadline).foregroundStyle(Theme.muted)
+                    Text("Hunting's better with people who get your taste.").font(.subheadline).foregroundStyle(Theme.muted)
                 }
-                .padding(.bottom, 10)
-
-                SectionHead(title: String(localized: "Your circle"))
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(alignment: .top, spacing: 16) {
-                        ForEach(circle) { f in
-                            Button { open = f } label: {
-                                CircleMember(friend: f, hasNew: suggestions.contains { $0.friendID == f.id })
-                            }
-                            .buttonStyle(.plain)
-                        }
-                        Button { adding = true } label: {
-                            VStack(spacing: 7) {
-                                Circle().strokeBorder(Theme.muted.opacity(0.7), style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
-                                    .frame(width: 56, height: 56)
-                                    .overlay(Image(systemName: "plus").font(.title3.weight(.light)).foregroundStyle(Theme.muted))
-                                Text("Add").font(.caption).foregroundStyle(Theme.muted)
-                            }
-                            .frame(width: 60)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Add a friend")
-                    }
-                    .padding(.vertical, 2)
-                }
+                .padding(.bottom, 4)
 
                 ForEach(requests) { f in RequestRow(friend: f) }
 
+                if circle.isEmpty {
+                    InviteHero(adding: $adding)
+                } else {
+                    SectionHead(title: String(localized: "Your circle"),
+                                trailing: accepted.isEmpty ? nil : (accepted.count == 1 ? String(localized: "1 friend") : String(localized: "\(accepted.count) friends")))
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(alignment: .top, spacing: 16) {
+                            ForEach(circle) { f in
+                                Button { open = f } label: {
+                                    CircleMember(friend: f, hasNew: suggestions.contains { $0.friendID == f.id }, match: matches[f.id])
+                                }
+                                .buttonStyle(.plain)
+                            }
+                            InviteLink {
+                                VStack(spacing: 7) {
+                                    Circle().strokeBorder(Theme.muted.opacity(0.6), style: StrokeStyle(lineWidth: 1.5, dash: [4, 4]))
+                                        .frame(width: 58, height: 58)
+                                        .overlay(Image(systemName: "plus").font(.title3.weight(.light)).foregroundStyle(Theme.muted))
+                                    Text("Invite").font(.caption).foregroundStyle(Theme.muted)
+                                }
+                                .frame(width: 62)
+                            }
+                            .accessibilityLabel("Invite a friend")
+                        }
+                        .padding(.vertical, 2)
+                    }
+                    if accepted.count < 8 { InviteBanner(adding: $adding) }
+                }
+
                 if store.isCloud { TasteCardsRow().padding(.top, 6) }
 
-                SectionHead(title: String(localized: "Sent to you"), trailing: suggestions.isEmpty ? nil : "\(suggestions.count) new")
+                SectionHead(title: String(localized: "Sent to you"), trailing: suggestions.isEmpty ? nil : String(localized: "\(suggestions.count) new"))
                 if suggestions.isEmpty {
-                    Text(store.state.friends.isEmpty ? String(localized: "Add a friend and the things they send you show up here.")
-                                                     : String(localized: "Nothing new from friends right now."))
-                        .font(.footnote).foregroundStyle(Theme.muted)
-                        .padding(.vertical, 12)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .overlay(alignment: .top) { Divider().overlay(FriendsStyle.rule) }
+                    HStack(spacing: 12) {
+                        Image(systemName: "tray.and.arrow.down.fill").font(.body).foregroundStyle(Theme.warn)
+                            .frame(width: 40, height: 40)
+                            .background(Theme.warn.opacity(0.14), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(store.state.friends.isEmpty ? String(localized: "Nothing here yet") : String(localized: "Nothing new right now"))
+                                .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
+                            Text("Friends' finds and picks for you land here.").font(.footnote).foregroundStyle(Theme.muted)
+                        }
+                        Spacer(minLength: 0)
+                    }
+                    .padding(14)
+                    .background(Theme.glass, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Theme.line))
                 }
                 ForEach(suggestions) { s in SuggestionCard(suggestion: s) }
 
@@ -96,20 +111,7 @@ struct FriendsView: View {
                     ForEach(shares) { sh in SentRow(share: sh) }
                 }
 
-                Button { privacy = true } label: {
-                    HStack {
-                        Text("What friends can see").foregroundStyle(Theme.ink)
-                        Spacer()
-                        Text("Taste \(store.state.settings.shareTasteWithFriends ? "on" : "off") · Purchases \(store.state.settings.sharePurchasesWithFriends ? "on" : "off")")
-                            .foregroundStyle(Theme.muted)
-                        Image(systemName: "chevron.right").font(.caption).foregroundStyle(Theme.muted)
-                    }
-                    .font(.subheadline)
-                    .padding(.vertical, 14)
-                    .overlay(alignment: .top) { Divider().overlay(FriendsStyle.rule) }
-                }
-                .buttonStyle(.plain)
-                .padding(.top, 10)
+                SharingCard(edit: { privacy = true }).padding(.top, 8)
 
                 if !store.isCloud {
                     Text("Sample data: Dre, Maya and Sam are sample friends, and their replies are simulated.")
@@ -121,6 +123,7 @@ struct FriendsView: View {
         }
         .dismissKeyboardOnTap()
         .scrollIndicators(.hidden)
+        .task(id: "\(accepted.count)-\(store.state.settings.shareTasteWithFriends)") { matches = await store.friendMatches() }
         .sheet(item: $open) { f in
             Group {
                 if f.isPending || f.isSample { FriendSheet(friend: f) } else { FriendProfileView(friend: f) }
@@ -136,6 +139,199 @@ struct FriendsView: View {
             FriendsPrivacySheet().environment(store)
                 .presentationDetents([.medium]).presentationBackground(Theme.panel).preferredColorScheme(.dark)
         }
+    }
+}
+
+extension AppStore {
+    /// Taste match % for each friend who shares taste (server: friend_matches), keyed by friend id.
+    func friendMatches() async -> [String: Int] {
+        guard isCloud else { return [:] }
+        struct Row: Decodable { let friendId: String; let match: Int? }
+        let rows: [Row] = (try? await api.rpc("friend_matches")) ?? []
+        return Dictionary(rows.compactMap { r in r.match.map { (r.friendId, $0) } }, uniquingKeysWith: { a, _ in a })
+    }
+
+    /// What the invite says: who you are on Baget and how to find you.
+    var inviteMessage: String {
+        let h = state.profile?.handle ?? ""
+        return h.isEmpty ? String(localized: "I'm hunting on Baget. Add me so we can compare our taste.")
+                         : String(localized: "I'm hunting on Baget. Add me, @\(h), so we can compare our taste.")
+    }
+}
+
+/// Opens the share sheet with the invite (Messages, WhatsApp, Instagram...).
+private struct InviteLink<Label: View>: View {
+    @Environment(AppStore.self) private var store
+    @ViewBuilder let label: () -> Label
+    var body: some View {
+        ShareLink(item: store.inviteMessage) { label() }
+            .buttonStyle(.plain)
+            .simultaneousGesture(TapGesture().onEnded { Analytics.track(.friendInvited, ["via": "share"]) })
+    }
+}
+
+/// The big invite card for someone with no friends on Baget yet.
+private struct InviteHero: View {
+    @Environment(AppStore.self) private var store
+    @Environment(Router.self) private var router
+    @Binding var adding: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: -12) {
+                Text(String(([store.state.profile?.displayName, store.state.profile?.handle].compactMap { $0 }.first { !$0.isEmpty } ?? "Y").first ?? "Y").uppercased())
+                    .font(.system(size: 18, weight: .heavy)).foregroundStyle(Theme.accentInk)
+                    .frame(width: 46, height: 46).background(Circle().fill(Theme.gradient))
+                    .overlay(Circle().strokeBorder(Theme.panel, lineWidth: 3))
+                ForEach(0..<3, id: \.self) { _ in
+                    Image(systemName: "plus").font(.body.weight(.light)).foregroundStyle(.white)
+                        .frame(width: 46, height: 46)
+                        .background(Circle().fill(Color.white.opacity(0.1)))
+                        .overlay(Circle().strokeBorder(Color.white.opacity(0.45), style: StrokeStyle(lineWidth: 1.5, dash: [4, 3])))
+                }
+            }
+            .padding(.bottom, 14)
+            Text("Bring your crew.\nSee who shares your taste.").font(.system(size: 24, weight: .heavy)).foregroundStyle(Theme.ink)
+                .fixedSize(horizontal: false, vertical: true)
+            Text("When a friend joins, Baget compares your taste and unlocks:").font(.subheadline).foregroundStyle(Theme.ink.opacity(0.75))
+                .padding(.top, 6).fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: 10) {
+                perk("percent", Theme.green, "Your taste match", "how close your styles are")
+                perk("rectangle.portrait.on.rectangle.portrait.angled.fill", Theme.hot, "Taste Cards", "swap your style ID")
+                perk("gift.fill", Theme.warn, "Gift radar", "picks for their birthday")
+                perk("paperplane.fill", Theme.cyan, "Send finds", "\"saw this and thought of you\"")
+            }
+            .padding(.top, 14)
+            HStack(spacing: 10) {
+                InviteLink {
+                    Text("Invite friends").font(.subheadline.weight(.heavy)).foregroundStyle(Theme.accentInk)
+                        .frame(maxWidth: .infinity).padding(.vertical, 13)
+                        .background(Theme.gradient, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                }
+                Button { adding = true } label: {
+                    Text("Add by handle").font(.subheadline.weight(.heavy)).foregroundStyle(Theme.ink)
+                        .frame(maxWidth: .infinity).padding(.vertical, 13)
+                        .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous).strokeBorder(Color.white.opacity(0.16)))
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.top, 16)
+            if let h = store.state.profile?.handle, !h.isEmpty {
+                HStack(spacing: 8) {
+                    Text("Your handle").foregroundStyle(Theme.muted)
+                    Text("@\(h)").fontWeight(.bold).foregroundStyle(Theme.ink)
+                        .padding(.horizontal, 10).padding(.vertical, 5).background(Capsule().fill(Color.black.opacity(0.25)))
+                    Button("Copy") { UIPasteboard.general.string = "@\(h)"; router.say(String(localized: "Handle copied")) }
+                        .fontWeight(.bold).foregroundStyle(Theme.cyan).buttonStyle(.plain)
+                }
+                .font(.footnote)
+                .frame(maxWidth: .infinity)
+                .padding(.top, 12)
+            }
+        }
+        .padding(20)
+        .background {
+            ZStack(alignment: .topTrailing) {
+                LinearGradient(colors: [Theme.blue.opacity(0.30), Theme.cyan.opacity(0.16), Theme.hot.opacity(0.18)],
+                               startPoint: .topLeading, endPoint: .bottomTrailing)
+                Circle().fill(RadialGradient(colors: [Theme.green.opacity(0.35), .clear], center: .center, startRadius: 0, endRadius: 110))
+                    .frame(width: 220, height: 220).offset(x: 70, y: -80)
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(Color.white.opacity(0.14)))
+        .padding(.top, 6)
+    }
+
+    private func perk(_ icon: String, _ tint: Color, _ title: LocalizedStringKey, _ detail: LocalizedStringKey) -> some View {
+        HStack(spacing: 11) {
+            Image(systemName: icon).font(.footnote.weight(.bold)).foregroundStyle(tint)
+                .frame(width: 30, height: 30).background(tint.opacity(0.16), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            (Text(title).fontWeight(.bold).foregroundColor(Theme.ink) + Text(" ") + Text(detail).foregroundColor(Theme.ink.opacity(0.65)))
+                .font(.subheadline).fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
+/// A slim nudge to invite more people, once you have a few friends.
+private struct InviteBanner: View {
+    @Binding var adding: Bool
+    var body: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Who else hunts like you?").font(.subheadline.weight(.bold)).foregroundStyle(Theme.ink)
+                Text("Invite a friend and see your match.").font(.caption).foregroundStyle(Theme.ink.opacity(0.7))
+            }
+            Spacer(minLength: 8)
+            InviteLink {
+                Text("Invite").font(.subheadline.weight(.heavy)).foregroundStyle(Theme.accentInk)
+                    .padding(.horizontal, 16).padding(.vertical, 9).background(Capsule().fill(Theme.gradient))
+            }
+        }
+        .padding(.horizontal, 16).padding(.vertical, 14)
+        .background(LinearGradient(colors: [Theme.blue.opacity(0.22), Theme.green.opacity(0.14)], startPoint: .leading, endPoint: .trailing),
+                    in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Color.white.opacity(0.14)))
+        .contextMenu { Button("Add by handle") { adding = true } }
+    }
+}
+
+/// What friends can see, at a glance, with a nudge to share taste (it's what unlocks match % and Taste Cards).
+private struct SharingCard: View {
+    @Environment(AppStore.self) private var store
+    let edit: () -> Void
+    var body: some View {
+        let taste = store.state.settings.shareTasteWithFriends
+        let buys = store.state.settings.sharePurchasesWithFriends
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("What friends see").font(.body.weight(.bold)).foregroundStyle(Theme.ink)
+                Spacer()
+                Button("Edit", action: edit).font(.subheadline.weight(.bold)).foregroundStyle(Theme.cyan).buttonStyle(.plain)
+            }
+            HStack(spacing: 10) {
+                pill("sparkles", String(localized: "Taste"), taste ? String(localized: "Shared") : String(localized: "Hidden"), on: taste)
+                pill(buys ? "bag.fill" : "lock.fill", String(localized: "Purchases"), buys ? String(localized: "Shared") : String(localized: "Private"), on: buys)
+            }
+            if !taste {
+                HStack(spacing: 10) {
+                    Text("Share your taste to see match % and swap Taste Cards.").font(.footnote).foregroundStyle(Color(red: 1, green: 0.89, blue: 0.64))
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 4)
+                    Button("Turn on") {
+                        store.state.settings.shareTasteWithFriends = true
+                        store.save()
+                    }
+                    .font(.footnote.weight(.heavy)).foregroundStyle(Color(red: 0.11, green: 0.08, blue: 0.02))
+                    .padding(.horizontal, 12).padding(.vertical, 7).background(Capsule().fill(Theme.warn))
+                    .buttonStyle(.plain)
+                }
+                .padding(12)
+                .background(Theme.warn.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.warn.opacity(0.28)))
+            }
+        }
+        .padding(16)
+        .background(Theme.glass, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Theme.line))
+        .contentShape(Rectangle())
+        .onTapGesture(perform: edit)
+    }
+
+    private func pill(_ icon: String, _ title: String, _ state: String, on: Bool) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon).font(.body).foregroundStyle(on ? Theme.green : Theme.muted)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(title).font(.subheadline.weight(.bold)).foregroundStyle(Theme.ink)
+                Text(state).font(.caption).foregroundStyle(on ? Theme.green.opacity(0.9) : Theme.muted)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 12).padding(.vertical, 11)
+        .frame(maxWidth: .infinity)
+        .background((on ? Theme.green.opacity(0.08) : Color.black.opacity(0.18)), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(on ? Theme.green.opacity(0.4) : Theme.line))
     }
 }
 
@@ -156,19 +352,36 @@ struct FriendAvatar: View {
 private struct CircleMember: View {
     let friend: Friend
     let hasNew: Bool
+    var match: Int? = nil
+    private static let palettes: [[Color]] = [
+        [Color(red: 1, green: 0.54, blue: 0.36), Theme.hot], [Color(red: 0.48, green: 0.24, blue: 1), Theme.cyan],
+        [Theme.warn, Color(red: 1, green: 0.54, blue: 0.36)], [Theme.blue, Theme.green], [Theme.hot, Color(red: 0.48, green: 0.24, blue: 1)],
+    ]
     var body: some View {
-        VStack(spacing: 7) {
-            FriendAvatar(friend: friend, size: 56)
+        let colors = Self.palettes[abs(friend.id.unicodeScalars.reduce(0) { $0 &+ Int($1.value) }) % Self.palettes.count]
+        VStack(spacing: 5) {
+            Text(friend.isPending && !friend.incoming ? "?" : String(friend.name.first ?? "?").uppercased())
+                .font(.system(size: 22, weight: .heavy)).foregroundStyle(.white)
+                .frame(width: 58, height: 58)
+                .background(Circle().fill(LinearGradient(colors: friend.isPending ? [Theme.glass, Theme.glass] : colors,
+                                                         startPoint: .topLeading, endPoint: .bottomTrailing)))
+                .overlay(Circle().strokeBorder(Color.white.opacity(friend.isPending ? 0.3 : 0), style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
                 .overlay(alignment: .topTrailing) {
-                    if hasNew { Circle().fill(Theme.warn).frame(width: 10, height: 10).overlay(Circle().strokeBorder(Theme.bg, lineWidth: 2)) }
+                    if hasNew { Circle().fill(Theme.warn).frame(width: 12, height: 12).overlay(Circle().strokeBorder(Theme.bg, lineWidth: 2)) }
                 }
-                .opacity(friend.isPending ? 0.55 : 1)
             Text(friend.isPending ? String(localized: "Invited") : (friend.name.split(separator: " ").first.map(String.init) ?? friend.name))
-                .font(.caption).foregroundStyle(friend.isPending ? Theme.muted : Theme.ink.opacity(0.85))
+                .font(.caption).foregroundStyle(friend.isPending ? Theme.muted : Theme.ink.opacity(0.9))
                 .lineLimit(1)
+            if let match {
+                Text("\(match)%").font(.system(size: 10.5, weight: .heavy)).foregroundStyle(Theme.accentInk)
+                    .padding(.horizontal, 6).padding(.vertical, 1)
+                    .background(Capsule().fill(match >= 85 ? Theme.cyan : Theme.green))
+            }
         }
-        .frame(width: 60)
-        .accessibilityLabel(friend.isPending ? String(localized: "Request sent to \(friend.handle)") : friend.name)
+        .frame(width: 62)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(friend.isPending ? String(localized: "Request sent to \(friend.handle)")
+                            : (match.map { String(localized: "\(friend.name), \($0)% taste match") } ?? friend.name))
     }
 }
 

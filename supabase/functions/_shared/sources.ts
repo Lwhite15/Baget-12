@@ -199,7 +199,7 @@ const TRUSTED = new Set([
   // Sneakers and streetwear
   "footlocker", "champssports", "finishline", "jdsports", "dtlr", "hibbett", "shoepalace", "snipes", "snipesusa", "shiekh", "pacsun",
   "dickssportinggoods", "dicks", "academy", "rei", "zappos", "eastbay", "kith", "endclothing", "end", "hbx", "doverstreetmarket",
-  "extrabutter", "sneakerpolitics", "nicekicks", "socialstatus", "bait", "feature", "undefeated", "concepts", "cncpts", "bodega",
+  "extrabutter", "sneakerpolitics", "nicekicks", "socialstatus", "bait", "feature", "wishatl", "undefeated", "concepts", "cncpts", "bodega",
   "notre", "amamaniere", "lapstoneandhammer", "fivestory", "lncc", "garmentory", "huckberry", "nepenthesnewyork", "nepenthes",
   "sneakersnstuff", "offspring", "atmos", "atmosusa", "stussy", "supreme", "palace", "aimeleondore", "fearofgod",
   "lemaire", "martinerose", "kapital", "nike", "adidas", "newbalance", "converse", "vans", "puma", "asics", "reebok",
@@ -246,10 +246,11 @@ export function resetMapStores(set?: Set<string>) { mapped = set ? { at: Date.no
 
 /** True when a Google Shopping seller is a store you can trust (see above). `brand` lets a brand's own shop count. */
 export function trustedSeller(store: string, brand?: string | null, extra?: Set<string>): boolean {
-  if (UNTRUSTED.test(store)) return false;
   const k = sellerKey(store);
   if (!k) return false;
-  if (TRUSTED.has(k) || extra?.has(k)) return true;
+  if (TRUSTED.has(k)) return true;
+  if (UNTRUSTED.test(store)) return false;
+  if (extra?.has(k)) return true;
   const b = brand ? sellerKey(brand) : "";
   // The brand's own shop: "Le Labo", "The House of Amouage", "Fear of God" (but not "Nike Outlet Deals 2026").
   return b.length >= 3 && k.includes(b) && k.length <= b.length + 10 && !/outlet|deal|sale|cheap|discount/.test(k);

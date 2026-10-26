@@ -731,6 +731,8 @@ await test("cheaper elsewhere only lists stores you can trust", async () => {
     assert.equal(SRC.trustedSeller("Nike Outlet Deals", "Nike"), false);
     assert.equal(SRC.trustedSeller("Walmart - Fashiongalaxy"), false);
     assert.equal(SRC.trustedSeller("suntreeshopping.com"), false);
+    assert.equal(SRC.trustedSeller("Wish ATL"), true);
+    assert.equal(SRC.trustedSeller("Wish"), false);
   } finally { delete process.env.SERPER_API_KEY; SRC.resetMapStores(); }
 });
 await test("watched finds text you when the price drops 5% or more", async () => {
