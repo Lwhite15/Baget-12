@@ -709,6 +709,20 @@ await test("other stores' prices skip samples, decants and odd low prices", asyn
     assert.equal(SRC.partialSize("Amouage Material 10ml travel", "Amouage Material Eau de Parfum 100ml"), true);
   } finally { delete process.env.SERPER_API_KEY; }
 });
+await test("scouts never hunt adult content", async () => {
+  const ADULT = await import("../functions/_shared/adult.ts");
+  for (const bad of ["porn", "best sex toys", "OnlyFans creators", "a vibrator", "XXX videos", "hentai figures", "nsfw art prints"])
+    assert.equal(ADULT.isAdultText(bad), true, bad);
+  for (const ok of ["Unisex hoodie", "Chloe bag Nude Pink", "Naked Sundays SPF 50", "Sex Pistols vintage tee", "Gildan XXX-Large tee",
+                    "Ford Escort RS Cosworth", "paint stripper", "Essex dining chair"])
+    assert.equal(ADULT.isAdultText(ok), false, ok);
+  assert.equal(ADULT.isAdultHost("https://www.xvideos.com/v/1"), true);
+  assert.equal(ADULT.isAdultHost("https://us.nakedsundays.com/p"), false);
+  const a = { id: "a", name: "Gift Scout", mission_category: null, mission_custom: "gifts", keywords: [], traits: [], makers: [], creators: [], size: "", learned: {}, price_note: 0 } as never;
+  assert.equal(M.match(a, { title: "Deluxe dildo kit", brand: "", category: "other", price: 30, market: null, source: "x", traits: [], tags: [] }, [], { own: true }), null);
+  assert.equal(M.match(a, { title: "Leather gift box", brand: "", category: "other", price: 30, market: null, source: "x", url: "https://onlyfans.com/x", traits: [], tags: [] }, [], { own: true }), null);
+  assert.match(String(sweep.sweepPrompt({ ...(a as object), keywords: ["candles"] } as never, "today")), /Never search for or include porn/);
+});
 await test("cheaper elsewhere only lists stores you can trust", async () => {
   process.env.SERPER_API_KEY = "serper-test";
   SRC.resetMapStores(new Set(["cojpgallery"]));

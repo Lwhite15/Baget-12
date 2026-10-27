@@ -2,6 +2,7 @@
 //  * Scheduled (every 15 minutes by pg_cron, with the shared secret): agents whose owner's interval has passed.
 //  * Manual (the app, with the user's session): that user's agents, at most once per agent every 10 minutes.
 // Cost guards: agents per run, searches per agent, and sweeps per user per day are all capped (see env below).
+import { isAdultText } from "../_shared/adult.ts";
 import { type Agent, CATEGORIES, GROUP_OF, type Listing, firstName, friendLine, localHour, heldForMorning, kindFor, match, deptOf, langOf, missionLabel, norm } from "../_shared/match.ts";
 import { type Block, type ClaudeMessage, HttpError, MODEL, batchResults, batchStatus, claude, db, env, handle, isScheduler, json, logBatchUsage, parseJSON, requireUser, submitBatch, textOf } from "../_shared/platform.ts";
 import { addImages, linkIsDead, pageProduct, smaller, traceImage } from "../_shared/images.ts";
@@ -148,6 +149,7 @@ export function sweepPrompt(a: Agent, today: string, r: Reactions = { liked: [],
     a.size ? `Their size: ${a.size}` : "",
     deptLine(a),
     langLine(a),
+    "Never search for or include porn, sex toys or any other adult or sexual content.",
     a.price_note > 0 ? `Budget: they usually spend up to $${Math.round(a.price_note)} on one item. Mostly stay under it; a standout deal slightly over is fine.` : "",
     Object.entries(a.learned ?? {}).filter(([, w]) => w < 0).length
       ? `Not into: ${Object.entries(a.learned).filter(([, w]) => w < 0).map(([k]) => k).join(", ")}` : "",
@@ -318,6 +320,12 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
   const run = { user_id: a.user_id, agent_id: a.id, trigger, searches: 0, listings: 0, finds: 0, tandem: 0, input_tokens: 0, output_tokens: 0, cache_write_tokens: 0, cache_read_tokens: 0, fetches: 0, error: null as string | null };
   if (trigger === "scheduled" && await restingAfterNothing(a.id, now)) {
     await db.rpc("record_finds", { p_agent: a.id, p_finds: [] }).catch(() => 0);   // stamps the sweep time so it isn't picked again right away
+    return run;
+  }
+  // Baget never hunts adult content: a scout set up for it never searches.
+  if (isAdultText(a.name, a.mission_custom, a.keywords, a.makers, a.traits, a.creators)) {
+    await db.rpc("record_finds", { p_agent: a.id, p_finds: [] }).catch(() => 0);
+    run.error = "adult_content";
     return run;
   }
   try {

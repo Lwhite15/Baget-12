@@ -1,5 +1,6 @@
 // "What are you hunting?" One sentence in, a ready agent out.
 // Claude turns the sentence into a brief (mission, brands, styles, keywords, size) and the agent is created for the person.
+import { ADULT_REFUSAL, isAdultText } from "../_shared/adult.ts";
 import { CATEGORIES, firstName, langCode, langOf } from "../_shared/match.ts";
 import { HttpError, claude, db, handle, json, parseJSON, quota, requireUser, textOf } from "../_shared/platform.ts";
 
@@ -150,6 +151,8 @@ async function onboard(userId: string, categories: string[], text: string, size:
                        liked: string[] = [], passed: string[] = [], vibes: Record<string, string[]> = {}, budget: number | null = null,
                        brands: Record<string, string[]> = {}, interests: string[] = [], sizes: Record<string, string> = {},
                        department: "women" | "men" | null = null, lang = "en") {
+  if (isAdultText(text)) text = "";
+  interests = interests.filter((x) => !isAdultText(x));
   const cats = [...new Set(categories.filter((c) => (CATEGORIES as string[]).includes(c) && c !== "other"))].slice(0, 6);
   if (!cats.length && !interests.length && !text) throw new HttpError(400, "Pick at least one thing you're into");
   const picked = [...cats, ...interests];
@@ -203,6 +206,7 @@ Use only what they said, picked or showed. Keep every list item short (1-4 words
   plans.splice(Math.max(0, limit - existing));
   const agents = [];
   for (const p of plans) {
+    if (isAdultText(p.name, p.custom, p.keywords, p.makers, p.traits, p.creators)) continue;
     const id = await insertAgent(userId, p, budget);
     agents.push({ agent_id: id, ...p, needs_size: needsSize(p) });
   }
@@ -226,6 +230,7 @@ export const handler = handle(async (req) => {
       langCode(body.lang)));
   }
   if (text.length < 2) throw new HttpError(400, "Tell me what to hunt for");
+  if (isAdultText(text)) throw new HttpError(400, ADULT_REFUSAL);
 
   const res = await claude({
     purpose: "hunt",
@@ -247,6 +252,7 @@ Use only what they said or clearly implied. Keep every list item short (1-4 word
 Write "name" and "intro" in ${langOf(body.lang)}. Keep keywords, makers, traits and creators in English: they're search terms.` : ""}` }],
   });
   const plan = cleanPlan(parseJSON(textOf(res.content)), text, body.size);
+  if (isAdultText(plan.name, plan.custom, plan.keywords, plan.makers, plan.traits, plan.creators)) throw new HttpError(400, ADULT_REFUSAL);
 
   const id = await insertAgent(user.id, plan);
   await introNotes(user.id, [{ agent_id: id, name: plan.name, intro: plan.intro }]);

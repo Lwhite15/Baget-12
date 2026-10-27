@@ -39,6 +39,10 @@ select t.ok(t.n('select * from public.agents') = 1, 'larry sees his agent');
 select t.err($$insert into public.agents (user_id, name, mission_category) values ('bbbbbbbb-0000-0000-0000-000000000002', 'x', 'cars')$$,
              'cannot create an agent for someone else');
 select t.err($$insert into public.agents (name, mission_category, mission_custom) values ('x', 'cars', 'vinyl')$$, 'one mission only');
+select t.err($$insert into public.agents (name, mission_custom) values ('Night Scout', 'porn videos')$$, 'no scout for porn');
+select t.err($$insert into public.agents (name, mission_custom, keywords) values ('Fun Scout', 'gifts', '{sex toys}')$$, 'no adult keywords either');
+select t.err($$update public.agents set traits = '{dildo}' where name = (select name from public.agents limit 1)$$, 'or adult traits added later');
+select t.ok(not public.is_adult('Unisex Hoodie Nude Pink XXX-Large Naked Sundays Sex Pistols tee'), 'everyday words aren''t blocked');
 select t.err($$update public.agents set last_swept_at = now()$$, 'cannot fake sweep timestamps');
 update public.agents set paused = true, alerts = 'quiet' where name = 'Jumpman Scout';
 select t.ok(t.n($$select * from public.agents where paused and alerts = 'quiet'$$) = 1, 'owner can turn an agent off and quiet it');
@@ -206,6 +210,14 @@ select t.ok(public.record_finds((select id from public.agents where name = 'Jump
   'find with null reasons saves');
 delete from public.finds where listing_id = (select id from public.listings where fingerprint = 'aesop|hwyl eau de parfum');
 delete from public.listings where fingerprint = 'aesop|hwyl eau de parfum';
+-- Adult listings never become finds, however they got saved.
+insert into public.listings (fingerprint, title, brand, category, url, price) values
+  ('adult|1', 'Deluxe Vibrator Set', 'Brand', 'other', 'https://shop.example/v', 40),
+  ('adult|2', 'Leather Jacket', 'Brand', 'apparel', 'https://www.pornhub.com/x', 90);
+select t.ok(public.record_finds((select id from public.agents where name = 'Jumpman Scout'),
+  (select jsonb_agg(jsonb_build_object('listing_id', id, 'score', 90, 'why', '[]'::jsonb)) from public.listings where fingerprint like 'adult|%')) = 0
+  and not exists (select 1 from public.finds f join public.listings l on l.id = f.listing_id where l.fingerprint like 'adult|%'), 'adult listings never become finds');
+delete from public.listings where fingerprint like 'adult|%';
 -- Fewer, better finds: at most 5 a day per scout on Free, strongest first; only the top 2 per hunt go to the inbox.
 insert into public.listings (fingerprint, title, brand, category, url, price)
 select 'cap|' || g, 'Cap Test Shoe ' || g, 'Capbrand', 'sneakers', 'https://cap.example/' || g, 100 from generate_series(1, 8) g;

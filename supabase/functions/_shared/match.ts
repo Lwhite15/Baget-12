@@ -1,5 +1,6 @@
 // Matching, sizes and friend-style texts. Mirrors Baget/Engine/Engine.swift so the phone and the server
-// score finds the same way. Plain TypeScript with no imports: runs on Supabase (Deno) and in tests (Node).
+// score finds the same way. Plain TypeScript (its one import is plain too): runs on Supabase (Deno) and in tests (Node).
+import { isAdultListing } from "./adult.ts";
 
 export type Category = "sneakers" | "apparel" | "fragrance" | "watches" | "cars" | "furniture" | "accessories" | "collectibles";
 export const CATEGORIES: Category[] = ["sneakers", "apparel", "fragrance", "watches", "cars", "furniture", "accessories", "collectibles"];
@@ -192,6 +193,7 @@ export function intel(a: Agent): number {
  *  words in every product title left whole scouts with nothing. Without a size yet, sneaker and clothing scouts still
  *  find things (fit unknown) instead of going silent; the app keeps asking for the size. */
 export function match(a: Agent, l: Listing, photoTags: string[] = [], opts: { own?: boolean; dept?: Dept } = {}): Match | null {
+  if (isAdultListing(l)) return null;   // never adult content, whatever the scout asked for
   if (!(opts.own && !a.mission_category) && !covers(a, l)) return null;
   if (wrongDept(`${l.title} ${l.traits.join(" ")}`, opts.dept ?? null, a.mission_category)) return null;
   const fit = sizeFit(a, l);
