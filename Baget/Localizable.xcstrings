@@ -36616,30 +36616,6 @@
     },
     "NOW WATCHING": {
       "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ĐANG THEO DÕI"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ウォッチ中"
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "กำลังติดตาม"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "지금 지켜보는 중"
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
@@ -36650,18 +36626,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "BINABANTAYAN NGAYON"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在关注"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "監控中"
           }
         },
         "fr": {
@@ -36680,6 +36644,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "SEDANG DIPANTAU"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ウォッチ中"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "지금 지켜보는 중"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "กำลังติดตาม"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ĐANG THEO DÕI"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在关注"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "監控中"
           }
         }
       }
@@ -57182,30 +57182,6 @@
     },
     "Stopped watching": {
       "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đã ngừng theo dõi"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ウォッチを停止しました"
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "เลิกติดตามแล้ว"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "지켜보기를 중단했어요"
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
@@ -57216,18 +57192,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hindi na binabantayan"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已取消关注"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已停止監控"
           }
         },
         "fr": {
@@ -57246,6 +57210,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "Berhenti dipantau"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ウォッチを停止しました"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "지켜보기를 중단했어요"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เลิกติดตามแล้ว"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã ngừng theo dõi"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已取消关注"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已停止監控"
           }
         }
       }
@@ -58793,6 +58793,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "品味卡"
+          }
+        }
+      }
+    },
+    "TASTE PALETTE": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "口味调色板"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "취향 팔레트"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "品味色盤"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BẢNG MÀU GU"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PALETTE DE GOÛTS"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テイストパレット"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पसंद का पैलेट"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "จานสีรสนิยม"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PALETA NG PANLASA"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PALETA DE GUSTOS"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PALET SELERA"
           }
         }
       }
@@ -69052,30 +69122,6 @@
     },
     "We'll text you if the price drops or it restocks.": {
       "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chúng tôi sẽ nhắn tin cho bạn nếu giá giảm hoặc hàng có lại."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "値下げや再入荷があればテキストでお知らせします。"
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "เราจะส่งข้อความหาคุณถ้าราคาลดหรือสินค้ากลับมาในสต็อก"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "가격이 내려가거나 재입고되면 문자로 알려드려요."
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
@@ -69086,18 +69132,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Magte-text kami kapag bumaba ang presyo o nagka-restock."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "如果降价或补货,我们会短信通知你。"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "若價格下降或補貨,我們會傳簡訊通知你。"
           }
         },
         "fr": {
@@ -69116,6 +69150,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kami akan kirim SMS kalau harganya turun atau stoknya tersedia lagi."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "値下げや再入荷があればテキストでお知らせします。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "가격이 내려가거나 재입고되면 문자로 알려드려요."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เราจะส่งข้อความหาคุณถ้าราคาลดหรือสินค้ากลับมาในสต็อก"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chúng tôi sẽ nhắn tin cho bạn nếu giá giảm hoặc hàng có lại."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如果降价或补货,我们会短信通知你。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "若價格下降或補貨,我們會傳簡訊通知你。"
           }
         }
       }
