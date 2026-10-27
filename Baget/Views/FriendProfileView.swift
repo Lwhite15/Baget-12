@@ -473,13 +473,18 @@ struct TasteCardView: View {
                 stat(String(localized: "GRAIL"), card.grail ?? "—", s)
             }
             .padding(.top, 16 * s)
-            HStack(spacing: 6 * s) {
-                ForEach(Array(card.palette.prefix(5).enumerated()), id: \.offset) { _, hex in
-                    RoundedRectangle(cornerRadius: 7 * s).fill(Color(hex: hex) ?? .gray).frame(height: 20 * s)
-                        .overlay(RoundedRectangle(cornerRadius: 7 * s).strokeBorder(Color.white.opacity(0.4)))
+            if !card.palette.isEmpty {
+                VStack(alignment: .leading, spacing: 6 * s) {
+                    Text(String(localized: "TASTE PALETTE")).font(.system(size: 9 * s, weight: .heavy)).tracking(1.1).opacity(0.85)
+                    HStack(spacing: 6 * s) {
+                        ForEach(Array(card.palette.prefix(5).enumerated()), id: \.offset) { _, hex in
+                            RoundedRectangle(cornerRadius: 7 * s).fill(Color(hex: hex) ?? .gray).frame(height: 20 * s)
+                                .overlay(RoundedRectangle(cornerRadius: 7 * s).strokeBorder(Color.white.opacity(0.4)))
+                        }
+                    }
                 }
+                .padding(.top, 14 * s)
             }
-            .padding(.top, 14 * s)
             Spacer(minLength: 10 * s)
             HStack {
                 if let match { Text("\(match)% match with you") }
