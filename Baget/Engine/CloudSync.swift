@@ -61,6 +61,8 @@ struct AgentRow: Decodable {
     let alerts: String?
 }
 
+struct FriendIconRow: Decodable { let friendId: String; let icon: IconRow }
+
 /// An icon as stored in jsonb. Empty ({}) means the default.
 struct IconRow: Decodable {
     let style: String?
@@ -283,6 +285,7 @@ extension AppStore {
             async let purchasesQ: [PurchaseRow] = api.select("purchases", "select=*&order=purchased_at.desc&limit=500")
             async let notesQ: [NoteRow] = api.select("notes", "select=*&order=created_at.desc&limit=100")
             async let friendsQ: [FriendRow] = api.rpc("my_friends")
+            async let iconsQ: [FriendIconRow] = api.rpc("friend_icons")
             async let suggestionsQ: [SuggestionRow] = api.select("suggestions", "select=*,listing:listings(*)&to_user=eq.\(uid)&order=created_at.desc&limit=100")
             async let sharesQ: [ShareRow] = api.select("shares", "select=*,listing:listings(*),replies:share_replies(*)&from_user=eq.\(uid)&order=created_at.desc&limit=100")
             async let remindersQ: [ReminderRow] = api.select("release_reminders", "select=listing_id,remind_at,offset_minutes&sent_at=is.null")
@@ -291,7 +294,9 @@ extension AppStore {
             let (agents, photos, finds, purchases, notes) = try await (agentsQ, photosQ, findsQ, purchasesQ, notesQ)
             let (friends, suggestions, shares, profileData) = try await (friendsQ, suggestionsQ, sharesQ, profileQ)
             let reminders = (try? await remindersQ) ?? []
+            let icons = (try? await iconsQ) ?? []
             guard isCloud else { return }   // signed out while loading
+            friendIcons = Dictionary(icons.compactMap { r in r.icon.avatar.map { (r.friendId, $0) } }, uniquingKeysWith: { a, _ in a })
             state.reminders = Dictionary(reminders.map { ($0.listingId, ReleaseReminder(remindAt: $0.remindAt, offsetMinutes: $0.offsetMinutes)) },
                                          uniquingKeysWith: { a, _ in a })
 

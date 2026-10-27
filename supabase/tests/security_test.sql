@@ -96,6 +96,16 @@ select t.ok((public.friend_profile('bbbbbbbb-0000-0000-0000-000000000002') ->> '
 select t.ok((select match from public.friend_matches() where friend_id = 'bbbbbbbb-0000-0000-0000-000000000002') between 5 and 99,
             'match % for each friend on the Friends tab');
 reset role;
+update public.profiles set settings = settings || '{"avatar": {"style": "emoji", "emoji": "🦍", "color": 3}}' where id = 'bbbbbbbb-0000-0000-0000-000000000002';
+insert into storage.objects (bucket_id, name) values ('taste-photos', 'bbbbbbbb-0000-0000-0000-000000000002/avatars/me.jpg'),
+  ('taste-photos', 'bbbbbbbb-0000-0000-0000-000000000002/secret.jpg'), ('taste-photos', 'cccccccc-0000-0000-0000-000000000003/avatars/me.jpg');
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
+select t.ok((select icon ->> 'emoji' from public.friend_icons() where friend_id = 'bbbbbbbb-0000-0000-0000-000000000002') = '🦍', 'friends see each other''s icon');
+select t.ok(t.n($$select * from storage.objects where name = 'bbbbbbbb-0000-0000-0000-000000000002/avatars/me.jpg'$$) = 1, 'a friend''s icon photo is readable');
+select t.ok(t.n($$select * from storage.objects where name in ('bbbbbbbb-0000-0000-0000-000000000002/secret.jpg', 'cccccccc-0000-0000-0000-000000000003/avatars/me.jpg')$$) = 0,
+            'but not their other photos, or a stranger''s icon');
+reset role;
 update public.profiles set share_taste = false where id = 'bbbbbbbb-0000-0000-0000-000000000002';
 set role authenticated;
 select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);

@@ -162,8 +162,16 @@ struct FriendProfileView: View {
     private var hero: some View {
         VStack(spacing: 8) {
             HStack(spacing: -14) {
-                avatar(String(friend.name.first ?? "?").uppercased(), Self.themGradient).zIndex(1)
-                avatar(String((store.state.profile?.displayName ?? "Y").first ?? "Y").uppercased(), Theme.gradient)
+                Group {
+                    if let icon = store.friendIcons[friend.id] {
+                        FriendIconView(friendID: friend.id, name: friend.name, icon: icon, size: 76)
+                            .overlay(Circle().strokeBorder(Theme.bg, lineWidth: 3))
+                    } else {
+                        avatar(String(friend.name.first ?? "?").uppercased(), Self.themGradient)
+                    }
+                }
+                .zIndex(1)
+                AvatarView(size: 76).overlay(Circle().strokeBorder(Theme.bg, lineWidth: 3))
             }
             Text(friend.name).font(.system(size: 26, weight: .bold)).foregroundStyle(Theme.ink).padding(.top, 4)
             Text(sinceLine).font(.subheadline).foregroundStyle(Theme.muted)

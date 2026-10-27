@@ -55,6 +55,8 @@ final class AppStore {
     var photoVersion = 0
     /// Bumped when your icon photo changes or finishes downloading.
     var avatarVersion = 0
+    /// Friends' icons (what they picked in Settings), by friend id.
+    var friendIcons: [String: Avatar] = [:]
     var pushRegistered = false
     @ObservationIgnored var pulling = false
     @ObservationIgnored var lastSettingsSnapshot: Data?

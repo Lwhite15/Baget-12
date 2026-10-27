@@ -152,6 +152,24 @@ extension AppStore {
         return String(words.first?.prefix(2) ?? "A").uppercased()
     }
 
+    /// A friend's icon photo (<their id>/avatars/<photo>.jpg), downloaded once and kept on this phone.
+    func friendIconImage(_ friendID: String, _ photoID: String?) -> UIImage? {
+        _ = avatarVersion
+        guard let id = photoID, id.range(of: "^[0-9a-zA-Z-]{8,64}$", options: .regularExpression) != nil else { return nil }
+        if let img = UIImage(contentsOfFile: avatarURL(id).path) { return img }
+        guard isCloud, !downloading.contains("avatar-\(id)") else { return nil }
+        downloading.insert("avatar-\(id)")
+        let path = avatarPath(id, uid: friendID)
+        Task { @MainActor in
+            defer { self.downloading.remove("avatar-\(id)") }
+            if let data = try? await self.api.download(bucket: "taste-photos", path: path), UIImage(data: data) != nil {
+                try? data.write(to: self.avatarURL(id), options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+                self.avatarVersion += 1
+            }
+        }
+        return nil
+    }
+
     private func fetchAvatarIfNeeded(_ id: String) {
         guard isCloud, let uid = api.userID, !downloading.contains("avatar-\(id)") else { return }
         downloading.insert("avatar-\(id)")

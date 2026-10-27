@@ -137,6 +137,9 @@ struct FriendsView: View {
             birthdays = await store.upcomingBirthdays()
             #if DEBUG
             if FriendPreview.enabled {
+                var a = Avatar(); a.style = .emoji; a.emoji = "🦍"; a.color = 3
+                var b = Avatar(); b.style = .initials; b.color = 5
+                for (i, f) in store.state.friends.prefix(2).enumerated() { store.friendIcons[f.id] = i == 0 ? a : b }
                 birthdays = [UpcomingBirthday(friendId: store.state.friends.first?.id ?? "preview", name: "Hetty", handle: "hetty", birthday: "11-02", days: 7, shares: true)]
             }
             #endif
@@ -196,10 +199,7 @@ private struct InviteHero: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: -12) {
-                Text(String(([store.state.profile?.displayName, store.state.profile?.handle].compactMap { $0 }.first { !$0.isEmpty } ?? "Y").first ?? "Y").uppercased())
-                    .font(.system(size: 18, weight: .heavy)).foregroundStyle(Theme.accentInk)
-                    .frame(width: 46, height: 46).background(Circle().fill(Theme.gradient))
-                    .overlay(Circle().strokeBorder(Theme.panel, lineWidth: 3))
+                AvatarView(size: 46).overlay(Circle().strokeBorder(Theme.panel, lineWidth: 3))
                 ForEach(0..<3, id: \.self) { _ in
                     Image(systemName: "plus").font(.body.weight(.light)).foregroundStyle(.white)
                         .frame(width: 46, height: 46)
@@ -352,24 +352,62 @@ private struct SharingCard: View {
     }
 }
 
-/// A friend's monogram: a serif initial in a thin ring.
+/// A friend's icon: the emoji, color or photo they picked in Settings; a serif initial in a thin ring until then.
 struct FriendAvatar: View {
+    @Environment(AppStore.self) private var store
     let friend: Friend
     var size: CGFloat = 32
     var body: some View {
-        Text(friend.isPending && !friend.incoming ? "?" : String(friend.name.first ?? "?").uppercased())
-            .font(FriendsStyle.serif(size * 0.4))
-            .foregroundStyle(Theme.ink)
-            .frame(width: size, height: size)
-            .background(Circle().fill(Color.white.opacity(0.04)))
-            .overlay(Circle().strokeBorder(Color.white.opacity(0.22), lineWidth: 1))
+        if let icon = store.friendIcons[friend.id], !(friend.isPending && !friend.incoming) {
+            FriendIconView(friendID: friend.id, name: friend.name, icon: icon, size: size)
+        } else {
+            Text(friend.isPending && !friend.incoming ? "?" : String(friend.name.first ?? "?").uppercased())
+                .font(FriendsStyle.serif(size * 0.4))
+                .foregroundStyle(Theme.ink)
+                .frame(width: size, height: size)
+                .background(Circle().fill(Color.white.opacity(0.04)))
+                .overlay(Circle().strokeBorder(Color.white.opacity(0.22), lineWidth: 1))
+        }
+    }
+}
+
+/// Someone's chosen icon, drawn the same way as your own (AvatarView).
+struct FriendIconView: View {
+    @Environment(AppStore.self) private var store
+    let friendID: String
+    let name: String
+    let icon: Avatar
+    let size: CGFloat
+    var body: some View {
+        ZStack {
+            if icon.style == .photo, let img = store.friendIconImage(friendID, icon.photoID) {
+                Image(uiImage: img).resizable().scaledToFill()
+            } else {
+                AvatarPalette.gradient(icon.color)
+                if icon.style == .emoji {
+                    Text(icon.emoji).font(.system(size: size * 0.54))
+                } else {
+                    Text(Self.initials(name)).font(.system(size: size * 0.38, weight: .heavy)).foregroundStyle(AvatarPalette.ink(icon.color))
+                }
+            }
+        }
+        .frame(width: size, height: size)
+        .clipShape(Circle())
+        .accessibilityHidden(true)
+    }
+    static func initials(_ name: String) -> String {
+        let words = name.trimmingCharacters(in: CharacterSet(charactersIn: "@ ")).split(separator: " ").filter { !$0.isEmpty }
+        if words.count >= 2 { return (String(words[0].prefix(1)) + String(words[words.count - 1].prefix(1))).uppercased() }
+        return String((words.first ?? "?").prefix(1)).uppercased()
     }
 }
 
 private struct CircleMember: View {
+    @Environment(AppStore.self) private var store
     let friend: Friend
     let hasNew: Bool
     var match: Int? = nil
+    private var icon: Avatar? { store.friendIcons[friend.id] }
     private static let palettes: [[Color]] = [
         [Color(red: 1, green: 0.54, blue: 0.36), Theme.hot], [Color(red: 0.48, green: 0.24, blue: 1), Theme.cyan],
         [Theme.warn, Color(red: 1, green: 0.54, blue: 0.36)], [Theme.blue, Theme.green], [Theme.hot, Color(red: 0.48, green: 0.24, blue: 1)],
@@ -377,12 +415,18 @@ private struct CircleMember: View {
     var body: some View {
         let colors = Self.palettes[abs(friend.id.unicodeScalars.reduce(0) { $0 &+ Int($1.value) }) % Self.palettes.count]
         VStack(spacing: 5) {
-            Text(friend.isPending && !friend.incoming ? "?" : String(friend.name.first ?? "?").uppercased())
-                .font(.system(size: 22, weight: .heavy)).foregroundStyle(.white)
-                .frame(width: 58, height: 58)
-                .background(Circle().fill(LinearGradient(colors: friend.isPending ? [Theme.glass, Theme.glass] : colors,
-                                                         startPoint: .topLeading, endPoint: .bottomTrailing)))
-                .overlay(Circle().strokeBorder(Color.white.opacity(friend.isPending ? 0.3 : 0), style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
+            Group {
+                if let icon, !friend.isPending {
+                    FriendIconView(friendID: friend.id, name: friend.name, icon: icon, size: 58)
+                } else {
+                    Text(friend.isPending && !friend.incoming ? "?" : String(friend.name.first ?? "?").uppercased())
+                        .font(.system(size: 22, weight: .heavy)).foregroundStyle(.white)
+                        .frame(width: 58, height: 58)
+                        .background(Circle().fill(LinearGradient(colors: friend.isPending ? [Theme.glass, Theme.glass] : colors,
+                                                                 startPoint: .topLeading, endPoint: .bottomTrailing)))
+                        .overlay(Circle().strokeBorder(Color.white.opacity(friend.isPending ? 0.3 : 0), style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
+                }
+            }
                 .overlay(alignment: .topTrailing) {
                     if hasNew { Circle().fill(Theme.warn).frame(width: 12, height: 12).overlay(Circle().strokeBorder(Theme.bg, lineWidth: 2)) }
                 }
