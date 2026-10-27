@@ -11,6 +11,8 @@ struct SwipeDeckView: View {
     @State private var drag: CGSize = .zero
     @State private var liked = 0
     @State private var passed = 0
+    @State private var watchStamp = false
+    @State private var busy = false
 
     var body: some View {
         NavigationStack {
@@ -51,10 +53,19 @@ struct SwipeDeckView: View {
         }
     }
 
-    private enum Action { case like, pass, buy }
+    private enum Action { case like, pass, buy, watch }
 
     @ViewBuilder private var stamp: some View {
-        if drag.width > 40 {
+        if watchStamp {
+            VStack(spacing: 8) {
+                label(String(localized: "NOW WATCHING"), Theme.warn)
+                Text("We'll text you if the price drops or it restocks.")
+                    .font(.footnote.weight(.semibold)).foregroundStyle(Theme.ink)
+                    .padding(.horizontal, 12).padding(.vertical, 7)
+                    .background(Theme.bg.opacity(0.85), in: Capsule())
+            }
+            .transition(.scale(scale: 0.6).combined(with: .opacity))
+        } else if drag.width > 40 {
             label("LIKE", Theme.green).opacity(min(1, Double(drag.width) / 110))
         } else if drag.width < -40 {
             label("PASS", Theme.hot).opacity(min(1, Double(-drag.width) / 110))
@@ -97,7 +108,7 @@ struct SwipeDeckView: View {
         HStack(spacing: 18) {
             round("xmark", Theme.hot, String(localized: "Pass")) { act(.pass, f, item) }
             if BuyLink.url(item) != nil { round("arrow.up.right", Theme.accent, String(localized: "Buy")) { act(.buy, f, item) } }
-            round(f.watching ? "eye.fill" : "eye", Theme.warn, f.watching ? String(localized: "Watching") : String(localized: "Watch")) { store.toggleWatch(f.id) }
+            round(f.watching ? "eye.fill" : "eye", Theme.warn, f.watching ? String(localized: "Watching") : String(localized: "Watch")) { act(.watch, f, item) }
             round("heart.fill", Theme.green, String(localized: "Like"), big: true) { act(.like, f, item) }
         }
     }
@@ -114,8 +125,29 @@ struct SwipeDeckView: View {
     }
 
     private func act(_ a: Action, _ f: Find, _ item: Item) {
+        guard !busy else { return }
+        if a == .watch {
+            // Already watching: stop, and stay on this card.
+            if f.watching { store.toggleWatch(f.id); router.say(String(localized: "Stopped watching")); return }
+            store.toggleWatch(f.id)
+            Analytics.track(.swipe, ["action": "watch", "category": item.category.rawValue, "score": f.score])
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            busy = true
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { watchStamp = true }
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(900))
+                withAnimation(.easeIn(duration: 0.22)) { drag = CGSize(width: 0, height: 900) }
+                try? await Task.sleep(for: .milliseconds(230))
+                watchStamp = false
+                drag = .zero
+                index += 1
+                busy = false
+            }
+            return
+        }
         let out: CGSize
         switch a {
+        case .watch: return
         case .like:
             store.like(f.id); liked += 1; out = CGSize(width: 600, height: drag.height)
         case .pass:
