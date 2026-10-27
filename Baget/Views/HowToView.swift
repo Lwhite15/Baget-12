@@ -23,7 +23,7 @@ struct HowToView: View {
              tips: ["Like it, or Pass and say why", "Watch it and get a text when the price drops or it restocks", "Buy takes you straight to the store's page"]),
         Page(id: 2, icon: "person.3.fill", tint: Theme.green, title: "Your squad does the hunting",
              body: "Each scout hunts one thing for you, and every one is yours to shape. Change what it hunts, its brands, styles, size and budget, or how often it texts you, any time.",
-             tips: ["Talk to a scout or open Detailed setup to fine-tune it", "Pause a scout, or delete it from its card in Squad", "Replace it any time: type something new into \"What are you hunting?\" and a fresh scout starts right away", "Tap Hunt now in Finds when you can't wait"]),
+             tips: ["Talk to a scout or open Detailed hunt setup to fine-tune it", "Pause a scout, or delete it from its card in Squad", "Replace it any time: type something new into \"What are you hunting?\" and a fresh scout starts right away", "Tap Hunt now in Finds when you can't wait"]),
         Page(id: 3, icon: "bell.badge.fill", tint: Theme.hot, title: "They text you like a friend",
              body: "When something great turns up, your scout texts you a photo and why it's worth a look.",
              tips: ["Only the best ones, a few a day at most", "Change how often in Settings, under Notifications", "Your icon at the top left opens Settings"]),

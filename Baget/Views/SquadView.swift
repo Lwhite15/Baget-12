@@ -15,7 +15,13 @@ struct SquadView: View {
                     Button {
                         router.deployPrefill = nil
                         router.sheet = .deploy
-                    } label: { IconText(icon: "slider.horizontal.3", text: String(localized: "Detailed setup")) }
+                    } label: {
+                        // Shrinks to fit (rather than spilling over) on smaller phones and in longer languages.
+                        HStack(spacing: 5) {
+                            Image(systemName: "slider.horizontal.3").imageScale(.small)
+                            Text("Detailed hunt setup").lineLimit(1).minimumScaleFactor(0.7)
+                        }
+                    }
                         .buttonStyle(GhostButton())
                 }
                 if store.state.agents.isEmpty {
