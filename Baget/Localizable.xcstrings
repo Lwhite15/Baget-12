@@ -19293,7 +19293,78 @@
         }
       }
     },
+    "Detailed hunt setup": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuration détaillée de la chasse"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "詳細搜尋設定"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thiết lập săn tìm chi tiết"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "상세 탐색 설정"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ตั้งค่าการล่าแบบละเอียด"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "詳細なハント設定"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "详细搜寻设置"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "विस्तृत खोज सेटअप"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuración detallada de la búsqueda"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detalyadong setup ng paghahanap"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setelan perburuan detail"
+          }
+        }
+      }
+    },
     "Detailed setup": {
+      "extractionState": "stale",
       "localizations": {
         "es": {
           "stringUnit": {
@@ -58799,52 +58870,10 @@
     },
     "TASTE PALETTE": {
       "localizations": {
-        "zh-Hans": {
+        "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "口味调色板"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "취향 팔레트"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "品味色盤"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "BẢNG MÀU GU"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "PALETTE DE GOÛTS"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "テイストパレット"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "पसंद का पैलेट"
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "จานสีรสนิยม"
+            "value": "PALETA DE GUSTOS"
           }
         },
         "fil": {
@@ -58853,16 +58882,58 @@
             "value": "PALETA NG PANLASA"
           }
         },
-        "es": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "PALETA DE GUSTOS"
+            "value": "PALETTE DE GOÛTS"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पसंद का पैलेट"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
             "value": "PALET SELERA"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テイストパレット"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "취향 팔레트"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "จานสีรสนิยม"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BẢNG MÀU GU"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "口味调色板"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "品味色盤"
           }
         }
       }
@@ -59287,7 +59358,78 @@
         }
       }
     },
+    "Talk to a scout or open Detailed hunt setup to fine-tune it": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parle à un éclaireur ou ouvre la configuration détaillée de la chasse pour l'affiner"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "與偵察員對話,或開啟「詳細搜尋設定」進行微調"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trò chuyện với scout hoặc mở Thiết lập săn tìm chi tiết để tinh chỉnh"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "스카우트와 대화하거나 상세 탐색 설정을 열어 세밀하게 조정해 보세요"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "คุยกับสเกาต์ หรือเปิด \"ตั้งค่าการล่าแบบละเอียด\" เพื่อปรับแต่งเพิ่มเติม"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スカウトと話すか、「詳細なハント設定」を開いて細かく調整しましょう"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "与侦察员对话,或打开“详细搜寻设置”进行微调"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्काउट से बात करें या उसे फाइन-ट्यून करने के लिए विस्तृत खोज सेटअप खोलें"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Habla con un explorador o abre Configuración detallada de la búsqueda para afinarlo"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kausapin ang isang scout o buksan ang Detalyadong setup ng paghahanap para i-fine-tune ito"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ngobrol dengan scout atau buka Setelan perburuan detail untuk menyesuaikannya"
+          }
+        }
+      }
+    },
     "Talk to a scout or open Detailed setup to fine-tune it": {
+      "extractionState": "stale",
       "localizations": {
         "es": {
           "stringUnit": {
