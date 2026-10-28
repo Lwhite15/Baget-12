@@ -709,6 +709,53 @@ await test("other stores' prices skip samples, decants and odd low prices", asyn
     assert.equal(SRC.partialSize("Amouage Material 10ml travel", "Amouage Material Eau de Parfum 100ml"), true);
   } finally { delete process.env.SERPER_API_KEY; }
 });
+await test("finds are things you can buy or one specific drop, never calendars, articles or groups", async () => {
+  const F = await import("../functions/_shared/findable.ts");
+  const no = (title: string, url: string, extra = {}) => assert.notEqual(F.notFindable({ title, url, price: null, ...extra }), null, title);
+  const yes = (title: string, url: string, extra = {}) => assert.equal(F.notFindable({ title, url, price: null, ...extra }), null, title);
+  no("Air Jordan 1 Low sneaker hub", "https://www.nike.com/w/jordan-1-low");
+  no("Vintage Camping Stoves (Facebook group)", "https://www.facebook.com/groups/123456");
+  no("Mid-Century Modern Clocks Auctions", "https://www.liveauctioneers.com/c/clocks/123/");
+  no("The Squale Collector", "https://squalewatches.com/");
+  no("L.L.Bean boots are back", "https://www.gq.com/story/ll-bean-boots");
+  no("Air Jordan release dates 2026", "https://www.solecollector.com/sneaker-release-dates/all-release-dates");
+  no("New arrivals", "https://www.lapstoneandhammer.com/collections/new-arrival-1", { price: 200 });
+  no("Sketchbook collection", "https://www.xerjoff.com/journal/sketchbook");
+  no("Anything the scout called reference", "https://shop.example/products/x", { kind: "reference", price: 50 });
+  yes("New Balance 2002R", "https://www.newbalance.com/pd/2002r/M2002RV1-44373.html");
+  yes("Seiko Presage 110th Anniversary SPB463", "https://www.seikowatches.com/us-en/products/presage/spb463");
+  yes("Kapital Ortega Jersey", "https://www.cojpgallery.com/collections/kapital/products/kapital-ortega-jersey", { price: 285 });
+  yes("Jordan 1 Low OG", "https://www.nike.com/launch/t/air-jordan-1-low-og-x", { drop_at: "2026-11-07T15:00:00Z", kind: "release" });
+  yes("Couch", "https://www.facebook.com/marketplace/item/123456789/", { price: 400 });
+  // In a hunt's results: the scout's labels are read, references never reach the listings.
+  const cl = sweep.cleanListings({ listings: [
+    { title: "Jordan 1 Low OG", url: "https://www.nike.com/launch/t/air-jordan-1-low-og-x", kind: "release", drop_at: "2026-11-07T15:00:00Z" },
+    { title: "Air Jordan release dates", url: "https://www.solecollector.com/sneaker-release-dates", kind: "reference" },
+  ] }, "sneakers");
+  assert.deepEqual(cl.map((l: any) => l.tags), [["release"], ["intel"]]);
+  assert.deepEqual(cl.filter((l: any) => !F.notFindable(l)).map((l: any) => l.title), ["Jordan 1 Low OG"]);
+});
+await test("old page finds are archived once; Google redirect links are followed to the store", async () => {
+  let removed: any, read: any;
+  reset([
+    [/GET .*rest\/v1\/finds/, () => ok([
+      { id: "f1", user_id: "u1", listing_id: "l1", listing: { title: "Air Jordan release dates 2026", url: "https://www.solecollector.com/sneaker-release-dates", price: null, sku: "", sizes_in_stock: null, drop_at: null, tags: [] } },
+      { id: "f2", user_id: "u1", listing_id: "l2", listing: { title: "New Balance 2002R", url: "https://www.newbalance.com/pd/2002r/M2002RV1-44373.html", price: null, sku: "", sizes_in_stock: null, drop_at: null, tags: [] } },
+      { id: "f3", user_id: "u1", listing_id: "l3", listing: { title: "Supreme droplist", url: "https://supremecommunity.com/droplist/9", price: null, sku: "", sizes_in_stock: null, drop_at: null, tags: ["intel"] } },
+      { id: "f4", user_id: "u1", listing_id: "l4", listing: { title: "Nike release calendar", url: "https://www.nike.com/launch?s=upcoming", price: null, sku: "", sizes_in_stock: null, drop_at: null, tags: [] } },
+    ])],
+    [/GET .*rest\/v1\/release_reminders/, () => ok([{ user_id: "u1", listing_id: "l4" }])],
+    [/PATCH .*rest\/v1\/finds/, (u: string, _i: unknown, b: unknown) => { removed = { u, b }; return ok([]); }],
+    [/PATCH .*rest\/v1\/notes/, (u: string) => { read = u; return ok([]); }],
+  ]);
+  const r = await sweep.scrubPageFinds();
+  assert.equal(r.removed, 2);
+  assert.match(decodeURIComponent(removed.u), /id=in\.\(f1,f3\)/);
+  assert.deepEqual(removed.b, { status: "removed" });
+  assert.match(decodeURIComponent(read), /find_id=in\.\(f1,f3\)/);
+  const fake = async () => new Response(null, { status: 302, headers: { location: "https://kith.com/products/kith-hoodie?utm_source=x" } });
+  assert.equal(await sweep.redirectTarget("https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc", fake as never), "https://kith.com/products/kith-hoodie");
+});
 await test("scouts keep bringing new options that fit what was asked", async () => {
   const a = { id: "a1", user_id: "u1", name: "Scent Sage", mission_category: "fragrance", mission_custom: null,
     keywords: ["rare perfume", "niche fragrance", "$250 and up"], traits: ["long-lasting"], makers: [], creators: [], size: "",

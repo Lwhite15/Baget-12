@@ -1,5 +1,6 @@
 // Talk to an agent. Claude plays the agent, can search the live web, and acts through tools that run here
 // on the server against the user's own data. It never buys anything: the most it does is line up checkout.
+import { notFindable } from "../_shared/findable.ts";
 import { type Agent, intel, match, missionLabel, norm, words, langOf } from "../_shared/match.ts";
 import { type Block, type ClaudeMessage, HttpError, claude, db, enc, handle, isScheduler, json, quota, requireUser, textOf } from "../_shared/platform.ts";
 import { cleanListings } from "../sweep/handler.ts";
@@ -161,6 +162,7 @@ export const handler = handle(async (req) => {
       if (!listingId) {
         const cleaned = cleanListings({ listings: [{ ...input, category: a.mission_category ?? "other" }] }, a.mission_category ?? "other");
         if (!cleaned.length) throw new Error("Need a listing_id, or a title and a real https URL for something you found");
+        if (notFindable(cleaned[0])) throw new Error("That's not one product someone can buy (it looks like a calendar, article, guide, group or collection page). Flag the specific product or release instead.");
         await addImages(cleaned);   // verified product photo
         const [saved] = await db.rpc<{ id: string }[]>("upsert_listings", { p_user: user.id, p_listings: cleaned });
         listingId = saved.id;

@@ -2,6 +2,7 @@
 //  * Scheduled (every 15 minutes by pg_cron, with the shared secret): agents whose owner's interval has passed.
 //  * Manual (the app, with the user's session): that user's agents, at most once per agent every 10 minutes.
 // Cost guards: agents per run, searches per agent, and sweeps per user per day are all capped (see env below).
+import { notFindable } from "../_shared/findable.ts";
 import { isAdultText } from "../_shared/adult.ts";
 import { type Agent, CATEGORIES, GROUP_OF, type Listing, firstName, friendLine, localHour, heldForMorning, kindFor, match, minBudgetOf, deptOf, langOf, missionLabel, norm } from "../_shared/match.ts";
 import { type Block, type ClaudeMessage, HttpError, MODEL, batchResults, batchStatus, claude, db, env, handle, isScheduler, json, logBatchUsage, parseJSON, requireUser, submitBatch, textOf } from "../_shared/platform.ts";
@@ -185,10 +186,13 @@ How to hunt${depth.deep ? " (leave no stone unturned)" : ""}:
   Include upcoming ones even with no price yet: set drop_at to the release date and time (with the timezone if the page gives
   one) and use the brand's or a retailer's launch or product page for that release as the url (not a news article).
 - Set "limited": true for limited, numbered, collab or raffle-only releases.` : ""}
-- Intel: besides products, you may include up to 3 "intel" items that aren't one product but are worth knowing for them:
-  a droplist, a release-calendar entry, news about an upcoming drop, collab or restock, or a good reference page on something
-  they'd love. Mark them "intel": true, use that page's URL, price null, the release date in drop_at if there is one, and say
-  in "about" what it tells them. Intel never replaces a real product page when you found one.
+- Every result is one of three kinds. Label each with "kind":
+  "product": one specific item someone can buy now (its own product page).
+  "release": one specific upcoming item with a drop date (set drop_at; use the brand's or a store's launch or product page for it).
+  "reference": a calendar, droplist, article, guide, review, forum or community post, group, auction category or collection page.
+  Read reference pages as much as you like to discover things, but never return them: return only products and releases.
+  When a calendar or article mentions a specific drop that fits them, return that drop itself as a "release" (with its date
+  and its own launch or product page), not the calendar or article.
 ${a.mission_category === "fragrance" ? `- The world around fragrance counts too: include one or two related picks from houses they like or would like, such as
   candles and home scents, body and hair mists, body wash and lotion, or grooming (mark them "discovery": true).
 ` : ""}- Take initiative: include at least two discovery picks the person never named (a maker, model, note, collab or era that fits their taste), and mark them "discovery": true.${r.liked.length || r.bought.length ? `
@@ -210,7 +214,7 @@ ${leads.map((l) => `  • ${l.title} | ${l.store}${l.price ? ` | ${l.price}` : "
 
 Rules:
 - Only include products you actually found on a page during this search, with that page's URL. Never invent a product, price, date or URL.
-- Except for intel items, the url must be the product's own page: one item you could add to a cart, or one specific vehicle or marketplace listing
+- The url must be the product's own page: one item you could add to a cart, or one specific vehicle or marketplace listing
   (eBay /itm/, Grailed /listings/, StockX product page, a dealer's page for that one car). Never a search results,
   category, collection, inventory, editorial or home page. If you only found a search or category page, leave it out.
 - The title is the exact product name as the page shows it, including model, colorway or variant.
@@ -218,10 +222,10 @@ Rules:
 - drop_at is the release date and time in ISO 8601 if it's upcoming, else null.
 - sizes_in_stock only if the page lists them, else null.
 - traits are short lowercase descriptors of the product (materials, colors, notes, specs, era).
-- Up to 8 products. Aim for 5 or more strong ones; never pad with weak ones.
+- Up to 20 products and releases. Every one should be a strong fit; never pad with weak ones.
 
 End your reply with only this JSON in a \`\`\`json block:
-{"listings":[{"title":"","brand":"","category":"${a.mission_category ?? "other"}","price":null,"market":null,"source":"store name","url":"https://...","image_url":null,"drop_at":null,"sold_out":false,"creator":null,"traits":[],"sizes_in_stock":null,"sku":"","discovery":false,"limited":false,"intel":false,"about":"","pitch":"","text":""}]}`;
+{"listings":[{"title":"","brand":"","category":"${a.mission_category ?? "other"}","price":null,"market":null,"source":"store name","url":"https://...","image_url":null,"drop_at":null,"sold_out":false,"creator":null,"traits":[],"sizes_in_stock":null,"sku":"","kind":"product","discovery":false,"limited":false,"about":"","pitch":"","text":""}]}`;
 }
 
 /** Cleans what Claude returned. Anything without a real web address is dropped. */
@@ -250,7 +254,7 @@ export function cleanListings(raw: unknown, fallbackCategory: string): (Listing 
   const arr = (raw as { listings?: unknown[] })?.listings;
   if (!Array.isArray(arr)) return [];
   const out = [];
-  for (const r of arr.slice(0, 12) as Record<string, unknown>[]) {
+  for (const r of arr.slice(0, 24) as Record<string, unknown>[]) {
     const title = typeof r.title === "string" ? r.title.trim().slice(0, 200) : "";
     const url = typeof r.url === "string" ? r.url.trim() : "";
     let host = "";
@@ -278,7 +282,7 @@ export function cleanListings(raw: unknown, fallbackCategory: string): (Listing 
       sold_out: r.sold_out === true,
       creator: typeof r.creator === "string" && r.creator.trim() ? r.creator.trim().slice(0, 80) : null,
       traits: strs(r.traits, 10).map((t) => t.toLowerCase()),
-      tags: [...(r.limited === true ? ["limited"] : []), ...(r.intel === true ? ["intel"] : [])],
+      tags: [...(r.limited === true ? ["limited"] : []), ...(r.intel === true || r.kind === "reference" ? ["intel"] : []), ...(r.kind === "release" ? ["release"] : [])],
       sizes_in_stock: sizes && sizes.length ? sizes : null,
       sku: typeof r.sku === "string" ? r.sku.trim().slice(0, 60) : "",
       discovery: r.discovery === true,
@@ -317,6 +321,37 @@ export async function restingAfterNothing(agentId: string, now = new Date()): Pr
     `select=finds,created_at&agent_id=eq.${agentId}&trigger=in.(scheduled,manual)&error=is.null&created_at=gt.${EMPTY_SINCE}&order=created_at.desc&limit=${REST_AFTER_EMPTY}`).catch(() => []);
   if (!Array.isArray(last) || last.length < REST_AFTER_EMPTY || last.some((r) => !r || r.finds > 0)) return false;
   return now.getTime() - Date.parse(last[0].created_at) < num("REST_HOURS", 72) * 3600_000;
+}
+
+/** Where a redirect link really goes (one hop), or null. */
+export async function redirectTarget(url: string, fetchFn: typeof fetch = fetch): Promise<string | null> {
+  try {
+    const r = await fetchFn(url, { method: "GET", redirect: "manual", signal: AbortSignal.timeout(5000) });
+    const loc = r.headers.get("location");
+    if (!loc || !/^https:\/\//.test(loc)) return null;
+    const u = new URL(loc);
+    for (const k of [...u.searchParams.keys()]) if (/^(utm_|srsltid|gclid|fbclid)/i.test(k)) u.searchParams.delete(k);
+    return u.toString();
+  } catch { return null; }
+}
+
+/** Finds saved before the product-only rules (Oct 28, 2026) that are really calendars, articles, guides, groups,
+ *  collection pages or broken links: archived, if nobody touched them (not liked, watched, reminded or bought). */
+const PAGE_FIX = "2026-10-28T21:00:00Z";
+export async function scrubPageFinds(limit = 1500) {
+  if (Date.now() > Date.parse("2026-11-04T00:00:00Z")) return { checked: 0, removed: 0 };
+  const rows = await db.select<{ id: string; user_id: string; listing_id: string; listing: { title: string; url: string | null; price: number | null; sku: string | null; sizes_in_stock: string[] | null; drop_at: string | null; tags: string[] } | null }>(
+    "finds", `select=id,user_id,listing_id,listing:listings(title,url,price,sku,sizes_in_stock,drop_at,tags)&status=eq.open&watching=is.false&created_at=lt.${PAGE_FIX}&limit=${limit}`);
+  const reminded = new Set((await db.select<{ user_id: string; listing_id: string }>("release_reminders", "select=user_id,listing_id").catch(() => []))
+    .map((r) => `${r.user_id}|${r.listing_id}`));
+  const bad = rows.filter((f) => f.listing && !reminded.has(`${f.user_id}|${f.listing_id}`)
+    && notFindable({ ...f.listing, url: f.listing.url ?? "" }));
+  for (let i = 0; i < bad.length; i += 100) {
+    const ids = bad.slice(i, i + 100).map((f) => f.id);
+    await db.update("finds", `id=in.(${ids.join(",")})&status=eq.open`, { status: "removed" }).catch((e) => console.error("page finds", e));
+    await db.update("notes", `find_id=in.(${ids.join(",")})&read=eq.false`, { read: true }).catch(() => {});
+  }
+  return { checked: rows.length, removed: bad.length };
 }
 
 /** More finds from Baget's store map: products read straight from stores' catalogs that fit this scout and that this
@@ -434,12 +469,13 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
       }
     }
     const blocked = await blockedDomains();
-    // Pages that aren't one product stay, labeled: "intel" (droplists, calendars, news) or "search" (a results page).
+    // Only products and releases become finds. Calendars, articles, guides, groups and collection pages ("reference")
+    // are dropped here, whatever the scout called them: by the scout's own label, then by address, title and product signals.
     const classify = (raw: unknown) => cleanListings(raw, a.mission_category ?? "other").flatMap((l) => {
+      if (/vertexaisearch\.cloud\.google\.com/.test(l.url)) return [l];   // resolved (and checked) below
       const k = pageKind(l.url, blocked);
-      if (!k) return [];
-      if (k !== "product" && !l.tags.includes(k)) l.tags = [...l.tags.filter((t) => t !== "intel" && t !== "search"), k];
-      return [l];
+      if (!k || k !== "product") return [];
+      return notFindable(l) ? [] : [l];
     });
     let listings = classify(parseJSON(textOf(final)));
     // Merge the second scout's picks. A product both found independently is marked "both" (it ranks higher).
@@ -454,6 +490,16 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
         listings.push(l);
       }
     }
+    // The second scout's links come as Google redirects: follow them to the store's own page (or drop them).
+    listings = (await Promise.all(listings.map(async (l) => {
+      if (!/vertexaisearch\.cloud\.google\.com/.test(l.url)) return l;
+      const real = await redirectTarget(l.url);
+      if (!real) return null;
+      const host = new URL(real).hostname.replace(/^www\./, "");
+      const r = { ...l, url: real, fingerprint: `${host}|${l.fingerprint.split("|").slice(1).join("|")}`.slice(0, 300),
+                  source: /vertexaisearch/.test(l.source) ? host : l.source };
+      return notFindable(r) ? null : r;
+    }))).filter((l): l is NonNullable<typeof l> => l !== null);
     lastHunt.splice(0, lastHunt.length, ...listings.map((l) => `${l.title} | ${l.source} | ${l.price ?? "?"} | ${l.url}`.slice(0, 220)));
     // Made-up links (404) go; then each real one gets a verified product photo.
     const dead = await Promise.all(listings.map((l) => linkIsDead(l.url)));
@@ -735,6 +781,7 @@ export async function maintain() {
   }
   out.restocks = await restockCheck(num("RESTOCK_CHECKS", 15)).catch((e) => { console.error("restocks", e); return null; });
   out.refreshed = await refreshFinds(num("REFRESH_CHECKS", 40)).catch((e) => { console.error("refresh", e); return null; });
+  out.pageFinds = await scrubPageFinds().catch((e) => { console.error("page finds", e); return null; });
   out.scrubbed = await scrubOffers(400).catch((e) => { console.error("scrub", e); return null; });
   out.birthdays = await db.rpc<number>("birthday_nudges", {}).catch((e) => { console.error("birthdays", e); return null; });
   out.prices = await repriceOld(num("PRICE_BACKFILL", 10)).catch((e) => { console.error("prices", e); return null; });
