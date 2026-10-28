@@ -27,9 +27,11 @@ struct HowToView: View {
         Page(id: 3, icon: "bell.badge.fill", tint: Theme.hot, title: "They text you like a friend",
              body: "When something great turns up, your scout texts you a photo and why it's worth a look.",
              tips: ["Only the best ones, a few a day at most", "Change how often in Settings, under Notifications", "Your icon at the top left opens Settings"]),
-        Page(id: 4, icon: "heart.circle.fill", tint: Theme.accent, title: "Share with friends",
-             body: "Add friends by their handle, send them finds and see what they're into.",
-             tips: ["Suggest a find for a friend's taste", "Shake your phone any time to send us feedback"]),
+        Page(id: 4, icon: "heart.circle.fill", tint: Theme.accent, title: "Hunt with friends",
+             body: "Add friends and see how your taste compares.",
+             tips: ["Tap Add in Your circle and type their @username. Set yours in Settings", "Share your taste to see your taste match and swap Taste Cards",
+                    "Add your birthday in Settings, and friends get gift ideas for your taste", "Send a friend a find, and tap what they send you to see it at the store",
+                    "Shake your phone any time to send us feedback"]),
     ]
 
     var body: some View {
