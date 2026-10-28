@@ -30,8 +30,7 @@ struct HowToView: View {
         Page(id: 4, icon: "heart.circle.fill", tint: Theme.accent, title: "Hunt with friends",
              body: "Add friends and see how your taste compares.",
              tips: ["Tap Add in Your circle and type their @username. Set yours in Settings", "Share your taste to see your taste match and swap Taste Cards",
-                    "Add your birthday in Settings, and friends get gift ideas for your taste", "Send a friend a find, and tap what they send you to see it at the store",
-                    "Shake your phone any time to send us feedback"]),
+                    "Add your birthday in Settings, and friends get gift ideas for your taste", "Send a friend a find, and tap what they send you to see it at the store"]),
     ]
 
     var body: some View {
