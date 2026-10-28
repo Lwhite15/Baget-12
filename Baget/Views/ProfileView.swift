@@ -5,26 +5,34 @@ import PhotosUI
 struct AvatarView: View {
     @Environment(AppStore.self) private var store
     var size: CGFloat = 32
+    /// Your ring around it (off where a ring would be too small or out of place).
+    var showRing = true
+    /// While picking in Settings: show this instead of what's saved.
+    var preview: Avatar? = nil
 
     var body: some View {
-        let a = store.state.avatar
-        ZStack {
-            if a.style == .photo, let img = store.avatarImage {
-                Image(uiImage: img).resizable().scaledToFill()
-            } else {
-                AvatarPalette.gradient(a.color)
-                if a.style == .emoji {
-                    Text(a.emoji).font(.system(size: size * 0.54))
+        let a = preview ?? store.state.avatar
+        let ring = showRing ? store.rings?.wearing.flatMap(Ring.init(rawValue:)) : nil
+        RingFrame(ring: ring, size: size) { s in
+            ZStack {
+                if a.style == .photo, let img = store.avatarImage {
+                    Image(uiImage: img).resizable().scaledToFill()
                 } else {
-                    Text(store.initials)
-                        .font(.system(size: size * 0.38, weight: .heavy))
-                        .foregroundStyle(AvatarPalette.ink(a.color))
+                    Rectangle().fill(AvatarFill.style(a.color, palette: store.myPalette))
+                    switch a.style {
+                    case .emoji: Text(a.emoji).font(.system(size: s * 0.54))
+                    case .baget: Image(systemName: a.glyph ?? "sparkles").font(.system(size: s * 0.44, weight: .semibold)).foregroundStyle(AvatarFill.ink(a.color))
+                    default:
+                        Text(store.initials)
+                            .font(.system(size: s * 0.38, weight: .heavy))
+                            .foregroundStyle(AvatarFill.ink(a.color))
+                    }
                 }
             }
+            .frame(width: s, height: s)
+            .clipShape(Circle())
+            .overlay(Circle().strokeBorder(Theme.line))
         }
-        .frame(width: size, height: size)
-        .clipShape(Circle())
-        .overlay(Circle().strokeBorder(Theme.line))
         .accessibilityHidden(true)
     }
 }
@@ -55,6 +63,7 @@ struct ProfileView: View {
             Form {
                 header
                 iconSection
+                if store.isCloud { ringSection }
                 if store.isCloud { nameSection }
                 if store.isCloud { UsernameSection() }
                 if store.isCloud {
@@ -122,10 +131,16 @@ struct ProfileView: View {
             Picker("Icon style", selection: $editing) {
                 Text("Initials").tag(Avatar.Style.initials)
                 Text("Emoji").tag(Avatar.Style.emoji)
+                Text("Baget").tag(Avatar.Style.baget)
                 Text("Photo").tag(Avatar.Style.photo)
             }
             .pickerStyle(.segmented)
             .onChange(of: editing) { _, style in
+                if style == .baget {
+                    store.setAvatarGlyph(store.state.avatar.glyph ?? BagetGlyph.available.first ?? "sparkles")
+                    Analytics.track(.avatarChanged, ["style": "baget"])
+                    return
+                }
                 // Photo only takes effect once there's a photo.
                 if style != .photo || store.state.avatar.photoID != nil {
                     store.setAvatarStyle(style)
@@ -156,6 +171,25 @@ struct ProfileView: View {
                     if firstEmoji(customEmoji) != nil { Button("Use", action: useCustomEmoji).bold() }
                 }
                 colorRow
+            case .baget:
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 5), spacing: 10) {
+                    ForEach(BagetGlyph.available, id: \.self) { g in
+                        let on = store.state.avatar.style == .baget && store.state.avatar.glyph == g
+                        Button {
+                            store.setAvatarGlyph(g)
+                            Analytics.track(.avatarChanged, ["style": "baget", "glyph": g])
+                        } label: {
+                            Image(systemName: g).font(.system(size: 22, weight: .semibold)).foregroundStyle(Theme.gradient)
+                                .frame(maxWidth: .infinity).frame(height: 52)
+                                .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.ink, lineWidth: on ? 2.5 : 0))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(g.replacingOccurrences(of: ".fill", with: "").replacingOccurrences(of: ".", with: " "))
+                    }
+                }
+                .padding(.vertical, 4)
+                colorRow
             case .photo:
                 PhotosPicker(selection: $pick, matching: .images, photoLibrary: .shared()) {
                     Label(store.state.avatar.photoID == nil ? String(localized: "Choose a photo") : String(localized: "Change photo"), systemImage: "photo.on.rectangle")
@@ -178,8 +212,26 @@ struct ProfileView: View {
     }
 
     private var colorRow: some View {
+        VStack(alignment: .leading, spacing: 6) {
         ScrollView(.horizontal) {
             HStack(spacing: 10) {
+                // Your Taste Card's own colors, once you have a card.
+                if store.myPalette.count >= 2 {
+                    Button {
+                        store.setAvatarColor(AvatarPalette.taste)
+                        if editing == .emoji { store.setAvatarStyle(.emoji) }
+                        if editing == .baget { store.setAvatarStyle(.baget) }
+                        Analytics.track(.avatarChanged, ["style": editing.rawValue, "color": "taste"])
+                    } label: {
+                        Circle().fill(AvatarFill.style(AvatarPalette.taste, palette: store.myPalette))
+                            .overlay(Image(systemName: "sparkle").font(.system(size: 11, weight: .bold)).foregroundStyle(.white).shadow(radius: 2))
+                            .frame(width: 32, height: 32)
+                            .overlay(Circle().strokeBorder(Theme.ink, lineWidth: store.state.avatar.color == AvatarPalette.taste ? 2.5 : 0).padding(-4))
+                            .padding(4)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Your taste palette\(store.state.avatar.color == AvatarPalette.taste ? ", selected" : "")")
+                }
                 ForEach(AvatarPalette.all.indices, id: \.self) { i in
                     Button {
                         store.setAvatarColor(i)
@@ -197,6 +249,70 @@ struct ProfileView: View {
             }
         }
         .scrollIndicators(.hidden)
+            if store.myPalette.count >= 2 {
+                Label("The first color is your taste palette, from your Taste Card", systemImage: "sparkle")
+                    .font(.caption).foregroundStyle(Theme.green)
+            }
+        }
+    }
+
+    // MARK: Ring
+
+    private var ringSection: some View {
+        let state = store.rings
+        let owned = Ring.listed.filter { state?.owns($0) ?? false }
+        return Section {
+            ScrollView(.horizontal) {
+                HStack(alignment: .top, spacing: 14) {
+                    ringChoice(nil, label: String(localized: "None"), on: state?.wearing == nil)
+                    ForEach(owned) { r in ringChoice(r, label: r.short, on: state?.wearing == r.rawValue) }
+                    ForEach(Ring.earnable.filter { !(state?.owns($0) ?? false) }) { r in
+                        VStack(spacing: 6) {
+                            RingFrame(ring: r, size: 52) { inner in Circle().fill(Color.white.opacity(0.06)).frame(width: inner, height: inner) }
+                                .opacity(0.35)
+                                .overlay(Image(systemName: "lock.fill").font(.caption).foregroundStyle(Theme.muted))
+                            Text(r.short).font(.caption2).foregroundStyle(Theme.muted).lineLimit(2).multilineTextAlignment(.center)
+                        }
+                        .frame(width: 64)
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+            .scrollIndicators(.hidden)
+            NavigationLink {
+                RingsView()
+            } label: {
+                HStack {
+                    Label("Your rings", systemImage: "circle.circle")
+                    Spacer()
+                    Text("\(owned.filter { $0 != .proGlow }.count) earned").foregroundStyle(Theme.muted)
+                }
+            }
+        } header: { Text("Ring") } footer: {
+            Text("A ring around your icon that friends see. Earn more by using Baget.")
+        }
+        .task { await store.refreshRings() }
+    }
+
+    private func ringChoice(_ r: Ring?, label: String, on: Bool) -> some View {
+        Button {
+            Task { _ = await store.wearRing(r) }
+        } label: {
+            VStack(spacing: 6) {
+                RingFrame(ring: r, size: 52) { inner in
+                    Circle().fill(Color.white.opacity(0.06)).frame(width: inner, height: inner)
+                        .overlay { if r == nil { Image(systemName: "nosign").foregroundStyle(Theme.muted) } }
+                }
+                .padding(3)
+                .overlay(Circle().strokeBorder(Theme.ink, lineWidth: on ? 2 : 0))
+                Text(label).font(.caption2.weight(on ? .bold : .regular)).foregroundStyle(on ? Theme.ink : Theme.muted)
+                    .lineLimit(2).multilineTextAlignment(.center)
+            }
+            .frame(width: 64)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(r?.name ?? String(localized: "No ring"))
+        .accessibilityAddTraits(on ? .isSelected : [])
     }
 
     private func chooseEmoji(_ e: String) {

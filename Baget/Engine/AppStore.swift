@@ -57,6 +57,12 @@ final class AppStore {
     var avatarVersion = 0
     /// Friends' icons (what they picked in Settings), by friend id.
     var friendIcons: [String: Avatar] = [:]
+    /// The ring each friend shows, and their taste palette (for the "taste palette" icon color), by friend id.
+    var friendRings: [String: String] = [:]
+    var friendPalettes: [String: [String]] = [:]
+    /// Your rings (server: my_rings), and a ring you just earned (shown once as a toast).
+    var rings: RingState?
+    var ringEarned: String?
     var pushRegistered = false
     @ObservationIgnored var pulling = false
     @ObservationIgnored var lastSettingsSnapshot: Data?

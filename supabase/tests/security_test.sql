@@ -146,6 +146,41 @@ update public.profiles set birthday = null where id = 'bbbbbbbb-0000-0000-0000-0
 set role authenticated;
 select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
 
+reset role;
+-- ── rings ──
+insert into public.user_rings (user_id, ring) values ('aaaaaaaa-0000-0000-0000-000000000001', 'creator'),
+  ('aaaaaaaa-0000-0000-0000-000000000001', 'founding'), ('bbbbbbbb-0000-0000-0000-000000000002', 'founding');
+select t.err($$insert into public.user_rings (user_id, ring) values ('bbbbbbbb-0000-0000-0000-000000000002', 'creator')$$, 'the creator ring is 1 of 1');
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-0000-0000-000000000002', false);
+select t.err($$insert into public.user_rings (user_id, ring) values ('bbbbbbbb-0000-0000-0000-000000000002', 'streak_7')$$, 'nobody can give themselves a ring');
+select t.err($$update public.profiles set ring = 'creator' where id = 'bbbbbbbb-0000-0000-0000-000000000002'$$, 'nor wear one they don''t own');
+select t.ok(t.n($$select * from public.user_rings where user_id = 'aaaaaaaa-0000-0000-0000-000000000001'$$) = 0, 'and can''t see other people''s rings directly');
+update public.profiles set ring = 'founding' where id = 'bbbbbbbb-0000-0000-0000-000000000002';
+select t.ok((public.my_rings() ->> 'wearing') = 'founding' and (public.my_rings() -> 'owned') @> '[{"ring": "founding"}]', 'wear a ring you own');
+select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
+select t.ok((select ring from public.friend_icons() where friend_id = 'bbbbbbbb-0000-0000-0000-000000000002') = 'founding', 'friends see the ring you wear');
+update public.profiles set ring = 'creator' where id = 'aaaaaaaa-0000-0000-0000-000000000001';
+reset role;
+update public.profiles set plan = 'free' where id = 'bbbbbbbb-0000-0000-0000-000000000002';
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-0000-0000-000000000002', false);
+select t.err($$update public.profiles set ring = 'pro_glow' where id = 'bbbbbbbb-0000-0000-0000-000000000002'$$, 'Pro glow is only for Pro');
+reset role;
+delete from public.user_rings where ring = 'founding' and user_id = 'bbbbbbbb-0000-0000-0000-000000000002';
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
+select t.ok((select ring from public.friend_icons() where friend_id = 'bbbbbbbb-0000-0000-0000-000000000002') is null, 'a ring you no longer own stops showing');
+reset role;
+-- Streaks: 7 days in a row of reacting to finds earns the streak ring.
+insert into public.activity_days (user_id, day) select 'aaaaaaaa-0000-0000-0000-000000000001', current_date - g from generate_series(0, 6) g on conflict do nothing;
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
+select t.ok((public.my_rings() -> 'owned') @> '[{"ring": "streak_7"}]' and (public.my_rings() ->> 'streak')::int >= 6, 'a 7-day streak earns its ring');
+reset role;
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
+
 -- ── server: a sweep finds listings for Larry ──
 reset role;
 set role service_role;
@@ -582,3 +617,4 @@ set role authenticated;
 select t.err($$select * from public.stores$$, 'the store map is private');
 select t.err($$select public.claim_stores('sneakers', 3)$$, 'people cannot claim stores');
 reset role;
+

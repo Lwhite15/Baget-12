@@ -62,7 +62,7 @@ struct IconPickerRows: View {
         .pickerStyle(.segmented)
 
         switch icon.style {
-        case .initials:
+        case .initials, .baget:
             colors
         case .emoji:
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 8), spacing: 8) {

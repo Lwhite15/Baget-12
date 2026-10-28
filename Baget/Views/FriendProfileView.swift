@@ -162,12 +162,14 @@ struct FriendProfileView: View {
     private var hero: some View {
         VStack(spacing: 8) {
             HStack(spacing: -14) {
-                Group {
+                RingFrame(ring: store.friendRings[friend.id].flatMap(Ring.init(rawValue:)), size: 76) { s in
                     if let icon = store.friendIcons[friend.id] {
-                        FriendIconView(friendID: friend.id, name: friend.name, icon: icon, size: 76)
+                        FriendIconView(friendID: friend.id, name: friend.name, icon: icon, size: s)
                             .overlay(Circle().strokeBorder(Theme.bg, lineWidth: 3))
                     } else {
-                        avatar(String(friend.name.first ?? "?").uppercased(), Self.themGradient)
+                        Text(String(friend.name.first ?? "?").uppercased()).font(.system(size: s * 0.4, weight: .heavy)).foregroundStyle(Theme.ink)
+                            .frame(width: s, height: s).background(Circle().fill(Self.themGradient))
+                            .overlay(Circle().strokeBorder(Theme.bg, lineWidth: 3))
                     }
                 }
                 .zIndex(1)

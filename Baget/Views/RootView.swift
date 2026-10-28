@@ -112,6 +112,11 @@ struct RootView: View {
                 .presentationDetents([.large]).presentationBackground(Theme.panel).preferredColorScheme(.dark)
         }
         #endif
+        .onChange(of: store.ringEarned) { _, code in
+            guard let code, let ring = Ring(rawValue: code) else { return }
+            router.say(String(localized: "Ring earned: \(ring.name). Wear it from your icon in Settings."))
+            store.ringEarned = nil
+        }
         .onReceive(NotificationCenter.default.publisher(for: FeedbackCapture.shake)) { _ in
             // Shake anywhere: send feedback with a screenshot of what was on screen.
             guard store.isCloud, router.sheet == nil else { return }

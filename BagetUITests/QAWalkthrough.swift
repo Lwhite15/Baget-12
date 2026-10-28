@@ -194,6 +194,8 @@ final class QAWalkthrough: XCTestCase {
 
         // Profile / settings.
         tap("You: icon, settings and account"); snap("profile", wait: 3)
+        let bagetTab = app.segmentedControls.buttons["Baget"]
+        if bagetTab.waitForExistence(timeout: 3) { bagetTab.tap(); snap("profile-baget-icons", wait: 1.5) }
         app.swipeUp(); snap("profile-scroll-1", wait: 1.5)
         app.swipeUp(); snap("profile-scroll-2", wait: 1.5)
         closeSheet()

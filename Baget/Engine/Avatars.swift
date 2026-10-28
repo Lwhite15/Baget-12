@@ -84,6 +84,12 @@ extension AppStore {
         save()
     }
 
+    func setAvatarGlyph(_ glyph: String) {
+        state.avatar.glyph = glyph
+        state.avatar.style = .baget
+        save()
+    }
+
     func setAvatarColor(_ index: Int) {
         state.avatar.color = index
         if state.avatar.style == .photo { state.avatar.style = .initials }
@@ -225,6 +231,8 @@ enum AvatarPalette {
         LinearGradient(colors: [Color(red: 0.96, green: 0.96, blue: 0.98), Color(red: 0.72, green: 0.78, blue: 0.86)], startPoint: .topLeading, endPoint: .bottomTrailing),
     ]
     /// Dark text on the light tiles, white on the rest.
+    /// The "taste palette" color: your Taste Card's own colors (see AvatarFill).
+    static let taste = 100
     static func ink(_ i: Int) -> Color { [0, 3, 4, 7].contains(i) ? Theme.accentInk : .white }
     static func gradient(_ i: Int) -> LinearGradient { all[(i % all.count + all.count) % all.count] }
 }

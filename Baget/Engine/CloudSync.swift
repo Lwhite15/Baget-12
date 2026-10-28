@@ -61,7 +61,7 @@ struct AgentRow: Decodable {
     let alerts: String?
 }
 
-struct FriendIconRow: Decodable { let friendId: String; let icon: IconRow }
+struct FriendIconRow: Decodable { let friendId: String; let icon: IconRow; let ring: String?; let palette: [String]? }
 
 /// An icon as stored in jsonb. Empty ({}) means the default.
 struct IconRow: Decodable {
@@ -69,6 +69,7 @@ struct IconRow: Decodable {
     let emoji: String?
     let color: Int?
     let photoID: String?
+    let glyph: String?
 
     var avatar: Avatar? {
         guard let s = style, let st = Avatar.Style(rawValue: s) else { return nil }
@@ -77,6 +78,7 @@ struct IconRow: Decodable {
         if let emoji { a.emoji = emoji }
         if let color { a.color = color }
         a.photoID = photoID
+        a.glyph = glyph
         return a
     }
 }
@@ -297,6 +299,9 @@ extension AppStore {
             let icons = (try? await iconsQ) ?? []
             guard isCloud else { return }   // signed out while loading
             friendIcons = Dictionary(icons.compactMap { r in r.icon.avatar.map { (r.friendId, $0) } }, uniquingKeysWith: { a, _ in a })
+            friendRings = Dictionary(icons.compactMap { r in r.ring.map { (r.friendId, $0) } }, uniquingKeysWith: { a, _ in a })
+            friendPalettes = Dictionary(icons.compactMap { r in r.palette.map { (r.friendId, $0) } }, uniquingKeysWith: { a, _ in a })
+            Task { await self.refreshRings() }
             state.reminders = Dictionary(reminders.map { ($0.listingId, ReleaseReminder(remindAt: $0.remindAt, offsetMinutes: $0.offsetMinutes)) },
                                          uniquingKeysWith: { a, _ in a })
 

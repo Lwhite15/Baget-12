@@ -540,12 +540,15 @@ struct AppState: Codable {
 
 /// Your icon: initials or an emoji on a colored tile, or a photo.
 struct Avatar: Codable, Hashable {
-    enum Style: String, Codable, CaseIterable { case initials, emoji, photo }
+    enum Style: String, Codable, CaseIterable { case initials, emoji, photo, baget }
     var style: Style = .initials
     var emoji: String = "🔥"
+    /// A palette index, or AvatarPalette.taste for your Taste Card's colors.
     var color: Int = 0
     /// The photo's id: its file on this phone, and avatars/<id>.jpg in your account's photo folder.
     var photoID: String? = nil
+    /// A Baget icon (style .baget): one of BagetGlyph's symbol names.
+    var glyph: String? = nil
 
     init() {}
     init(from decoder: Decoder) throws {
@@ -554,6 +557,7 @@ struct Avatar: Codable, Hashable {
         emoji = (try? c.decode(String.self, forKey: .emoji)) ?? "🔥"
         color = (try? c.decode(Int.self, forKey: .color)) ?? 0
         photoID = try? c.decode(String.self, forKey: .photoID)
+        glyph = try? c.decode(String.self, forKey: .glyph)
     }
 }
 
