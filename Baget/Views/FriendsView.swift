@@ -139,6 +139,8 @@ struct FriendsView: View {
             if FriendPreview.enabled {
                 var a = Avatar(); a.style = .emoji; a.emoji = "🦍"; a.color = 3
                 var b = Avatar(); b.style = .initials; b.color = 5
+                store.rings = RingState(owned: [.init(ring: "creator", earnedAt: nil), .init(ring: "founding", earnedAt: nil), .init(ring: "first_like", earnedAt: nil)],
+                                        new: [], wearing: "creator", pro: true, streak: 4, friends: 3, palette: ["#335fa0", "#d7ac4b", "#f4f4f4", "#7e694f", "#2a3550"])
                 var c = Avatar(); c.style = .baget; c.glyph = "shoe.fill"; c.color = 4
                 for (i, f) in store.state.friends.prefix(3).enumerated() {
                     store.friendIcons[f.id] = [a, b, c][i]

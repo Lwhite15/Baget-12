@@ -663,7 +663,7 @@ struct BirthdayRow: View {
         VStack(alignment: .leading, spacing: 10) {
             Toggle(isOn: $on) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Label("My birthday", systemImage: "gift").foregroundStyle(Theme.ink)
+                    Text("My birthday").foregroundStyle(Theme.ink)
                     if showsCaption {
                         Text("Month and day only. Friends get a heads-up when it's coming up, with gift ideas for your taste.")
                             .font(.caption).foregroundStyle(Theme.muted).fixedSize(horizontal: false, vertical: true)
