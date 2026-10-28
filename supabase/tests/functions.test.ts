@@ -709,6 +709,37 @@ await test("other stores' prices skip samples, decants and odd low prices", asyn
     assert.equal(SRC.partialSize("Amouage Material 10ml travel", "Amouage Material Eau de Parfum 100ml"), true);
   } finally { delete process.env.SERPER_API_KEY; }
 });
+await test("scouts keep bringing new options that fit what was asked", async () => {
+  const a = { id: "a1", user_id: "u1", name: "Scent Sage", mission_category: "fragrance", mission_custom: null,
+    keywords: ["rare perfume", "niche fragrance", "$250 and up"], traits: ["long-lasting"], makers: [], creators: [], size: "",
+    mode: "alert", voice: "chill", learned: {}, price_note: 0, tz: "America/New_York", settings: {}, last_swept_at: null } as never;
+  assert.equal(M.minBudgetOf(a), 250);
+  assert.equal(M.minBudgetOf({ ...(a as object), keywords: ["over $1,000"] } as never), 1000);
+  assert.equal(M.partialProduct(a, "Twisted Lily x After Hours (5 x 2ml)"), true);
+  assert.equal(M.partialProduct(a, "Givenchy Organza Indecence EdP decant sample"), true);
+  assert.equal(M.partialProduct(a, "Nishane Ani Extrait de Parfum 100 ml"), false);
+  const L = (title: string, price: number) => ({ title, brand: "", category: "fragrance", price, market: null, source: "x", traits: [], tags: [] });
+  assert.equal(M.match(a, L("Rare niche fragrance extrait", 90), [], { own: true }), null, "under their floor");
+  assert.equal(M.match(a, L("Rare niche fragrance mini 5ml", 300), [], { own: true }), null, "a mini");
+  assert.notEqual(M.match(a, L("Rare niche fragrance extrait 100ml", 320), [], { own: true }), null);
+  // From Baget's store map: only products they haven't been shown, a spread of makers, no samples, at their price.
+  const pool = [
+    ...Array.from({ length: 6 }, (_, i) => ({ id: `x${i}`, ...L(`Xerjoff rare niche fragrance extrait ${i}`, 400), brand: "Xerjoff", url: "https://x.example/" + i, image_url: "https://img/x" })),
+    { id: "n1", ...L("Nishane rare niche fragrance extrait", 375), brand: "Nishane", url: "https://n.example/1", image_url: "https://img/n" },
+    { id: "s1", ...L("Rare niche fragrance sample vial", 300), brand: "Sampler", url: "https://s.example/1", image_url: "https://img/s" },
+    { id: "c1", ...L("Rare niche fragrance extrait", 60), brand: "Cheap", url: "https://c.example/1", image_url: "https://img/c" },
+    { id: "old", ...L("Amouage rare niche fragrance extrait", 400), brand: "Amouage", url: "https://a.example/1", image_url: "https://img/a" },
+  ];
+  reset([
+    [/GET .*rest\/v1\/listings/, () => ok(pool)],
+    [/GET .*rest\/v1\/finds/, () => ok([{ listing_id: "old", status: "passed", listing: { brand: "Amouage" } }, { listing_id: "zz", status: "liked", listing: { brand: "Nishane" } }])],
+  ]);
+  const got = await sweep.catalogFinds(a, new Set(), true);
+  const ids = got.map((g: any) => g.listing_id);
+  assert.equal(ids[0], "n1", "a maker they liked comes first");
+  assert.equal(ids.filter((x: string) => x.startsWith("x")).length, 3, "at most 3 per maker");
+  assert.ok(!ids.includes("s1") && !ids.includes("c1") && !ids.includes("old"));
+});
 await test("scouts never hunt adult content", async () => {
   const ADULT = await import("../functions/_shared/adult.ts");
   for (const bad of ["porn", "best sex toys", "OnlyFans creators", "a vibrator", "XXX videos", "hentai figures", "nsfw art prints"])

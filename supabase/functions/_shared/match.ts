@@ -183,6 +183,23 @@ export function budgetOf(a: Agent): number | null {
   const n = parseFloat(m[1].replace(/,/g, "")) * (m[2] ? 1000 : 1);
   return n >= 5 ? n : null;
 }
+/** The least they want to spend on one item, when they said one ("$250 and up", "over $250", "$250+", "at least $250"). */
+export function minBudgetOf(a: Agent): number | null {
+  const text = [a.mission_custom ?? "", ...a.keywords, ...a.traits].join(" ").toLowerCase();
+  const m = text.match(/\$\s?(\d[\d,]*(?:\.\d+)?)\s*(k)?\s*(?:\+|and up|or more|and above|plus)/)
+    ?? text.match(/\b(?:over|above|at least|min(?:imum)?|starting at|from)\s*\$\s?(\d[\d,]*(?:\.\d+)?)\s*(k)?\b/);
+  if (!m) return null;
+  const n = parseFloat(m[1].replace(/,/g, "")) * (m[2] ? 1000 : 1);
+  return n >= 5 ? n : null;
+}
+
+/** Samples, decants, minis and travel sizes: not the product itself, unless that's what they're hunting. */
+const PARTIAL = /\b(samples?|decants?|decanted|vials?|minis?|miniatures?|travel[- ]size|travel spray|atomi[sz]ers?|sampler|discovery set|\d+\s?x\s?\d+(?:\.\d+)?\s?ml|[1-9](?:\.\d+)?\s?ml)\b/i;
+export function partialProduct(a: Agent, title: string): boolean {
+  if (!PARTIAL.test(title)) return false;
+  return !PARTIAL.test([a.mission_custom ?? "", ...a.keywords, ...a.traits].join(" "));
+}
+
 export function intel(a: Agent): number {
   let k = 26 + Math.min(a.keywords.length, 5) * 6 + ((a.size || !sizeRequired(a)) ? 10 : 0) +
     Math.min(a.traits.length, 5) * 6 + Math.min(a.makers.length, 3) * 5 + Math.min(a.creators.length, 2) * 5;
@@ -201,6 +218,10 @@ export function match(a: Agent, l: Listing, photoTags: string[] = [], opts: { ow
   // Their budget is a real limit: well over it is out; a little over (a standout deal) is allowed but ranks lower.
   const cap = budgetOf(a);
   if (cap && l.price && l.price > cap * 1.5) return null;
+  // A floor they set ("$250 and up") is a real limit too.
+  const floor = minBudgetOf(a);
+  if (floor && l.price && l.price < floor * 0.85) return null;
+  if ((a.mission_category === "fragrance" || l.category === "fragrance") && partialProduct(a, l.title)) return null;
   const inf = info(l.category);
   const why: string[] = [];
   let pts = 0;

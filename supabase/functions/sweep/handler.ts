@@ -3,7 +3,7 @@
 //  * Manual (the app, with the user's session): that user's agents, at most once per agent every 10 minutes.
 // Cost guards: agents per run, searches per agent, and sweeps per user per day are all capped (see env below).
 import { isAdultText } from "../_shared/adult.ts";
-import { type Agent, CATEGORIES, GROUP_OF, type Listing, firstName, friendLine, localHour, heldForMorning, kindFor, match, deptOf, langOf, missionLabel, norm } from "../_shared/match.ts";
+import { type Agent, CATEGORIES, GROUP_OF, type Listing, firstName, friendLine, localHour, heldForMorning, kindFor, match, minBudgetOf, deptOf, langOf, missionLabel, norm } from "../_shared/match.ts";
 import { type Block, type ClaudeMessage, HttpError, MODEL, batchResults, batchStatus, claude, db, env, handle, isScheduler, json, logBatchUsage, parseJSON, requireUser, submitBatch, textOf } from "../_shared/platform.ts";
 import { addImages, linkIsDead, pageProduct, smaller, traceImage } from "../_shared/images.ts";
 import { setupDemo, setupShots } from "./demo.ts";
@@ -151,6 +151,7 @@ export function sweepPrompt(a: Agent, today: string, r: Reactions = { liked: [],
     langLine(a),
     "Never search for or include porn, sex toys or any other adult or sexual content.",
     a.price_note > 0 ? `Budget: they usually spend up to $${Math.round(a.price_note)} on one item. Mostly stay under it; a standout deal slightly over is fine.` : "",
+    minBudgetOf(a) ? `Price floor: they want things from $${Math.round(minBudgetOf(a)!)} up. Skip anything well under that.` : "",
     Object.entries(a.learned ?? {}).filter(([, w]) => w < 0).length
       ? `Not into: ${Object.entries(a.learned).filter(([, w]) => w < 0).map(([k]) => k).join(", ")}` : "",
     leaning.length ? `Leaning into lately (from what they liked and bought): ${leaning.join(", ")}` : "",
@@ -174,6 +175,9 @@ How to hunt${depth.deep ? " (leave no stone unturned)" : ""}:
   Vary the wording: model names, nicknames, style codes, colorways, misspellings people use in listings, "deadstock", "NOS", "rare".
 - Look past page one and past the obvious big stores: the best finds are often on a small boutique, a forum post, an auction or a marketplace listing.${depth.fetches > 0 ? `
 - Open the most promising product pages with web_fetch to confirm the price, that it's in stock (and in their size), before you include it.` : ""}
+- Come back with lots of options: at least ${depth.deep ? 15 : 8} different products this run (more is better), every one new to them.
+  Spread them across many makers and stores rather than several from one place.
+- Full-size products only (no samples, decants or minis) unless that's what they asked for.
 - Things available now, releasing soon, or restocking.${DROP_CATEGORIES.has(a.mission_category ?? "") ? `
 - Upcoming and limited releases matter most here. Check release calendars and launch pages (Nike SNKRS upcoming, adidas
   Confirmed, New Balance and Jordan launch pages, retailer raffles like END. Launches and Kith, streetwear droplists, fragrance
@@ -315,6 +319,44 @@ export async function restingAfterNothing(agentId: string, now = new Date()): Pr
   return now.getTime() - Date.parse(last[0].created_at) < num("REST_HOURS", 72) * 3600_000;
 }
 
+/** More finds from Baget's store map: products read straight from stores' catalogs that fit this scout and that this
+ *  person hasn't been shown yet. Strongest first, a few per maker so it's a spread. No texts: they just land in Finds. */
+export async function catalogFinds(a: Candidate, skip: Set<string>, pro: boolean, photoTags: string[] = []) {
+  if (!a.mission_category) return [];
+  const want = pro ? num("CATALOG_FINDS_PRO", 15) : num("CATALOG_FINDS_FREE", 6);
+  if (want <= 0) return [];
+  const since = new Date(Date.now() - 30 * 86400_000).toISOString();
+  const [pool, had] = await Promise.all([
+    db.select<Listing & { id: string; image_url: string | null }>("listings",
+      `select=id,title,brand,category,price,market,source,url,image_url,traits,tags,sizes_in_stock,sold_out,drop_at,creator` +
+      `&category=eq.${a.mission_category}&tags=cs.{catalog}&image_url=not.is.null&url=not.is.null&sold_out=is.false` +
+      `&last_seen_at=gte.${since}&order=last_seen_at.desc&limit=800`),
+    db.select<{ listing_id: string; status: string; listing?: { brand: string } | null }>("finds",
+      `select=listing_id,status,listing:listings(brand)&user_id=eq.${a.user_id}&limit=5000`),
+  ]);
+  const seen = new Set([...had.map((f) => f.listing_id), ...skip]);
+  // Makers they've liked or bought anywhere in Baget rank first.
+  const loved = new Set(had.filter((f) => f.status === "liked" || f.status === "acquired").map((f) => norm(f.listing?.brand ?? "")).filter(Boolean));
+  const dept = deptOf(a.settings);
+  // Anything that fits the mission (category, department, price range, full size) counts; what matches their stated
+  // keywords, brands and styles, and makers they love, comes first.
+  const rank = (l: Listing, score: number) => score + (loved.has(norm(l.brand)) ? 15 : 0);
+  const scored = pool.filter((l) => !seen.has(l.id))
+    .map((l) => ({ l, m: match(a, l, photoTags, { own: true, dept }) }))
+    .filter((x) => x.m && !x.m.notInSize && x.m.score >= 35)
+    .sort((x, y) => rank(y.l, y.m!.score) - rank(x.l, x.m!.score));
+  const perMaker = new Map<string, number>();
+  const out: { listing_id: string; score: number; why: string[] }[] = [];
+  for (const { l, m } of scored) {
+    const k = norm(l.brand || l.source);
+    if ((perMaker.get(k) ?? 0) >= 3) continue;
+    perMaker.set(k, (perMaker.get(k) ?? 0) + 1);
+    out.push({ listing_id: l.id, score: m!.score, why: m!.why.slice(0, 5) });
+    if (out.length >= want) break;
+  }
+  return out;
+}
+
 export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", now = new Date(),
                                  opts: { model?: string; provider?: "serper" | "claude" } = {}) {
   const run = { user_id: a.user_id, agent_id: a.id, trigger, searches: 0, listings: 0, finds: 0, tandem: 0, input_tokens: 0, output_tokens: 0, cache_write_tokens: 0, cache_read_tokens: 0, fetches: 0, error: null as string | null };
@@ -422,7 +464,13 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
     const seen = new Set(listings.map((l) => l.fingerprint));
     for (const l of ebay) if (!seen.has(l.fingerprint)) { listings.push(l); seen.add(l.fingerprint); }
     run.listings = listings.length;
-    if (!listings.length) return run;
+    if (!listings.length) {
+      // Nothing new on the web this time: still bring them more from Baget's store map.
+      const more = await catalogFinds(a, new Set(), a.pro !== false).catch((e) => { console.error("catalog finds", e); return []; });
+      run.finds = more.length ? await db.rpc<number>("record_finds", { p_agent: a.id, p_finds: more }) : 0;
+      if (!more.length) await db.rpc("record_finds", { p_agent: a.id, p_finds: [] });
+      return run;
+    }
 
     const saved = await db.rpc<{ fingerprint: string; id: string; already_found: boolean }[]>("upsert_listings", { p_user: a.user_id, p_listings: listings });
     // Remember which products this person's scouts came across: their For You is built only from these.
@@ -465,6 +513,9 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
         ...(wantNote ? { note: { kind, body: body.slice(0, 480), held: heldForMorning(kind, l, a.tz, quiet, now) } } : {}),
       });
     }
+    // Plus more options from Baget's store map (thousands of products read straight from stores), quietly: no texts.
+    const more = await catalogFinds(a, new Set(saved.map((x) => x.id)), a.pro !== false, photoTags).catch((e) => { console.error("catalog finds", e); return []; });
+    finds.push(...more);
     run.finds = finds.length ? await db.rpc<number>("record_finds", { p_agent: a.id, p_finds: finds }) : 0;
     if (!finds.length) await db.rpc("record_finds", { p_agent: a.id, p_finds: [] });   // still stamps the sweep time
     return run;
