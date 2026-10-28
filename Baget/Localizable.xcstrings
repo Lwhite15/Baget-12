@@ -8214,7 +8214,78 @@
         }
       }
     },
+    "Add friends and see how your taste compares.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajoutez des amis et comparez vos goûts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加好友,看看你们的品味有多合拍。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "친구를 추가하고 서로의 취향이 얼마나 맞는지 확인해 보세요."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加好友，看看你們的品味有多合拍。"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thêm bạn bè và xem gu của bạn hợp nhau đến đâu."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "友だちを追加して、お互いの好みを比べてみましょう。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agrega amigos y mira qué tan parecidos son sus gustos."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "दोस्तों को जोड़ें और देखें कि आपकी पसंद उनसे कितनी मिलती है।"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mag-add ng friends at tingnan kung gaano kayo ka-match sa taste."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เพิ่มเพื่อนและดูว่ารสนิยมของคุณเข้ากันแค่ไหน"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tambah teman dan lihat seberapa cocok selera kalian."
+          }
+        }
+      }
+    },
     "Add friends by their handle, send them finds and see what they're into.": {
+      "extractionState": "stale",
       "localizations": {
         "es": {
           "stringUnit": {
@@ -8490,6 +8561,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "最多可新增 3 張你擁有或想要的單品截圖或照片,探員會從中讀懂你的品味。沒有照片?可以略過。"
+          }
+        }
+      }
+    },
+    "Add your birthday in Settings, and friends get gift ideas for your taste": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajoutez votre anniversaire dans Réglages : vos amis recevront des idées de cadeaux selon vos goûts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在“设置”中添加你的生日,好友就能获得符合你品味的送礼灵感"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설정에서 생일을 추가하면 친구들이 내 취향에 맞는 선물 아이디어를 받아요"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在「設定」中新增生日，朋友就能依你的品味挑選禮物"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thêm sinh nhật của bạn trong Cài đặt, bạn bè sẽ nhận gợi ý quà hợp gu của bạn"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定で誕生日を追加すると、友だちがあなたの好みに合わせたギフトのアイデアを受け取れます"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agrega tu cumpleaños en Ajustes y tus amigos recibirán ideas de regalo según tus gustos"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सेटिंग्स में अपना जन्मदिन जोड़ें, ताकि दोस्तों को आपकी पसंद के हिसाब से गिफ्ट आइडिया मिलें"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I-add ang birthday mo sa Settings, at makakakuha ng gift ideas ang friends mo na swak sa taste mo"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เพิ่มวันเกิดในการตั้งค่า แล้วเพื่อนจะได้ไอเดียของขวัญที่ตรงกับรสนิยมคุณ"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tambahkan ulang tahunmu di Pengaturan, dan teman akan dapat ide kado sesuai seleramu"
           }
         }
       }
@@ -19295,22 +19436,40 @@
     },
     "Detailed hunt setup": {
       "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuración detallada de la búsqueda"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detalyadong setup ng paghahanap"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "Configuration détaillée de la chasse"
           }
         },
-        "zh-Hant": {
+        "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "詳細搜尋設定"
+            "value": "विस्तृत खोज सेटअप"
           }
         },
-        "vi": {
+        "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Thiết lập săn tìm chi tiết"
+            "value": "Setelan perburuan detail"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "詳細なハント設定"
           }
         },
         "ko": {
@@ -19325,10 +19484,10 @@
             "value": "ตั้งค่าการล่าแบบละเอียด"
           }
         },
-        "ja": {
+        "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "詳細なハント設定"
+            "value": "Thiết lập săn tìm chi tiết"
           }
         },
         "zh-Hans": {
@@ -19337,28 +19496,10 @@
             "value": "详细搜寻设置"
           }
         },
-        "hi": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "विस्तृत खोज सेटअप"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Configuración detallada de la búsqueda"
-          }
-        },
-        "fil": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Detalyadong setup ng paghahanap"
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Setelan perburuan detail"
+            "value": "詳細搜尋設定"
           }
         }
       }
@@ -28656,6 +28797,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "立即搜尋"
+          }
+        }
+      }
+    },
+    "Hunt with friends": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chassez entre amis"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "和好友一起搜罗好物"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "친구와 함께 찾아봐요"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "和朋友一起尋寶"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Săn cùng bạn bè"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "友だちといっしょにハント"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Busca con amigos"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "दोस्तों के साथ खोजें"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mag-hunt kasama ang friends"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ล่าของไปกับเพื่อน"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Berburu bareng teman"
           }
         }
       }
@@ -51639,6 +51850,76 @@
         }
       }
     },
+    "Send a friend a find, and tap what they send you to see it at the store": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envoyez une trouvaille à un ami, et touchez celles que vous recevez pour la voir en boutique"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "给好友发送发现,点按收到的发现即可前往商店查看"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "친구에게 발견을 보내고, 받은 발견을 탭하면 매장에서 확인할 수 있어요"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "傳送發現給朋友，點開朋友傳來的發現就能到商店查看"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gửi cho bạn một phát hiện, và chạm vào phát hiện bạn nhận được để xem tại cửa hàng"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "友だちに発見を送ろう。届いた発見をタップすると、ストアで見られます"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envíale un hallazgo a un amigo y toca lo que te envíe para verlo en la tienda"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "दोस्त को कोई खोज भेजें, और जो वे भेजें उस पर टैप करके उसे स्टोर में देखें"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Magpadala ng nahanap sa friend, at i-tap ang ipinadala nila sa iyo para makita ito sa store"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ส่งของที่เจอให้เพื่อน แล้วแตะของที่เพื่อนส่งมาเพื่อดูที่ร้าน"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kirim temuan ke teman, lalu ketuk kiriman mereka untuk melihatnya di toko"
+          }
+        }
+      }
+    },
     "Send feedback": {
       "localizations": {
         "es": {
@@ -53391,6 +53672,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "分享你的品味，查看契合度並交換品味卡。"
+          }
+        }
+      }
+    },
+    "Share your taste to see your taste match and swap Taste Cards": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partagez vos goûts pour voir votre compatibilité et échanger des Taste Cards"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分享你的品味,查看品味匹配度并交换品味卡"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "취향을 공유하면 취향 일치도를 확인하고 Taste Card를 교환할 수 있어요"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分享你的品味，查看品味契合度並交換品味卡"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chia sẻ gu của bạn để xem độ hợp gu và đổi Taste Card"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "好みをシェアすると、好みのマッチ度が分かり、Taste Cardを交換できます"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comparte tus gustos para ver tu afinidad e intercambiar Tarjetas de gustos"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अपनी पसंद शेयर करें, टेस्ट मैच देखें और Taste Cards की अदला-बदली करें"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I-share ang taste mo para makita ang taste match at makipag-swap ng Taste Cards"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "แชร์รสนิยมของคุณเพื่อดูความเข้ากัน และแลก Taste Cards"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bagikan seleramu untuk melihat kecocokan selera dan tukar Taste Cards"
           }
         }
       }
@@ -57812,6 +58163,7 @@
       }
     },
     "Suggest a find for a friend's taste": {
+      "extractionState": "stale",
       "localizations": {
         "es": {
           "stringUnit": {
@@ -59360,22 +59712,40 @@
     },
     "Talk to a scout or open Detailed hunt setup to fine-tune it": {
       "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Habla con un explorador o abre Configuración detallada de la búsqueda para afinarlo"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kausapin ang isang scout o buksan ang Detalyadong setup ng paghahanap para i-fine-tune ito"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "Parle à un éclaireur ou ouvre la configuration détaillée de la chasse pour l'affiner"
           }
         },
-        "zh-Hant": {
+        "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "與偵察員對話,或開啟「詳細搜尋設定」進行微調"
+            "value": "स्काउट से बात करें या उसे फाइन-ट्यून करने के लिए विस्तृत खोज सेटअप खोलें"
           }
         },
-        "vi": {
+        "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Trò chuyện với scout hoặc mở Thiết lập săn tìm chi tiết để tinh chỉnh"
+            "value": "Ngobrol dengan scout atau buka Setelan perburuan detail untuk menyesuaikannya"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スカウトと話すか、「詳細なハント設定」を開いて細かく調整しましょう"
           }
         },
         "ko": {
@@ -59390,10 +59760,10 @@
             "value": "คุยกับสเกาต์ หรือเปิด \"ตั้งค่าการล่าแบบละเอียด\" เพื่อปรับแต่งเพิ่มเติม"
           }
         },
-        "ja": {
+        "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "スカウトと話すか、「詳細なハント設定」を開いて細かく調整しましょう"
+            "value": "Trò chuyện với scout hoặc mở Thiết lập săn tìm chi tiết để tinh chỉnh"
           }
         },
         "zh-Hans": {
@@ -59402,28 +59772,10 @@
             "value": "与侦察员对话,或打开“详细搜寻设置”进行微调"
           }
         },
-        "hi": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "स्काउट से बात करें या उसे फाइन-ट्यून करने के लिए विस्तृत खोज सेटअप खोलें"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Habla con un explorador o abre Configuración detallada de la búsqueda para afinarlo"
-          }
-        },
-        "fil": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kausapin ang isang scout o buksan ang Detalyadong setup ng paghahanap para i-fine-tune ito"
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ngobrol dengan scout atau buka Setelan perburuan detail untuk menyesuaikannya"
+            "value": "與偵察員對話,或開啟「詳細搜尋設定」進行微調"
           }
         }
       }
@@ -59566,6 +59918,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "和偵察員聊聊,告訴它品牌、尺寸或預算"
+          }
+        }
+      }
+    },
+    "Tap Add in Your circle and type their @username. Set yours in Settings": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Touchez Ajouter dans Votre cercle et saisissez son @pseudo. Définissez le vôtre dans Réglages"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在“你的圈子”中点按“添加”,然后输入对方的 @用户名。你的用户名可在“设置”中设置"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내 서클에서 추가를 탭하고 친구의 @사용자이름을 입력하세요. 내 사용자이름은 설정에서 정할 수 있어요"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在「你的圈子」點選「新增」，輸入對方的 @使用者名稱。你的名稱可在「設定」中設定"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chạm Thêm trong Vòng kết nối và nhập @username của họ. Đặt username của bạn trong Cài đặt"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「Your circle」の「追加」をタップして、相手の@usernameを入力してください。自分のユーザーネームは設定で決められます"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toca Agregar en Tu círculo y escribe su @usuario. Define el tuyo en Ajustes"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your circle में जोड़ें पर टैप करें और उनका @username लिखें। अपना username सेटिंग्स में सेट करें"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I-tap ang Add sa Circle Mo at i-type ang @username nila. I-set ang sa iyo sa Settings"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "แตะ “เพิ่ม” ในวงของคุณ แล้วพิมพ์ @username ของเพื่อน ตั้งค่าของคุณได้ที่การตั้งค่า"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ketuk Tambah di Lingkaranmu dan ketik @username mereka. Atur milikmu di Pengaturan"
           }
         }
       }
