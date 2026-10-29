@@ -94,7 +94,12 @@ extension AppStore {
             let a = Agent(id: UUID().uuidString.lowercased(), name: String("\(t.capitalizedFirst) Hunter".prefix(40)), mission: .custom(String(t.prefix(80))),
                           keywords: [], style: StyleProfile(traits: [], makers: [], creators: []), size: "", mode: .ask, voice: .chill)
             deploy(a)
-            return (a.id, String(localized: "I'm on it. I'll text you when I find something."), false)
+            // Tour scouts only look through the app's sample products: say so, so an empty result doesn't look broken.
+            let n = state.finds.filter { $0.agentID == a.id }.count
+            let intro = n == 0
+                ? String(localized: "In the tour, scouts only search sample products, so nothing matched this one. Sign in to send a real scout after it.")
+                : String(localized: "Found \(n) in the tour's sample products. Sign in and a real scout hunts the whole web for this.")
+            return (a.id, intro, false)
         }
         if squadFull {
             syncProblem = scoutLimitMessage
