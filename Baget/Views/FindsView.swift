@@ -51,14 +51,16 @@ struct FindsView: View {
     static func comingSoon(_ item: Item) -> Bool { item.isProduct && (item.dropAt.map { $0 > .now } ?? false) }
 
     /// Passed and bought finds leave the screen; the agents still learn from them and never show them again.
-    private var visible: [Find] {
-        store.state.finds.filter { f in
+    private var visible: [Find] { Self.filter(store.state.finds, show) }
+
+    private static func filter(_ finds: [Find], _ show: FindsShow) -> [Find] {
+        finds.filter { f in
             guard f.status == .open || f.status == .liked, Catalog.item(f.itemID)?.showsInFinds == true else { return false }
             switch show {
             case .all: return true
             case .new: return f.status == .open
             case .saved: return f.status == .liked || f.watching
-            case .upcoming: return Catalog.item(f.itemID).map(Self.comingSoon) == true
+            case .upcoming: return Catalog.item(f.itemID).map(comingSoon) == true
             }
         }
     }
@@ -84,11 +86,15 @@ struct FindsView: View {
         }
     }
 
-    private var groups: [FindGroup] {
+    private var groups: [FindGroup] { groups(visible) }
+
+    private func groups(_ visible: [Find]) -> [FindGroup] {
         var byKey: [String: FindGroup] = [:]
+        var agents: [String: Agent] = [:]
+        for a in store.state.agents { agents[a.id] = a }
         for f in visible {
             guard let item = Catalog.item(f.itemID) else { continue }
-            let agent = store.agent(f.agentID)
+            let agent = agents[f.agentID]
             let key: String
             if let agent {
                 key = agent.id
@@ -106,17 +112,24 @@ struct FindsView: View {
     }
 
     var body: some View {
-        let newTotal = store.state.finds.filter { $0.status == .open && Catalog.item($0.itemID)?.showsInFinds == true }.count
-        let savedTotal = store.state.finds.filter { ($0.status == .liked || ($0.status == .open && $0.watching)) && Catalog.item($0.itemID)?.showsInFinds == true }.count
-        let upcomingTotal = store.state.finds.filter { ($0.status == .open || $0.status == .liked) && Catalog.item($0.itemID).map { Self.comingSoon($0) && $0.showsInFinds } == true }.count
+        // One pass for the counts, one filter, one sort: the body runs whenever anything in the store changes.
+        var newTotal = 0, savedTotal = 0, upcomingTotal = 0
+        for f in store.state.finds where f.status == .open || f.status == .liked {
+            guard let item = Catalog.item(f.itemID), item.showsInFinds else { continue }
+            if f.status == .open { newTotal += 1 }
+            if f.status == .liked || f.watching { savedTotal += 1 }
+            if Self.comingSoon(item) { upcomingTotal += 1 }
+        }
+        let visible = self.visible
         // Grouped by scout for "Best match" and "By scout" in the list; one flat list otherwise, and always in the grid.
         let grouped = !grid && (sort == .best || sort == .scout)
         let flat = grouped ? [] : sorted(visible)
-        let groups = grouped ? self.groups : []
+        let groups = grouped ? self.groups(visible) : []
 
         ScrollViewReader { proxy in
             ScrollView {
-                VStack(alignment: .leading, spacing: 14) {
+                // Lazy, so only the rows on screen are built, even with hundreds of finds.
+                LazyVStack(alignment: .leading, spacing: 14) {
                     header(newTotal: newTotal)
                     filterRow(counts: [.new: newTotal, .saved: savedTotal, .upcoming: upcomingTotal])
                     toolsRow
@@ -132,10 +145,18 @@ struct FindsView: View {
                             ForEach(flat) { f in FindTile(find: f) { opened = f.id }.id(f.id) }
                         }
                     } else if grouped {
-                        ForEach(groups) { g in section(g) }
+                        ForEach(groups) { g in
+                            sectionHeader(g)
+                            if !collapsed.contains(g.id) {
+                                ForEach(g.finds) { f in
+                                    FindListRow(find: f, agent: g.agent, highlighted: highlighted == f.id) { opened = f.id }
+                                        .id(f.id).padding(.top, -6)
+                                }
+                            }
+                        }
                     } else {
-                        VStack(spacing: 8) {
-                            ForEach(flat) { f in FindListRow(find: f, highlighted: highlighted == f.id) { opened = f.id }.id(f.id) }
+                        ForEach(flat) { f in
+                            FindListRow(find: f, highlighted: highlighted == f.id) { opened = f.id }.id(f.id).padding(.top, -6)
                         }
                     }
 
@@ -156,9 +177,10 @@ struct FindsView: View {
                     .preferredColorScheme(.dark)
             }
             .confirmationDialog(clearLabel + "?", isPresented: $confirmClear, titleVisibility: .visible) {
-                Button("\(clearLabel) (\(visible.count))", role: .destructive) {
-                    let n = visible.count
-                    store.removeFinds(visible.map(\.id))
+                Button("\(clearLabel) (\(self.visible.count))", role: .destructive) {
+                    let gone = self.visible
+                    let n = gone.count
+                    store.removeFinds(gone.map(\.id))
                     router.say(n == 1 ? String(localized: "Cleared 1 find") : String(localized: "Cleared \(n) finds"))
                 }
             } message: {
@@ -329,10 +351,9 @@ struct FindsView: View {
         .padding(.top, 4)
     }
 
-    @ViewBuilder private func section(_ g: FindGroup) -> some View {
+    private func sectionHeader(_ g: FindGroup) -> some View {
         let isCollapsed = collapsed.contains(g.id)
-        VStack(alignment: .leading, spacing: 8) {
-            Button {
+        return Button {
                 withAnimation(.snappy) { if isCollapsed { collapsed.remove(g.id) } else { collapsed.insert(g.id) } }
             } label: {
                 HStack(spacing: 10) {
@@ -364,15 +385,6 @@ struct FindsView: View {
             .padding(.top, 6)
             .accessibilityLabel("\(g.title), \(g.finds.count) finds, \(g.newCount) new")
             .accessibilityHint(isCollapsed ? String(localized: "Expands the section") : String(localized: "Collapses the section"))
-
-            if !isCollapsed {
-                VStack(spacing: 8) {
-                    ForEach(g.finds) { f in
-                        FindListRow(find: f, highlighted: highlighted == f.id) { opened = f.id }.id(f.id)
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -396,14 +408,18 @@ struct FindListRow: View {
     @Environment(AppStore.self) private var store
     @Environment(Router.self) private var router
     let find: Find
+    /// Passed in when the list already knows it, so a row doesn't search the store while scrolling.
+    var agent: Agent? = nil
     var highlighted = false
     let open: () -> Void
     @State private var dx: CGFloat = 0
     @State private var askingWhy = false
+    /// Which way this drag is going, decided once at its start: a vertical one belongs to the scroll and is ignored.
+    @State private var swiping: Bool?
 
     var body: some View {
         if let item = Catalog.item(find.itemID) {
-            let agent = store.agent(find.agentID)
+            let agent = self.agent ?? store.agent(find.agentID)
             let discovery = find.why.contains { $0.hasPrefix("Discovery") }
             HStack(alignment: .center, spacing: 11) {
                 ProductThumb(item: item, size: 66)
@@ -444,9 +460,16 @@ struct FindListRow: View {
             .offset(x: dx)
             .onTapGesture(perform: open)
             .simultaneousGesture(
-                DragGesture(minimumDistance: 18)
-                    .onChanged { v in if abs(v.translation.width) > abs(v.translation.height) * 1.4 { dx = v.translation.width * 0.85 } }
+                DragGesture(minimumDistance: 20)
+                    .onChanged { v in
+                        if swiping == nil { swiping = abs(v.translation.width) > abs(v.translation.height) * 1.6 }
+                        guard swiping == true else { return }
+                        dx = v.translation.width * 0.85
+                    }
                     .onEnded { v in
+                        let horizontal = swiping == true
+                        swiping = nil
+                        guard horizontal else { return }
                         let w = v.translation.width
                         if abs(w) > abs(v.translation.height) * 1.4, w > 100, find.status != .liked {
                             withAnimation(.snappy) { dx = 0 }
