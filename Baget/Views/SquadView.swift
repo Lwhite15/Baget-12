@@ -29,13 +29,6 @@ struct SquadView: View {
                 }
                 ForEach(store.state.agents) { a in AgentCard(agent: a) }
 
-                // What your scouts are turning up, as it happens (moved here from Today).
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("LIVE FROM YOUR SQUAD").font(.caption.weight(.bold)).tracking(1).foregroundStyle(Theme.muted)
-                    LiveFeed()
-                }
-                .padding(.top, 6)
-
                 VStack(alignment: .leading, spacing: 8) {
                     Text("SQUAD ACTIVITY").font(.caption.weight(.bold)).tracking(1).foregroundStyle(Theme.muted)
                     if store.state.log.isEmpty { Text("No activity yet.").font(.footnote).foregroundStyle(Theme.muted) }

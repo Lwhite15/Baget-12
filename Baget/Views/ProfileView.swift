@@ -412,9 +412,6 @@ struct ProfileView: View {
             } label: {
                 Label("Friends and privacy", systemImage: "hand.raised")
             }
-            Button { router.sheet = .customizeBar } label: {
-                Label("Customize the Live bar", systemImage: "slider.horizontal.3")
-            }
             // iOS keeps each app's language in Settings; this opens Baget's page there, where Language is the first row.
             Button {
                 if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
