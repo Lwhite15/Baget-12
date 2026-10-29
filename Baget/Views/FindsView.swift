@@ -12,7 +12,7 @@ private struct FindGroup: Identifiable {
 
 enum FindsShow: String, CaseIterable, Identifiable {
     // In the order the filter row shows them.
-    case new = "New", liked = "Liked", watching = "Watching", intel = "Intel", all = "All"
+    case new = "New", liked = "Liked", watching = "Watching", upcoming = "Coming soon", all = "All"
     var id: String { rawValue }
 }
 
@@ -28,6 +28,9 @@ struct FindsView: View {
     /// First-run tips: 0-2 showing, 3 done. Shown once, on your first real finds.
     @AppStorage("baget.findsTips") private var tipStep = 0
 
+    /// A product that hasn't dropped yet (it has a release date still to come).
+    static func comingSoon(_ item: Item) -> Bool { item.isProduct && (item.dropAt.map { $0 > .now } ?? false) }
+
     /// Passed and bought finds leave the screen; the agents still learn from them and never show them again.
     private var visible: [Find] {
         store.state.finds.filter { f in
@@ -37,7 +40,7 @@ struct FindsView: View {
             case .new: return f.status == .open
             case .liked: return f.status == .liked
             case .watching: return f.watching
-            case .intel: return Catalog.item(f.itemID)?.isProduct == false
+            case .upcoming: return Catalog.item(f.itemID).map(Self.comingSoon) == true
             }
         }
     }
@@ -85,14 +88,14 @@ struct FindsView: View {
         let newTotal = store.state.finds.filter { $0.status == .open && Catalog.item($0.itemID)?.showsInFinds == true }.count
         let likedTotal = store.state.finds.filter { $0.status == .liked && Catalog.item($0.itemID)?.showsInFinds == true }.count
         let watchingTotal = store.state.finds.filter { ($0.status == .open || $0.status == .liked) && $0.watching && Catalog.item($0.itemID)?.showsInFinds == true }.count
-        let intelTotal = store.state.finds.filter { ($0.status == .open || $0.status == .liked) && Catalog.item($0.itemID).map { !$0.isProduct && $0.showsInFinds } == true }.count
+        let upcomingTotal = store.state.finds.filter { ($0.status == .open || $0.status == .liked) && Catalog.item($0.itemID).map { Self.comingSoon($0) && $0.showsInFinds } == true }.count
 
         ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     header(newTotal: newTotal, likedTotal: likedTotal)
 
-                    filterRow(counts: [.new: newTotal, .liked: likedTotal, .watching: watchingTotal, .intel: intelTotal])
+                    filterRow(counts: [.new: newTotal, .liked: likedTotal, .watching: watchingTotal, .upcoming: upcomingTotal])
 
                     if groups.isEmpty {
                         EmptyCard(text: emptyText)
@@ -155,7 +158,7 @@ struct FindsView: View {
                         case .watching: return n > 0 ? String(localized: "Watching · \(n)") : String(localized: "Watching")
                         case .all: return String(localized: "All")
                         case .new: return n > 0 ? String(localized: "New · \(n)") : String(localized: "New")
-                        case .intel: return n > 0 ? String(localized: "Intel · \(n)") : String(localized: "Intel")
+                        case .upcoming: return n > 0 ? String(localized: "Coming soon · \(n)") : String(localized: "Coming soon")
                         }
                     }()
                     let on = show == f
@@ -180,7 +183,7 @@ struct FindsView: View {
         case .new: return String(localized: "Clear new")
         case .liked: return String(localized: "Clear liked")
         case .watching: return String(localized: "Clear watching")
-        case .intel: return String(localized: "Clear intel")
+        case .upcoming: return String(localized: "Clear coming soon")
         }
     }
 
@@ -191,7 +194,7 @@ struct FindsView: View {
         case .liked: return String(localized: "Nothing liked yet. Tap ♥ on a find you love and your scouts will find more like it.")
         case .all: return String(localized: "Nothing here yet. Tap Hunt now, or pull down on Today.")
         case .watching: return String(localized: "Nothing on watch. Tap Watch it for me on a find, or Notify me on something sold out, and it shows up here.")
-        case .intel: return String(localized: "No intel right now. Droplists, release calendars and news your scouts come across land here.")
+        case .upcoming: return String(localized: "No drops coming up yet. When your scouts spot a release with a date, it lands here, and you can set a reminder for it.")
         }
     }
 
