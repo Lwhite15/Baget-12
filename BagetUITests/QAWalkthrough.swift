@@ -174,7 +174,9 @@ final class QAWalkthrough: XCTestCase {
 
         // Finds.
         tap("Finds"); snap("finds", wait: 3)
-        for f in ["New", "Liked", "Watching", "Coming soon", "All"] { if tap(f, timeout: 2) { snap("finds-\(f.lowercased())", wait: 1.5) } }
+        for f in ["New", "Saved", "Coming soon", "All"] { if tapContaining(f) { snap("finds-\(f.lowercased())", wait: 1.5) } }
+        // Grid view, then back to the list.
+        if tap("Grid", timeout: 2) { snap("finds-grid", wait: 2); _ = tap("List", timeout: 2) }
         _ = tap("New", timeout: 2)
         // Open the first product card.
         let card = app.scrollViews.firstMatch.images.firstMatch

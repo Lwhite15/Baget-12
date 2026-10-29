@@ -1,9 +1,10 @@
 import SwiftUI
 
-/// One mission's finds: "Fragrance", "Cars", or a custom mission like "high-rise apartments in McLean".
+/// One scout's finds (or a category's, for finds whose scout is gone).
 private struct FindGroup: Identifiable {
     let id: String
     let title: String
+    let subtitle: String?
     let symbol: String
     let agent: Agent?
     var finds: [Find]
@@ -12,8 +13,22 @@ private struct FindGroup: Identifiable {
 
 enum FindsShow: String, CaseIterable, Identifiable {
     // In the order the filter row shows them.
-    case new = "New", liked = "Liked", watching = "Watching", upcoming = "Coming soon", all = "All"
+    case new = "New", saved = "Saved", upcoming = "Coming soon", all = "All"
     var id: String { rawValue }
+}
+
+enum FindsSort: String, CaseIterable, Identifiable {
+    case best, newest, priceLow, priceHigh, scout
+    var id: String { rawValue }
+    var label: String {
+        switch self {
+        case .best: String(localized: "Best match")
+        case .newest: String(localized: "Newest")
+        case .priceLow: String(localized: "Price: low to high")
+        case .priceHigh: String(localized: "Price: high to low")
+        case .scout: String(localized: "By scout")
+        }
+    }
 }
 
 struct FindsView: View {
@@ -21,12 +36,16 @@ struct FindsView: View {
     @Environment(Router.self) private var router
     @State private var show: FindsShow = .new
     @State private var collapsed: Set<String> = []
-    @State private var expanded: String?
     @State private var highlighted: String?
+    @State private var opened: String?
     @State private var sweeping = false
     @State private var confirmClear = false
-    /// First-run tips: 0-2 showing, 3 done. Shown once, on your first real finds.
+    @AppStorage("baget.findsSort") private var sortRaw = FindsSort.best.rawValue
+    @AppStorage("baget.findsGrid") private var grid = false
+    /// The one-line tip: shown until dismissed (any value of 3 or more means done).
     @AppStorage("baget.findsTips") private var tipStep = 0
+
+    private var sort: FindsSort { FindsSort(rawValue: sortRaw) ?? .best }
 
     /// A product that hasn't dropped yet (it has a release date still to come).
     static func comingSoon(_ item: Item) -> Bool { item.isProduct && (item.dropAt.map { $0 > .now } ?? false) }
@@ -38,9 +57,29 @@ struct FindsView: View {
             switch show {
             case .all: return true
             case .new: return f.status == .open
-            case .liked: return f.status == .liked
-            case .watching: return f.watching
+            case .saved: return f.status == .liked || f.watching
             case .upcoming: return Catalog.item(f.itemID).map(Self.comingSoon) == true
+            }
+        }
+    }
+
+    private func sorted(_ finds: [Find]) -> [Find] {
+        func price(_ f: Find) -> Double? { Catalog.item(f.itemID).flatMap { $0.priceKnown && $0.price > 0 ? $0.price : nil } }
+        return finds.sorted { a, b in
+            switch sort {
+            case .newest: return a.foundAt > b.foundAt
+            case .priceLow, .priceHigh:
+                switch (price(a), price(b)) {
+                case let (x?, y?): return sort == .priceLow ? x < y : x > y
+                case (nil, _?): return false
+                case (_?, nil): return true
+                default: return a.score > b.score
+                }
+            case .best, .scout:
+                // New first, then liked; strongest match first; newest first on ties.
+                if (a.status == .open) != (b.status == .open) { return a.status == .open }
+                if a.score != b.score { return a.score > b.score }
+                return a.foundAt > b.foundAt
             }
         }
     }
@@ -50,64 +89,54 @@ struct FindsView: View {
         for f in visible {
             guard let item = Catalog.item(f.itemID) else { continue }
             let agent = store.agent(f.agentID)
-            let mission = agent?.mission
             let key: String
-            let title: String
-            let symbol: String
-            if case .custom(let text)? = mission {
-                key = "custom-" + (agent?.id ?? text)
-                title = text.capitalizedFirst
-                symbol = customMissionInfo.symbol
+            if let agent {
+                key = agent.id
+                byKey[key, default: FindGroup(id: key, title: agent.name, subtitle: agent.mission.label.capitalizedFirst,
+                                              symbol: agent.mission.category?.info.symbol ?? customMissionInfo.symbol, agent: agent, finds: [])].finds.append(f)
             } else {
-                let c = mission?.category ?? item.category
-                key = c.rawValue
-                title = c.info.label
-                symbol = c.info.symbol
+                key = item.category.rawValue
+                byKey[key, default: FindGroup(id: key, title: item.category.info.label, subtitle: nil, symbol: item.category.info.symbol,
+                                              agent: nil, finds: [])].finds.append(f)
             }
-            byKey[key, default: FindGroup(id: key, title: title, symbol: symbol, agent: agent, finds: [])].finds.append(f)
         }
         return byKey.values
-            .map { g in
-                var g = g
-                // New first, then liked; strongest match first; newest first on ties.
-                g.finds.sort { a, b in
-                    if (a.status == .open) != (b.status == .open) { return a.status == .open }
-                    if a.score != b.score { return a.score > b.score }
-                    return a.foundAt > b.foundAt
-                }
-                return g
-            }
-            .sorted { a, b in
-                if a.newCount != b.newCount { return a.newCount > b.newCount }
-                return a.title < b.title
-            }
+            .map { g in var g = g; g.finds = sorted(g.finds); return g }
+            .sorted { a, b in a.newCount != b.newCount ? a.newCount > b.newCount : a.title < b.title }
     }
 
     var body: some View {
-        let groups = self.groups
         let newTotal = store.state.finds.filter { $0.status == .open && Catalog.item($0.itemID)?.showsInFinds == true }.count
-        let likedTotal = store.state.finds.filter { $0.status == .liked && Catalog.item($0.itemID)?.showsInFinds == true }.count
-        let watchingTotal = store.state.finds.filter { ($0.status == .open || $0.status == .liked) && $0.watching && Catalog.item($0.itemID)?.showsInFinds == true }.count
+        let savedTotal = store.state.finds.filter { ($0.status == .liked || ($0.status == .open && $0.watching)) && Catalog.item($0.itemID)?.showsInFinds == true }.count
         let upcomingTotal = store.state.finds.filter { ($0.status == .open || $0.status == .liked) && Catalog.item($0.itemID).map { Self.comingSoon($0) && $0.showsInFinds } == true }.count
+        // Grouped by scout for "Best match" and "By scout" in the list; one flat list otherwise, and always in the grid.
+        let grouped = !grid && (sort == .best || sort == .scout)
+        let flat = grouped ? [] : sorted(visible)
+        let groups = grouped ? self.groups : []
 
         ScrollViewReader { proxy in
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    header(newTotal: newTotal, likedTotal: likedTotal)
+                VStack(alignment: .leading, spacing: 14) {
+                    header(newTotal: newTotal)
+                    filterRow(counts: [.new: newTotal, .saved: savedTotal, .upcoming: upcomingTotal])
+                    toolsRow
 
-                    filterRow(counts: [.new: newTotal, .liked: likedTotal, .watching: watchingTotal, .upcoming: upcomingTotal])
-
-                    if groups.isEmpty {
+                    if visible.isEmpty {
                         EmptyCard(text: emptyText)
+                    } else if tipStep < 3 {
+                        tip
                     }
 
-                    if tipStep < FindsTip.all.count && !visible.isEmpty {
-                        FindsTipCard(step: $tipStep)
-                            .transition(.opacity.combined(with: .move(edge: .top)))
-                    }
-
-                    ForEach(groups) { g in
-                        section(g)
+                    if grid {
+                        LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
+                            ForEach(flat) { f in FindTile(find: f) { opened = f.id }.id(f.id) }
+                        }
+                    } else if grouped {
+                        ForEach(groups) { g in section(g) }
+                    } else {
+                        VStack(spacing: 8) {
+                            ForEach(flat) { f in FindRow(find: f, highlighted: highlighted == f.id) { opened = f.id }.id(f.id) }
+                        }
                     }
 
                     if !store.isCloud {
@@ -119,6 +148,13 @@ struct FindsView: View {
                 .padding(.bottom, 24)
             }
             .scrollIndicators(.hidden)
+            .sheet(item: Binding(get: { opened.map { IdentifiedFind(id: $0) } }, set: { opened = $0?.id })) { x in
+                FindDetailView(findID: x.id)
+                    .environment(store).environment(router)
+                    .presentationDetents([.large])
+                    .presentationBackground(Theme.panel)
+                    .preferredColorScheme(.dark)
+            }
             .confirmationDialog(clearLabel + "?", isPresented: $confirmClear, titleVisibility: .visible) {
                 Button("\(clearLabel) (\(visible.count))", role: .destructive) {
                     let n = visible.count
@@ -130,15 +166,15 @@ struct FindsView: View {
             }
             .onChange(of: router.focusFind, initial: true) { _, id in
                 guard let id else { return }
-                // Make sure it's visible: show everything, open its section and the card, then scroll to it.
+                // Show it: everything, its section open, scrolled to and opened.
                 show = .all
                 if let g = self.groups.first(where: { $0.finds.contains { $0.id == id } }) { collapsed.remove(g.id) }
-                expanded = id
                 router.focusFind = nil
                 Task { @MainActor in
                     try? await Task.sleep(for: .milliseconds(250))
                     withAnimation(.easeInOut(duration: 0.35)) { proxy.scrollTo(id, anchor: .top) }
                     withAnimation { highlighted = id }
+                    opened = id
                     try? await Task.sleep(for: .seconds(2.2))
                     withAnimation(.easeOut(duration: 0.6)) { if highlighted == id { highlighted = nil } }
                 }
@@ -146,7 +182,7 @@ struct FindsView: View {
         }
     }
 
-    /// New, Liked, Watching, Intel, All: one tap each, with counts. Scrolls sideways on small phones.
+    /// New, Saved, Coming soon, All: one tap each, with counts.
     private func filterRow(counts: [FindsShow: Int]) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
@@ -154,8 +190,7 @@ struct FindsView: View {
                     let n = counts[f] ?? 0
                     let label: String = {
                         switch f {
-                        case .liked: return n > 0 ? String(localized: "♥ Liked · \(n)") : String(localized: "♥ Liked")
-                        case .watching: return n > 0 ? String(localized: "Watching · \(n)") : String(localized: "Watching")
+                        case .saved: return n > 0 ? String(localized: "♥ Saved · \(n)") : String(localized: "♥ Saved")
                         case .all: return String(localized: "All")
                         case .new: return n > 0 ? String(localized: "New · \(n)") : String(localized: "New")
                         case .upcoming: return n > 0 ? String(localized: "Coming soon · \(n)") : String(localized: "Coming soon")
@@ -166,23 +201,72 @@ struct FindsView: View {
                         Text(label)
                             .font(.footnote.weight(.semibold))
                             .foregroundStyle(on ? Theme.accentInk : Theme.ink)
-                            .padding(.horizontal, 10).padding(.vertical, 7)
+                            .padding(.horizontal, 11).padding(.vertical, 7)
                             .background { if on { Capsule().fill(Theme.gradient) } else { Capsule().fill(Theme.glass) } }
                             .overlay(Capsule().strokeBorder(on ? Color.clear : Theme.line))
                     }
-                        .buttonStyle(.plain)
-                        .accessibilityAddTraits(show == f ? .isSelected : [])
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(show == f ? .isSelected : [])
                 }
             }
         }
+    }
+
+    /// Sort, and list or grid.
+    private var toolsRow: some View {
+        HStack {
+            Menu {
+                Picker("Sort", selection: $sortRaw) {
+                    ForEach(FindsSort.allCases) { s in Text(s.label).tag(s.rawValue) }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text("Sort:").foregroundStyle(Theme.muted)
+                    Text(sort.label).fontWeight(.semibold).foregroundStyle(Theme.ink)
+                    Image(systemName: "chevron.down").font(.caption2.weight(.bold)).foregroundStyle(Theme.muted)
+                }
+                .font(.footnote)
+            }
+            Spacer()
+            HStack(spacing: 0) {
+                viewButton("list.bullet", on: !grid) { grid = false }
+                viewButton("square.grid.2x2", on: grid) { grid = true }
+            }
+            .background(Theme.glass, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.line))
+        }
+    }
+
+    private func viewButton(_ icon: String, on: Bool, _ action: @escaping () -> Void) -> some View {
+        Button { withAnimation(.snappy) { action() } } label: {
+            Image(systemName: icon).font(.footnote.weight(.semibold))
+                .foregroundStyle(on ? Theme.cyan : Theme.muted)
+                .frame(width: 36, height: 30)
+                .background(on ? Theme.cyan.opacity(0.18) : Color.clear)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(icon == "list.bullet" ? String(localized: "List") : String(localized: "Grid"))
+        .accessibilityAddTraits(on ? .isSelected : [])
+    }
+
+    private var tip: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "heart.fill").font(.caption).foregroundStyle(Theme.hot)
+            Text("Tap the heart (or swipe right) to teach your scout").font(.footnote).foregroundStyle(Theme.ink.opacity(0.9))
+            Spacer(minLength: 4)
+            Button { withAnimation(.snappy) { tipStep = 3 } } label: { Image(systemName: "xmark").font(.caption.weight(.bold)).foregroundStyle(Theme.muted) }
+                .buttonStyle(.plain).accessibilityLabel("Dismiss tip")
+        }
+        .padding(.horizontal, 12).padding(.vertical, 9)
+        .background(Theme.hot.opacity(0.10), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Theme.hot.opacity(0.25)))
     }
 
     private var clearLabel: String {
         switch show {
         case .all: return String(localized: "Clear all")
         case .new: return String(localized: "Clear new")
-        case .liked: return String(localized: "Clear liked")
-        case .watching: return String(localized: "Clear watching")
+        case .saved: return String(localized: "Clear saved")
         case .upcoming: return String(localized: "Clear coming soon")
         }
     }
@@ -191,19 +275,18 @@ struct FindsView: View {
         if store.state.agents.isEmpty { return String(localized: "Set up a scout first, then tap Hunt now.") }
         switch show {
         case .new: return String(localized: "You're all caught up. Your squad keeps hunting in the background.")
-        case .liked: return String(localized: "Nothing liked yet. Tap ♥ on a find you love and your scouts will find more like it.")
+        case .saved: return String(localized: "Nothing saved yet. Tap ♥ on a find you love, or watch one for price drops, and it shows up here.")
         case .all: return String(localized: "Nothing here yet. Tap Hunt now, or pull down on Today.")
-        case .watching: return String(localized: "Nothing on watch. Tap Watch it for me on a find, or Notify me on something sold out, and it shows up here.")
         case .upcoming: return String(localized: "No drops coming up yet. When your scouts spot a release with a date, it lands here, and you can set a reminder for it.")
         }
     }
 
-    private func header(newTotal: Int, likedTotal: Int) -> some View {
-        HStack(alignment: .firstTextBaseline) {
+    private func header(newTotal: Int) -> some View {
+        HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Finds").font(.system(size: 30, weight: .heavy)).tracking(-0.8).foregroundStyle(Theme.ink)
-                Text("\(store.state.agents.count) \(store.state.agents.count == 1 ? String(localized: "scout") : String(localized: "scouts")) hunting · \(newTotal) new · \(likedTotal) liked")
-                    .font(.footnote).foregroundStyle(Theme.muted)
+                Text("\(newTotal) new · \(store.state.agents.count) \(store.state.agents.count == 1 ? String(localized: "scout") : String(localized: "scouts")) hunting")
+                    .font(.footnote).foregroundStyle(Theme.muted).lineLimit(1)
             }
             Spacer()
             Button {
@@ -220,21 +303,26 @@ struct FindsView: View {
                     if res.found == 0 { router.say(String(localized: "Nothing new fits you right now")) }
                 }
             } label: {
-                if sweeping { ProgressView().tint(Theme.accent) } else { IconText(icon: "arrow.clockwise", text: String(localized: "Hunt now")) }
+                Group {
+                    if sweeping { ProgressView().tint(Theme.cyan) } else { Image(systemName: "arrow.clockwise").font(.body.weight(.semibold)).foregroundStyle(Theme.ink) }
+                }
+                .frame(width: 40, height: 40).background(Theme.glass, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Theme.line))
             }
-            .buttonStyle(GhostButton())
-            .frame(width: 118)
+            .buttonStyle(.plain)
             .disabled(sweeping)
+            .accessibilityLabel("Hunt now")
             .accessibilityHint("Your scouts search again right now")
             // Clearing lives behind this menu (and asks first), so it can't be hit by accident.
             Menu {
-                Section("Long-press a find, or tap its trash, to remove one") {
+                Section("Swipe a find left, or tap ✕, to pass on one") {
                     Button(role: .destructive) { confirmClear = true } label: { Label("\(clearLabel)…", systemImage: "trash") }
                         .disabled(visible.isEmpty)
                 }
             } label: {
                 Image(systemName: "ellipsis").font(.body.weight(.semibold)).foregroundStyle(Theme.ink)
-                    .frame(width: 40, height: 40).background(Theme.glass, in: Circle())
+                    .frame(width: 40, height: 40).background(Theme.glass, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Theme.line))
             }
             .accessibilityLabel("More")
         }
@@ -243,20 +331,21 @@ struct FindsView: View {
 
     @ViewBuilder private func section(_ g: FindGroup) -> some View {
         let isCollapsed = collapsed.contains(g.id)
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             Button {
                 withAnimation(.snappy) { if isCollapsed { collapsed.remove(g.id) } else { collapsed.insert(g.id) } }
             } label: {
                 HStack(spacing: 10) {
-                    Image(systemName: g.symbol)
-                        .font(.subheadline.weight(.bold))
-                        .foregroundStyle(Theme.accentInk)
-                        .frame(width: 30, height: 30)
-                        .background(Theme.gradient, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                    Group {
+                        if let a = g.agent { AgentAvatarView(agent: a, size: 30) }
+                        else {
+                            Image(systemName: g.symbol).font(.subheadline.weight(.bold)).foregroundStyle(Theme.accentInk)
+                                .frame(width: 30, height: 30).background(Theme.gradient, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                        }
+                    }
                     VStack(alignment: .leading, spacing: 1) {
                         Text(g.title).font(.headline).foregroundStyle(Theme.ink).lineLimit(1)
-                        Text([g.agent?.name, "\(g.finds.count) \(g.finds.count == 1 ? String(localized: "find") : String(localized: "finds"))"].compactMap { $0 }.joined(separator: " · "))
-                            .font(.caption).foregroundStyle(Theme.muted).lineLimit(1)
+                        if let s = g.subtitle { Text(s).font(.caption).foregroundStyle(Theme.muted).lineLimit(1) }
                     }
                     Spacer()
                     if g.newCount > 0 {
@@ -272,20 +361,198 @@ struct FindsView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .padding(.top, 6)
             .accessibilityLabel("\(g.title), \(g.finds.count) finds, \(g.newCount) new")
             .accessibilityHint(isCollapsed ? String(localized: "Expands the section") : String(localized: "Collapses the section"))
 
             if !isCollapsed {
-                VStack(spacing: 10) {
+                VStack(spacing: 8) {
                     ForEach(g.finds) { f in
-                        FindCard(find: f, highlighted: highlighted == f.id,
-                                 expanded: Binding(get: { expanded == f.id },
-                                                   set: { open in withAnimation(.snappy) { expanded = open ? f.id : nil } }))
-                            .id(f.id)
+                        FindRow(find: f, highlighted: highlighted == f.id) { opened = f.id }.id(f.id)
                     }
                 }
             }
         }
+    }
+}
+
+private struct IdentifiedFind: Identifiable { let id: String }
+
+/// What a find shows at a glance: price · store · match, and its state (sold out, drops soon, watching, reminder).
+private func findMeta(_ store: AppStore, _ find: Find, _ item: Item) -> Text {
+    let known = item.priceKnown && item.price > 0
+    var parts: [String] = [item.source]
+    if known { parts.append(item.priceLabel) }
+    var t = Text(parts.joined(separator: " · ")).foregroundColor(Theme.muted)
+    t = t + Text(" · ").foregroundColor(Theme.muted)
+        + Text("\(find.score)% match").foregroundColor(find.score >= 80 ? Theme.green : find.score >= 60 ? Theme.accent : Theme.muted).fontWeight(.semibold)
+    if store.isSoldOut(item) { t = t + Text(" · ") .foregroundColor(Theme.muted) + Text("Sold out").foregroundColor(Theme.warn) }
+    else if !store.isLive(item) { t = t + Text(" · ").foregroundColor(Theme.muted) + Text(store.whenLabel(item)).foregroundColor(Theme.blue) }
+    return t
+}
+
+/// One find in the list: photo, title, price · store · match, one line on why; ♥ and ✕. Swipe right to like, left to pass.
+struct FindRow: View {
+    @Environment(AppStore.self) private var store
+    @Environment(Router.self) private var router
+    let find: Find
+    var highlighted = false
+    let open: () -> Void
+    @State private var dx: CGFloat = 0
+    @State private var askingWhy = false
+
+    var body: some View {
+        if let item = Catalog.item(find.itemID) {
+            let agent = store.agent(find.agentID)
+            let discovery = find.why.contains { $0.hasPrefix("Discovery") }
+            HStack(alignment: .center, spacing: 11) {
+                ProductThumb(item: item, size: 66)
+                    .overlay(alignment: .topLeading) {
+                        if discovery { Circle().fill(Theme.cyan).frame(width: 11, height: 11).overlay(Circle().strokeBorder(Theme.bg, lineWidth: 2)).offset(x: -3, y: -3).accessibilityLabel("New to you") }
+                    }
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(item.title).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink).lineLimit(2).multilineTextAlignment(.leading)
+                    findMeta(store, find, item).font(.caption).lineLimit(1)
+                    if let reason = find.why.first(where: { !$0.hasPrefix("Discovery") && !$0.isEmpty }) ?? find.why.first {
+                        Text(reason).font(.caption).foregroundStyle(Theme.green.opacity(0.9)).lineLimit(1)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                VStack(spacing: 6) {
+                    if find.status == .liked {
+                        roundButton("heart.fill", filled: false, tint: Theme.hot, label: String(localized: "Liked. Tap to unlike")) { store.unlike(find.id) }
+                    } else {
+                        roundButton("heart.fill", filled: true, tint: Theme.accentInk, label: String(localized: "Like")) { like(agent) }
+                        roundButton("xmark", filled: false, tint: Theme.muted, label: String(localized: "Pass")) { askingWhy = true }
+                    }
+                    if find.watching { Image(systemName: "eye.fill").font(.caption2).foregroundStyle(Theme.warn).accessibilityLabel("Watching") }
+                }
+            }
+            .padding(10)
+            .background {
+                ZStack(alignment: dx > 0 ? .leading : .trailing) {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous).fill(highlighted ? Theme.accent.opacity(0.12) : Theme.glass)
+                    if dx != 0 {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(LinearGradient(colors: [(dx > 0 ? Theme.green : Theme.hot).opacity(min(0.45, Double(abs(dx)) / 220)), .clear],
+                                                 startPoint: dx > 0 ? .leading : .trailing, endPoint: dx > 0 ? .trailing : .leading))
+                    }
+                }
+            }
+            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(highlighted ? Theme.accent.opacity(0.6) : Theme.line))
+            .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .offset(x: dx)
+            .onTapGesture(perform: open)
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 18)
+                    .onChanged { v in if abs(v.translation.width) > abs(v.translation.height) * 1.4 { dx = v.translation.width * 0.85 } }
+                    .onEnded { v in
+                        let w = v.translation.width
+                        if abs(w) > abs(v.translation.height) * 1.4, w > 100, find.status != .liked {
+                            withAnimation(.snappy) { dx = 0 }
+                            like(agent)
+                        } else if abs(w) > abs(v.translation.height) * 1.4, w < -100 {
+                            withAnimation(.easeIn(duration: 0.2)) { dx = -500 }
+                            Task { @MainActor in
+                                try? await Task.sleep(for: .milliseconds(200))
+                                store.pass(find.id, reason: .style)
+                                Analytics.track(.findPassed, ["reason": "swipe", "category": item.category.rawValue])
+                                router.say(String(localized: "Passed. \(agent?.name ?? "Your scout") is learning from that"))
+                                dx = 0
+                            }
+                        } else {
+                            withAnimation(.snappy) { dx = 0 }
+                        }
+                    }
+            )
+            .accessibilityElement(children: .contain)
+            .accessibilityAction(named: "Like") { like(agent) }
+            .accessibilityAction(named: "Pass") { askingWhy = true }
+            .confirmationDialog("What was off? \(agent?.name ?? "Your scout") will learn from it.", isPresented: $askingWhy, titleVisibility: .visible) {
+                ForEach(AppStore.PassReason.allCases) { r in
+                    Button(r.label) {
+                        withAnimation(.snappy) { store.pass(find.id, reason: r) }
+                        Analytics.track(.findPassed, ["reason": r.rawValue, "category": item.category.rawValue])
+                        router.say(r == .later ? String(localized: "Passed") : String(localized: "Passed. \(agent?.name ?? "Your scout") is learning from that"))
+                    }
+                }
+            }
+        }
+    }
+
+    private func like(_ agent: Agent?) {
+        withAnimation(.snappy) { store.like(find.id) }
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        router.say(String(localized: "\(agent?.name ?? "Your scout") will find more like this"))
+    }
+
+    private func roundButton(_ icon: String, filled: Bool, tint: Color, label: String, _ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: icon).font(.footnote.weight(.bold)).foregroundStyle(tint)
+                .frame(width: 36, height: 36)
+                .background { if filled { Circle().fill(Theme.gradient) } else { Circle().fill(Theme.glass) } }
+                .overlay { if !filled { Circle().strokeBorder(Theme.line) } }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
+    }
+}
+
+/// One find in the grid: a big photo with its match, title, price · store, ♥ and ✕.
+struct FindTile: View {
+    @Environment(AppStore.self) private var store
+    @Environment(Router.self) private var router
+    let find: Find
+    let open: () -> Void
+    @State private var askingWhy = false
+
+    var body: some View {
+        if let item = Catalog.item(find.itemID) {
+            let agent = store.agent(find.agentID)
+            VStack(alignment: .leading, spacing: 6) {
+                Button(action: open) {
+                    Plate(item: item, label: item.brand.isEmpty ? item.category.info.label : item.brand, height: 140)
+                        .overlay(alignment: .topTrailing) {
+                            Text("\(find.score)%").font(.caption2.weight(.heavy).monospacedDigit()).foregroundStyle(find.score >= 80 ? Theme.green : Theme.accent)
+                                .padding(.horizontal, 6).padding(.vertical, 3).background(Theme.bg.opacity(0.85), in: Capsule()).padding(7)
+                        }
+                }
+                .buttonStyle(.plain)
+                Text(item.title).font(.footnote.weight(.semibold)).foregroundStyle(Theme.ink)
+                    .lineLimit(2).multilineTextAlignment(.leading).frame(maxWidth: .infinity, minHeight: 34, alignment: .topLeading)
+                Text([item.source, item.priceKnown && item.price > 0 ? item.priceLabel : nil].compactMap { $0 }.joined(separator: " · "))
+                    .font(.caption2).foregroundStyle(Theme.muted).lineLimit(1)
+                HStack(spacing: 6) {
+                    if find.status == .liked {
+                        pill("heart.fill", filled: false, tint: Theme.hot) { store.unlike(find.id) }.accessibilityLabel("Liked. Tap to unlike")
+                    } else {
+                        pill("heart.fill", filled: true, tint: Theme.accentInk) {
+                            withAnimation(.snappy) { store.like(find.id) }
+                            router.say(String(localized: "\(agent?.name ?? "Your scout") will find more like this"))
+                        }.accessibilityLabel("Like")
+                        pill("xmark", filled: false, tint: Theme.muted) { askingWhy = true }.accessibilityLabel("Pass")
+                    }
+                }
+            }
+            .confirmationDialog("What was off? \(agent?.name ?? "Your scout") will learn from it.", isPresented: $askingWhy, titleVisibility: .visible) {
+                ForEach(AppStore.PassReason.allCases) { r in
+                    Button(r.label) {
+                        withAnimation(.snappy) { store.pass(find.id, reason: r) }
+                        Analytics.track(.findPassed, ["reason": r.rawValue, "category": item.category.rawValue])
+                    }
+                }
+            }
+        }
+    }
+
+    private func pill(_ icon: String, filled: Bool, tint: Color, _ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: icon).font(.footnote.weight(.bold)).foregroundStyle(tint)
+                .frame(maxWidth: .infinity).frame(height: 32)
+                .background { if filled { Capsule().fill(Theme.gradient) } else { Capsule().fill(Theme.glass) } }
+                .overlay { if !filled { Capsule().strokeBorder(Theme.line) } }
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -329,35 +596,53 @@ struct ProductThumb: View {
     }
 }
 
-struct FindCard: View {
+/// A find on its own page: a big photo, why it's for you, what it is, prices, Buy, and everything else you can do.
+struct FindDetailView: View {
     @Environment(AppStore.self) private var store
     @Environment(Router.self) private var router
-    let find: Find
-    var highlighted = false
-    @Binding var expanded: Bool
+    @Environment(\.dismiss) private var dismiss
+    let findID: String
     @State private var askingWhy = false
     @State private var reminding = false
     @Environment(\.openURL) private var openURL
 
+    private var find: Find? { store.state.finds.first { $0.id == findID } }
+
     var body: some View {
-        if let item = Catalog.item(find.itemID) {
+        if let find, let item = Catalog.item(find.itemID) {
             let agent = store.agent(find.agentID)
-            VStack(alignment: .leading, spacing: 10) {
-                Button { expanded.toggle() } label: { summary(item) }
-                    .buttonStyle(.plain)
-                    .accessibilityHint(expanded ? String(localized: "Hides details") : String(localized: "Shows details"))
-                if expanded { details(item, agent: agent) }
-                actions(item: item, agent: agent)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    HStack { Spacer(); CloseButton { dismiss() } }
+                    Plate(item: item, label: item.brand.isEmpty ? item.category.info.label : item.brand, height: 290)
+                        .overlay(alignment: .topLeading) {
+                            Text("\(find.score)% MATCH").font(.caption2.weight(.heavy)).tracking(0.6)
+                                .foregroundStyle(find.score >= 80 ? Theme.green : Theme.accent)
+                                .padding(.horizontal, 8).padding(.vertical, 4).background(Theme.bg.opacity(0.85), in: Capsule()).padding(10)
+                        }
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(item.title).font(.title3.weight(.heavy)).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
+                        (Text(item.priceKnown && item.price > 0 ? item.priceLabel : String(localized: "Price at store")).font(.headline).foregroundColor(Theme.ink)
+                         + Text(" · \(item.source)\(agent.map { " · " + String(localized: "from \($0.name)") } ?? "")").font(.subheadline).foregroundColor(Theme.muted))
+                    }
+                    if let reason = find.why.first, !reason.isEmpty {
+                        Label { Text(reason).font(.subheadline).foregroundStyle(Theme.green.opacity(0.95)).fixedSize(horizontal: false, vertical: true) } icon: {
+                            Image(systemName: "heart.fill").foregroundStyle(Theme.green)
+                        }
+                        .padding(12)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Theme.green.opacity(0.08), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.green.opacity(0.25)))
+                    }
+                    if AboutBlock.has(item, brand: true) { AboutBlock(item: item, brand: true) }
+                    actions(find, item: item, agent: agent)
+                    details(find, item, agent: agent)
+                }
+                .padding(.horizontal, 18).padding(.bottom, 30).padding(.top, 10)
             }
-            .padding(12)
-            .background(highlighted ? Theme.accent.opacity(0.12) : Theme.glass, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(highlighted ? Theme.accent.opacity(0.6) : Theme.line))
-            .contentShape(.contextMenuPreview, RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .contextMenu {
-                Button(role: .destructive) { remove() } label: { Label("Remove", systemImage: "trash") }
-            }
+            .scrollIndicators(.hidden)
             .sheet(isPresented: $reminding) {
-                ReminderSheet(item: item, findID: find.id)
+                ReminderSheet(item: item, findID: findID)
                     .environment(store).environment(router)
                     .presentationDetents([.medium, .large])
                     .presentationBackground(Theme.panel)
@@ -366,74 +651,27 @@ struct FindCard: View {
             .confirmationDialog("What was off? \(agent?.name ?? "Your scout") will learn from it.", isPresented: $askingWhy, titleVisibility: .visible) {
                 ForEach(AppStore.PassReason.allCases) { r in
                     Button(r.label) {
-                        store.pass(find.id, reason: r)
+                        store.pass(findID, reason: r)
                         Analytics.track(.findPassed, ["reason": r.rawValue, "category": item.category.rawValue])
                         router.say(r == .later ? String(localized: "Passed") : String(localized: "Passed. \(agent?.name ?? "Your scout") is learning from that"))
+                        dismiss()
                     }
                 }
             }
-        }
-    }
-
-    private func remove() {
-        withAnimation(.snappy) { store.removeFinds([find.id]) }
-        router.say(String(localized: "Removed"))
-    }
-
-    // MARK: Collapsed row
-
-    private func summary(_ item: Item) -> some View {
-        let known = item.priceKnown && item.price > 0
-        let isNew = find.status == .open && find.foundAt > Date.now.addingTimeInterval(-24 * 3600)
-        return HStack(alignment: .top, spacing: 12) {
-            ProductThumb(item: item)
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
-                    if isNew { badge(String(localized: "NEW"), Theme.accent) }
-                    if store.isSoldOut(item) { badge(String(localized: "SOLD OUT"), Theme.warn) }
-                    else if !store.isLive(item) { badge(store.whenLabel(item), Theme.blue) }
-                    if item.tags.contains("limited") { badge(String(localized: "LIMITED"), Theme.hot) }
-                    if find.why.contains(where: { $0.hasPrefix("Discovery") }) { badge(String(localized: "NEW TO YOU"), Theme.cyan) }
-                    if item.isIntel { badge(String(localized: "INTEL"), Theme.cyan) }
-                    if item.isSearchLink { badge(String(localized: "SEARCH"), Theme.cyan) }
-                    if store.reminder(for: item) != nil { Image(systemName: "bell.fill").font(.caption2).foregroundStyle(Theme.blue).accessibilityLabel("Reminder set") }
-                    if find.status == .liked { Image(systemName: "heart.fill").font(.caption).foregroundStyle(Theme.hot) }
-                    Spacer(minLength: 0)
-                    Text("\(find.score)% match")
-                        .font(.caption.weight(.bold).monospacedDigit())
-                        .foregroundStyle(find.score >= 80 ? Theme.green : find.score >= 60 ? Theme.accent : Theme.muted)
-                }
-                Text(item.title)
-                    .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
-                    .lineLimit(2).multilineTextAlignment(.leading)
-                HStack(spacing: 6) {
-                    if let v = DealVerdict.of(item) { VerdictChip(verdict: v) }
-                    Text([item.source, known ? item.priceLabel : nil].compactMap { $0 }.joined(separator: " · "))
-                        .font(.caption).foregroundStyle(Theme.muted).lineLimit(1)
-                    if find.watching { Image(systemName: "eye.fill").font(.caption2).foregroundStyle(Theme.warn).accessibilityLabel("Watching") }
-                }
-                if AboutBlock.has(item, brand: expanded) { AboutBlock(item: item, brand: expanded, lines: expanded ? 6 : 2) }
-                if let reason = find.why.first, !reason.isEmpty {
-                    Text(reason).font(.caption).foregroundStyle(Theme.green.opacity(0.9)).lineLimit(expanded ? 4 : 1)
-                }
+        } else {
+            VStack(spacing: 12) {
+                HStack { Spacer(); CloseButton { dismiss() } }
+                Spacer()
+                Text("This find isn't here anymore.").foregroundStyle(Theme.muted)
+                Spacer()
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(18)
         }
-        .contentShape(Rectangle())
-    }
-
-    private func badge(_ text: String, _ tint: Color) -> some View {
-        Text(text)
-            .font(.system(size: 9, weight: .bold).monospacedDigit())
-            .foregroundStyle(tint)
-            .padding(.horizontal, 6).padding(.vertical, 2)
-            .background(tint.opacity(0.14), in: Capsule())
-            .lineLimit(1)
     }
 
     // MARK: Expanded details
 
-    @ViewBuilder private func details(_ item: Item, agent: Agent?) -> some View {
+    @ViewBuilder private func details(_ find: Find, _ item: Item, agent: Agent?) -> some View {
         let known = item.priceKnown && item.price > 0
         let diff = known && item.market > 0 ? item.market - item.price : 0
         let pct = known && item.market > 0 ? Int(safe: (diff / item.price * 100).rounded()) : 0
@@ -481,6 +719,7 @@ struct FindCard: View {
             if let agent {
                 if find.why.count > 1 {
                     VStack(alignment: .leading, spacing: 4) {
+                        Text("WHY YOUR SCOUT PICKED IT").font(.system(size: 9, weight: .semibold)).tracking(1).foregroundStyle(Theme.muted)
                         ForEach(find.why.dropFirst(), id: \.self) { w in
                             HStack(alignment: .firstTextBaseline, spacing: 7) {
                                 Circle().fill(Theme.accent).frame(width: 5, height: 5)
@@ -498,19 +737,11 @@ struct FindCard: View {
                         .background((take.caution ? Theme.warn : Theme.accent).opacity(0.10), in: RoundedRectangle(cornerRadius: 12))
                 }
             }
-            HStack(spacing: 8) {
-                chip(find.watching ? "eye.fill" : "eye", find.watching ? String(localized: "Watching") : String(localized: "Watch it for me"), tint: find.watching ? Theme.warn : nil) {
-                    store.toggleWatch(find.id)
-                    if !find.watching { router.say(String(localized: "\(agent?.name ?? "Your scout") will text you on a price drop, restock or release")) }
-                }
-                chip("bubble.left.and.text.bubble.right", String(localized: "Ask about this")) { router.sheet = .ask(find.id) }
-            }
             if find.watching {
                 Text("\(agent?.name ?? "Your scout") checks the price twice a day and texts you if it drops\(store.isSoldOut(item) ? ", or the moment it restocks" : !store.isLive(item) ? ", and at release" : "").")
                     .font(.caption).foregroundStyle(Theme.muted)
             }
         }
-        .transition(.opacity.combined(with: .move(edge: .top)))
     }
 
     /// Intel or a results page: what it is, and a way to read it.
@@ -557,58 +788,75 @@ struct FindCard: View {
 
     // MARK: Actions
 
-    @ViewBuilder private func actions(item: Item, agent: Agent?) -> some View {
+    @ViewBuilder private func actions(_ find: Find, item: Item, agent: Agent?) -> some View {
         let link = BuyLink.url(item)
-        HStack(spacing: 8) {
-            if find.status == .liked {
-                chip("heart.fill", String(localized: "Liked"), tint: Theme.hot) { store.unlike(find.id) }
-                    .accessibilityHint("Tap to unlike")
-            } else {
-                chip("heart", String(localized: "Like"), primary: true) {
-                    store.like(find.id)
-                    router.say(String(localized: "\(agent?.name ?? "Your scout") will find more like this"))
+        VStack(spacing: 12) {
+            HStack(spacing: 10) {
+                if item.isProduct && store.isSoldOut(item) && !item.isSample {
+                    // Sold out: watch the store's page and get a text when it's back.
+                    let on = find.watching
+                    bigButton(on ? "bell.fill" : "bell", on ? String(localized: "Watching for a restock") : String(localized: "Notify me when it's back"), primary: !on) {
+                        store.toggleWatch(find.id)
+                        router.say(on ? String(localized: "Stopped watching this one") : String(localized: "I'll check \(item.source) and text you the moment it's back"))
+                    }
+                } else if ReminderSheet.upcoming(item) {
+                    let r = store.reminder(for: item)
+                    bigButton(r == nil ? "bell" : "bell.fill", r == nil ? String(localized: "Remind me") : String(localized: "Reminder set"), primary: r == nil) { reminding = true }
+                } else if let link {
+                    bigButton("arrow.up.right", String(localized: "Buy at \(item.source)"), primary: true) {
+                        Analytics.track(.checkoutOpened, ["category": item.category.rawValue, "toStore": true, "from": "find"])
+                        router.buyOpened = find.id
+                        openURL(BuyLink.tracked(item, from: "find") ?? link)
+                    }
                 }
-                chip("xmark", String(localized: "Pass")) { askingWhy = true }
+                if find.status == .liked {
+                    bigButton("heart.fill", String(localized: "Liked"), primary: false, tint: Theme.hot) { store.unlike(find.id) }
+                } else {
+                    bigButton("heart", String(localized: "Like"), primary: link == nil && !ReminderSheet.upcoming(item)) {
+                        store.like(find.id)
+                        router.say(String(localized: "\(agent?.name ?? "Your scout") will find more like this"))
+                    }
+                }
             }
-            if item.isProduct && store.isSoldOut(item) && !item.isSample {
-                // Sold out: offer to watch the store's page and text when it's back.
-                let on = find.watching
-                chip(on ? "bell.fill" : "bell", on ? String(localized: "Watching") : String(localized: "Notify me"), tint: on ? Theme.warn : nil) {
+            HStack(spacing: 0) {
+                small(find.watching ? "eye.fill" : "eye", find.watching ? String(localized: "Watching") : String(localized: "Watch price"), tint: find.watching ? Theme.warn : nil) {
                     store.toggleWatch(find.id)
-                    router.say(on ? String(localized: "Stopped watching this one") : String(localized: "I'll check \(item.source) and text you the moment it's back"))
+                    if !find.watching { router.say(String(localized: "\(agent?.name ?? "Your scout") will text you on a price drop, restock or release")) }
                 }
-                .accessibilityLabel(on ? String(localized: "Watching for a restock. Tap to stop") : String(localized: "Notify me when it's back in stock"))
-            } else if ReminderSheet.upcoming(item) {
-                let r = store.reminder(for: item)
-                chip(r == nil ? "bell" : "bell.fill", r == nil ? String(localized: "Remind me") : String(localized: "Reminder set"), tint: r == nil ? nil : Theme.blue) { reminding = true }
-                    .accessibilityLabel(r == nil ? String(localized: "Set a release reminder") : String(localized: "Release reminder set. Tap to change"))
-            } else if !item.isProduct, let url = item.url.flatMap(URL.init(string:)) {
-                chip("arrow.up.right", item.isIntel ? "Read" : "See listings") { openURL(url) }
-                    .accessibilityLabel(item.isIntel ? String(localized: "Read it on \(item.source)") : String(localized: "See the listings on \(item.source)"))
-            } else if let link {
-                chip("arrow.up.right", String(localized: "Buy")) {
-                    Analytics.track(.checkoutOpened, ["category": item.category.rawValue, "toStore": true, "from": "find"])
-                    router.buyOpened = find.id
-                    openURL(BuyLink.tracked(item, from: "find") ?? link)
-                }
-                .accessibilityLabel("Buy at \(item.source)")
+                small("bubble.left.and.text.bubble.right", String(localized: "Ask scout")) { router.sheet = .ask(find.id) }
+                small("square.and.arrow.up", String(localized: "Share")) { router.sheet = .share(itemID: item.id, friendID: nil, suggestion: false) }
+                if find.status == .open { small("xmark", String(localized: "Pass")) { askingWhy = true } }
+                else { small("trash", String(localized: "Remove")) { withAnimation { store.removeFinds([find.id]) }; router.say(String(localized: "Removed")); dismiss() } }
             }
-            Spacer(minLength: 0)
-            Button(action: remove) {
-                Image(systemName: "trash").font(.footnote.weight(.semibold)).foregroundStyle(Theme.muted)
-                    .frame(width: 34, height: 34)
-                    .background(Theme.glass, in: Circle())
+            if find.watching {
+                Text("\(agent?.name ?? "Your scout") checks the price twice a day and texts you if it drops\(store.isSoldOut(item) ? ", or the moment it restocks" : !store.isLive(item) ? ", and at release" : "").")
+                    .font(.caption).foregroundStyle(Theme.muted).frame(maxWidth: .infinity, alignment: .leading)
             }
-            .accessibilityLabel("Remove from Finds")
-            Button { router.sheet = .share(itemID: item.id, friendID: nil, suggestion: false) } label: {
-                Image(systemName: "square.and.arrow.up").font(.footnote.weight(.semibold)).foregroundStyle(Theme.ink)
-                    .frame(width: 34, height: 34)
-                    .background(Theme.glass, in: Circle())
-                    .overlay(Circle().strokeBorder(Theme.line))
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Share with friends")
         }
+    }
+
+    private func bigButton(_ icon: String, _ text: String, primary: Bool, tint: Color? = nil, _ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label(text, systemImage: icon).labelStyle(.titleAndIcon)
+                .font(.subheadline.weight(.heavy)).lineLimit(1).minimumScaleFactor(0.8)
+                .foregroundStyle(primary ? Theme.accentInk : (tint ?? Theme.ink))
+                .frame(maxWidth: .infinity).frame(height: 48)
+                .background { if primary { RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.gradient) } else { RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.glass) } }
+                .overlay { if !primary { RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.line) } }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func small(_ icon: String, _ text: String, tint: Color? = nil, _ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: icon).font(.subheadline)
+                Text(text).font(.caption2).lineLimit(1).minimumScaleFactor(0.8)
+            }
+            .foregroundStyle(tint ?? Theme.muted)
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.plain)
     }
 
     private func chip(_ icon: String, _ text: String, primary: Bool = false, tint: Color? = nil, action: @escaping () -> Void) -> some View {
