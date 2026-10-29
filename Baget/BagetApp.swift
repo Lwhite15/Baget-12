@@ -104,6 +104,7 @@ enum ActiveSheet: Identifiable, Hashable {
     case ask(String)
     case pro
     case feedback
+    case newScout, forYou
 
     var id: String {
         switch self {
@@ -122,6 +123,8 @@ enum ActiveSheet: Identifiable, Hashable {
         case .ask(let f): return "ask-\(f)"
         case .pro: return "pro"
         case .feedback: return "feedback"
+        case .newScout: return "newScout"
+        case .forYou: return "forYou"
         }
     }
 }
@@ -139,6 +142,8 @@ final class Router {
     var askBought: String?
     /// A find to scroll to and highlight on the Finds tab (from tapping an item on Live).
     var focusFind: String?
+    /// The scout you just sent from "Send a new scout" (its confirmation card shows on Today).
+    var scoutSent: (agentID: String, intro: String)?
 
     /// Opens an item in Finds. If it isn't there yet, its agent adds it first.
     @MainActor func openInFinds(_ story: Story, store: AppStore) {

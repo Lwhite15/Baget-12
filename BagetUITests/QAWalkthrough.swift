@@ -168,12 +168,13 @@ final class QAWalkthrough: XCTestCase {
         app.swipeUp(); snap("today-scroll-2", wait: 2)
         app.swipeUp(); snap("today-scroll-3", wait: 2)
         app.swipeDown(); app.swipeDown(); app.swipeDown()
-        if tap("Latest", timeout: 3) { snap("today-latest") }
-        _ = tap("For you", timeout: 2)
+        // Send a new scout: the button opens its sheet.
+        if tap("Send a new scout", timeout: 3) { snap("new-scout-sheet", wait: 2); closeSheet() } else { note("MISSING Send a new scout") }
+        if tap("See all", timeout: 2) { snap("for-you-all", wait: 3); tap("Done", timeout: 2) }
 
         // Finds.
         tap("Finds"); snap("finds", wait: 3)
-        for f in ["New", "Liked", "Watching", "Intel", "All"] { if tap(f, timeout: 2) { snap("finds-\(f.lowercased())", wait: 1.5) } }
+        for f in ["New", "Liked", "Watching", "Coming soon", "All"] { if tap(f, timeout: 2) { snap("finds-\(f.lowercased())", wait: 1.5) } }
         _ = tap("New", timeout: 2)
         // Open the first product card.
         let card = app.scrollViews.firstMatch.images.firstMatch

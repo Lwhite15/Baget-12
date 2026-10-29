@@ -8,7 +8,7 @@ struct SquadView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 SectionTitle(text: String(localized: "Your squad"))
-                HuntBox()
+                NewScoutCard(compact: true)
                 HStack(spacing: 8) {
                     Button { router.sheet = .taste } label: { IconText(icon: "brain.head.profile", text: String(localized: "What Baget knows")) }
                         .buttonStyle(GhostButton())
@@ -25,9 +25,16 @@ struct SquadView: View {
                         .buttonStyle(GhostButton())
                 }
                 if store.state.agents.isEmpty {
-                    EmptyCard(text: String(localized: "No scouts yet. Tell Baget what you're hunting above."))
+                    EmptyCard(text: String(localized: "No scouts yet. Tap New scout above and tell it what to hunt."))
                 }
                 ForEach(store.state.agents) { a in AgentCard(agent: a) }
+
+                // What your scouts are turning up, as it happens (moved here from Today).
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("LIVE FROM YOUR SQUAD").font(.caption.weight(.bold)).tracking(1).foregroundStyle(Theme.muted)
+                    LiveFeed()
+                }
+                .padding(.top, 6)
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("SQUAD ACTIVITY").font(.caption.weight(.bold)).tracking(1).foregroundStyle(Theme.muted)

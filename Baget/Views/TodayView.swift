@@ -9,18 +9,17 @@ struct TodayView: View {
         let picks = store.todaysPicks()
         let queue = store.swipeQueue.count
         ScrollView {
+            // One job: what's worth your attention today. (The live feed lives on Squad, the full For You on its own screen.)
             VStack(alignment: .leading, spacing: 20) {
                 greeting
-                PlanStatusPill()
+                if store.plan?.pro != true { PlanStatusPill() }
+                NewScoutCard()
                 if store.isCloud && !store.state.agents.isEmpty && store.state.finds.isEmpty { firstHuntCard }
-                if queue > 0 { swipeCard(queue) }
                 if !picks.isEmpty { todaysDrop(picks) }
-                ForYouSection()
-                HuntBox()
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("LIVE FROM YOUR SQUAD").font(.caption.weight(.bold)).tracking(1).foregroundStyle(Theme.muted)
-                    LiveFeed()
-                }
+                if queue > 0 { swipeCard(queue) }
+                ForYouSection(mode: .today, exclude: Set(picks.map(\.itemID)))
+                Text("That's today. Pull down any time to check for more.")
+                    .font(.caption).foregroundStyle(Theme.muted).frame(maxWidth: .infinity).padding(.top, 4)
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 24)
@@ -38,7 +37,7 @@ struct TodayView: View {
         return VStack(alignment: .leading, spacing: 3) {
             Text(name.map { "\(hello), \($0)" } ?? hello)
                 .font(.system(size: 28, weight: .heavy)).tracking(-0.6).foregroundStyle(Theme.ink)
-            Text("\(store.state.agents.count) \(store.state.agents.count == 1 ? String(localized: "agent") : String(localized: "agents")) hunting for you · \(Date.now.formatted(.dateTime.weekday(.wide).month().day()))")
+            Text("\(store.state.agents.count) \(store.state.agents.count == 1 ? String(localized: "scout") : String(localized: "scouts")) hunting for you · \(Date.now.formatted(.dateTime.weekday(.wide).month().day()))")
                 .font(.footnote).foregroundStyle(Theme.muted)
         }
         .padding(.top, 4)
@@ -114,33 +113,22 @@ struct TodayView: View {
 
     private func swipeCard(_ n: Int) -> some View {
         Button { router.sheet = .swipe } label: {
-            HStack(spacing: 14) {
-                ZStack {
-                    ForEach(0..<min(3, n), id: \.self) { i in
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(i == 0 ? AnyShapeStyle(Theme.gradient) : AnyShapeStyle(Theme.glass))
-                            .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Theme.line))
-                            .frame(width: 34, height: 44)
-                            .rotationEffect(.degrees(Double(i) * -8))
-                            .offset(x: CGFloat(i) * -4)
-                            .zIndex(Double(3 - i))
-                    }
-                }
-                .frame(width: 50)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Swipe through \(n) new \(n == 1 ? String(localized: "find") : String(localized: "finds"))").font(.headline).foregroundStyle(Theme.ink)
-                    Text("Right to like, left to pass, up to buy. Every swipe teaches your squad.")
-                        .font(.caption).foregroundStyle(Theme.muted).multilineTextAlignment(.leading)
-                }
+            HStack(spacing: 10) {
+                RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Theme.gradient).frame(width: 22, height: 22)
+                Text(n == 1 ? String(localized: "Swipe 1 more find") : picksShown ? String(localized: "Swipe \(n) more finds") : String(localized: "Swipe through \(n) new finds"))
+                    .font(.subheadline.weight(.bold)).foregroundStyle(Theme.ink)
                 Spacer(minLength: 0)
-                Image(systemName: "chevron.right").foregroundStyle(Theme.muted)
+                Image(systemName: "arrow.right").font(.subheadline.weight(.bold)).foregroundStyle(Theme.cyan)
             }
-            .padding(14)
-            .background(Theme.accent.opacity(0.10), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Theme.accent.opacity(0.4)))
+            .padding(.horizontal, 14).padding(.vertical, 12)
+            .background(Theme.accent.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.accent.opacity(0.3)))
         }
         .buttonStyle(.plain)
+        .accessibilityHint("Right to like, left to pass, up to buy")
     }
+
+    private var picksShown: Bool { !store.todaysPicks().isEmpty }
 
     private func todaysDrop(_ picks: [Find]) -> some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -183,22 +171,44 @@ struct TodayView: View {
 }
 
 /// "For You": always-on personal picks. Ranked by what you like, refreshed daily, sharpened by every heart and X.
+enum ForYouMode { case today, full }
+
 struct ForYouSection: View {
     @Environment(AppStore.self) private var store
     @Environment(Router.self) private var router
     @Environment(\.openURL) private var openURL
     @State private var limit = 24
+    @State private var category: Category?
+    /// Today: a short preview (6, nothing already in Today's Drop) with "See all". Full: everything, with filters.
+    var mode: ForYouMode = .full
+    var exclude: Set<String> = []
 
     var body: some View {
-        let picks = store.forYou.filter { Catalog.item($0.id) != nil }
+        let all = store.forYou.filter { Catalog.item($0.id) != nil && !exclude.contains($0.id) }
+        let cats = Array(Set(all.compactMap { Catalog.item($0.id)?.category })).sorted { $0.info.label < $1.info.label }
+        let filtered = all.filter { p in category.map { Catalog.item(p.id)?.category == $0 } ?? true }
+        let picks = mode == .today ? Array(filtered.prefix(6)) : filtered
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("For You").font(.title3.weight(.heavy)).foregroundStyle(Theme.ink)
-                Spacer()
+            if mode == .today {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("For You").font(.title3.weight(.heavy)).foregroundStyle(Theme.ink)
+                    Spacer()
+                    if all.count > 6 { Button("See all") { router.sheet = .forYou }.font(.subheadline.weight(.semibold)).foregroundStyle(Theme.cyan) }
+                }
+                Text("Ranked by your taste. Every ♥ and ✕ sharpens it.").font(.caption).foregroundStyle(Theme.muted)
+            } else {
+                Text("Picked from everything Baget's scouts have found, ranked by your taste. Every ♥ and ✕ sharpens it.")
+                    .font(.caption).foregroundStyle(Theme.muted)
+                if !store.tasteTop.isEmpty { tasteStrip }
+                if cats.count > 1 {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 7) {
+                            filterChip(nil, String(localized: "All"))
+                            ForEach(cats, id: \.self) { c in filterChip(c, c.info.label) }
+                        }
+                    }
+                }
             }
-            Text("Picked from everything Baget's scouts have found, ranked by your taste. Every ♥ and ✕ sharpens it.")
-                .font(.caption).foregroundStyle(Theme.muted)
-            if !store.tasteTop.isEmpty { tasteStrip }
 
             if picks.isEmpty {
                 if store.forYouLoadedAt == nil {
@@ -216,9 +226,14 @@ struct ForYouSection: View {
                         if let item = Catalog.item(p.id) { card(p, item) }
                     }
                 }
-                if picks.count >= limit - 2 && limit < 60 {
+                if mode == .today {
+                    if all.count > 6 {
+                        Button { router.sheet = .forYou } label: { Text("See all For You").frame(maxWidth: .infinity) }
+                            .buttonStyle(GhostButton())
+                    }
+                } else if store.forYou.count >= limit - 2 && limit < 120 {
                     Button {
-                        limit = min(60, limit + 24)
+                        limit = min(120, limit + 24)
                         Task { await store.loadForYou(limit: limit) }
                     } label: { Text("Show more").frame(maxWidth: .infinity) }
                     .buttonStyle(GhostButton())
@@ -234,6 +249,18 @@ struct ForYouSection: View {
     }
 
     private var columns: [GridItem] { [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)] }
+
+    private func filterChip(_ c: Category?, _ label: String) -> some View {
+        let on = category == c
+        return Button { withAnimation(.snappy) { category = c } } label: {
+            Text(label).font(.footnote.weight(.semibold))
+                .foregroundStyle(on ? Theme.accentInk : Theme.ink)
+                .padding(.horizontal, 11).padding(.vertical, 7)
+                .background { if on { Capsule().fill(Theme.gradient) } else { Capsule().fill(Theme.glass) } }
+                .overlay(Capsule().strokeBorder(on ? Color.clear : Theme.line))
+        }
+        .buttonStyle(.plain)
+    }
 
     /// What the ranking has learned, strongest first. Tap to see and edit everything Baget knows.
     private var tasteStrip: some View {
@@ -324,96 +351,6 @@ struct ForYouSection: View {
             }
         }
         .glassCard()
-    }
-}
-
-/// "What are you hunting?" Type or dictate one sentence; an agent is created and starts searching.
-struct HuntBox: View {
-    @Environment(AppStore.self) private var store
-    @Environment(Router.self) private var router
-    @State private var text = ""
-    @State private var working = false
-    @State private var result: (agentID: String, intro: String)?
-    @FocusState private var focused: Bool
-
-    private static let examples = ["oud fragrances like Frederic Malle", "a 992 GT3 under $200k", String(localized: "Supreme box logo in size L"),
-                                   "mid-century walnut credenza", String(localized: "Jordan 1s in mocha, size 10.5"), "vintage Rolex Explorer"]
-    @State private var example = HuntBox.examples.randomElement()!
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("What are you hunting?").font(.headline).foregroundStyle(Theme.ink)
-            HStack(spacing: 8) {
-                Image(systemName: "sparkle.magnifyingglass").foregroundStyle(Theme.cyan)
-                TextField("e.g. \(example)", text: $text, axis: .vertical)
-                    .lineLimit(1...3)
-                    .submitLabel(.go)
-                    .focused($focused)
-                    .onSubmit(go)
-                    .disabled(working)
-                    // Return starts the hunt (a multi-line field would otherwise just add a new line).
-                    .onChange(of: text) { _, t in
-                        if t.contains("\n") {
-                            text = t.replacingOccurrences(of: "\n", with: " ").trimmingCharacters(in: .whitespaces)
-                            if text.count >= 2 { go() } else { focused = false }
-                        }
-                    }
-                if working {
-                    ProgressView().tint(Theme.cyan)
-                } else if !text.trimmingCharacters(in: .whitespaces).isEmpty {
-                    Button(action: go) {
-                        Image(systemName: "arrow.up").font(.subheadline.weight(.bold)).foregroundStyle(Theme.accentInk)
-                            .frame(width: 32, height: 32).background(Theme.gradient, in: Circle())
-                    }
-                    .accessibilityLabel("Start hunting")
-                }
-            }
-            .padding(12)
-            .background(Theme.bg.opacity(0.6), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(focused ? Theme.accent.opacity(0.7) : Theme.line))
-            if focused && !working {
-                HStack {
-                    Spacer()
-                    Button("Cancel") { text = ""; focused = false }
-                        .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.accent)
-                }
-            }
-            if let r = result, let a = store.agent(r.agentID) {
-                HStack(alignment: .top, spacing: 10) {
-                    AgentAvatarView(agent: a, size: 34)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("\(a.name) is on it").font(.subheadline.weight(.bold)).foregroundStyle(Theme.ink)
-                        Text(r.intro).font(.caption).foregroundStyle(Theme.muted)
-                        Button("Tell it more") { router.sheet = .chat(a.id) }.font(.caption.weight(.semibold)).foregroundStyle(Theme.accent)
-                    }
-                    Spacer(minLength: 0)
-                    Button { result = nil } label: { Image(systemName: "xmark").font(.caption).foregroundStyle(Theme.muted) }
-                        .accessibilityLabel("Dismiss")
-                }
-                .padding(10)
-                .background(Theme.green.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                .transition(.opacity.combined(with: .move(edge: .top)))
-            } else {
-                Text("Type or say it in your own words. Baget builds the right scout and it starts searching right away.")
-                    .font(.caption).foregroundStyle(Theme.muted)
-            }
-        }
-        .glassCard()
-    }
-
-    private func go() {
-        let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard t.count >= 2, !working else { return }
-        focused = false
-        working = true
-        Task { @MainActor in
-            defer { working = false }
-            guard let r = await store.hunt(t) else { return }
-            text = ""
-            example = HuntBox.examples.randomElement()!
-            withAnimation { result = (r.agentID, r.intro) }
-            if r.needsSize { router.sheet = .chat(r.agentID) }   // its first question will be your size
-        }
     }
 }
 

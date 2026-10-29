@@ -41,6 +41,8 @@ struct RootView: View {
                 case .taste: TasteView()
                 case .pro: PaywallView()
                 case .feedback: FeedbackView()
+                case .newScout: NewScoutSheet()
+                case .forYou: ForYouScreen()
                 case .ask(let fid):
                     if let f = store.state.finds.first(where: { $0.id == fid }) {
                         // The scout that found it may have been deleted: ask whichever current scout fits best.
