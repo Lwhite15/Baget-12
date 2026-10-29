@@ -379,7 +379,7 @@ struct FindsView: View {
 private struct IdentifiedFind: Identifiable { let id: String }
 
 /// What a find shows at a glance: price · store · match, and its state (sold out, drops soon, watching, reminder).
-private func findMeta(_ store: AppStore, _ find: Find, _ item: Item) -> Text {
+@MainActor private func findMeta(_ store: AppStore, _ find: Find, _ item: Item) -> Text {
     let known = item.priceKnown && item.price > 0
     var parts: [String] = [item.source]
     if known { parts.append(item.priceLabel) }
