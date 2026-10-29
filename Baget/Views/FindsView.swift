@@ -111,15 +111,20 @@ struct FindsView: View {
             .sorted { a, b in a.newCount != b.newCount ? a.newCount > b.newCount : a.title < b.title }
     }
 
+    private static func counts(_ finds: [Find]) -> (Int, Int, Int) {
+        var new = 0, saved = 0, upcoming = 0
+        for f in finds where f.status == .open || f.status == .liked {
+            guard let item = Catalog.item(f.itemID), item.showsInFinds else { continue }
+            if f.status == .open { new += 1 }
+            if f.status == .liked || f.watching { saved += 1 }
+            if comingSoon(item) { upcoming += 1 }
+        }
+        return (new, saved, upcoming)
+    }
+
     var body: some View {
         // One pass for the counts, one filter, one sort: the body runs whenever anything in the store changes.
-        var newTotal = 0, savedTotal = 0, upcomingTotal = 0
-        for f in store.state.finds where f.status == .open || f.status == .liked {
-            guard let item = Catalog.item(f.itemID), item.showsInFinds else { continue }
-            if f.status == .open { newTotal += 1 }
-            if f.status == .liked || f.watching { savedTotal += 1 }
-            if Self.comingSoon(item) { upcomingTotal += 1 }
-        }
+        let (newTotal, savedTotal, upcomingTotal) = Self.counts(store.state.finds)
         let visible = self.visible
         // Grouped by scout for "Best match" and "By scout" in the list; one flat list otherwise, and always in the grid.
         let grouped = !grid && (sort == .best || sort == .scout)
