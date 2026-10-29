@@ -54,10 +54,17 @@ Reply with only JSON: an object mapping each id to its translation.
             json={"model": MODEL, "max_tokens": 16000, "messages": [{"role": "user", "content": prompt}]})
         if r.status_code in (429, 500, 502, 503, 529):
             time.sleep(10 * (attempt + 1)); continue
-        r.raise_for_status()
+        if not r.ok:
+            # Shown in the run's summary; the strings are retried on the next run.
+            print(f"::warning::{lang_name}: translation request failed ({r.status_code}): {r.text[:200]}")
+            return {}
         text = "".join(b.get("text", "") for b in r.json()["content"] if b.get("type") == "text")
         m = re.search(r"\{.*\}", text, re.S)
-        return json.loads(m.group(0)) if m else {}
+        try:
+            return json.loads(m.group(0)) if m else {}
+        except json.JSONDecodeError as e:
+            print(f"::warning::{lang_name}: couldn't read the translations ({e}); retrying next run")
+            return {}
     return {}
 
 def main():
