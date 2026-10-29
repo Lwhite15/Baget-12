@@ -135,7 +135,7 @@ struct FindsView: View {
                         ForEach(groups) { g in section(g) }
                     } else {
                         VStack(spacing: 8) {
-                            ForEach(flat) { f in FindRow(find: f, highlighted: highlighted == f.id) { opened = f.id }.id(f.id) }
+                            ForEach(flat) { f in FindListRow(find: f, highlighted: highlighted == f.id) { opened = f.id }.id(f.id) }
                         }
                     }
 
@@ -368,7 +368,7 @@ struct FindsView: View {
             if !isCollapsed {
                 VStack(spacing: 8) {
                     ForEach(g.finds) { f in
-                        FindRow(find: f, highlighted: highlighted == f.id) { opened = f.id }.id(f.id)
+                        FindListRow(find: f, highlighted: highlighted == f.id) { opened = f.id }.id(f.id)
                     }
                 }
             }
@@ -392,7 +392,7 @@ private func findMeta(_ store: AppStore, _ find: Find, _ item: Item) -> Text {
 }
 
 /// One find in the list: photo, title, price · store · match, one line on why; ♥ and ✕. Swipe right to like, left to pass.
-struct FindRow: View {
+struct FindListRow: View {
     @Environment(AppStore.self) private var store
     @Environment(Router.self) private var router
     let find: Find
