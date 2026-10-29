@@ -16140,58 +16140,10 @@
     },
     "Clear coming soon": {
       "localizations": {
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Effacer les sorties à venir"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "清除即將推出"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "출시 예정 지우기"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Xóa mục sắp ra mắt"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "近日発売をクリア"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "आने वाले ड्रॉप्स हटाएँ"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "清空即将发售"
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Borrar próximamente"
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ล้างรายการเร็วๆ นี้"
           }
         },
         "fil": {
@@ -16200,10 +16152,58 @@
             "value": "I-clear ang Coming soon"
           }
         },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effacer les sorties à venir"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आने वाले ड्रॉप्स हटाएँ"
+          }
+        },
         "id": {
           "stringUnit": {
             "state": "translated",
             "value": "Hapus yang segera hadir"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近日発売をクリア"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "출시 예정 지우기"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ล้างรายการเร็วๆ นี้"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xóa mục sắp ra mắt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空即将发售"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除即將推出"
           }
         }
       }
@@ -17197,58 +17197,10 @@
     },
     "Coming soon": {
       "localizations": {
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bientôt disponible"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "即將推出"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "출시 예정"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sắp ra mắt"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "近日発売"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "जल्द आ रहा है"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "即将发售"
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Próximamente"
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "เร็วๆ นี้"
           }
         },
         "fil": {
@@ -17257,68 +17209,68 @@
             "value": "Coming soon"
           }
         },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bientôt disponible"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जल्द आ रहा है"
+          }
+        },
         "id": {
           "stringUnit": {
             "state": "translated",
             "value": "Segera hadir"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近日発売"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "출시 예정"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เร็วๆ นี้"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sắp ra mắt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "即将发售"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "即將推出"
           }
         }
       }
     },
     "Coming soon · %lld": {
       "localizations": {
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bientôt disponible · %lld"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "即將推出 · %lld"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "출시 예정 · %lld"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sắp ra mắt · %lld"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "近日発売 · %lld"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "जल्द आ रहा है · %lld"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "即将发售 · %lld"
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Próximamente · %lld"
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "เร็วๆ นี้ · %lld"
           }
         },
         "fil": {
@@ -17327,10 +17279,58 @@
             "value": "Coming soon · %lld"
           }
         },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bientôt disponible · %lld"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जल्द आ रहा है · %lld"
+          }
+        },
         "id": {
           "stringUnit": {
             "state": "translated",
             "value": "Segera hadir · %lld"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近日発売 · %lld"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "출시 예정 · %lld"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เร็วๆ นี้ · %lld"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sắp ra mắt · %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "即将发售 · %lld"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "即將推出 · %lld"
           }
         }
       }
@@ -25323,6 +25323,76 @@
         }
       }
     },
+    "Found %lld in the tour's sample products. Sign in and a real scout hunts the whole web for this.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在导览的示例商品中找到 %lld 件。登录后,真正的侦察员会为你搜遍全网。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在導覽的範例商品中找到 %lld 件。登入後,真正的偵察員會為你搜遍全網。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld trouvé dans les produits d'exemple de la visite. Connectez-vous et un vrai éclaireur parcourt tout le web pour vous."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "투어 샘플 상품에서 %lld개를 발견했어요. 로그인하면 진짜 스카우트가 웹 전체를 샅샅이 찾아다녀요."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã tìm thấy %lld trong sản phẩm mẫu của phần giới thiệu. Đăng nhập để một scout thật săn lùng trên toàn web nhé."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encontramos %lld en los productos de muestra del tour. Inicia sesión y un explorador real buscará esto en toda la web."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "टूर के सैंपल प्रोडक्ट्स में %lld मिले। साइन इन करें, फिर एक असली स्काउट पूरे वेब पर इसे ढूंढेगा।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ツアーのサンプル商品から%lld件見つかりました。ログインすると、本物のスカウトがウェブ全体から探します。"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "May nakita kaming %lld sa sample products ng tour. Mag-sign in at hahanapin ng totoong scout ang buong web para dito."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เจอ %lld ชิ้นในสินค้าตัวอย่างของทัวร์ ลงชื่อเข้าใช้แล้วสเกาต์ตัวจริงจะตามหาให้ทั่วเว็บ"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ada %lld temuan di produk contoh tur. Masuk, dan scout sungguhan akan memburunya di seluruh web."
+          }
+        }
+      }
+    },
     "Found one for you! The %@ is up right now at %@ for %@. It's so you.": {
       "localizations": {
         "en": {
@@ -31323,6 +31393,7 @@
       }
     },
     "I'm on it. I'll text you when I find something.": {
+      "extractionState": "stale",
       "localizations": {
         "es": {
           "stringUnit": {
@@ -32405,6 +32476,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "在範例導覽中,每次你回到 App 都會模擬一次搜尋。"
+          }
+        }
+      }
+    },
+    "In the tour, scouts only search sample products, so nothing matched this one. Sign in to send a real scout after it.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导览中的侦察员只会搜索示例商品,所以没有匹配的结果。登录后,即可派真正的侦察员去找。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "導覽中的偵察員只會搜尋範例商品,所以沒有符合的結果。登入後,就能派真正的偵察員去找。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pendant la visite, les éclaireurs ne cherchent que parmi des produits d'exemple, donc rien ne correspond. Connectez-vous pour lancer un vrai éclaireur."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "투어에서는 스카우트가 샘플 상품만 검색해서 일치하는 게 없어요. 로그인하고 진짜 스카우트를 보내 보세요."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trong phần giới thiệu, scout chỉ tìm trong sản phẩm mẫu nên chưa có kết quả nào khớp. Đăng nhập để cử một scout thật đi tìm nhé."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En el tour, los exploradores solo buscan en productos de muestra, así que no hubo coincidencias. Inicia sesión para enviar un explorador real a buscarlo."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "टूर में स्काउट सिर्फ़ सैंपल प्रोडक्ट्स खोजते हैं, इसलिए इससे कुछ मैच नहीं हुआ। असली स्काउट को इसके पीछे भेजने के लिए साइन इन करें।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ツアー中のスカウトはサンプル商品しか探さないため、一致するものはありませんでした。ログインして、本物のスカウトに探してもらいましょう。"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sa tour, sample products lang ang hinahanap ng mga scout, kaya walang tumugma rito. Mag-sign in para magpadala ng totoong scout."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ในทัวร์ สเกาต์ค้นได้แค่สินค้าตัวอย่าง เลยยังไม่มีชิ้นที่ตรงกัน ลงชื่อเข้าใช้เพื่อส่งสเกาต์ตัวจริงไปตามหาชิ้นนี้"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Di tur, scout hanya mencari produk contoh, jadi tidak ada yang cocok. Masuk untuk mengirim scout sungguhan memburunya."
           }
         }
       }
@@ -39561,58 +39702,10 @@
     },
     "No drops coming up yet. When your scouts spot a release with a date, it lands here, and you can set a reminder for it.": {
       "localizations": {
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aucun drop à venir pour l'instant. Quand vos éclaireurs repèrent une sortie avec une date, elle apparaît ici et vous pouvez programmer un rappel."
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "目前還沒有即將發售的商品。當你的偵察員發現有日期的新品發售時,就會顯示在這裡,你也可以設定提醒。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "예정된 드롭이 아직 없어요. 스카우트가 날짜가 정해진 출시 소식을 발견하면 여기에 표시되고, 알림도 설정할 수 있어요."
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chưa có đợt drop nào sắp tới. Khi scout của bạn phát hiện một mẫu có ngày phát hành, mẫu đó sẽ xuất hiện ở đây và bạn có thể đặt lời nhắc."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "予定されているドロップはまだありません。スカウトが発売日付きのリリースを見つけると、ここに表示されます。リマインダーも設定できます。"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "अभी कोई ड्रॉप आने वाला नहीं है। जब आपके स्काउट किसी तारीख़ वाली रिलीज़ को ढूँढेंगे, वह यहाँ दिखेगी, और आप उसके लिए रिमाइंडर लगा सकते हैं।"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂时没有即将发售的商品。你的买手发现有发售日期的新品后,会出现在这里,你还可以设置提醒。"
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Aún no hay lanzamientos próximos. Cuando tus exploradores detecten un lanzamiento con fecha, aparecerá aquí y podrás activar un recordatorio."
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ยังไม่มีดรอปที่กำลังจะมา เมื่อสเกาต์ของคุณเจอสินค้าที่มีวันวางขาย สินค้านั้นจะมาอยู่ที่นี่ และคุณตั้งการแจ้งเตือนไว้ได้"
           }
         },
         "fil": {
@@ -39621,10 +39714,58 @@
             "value": "Wala pang paparating na drops. Kapag may nakita ang mga scout mo na release na may petsa, lalabas ito rito, at puwede kang mag-set ng reminder."
           }
         },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun drop à venir pour l'instant. Quand vos éclaireurs repèrent une sortie avec une date, elle apparaît ici et vous pouvez programmer un rappel."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अभी कोई ड्रॉप आने वाला नहीं है। जब आपके स्काउट किसी तारीख़ वाली रिलीज़ को ढूँढेंगे, वह यहाँ दिखेगी, और आप उसके लिए रिमाइंडर लगा सकते हैं।"
+          }
+        },
         "id": {
           "stringUnit": {
             "state": "translated",
             "value": "Belum ada drop mendatang. Saat scout-mu menemukan rilis bertanggal, rilis itu muncul di sini dan kamu bisa pasang pengingat."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "予定されているドロップはまだありません。スカウトが発売日付きのリリースを見つけると、ここに表示されます。リマインダーも設定できます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "예정된 드롭이 아직 없어요. 스카우트가 날짜가 정해진 출시 소식을 발견하면 여기에 표시되고, 알림도 설정할 수 있어요."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ยังไม่มีดรอปที่กำลังจะมา เมื่อสเกาต์ของคุณเจอสินค้าที่มีวันวางขาย สินค้านั้นจะมาอยู่ที่นี่ และคุณตั้งการแจ้งเตือนไว้ได้"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa có đợt drop nào sắp tới. Khi scout của bạn phát hiện một mẫu có ngày phát hành, mẫu đó sẽ xuất hiện ở đây và bạn có thể đặt lời nhắc."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时没有即将发售的商品。你的买手发现有发售日期的新品后,会出现在这里,你还可以设置提醒。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目前還沒有即將發售的商品。當你的偵察員發現有日期的新品發售時,就會顯示在這裡,你也可以設定提醒。"
           }
         }
       }
