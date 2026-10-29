@@ -19,7 +19,7 @@ To find products for you, learn your taste, power friend features, send you noti
 
 Service providers that process data for us:
 - **Anthropic (Claude)** runs your scouts, chat, photo reading and Taste Cards. It receives your scouts' briefs, your chats with them, photos you choose to share, your first name so scouts can address you, your app language, and, for your Taste Card, the brands and styles you like and items you've liked. It doesn't receive your email address.
-- **Google (Gemini)** runs a second scout alongside Claude on hunts. It receives your scouts' briefs (what they hunt, the brands and styles you like, and what you liked or passed on) and your app language, and searches the web with Google. It doesn't receive your name or email address.
+- **Google (Gemini)** runs a second scout alongside Claude on hunts. It receives your scouts' briefs (what they hunt, the brands and styles you like, and what you liked or passed on) and your app language, and searches the web with Google. It doesn't receive your name or email address. Google may use what Baget sends to Gemini to improve its products, including review by people at Google; Google disconnects it from Baget's account before review.
 - **Search and shopping sources (Serper/Google search, Brave Search, eBay)** receive the search terms your scouts use. No personal details are sent.
 - **Supabase** hosts the database, storage and server functions.
 - **Apple** delivers notifications and handles Baget Pro payments on iPhone. **Google (Firebase Cloud Messaging and Google Play)** does the same on Android.
