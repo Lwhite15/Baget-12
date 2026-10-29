@@ -615,7 +615,7 @@ struct FindDetailView: View {
                 VStack(alignment: .leading, spacing: 14) {
                     HStack { Spacer(); CloseButton { dismiss() } }
                     Plate(item: item, label: item.brand.isEmpty ? item.category.info.label : item.brand, height: 290)
-                        .overlay(alignment: .topLeading) {
+                        .overlay(alignment: .topTrailing) {
                             Text("\(find.score)% MATCH").font(.caption2.weight(.heavy)).tracking(0.6)
                                 .foregroundStyle(find.score >= 80 ? Theme.green : Theme.accent)
                                 .padding(.horizontal, 8).padding(.vertical, 4).background(Theme.bg.opacity(0.85), in: Capsule()).padding(10)
