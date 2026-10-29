@@ -179,7 +179,7 @@ final class QAWalkthrough: XCTestCase {
         if tap("Grid", timeout: 2) { snap("finds-grid", wait: 2); _ = tap("List", timeout: 2) }
         _ = tap("New", timeout: 2)
         // Open the first product card.
-        let card = app.scrollViews.firstMatch.images.firstMatch
+        let card = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "% match")).firstMatch
         if card.waitForExistence(timeout: 4) && card.isHittable { card.tap(); snap("find-detail", wait: 3); app.swipeUp(); snap("find-detail-scroll", wait: 1.5); closeSheet() }
         else { note("MISSING product card image") }
         snap("finds-after-detail", wait: 1)
