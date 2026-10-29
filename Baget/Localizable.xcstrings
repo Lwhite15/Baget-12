@@ -7366,6 +7366,70 @@
         }
       }
     },
+    "A vintage Rolex Explorer, any year": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un Rolex Explorer vintage, de cualquier año"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une Rolex Explorer vintage, de n'importe quelle année"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rolex Explorer cổ điển, đời nào cũng được"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任意年份的复古劳力士 Explorer"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "빈티지 롤렉스 익스플로러, 연식 무관"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ヴィンテージのロレックス エクスプローラー(年式問わず)"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कोई भी साल की विंटेज Rolex Explorer"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rolex Explorer วินเทจ ปีไหนก็ได้"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vintage na Rolex Explorer, kahit anong taon"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rolex Explorer vintage, tahun berapa pun"
+          }
+        }
+      }
+    },
     "ABOUT %@": {
       "localizations": {
         "es": {
@@ -12768,6 +12832,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "生日 · %@"
+          }
+        }
+      }
+    },
+    "Black Dior men's sunglasses": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lentes de sol Dior negros para hombre"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lunettes de soleil Dior noires pour homme"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kính râm nam Dior màu đen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "黑色 Dior 男士太阳镜"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "블랙 디올 남성 선글라스"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ディオールのメンズ ブラックサングラス"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dior के काले पुरुषों के सनग्लासेस"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "แว่นกันแดดผู้ชาย Dior สีดำ"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Itim na Dior sunglasses para sa lalaki"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kacamata hitam Dior pria warna hitam"
           }
         }
       }
@@ -20205,6 +20333,70 @@
         }
       }
     },
+    "Describe it like you'd tell a friend. Your scout hunts in the background for days, across stores, resale and boutiques.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descríbelo como se lo contarías a un amigo. Tu explorador busca en segundo plano durante días, en tiendas, reventa y boutiques."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Décris-le comme à un ami. Ton éclaireur chasse en arrière-plan pendant des jours, en boutiques, en seconde main et chez les créateurs."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cứ mô tả như đang nói với bạn bè. Scout của bạn sẽ săn lùng ngầm nhiều ngày, qua các cửa hàng, đồ si và boutique."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "像跟朋友聊天一样描述你想要的。你的侦察员会在后台连续数天搜遍商店、二手平台和精品店。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "친구에게 말하듯 설명해 주세요. 스카우트가 며칠 동안 스토어, 리셀, 부티크를 뒤지며 백그라운드에서 찾아요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "友だちに話すように書いてください。スカウトが店舗、リセール、ブティックを何日もかけてバックグラウンドで探します。"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इसे ऐसे बताइए जैसे किसी दोस्त को बताते हैं। आपका स्काउट कई दिनों तक स्टोर, रीसेल और बुटीक में बैकग्राउंड में खोज करता रहता है।"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "บอกมาเหมือนคุยกับเพื่อน สเคาท์ของคุณจะล่าให้เบื้องหลังหลายวัน ทั้งในร้านค้า ตลาดมือสอง และบูติก"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ikuwento mo na parang sa kaibigan. Maghahanap ang scout mo sa background nang ilang araw, sa mga tindahan, resale, at boutique."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jelaskan seperti ke teman. Scout-mu berburu di latar belakang selama berhari-hari, di berbagai toko, resale, dan butik."
+          }
+        }
+      }
+    },
     "Describe what you love and what you're looking for": {
       "localizations": {
         "es": {
@@ -24413,6 +24605,70 @@
         }
       }
     },
+    "First finds in a few minutes": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Primeros hallazgos en unos minutos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Premières trouvailles en quelques minutes"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Có phát hiện đầu tiên sau vài phút"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "几分钟内就有首批发现"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "몇 분 안에 첫 발견"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数分で最初の発見が届きます"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कुछ ही मिनटों में पहली खोजें"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ของที่เจอชิ้นแรกในไม่กี่นาที"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unang mga find sa loob ng ilang minuto"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temuan pertama dalam beberapa menit"
+          }
+        }
+      }
+    },
     "First finds land in a few minutes, right in Finds": {
       "localizations": {
         "es": {
@@ -25325,6 +25581,60 @@
     },
     "Found %lld in the tour's sample products. Sign in and a real scout hunts the whole web for this.": {
       "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encontramos %lld en los productos de muestra del tour. Inicia sesión y un explorador real buscará esto en toda la web."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "May nakita kaming %lld sa sample products ng tour. Mag-sign in at hahanapin ng totoong scout ang buong web para dito."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld trouvé dans les produits d'exemple de la visite. Connectez-vous et un vrai éclaireur parcourt tout le web pour vous."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "टूर के सैंपल प्रोडक्ट्स में %lld मिले। साइन इन करें, फिर एक असली स्काउट पूरे वेब पर इसे ढूंढेगा।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ada %lld temuan di produk contoh tur. Masuk, dan scout sungguhan akan memburunya di seluruh web."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ツアーのサンプル商品から%lld件見つかりました。ログインすると、本物のスカウトがウェブ全体から探します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "투어 샘플 상품에서 %lld개를 발견했어요. 로그인하면 진짜 스카우트가 웹 전체를 샅샅이 찾아다녀요."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เจอ %lld ชิ้นในสินค้าตัวอย่างของทัวร์ ลงชื่อเข้าใช้แล้วสเกาต์ตัวจริงจะตามหาให้ทั่วเว็บ"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã tìm thấy %lld trong sản phẩm mẫu của phần giới thiệu. Đăng nhập để một scout thật săn lùng trên toàn web nhé."
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
@@ -25335,60 +25645,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "在導覽的範例商品中找到 %lld 件。登入後,真正的偵察員會為你搜遍全網。"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld trouvé dans les produits d'exemple de la visite. Connectez-vous et un vrai éclaireur parcourt tout le web pour vous."
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "투어 샘플 상품에서 %lld개를 발견했어요. 로그인하면 진짜 스카우트가 웹 전체를 샅샅이 찾아다녀요."
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đã tìm thấy %lld trong sản phẩm mẫu của phần giới thiệu. Đăng nhập để một scout thật săn lùng trên toàn web nhé."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Encontramos %lld en los productos de muestra del tour. Inicia sesión y un explorador real buscará esto en toda la web."
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "टूर के सैंपल प्रोडक्ट्स में %lld मिले। साइन इन करें, फिर एक असली स्काउट पूरे वेब पर इसे ढूंढेगा।"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ツアーのサンプル商品から%lld件見つかりました。ログインすると、本物のスカウトがウェブ全体から探します。"
-          }
-        },
-        "fil": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "May nakita kaming %lld sa sample products ng tour. Mag-sign in at hahanapin ng totoong scout ang buong web para dito."
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "เจอ %lld ชิ้นในสินค้าตัวอย่างของทัวร์ ลงชื่อเข้าใช้แล้วสเกาต์ตัวจริงจะตามหาให้ทั่วเว็บ"
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ada %lld temuan di produk contoh tur. Masuk, dan scout sungguhan akan memburunya di seluruh web."
           }
         }
       }
@@ -28649,6 +28905,70 @@
         }
       }
     },
+    "HUNTING": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BUSCANDO"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EN CHASSE"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ĐANG SĂN"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜寻中"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "탐색 중"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "探索中"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "खोज जारी"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "กำลังล่า"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NANGHAHANAP"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BERBURU"
+          }
+        }
+      }
+    },
     "HUNTS": {
       "localizations": {
         "es": {
@@ -30692,6 +31012,70 @@
         }
       }
     },
+    "Hunts the web for days": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Busca en la web por días"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chasse sur le web pendant des jours"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Săn khắp web nhiều ngày"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连续数天搜遍全网"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "며칠 동안 웹을 샅샅이 찾아요"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "何日もWebを探します"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कई दिनों तक वेब खंगालता है"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ล่าทั่วเว็บหลายวัน"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naghahanap sa web nang ilang araw"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Berburu di web berhari-hari"
+          }
+        }
+      }
+    },
     "Hype friend": {
       "localizations": {
         "es": {
@@ -32482,6 +32866,60 @@
     },
     "In the tour, scouts only search sample products, so nothing matched this one. Sign in to send a real scout after it.": {
       "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En el tour, los exploradores solo buscan en productos de muestra, así que no hubo coincidencias. Inicia sesión para enviar un explorador real a buscarlo."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sa tour, sample products lang ang hinahanap ng mga scout, kaya walang tumugma rito. Mag-sign in para magpadala ng totoong scout."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pendant la visite, les éclaireurs ne cherchent que parmi des produits d'exemple, donc rien ne correspond. Connectez-vous pour lancer un vrai éclaireur."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "टूर में स्काउट सिर्फ़ सैंपल प्रोडक्ट्स खोजते हैं, इसलिए इससे कुछ मैच नहीं हुआ। असली स्काउट को इसके पीछे भेजने के लिए साइन इन करें।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Di tur, scout hanya mencari produk contoh, jadi tidak ada yang cocok. Masuk untuk mengirim scout sungguhan memburunya."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ツアー中のスカウトはサンプル商品しか探さないため、一致するものはありませんでした。ログインして、本物のスカウトに探してもらいましょう。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "투어에서는 스카우트가 샘플 상품만 검색해서 일치하는 게 없어요. 로그인하고 진짜 스카우트를 보내 보세요."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ในทัวร์ สเกาต์ค้นได้แค่สินค้าตัวอย่าง เลยยังไม่มีชิ้นที่ตรงกัน ลงชื่อเข้าใช้เพื่อส่งสเกาต์ตัวจริงไปตามหาชิ้นนี้"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trong phần giới thiệu, scout chỉ tìm trong sản phẩm mẫu nên chưa có kết quả nào khớp. Đăng nhập để cử một scout thật đi tìm nhé."
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
@@ -32492,60 +32930,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "導覽中的偵察員只會搜尋範例商品,所以沒有符合的結果。登入後,就能派真正的偵察員去找。"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pendant la visite, les éclaireurs ne cherchent que parmi des produits d'exemple, donc rien ne correspond. Connectez-vous pour lancer un vrai éclaireur."
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "투어에서는 스카우트가 샘플 상품만 검색해서 일치하는 게 없어요. 로그인하고 진짜 스카우트를 보내 보세요."
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trong phần giới thiệu, scout chỉ tìm trong sản phẩm mẫu nên chưa có kết quả nào khớp. Đăng nhập để cử một scout thật đi tìm nhé."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "En el tour, los exploradores solo buscan en productos de muestra, así que no hubo coincidencias. Inicia sesión para enviar un explorador real a buscarlo."
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "टूर में स्काउट सिर्फ़ सैंपल प्रोडक्ट्स खोजते हैं, इसलिए इससे कुछ मैच नहीं हुआ। असली स्काउट को इसके पीछे भेजने के लिए साइन इन करें।"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ツアー中のスカウトはサンプル商品しか探さないため、一致するものはありませんでした。ログインして、本物のスカウトに探してもらいましょう。"
-          }
-        },
-        "fil": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sa tour, sample products lang ang hinahanap ng mga scout, kaya walang tumugma rito. Mag-sign in para magpadala ng totoong scout."
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ในทัวร์ สเกาต์ค้นได้แค่สินค้าตัวอย่าง เลยยังไม่มีชิ้นที่ตรงกัน ลงชื่อเข้าใช้เพื่อส่งสเกาต์ตัวจริงไปตามหาชิ้นนี้"
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Di tur, scout hanya mencari produk contoh, jadi tidak ada yang cocok. Masuk untuk mengirim scout sungguhan memburunya."
           }
         }
       }
@@ -33813,6 +34197,70 @@
         }
       }
     },
+    "Jordan 1 Lows in my size, under $200": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jordan 1 Low en mi talla, por menos de $200"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jordan 1 Low à ma taille, moins de 200 $"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jordan 1 Low đúng size của tôi, dưới $200"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的尺码 Jordan 1 Low,200 美元以内"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내 사이즈 조던 1 로우, 200달러 이하"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ジョーダン1 ロー、私のサイズで200ドル以下"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मेरे साइज़ के Jordan 1 Low, $200 से कम में"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jordan 1 Low ไซซ์ของฉัน ไม่เกิน $200"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jordan 1 Low sa size ko, wala pang $200"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jordan 1 Low ukuranku, di bawah $200"
+          }
+        }
+      }
+    },
     "Jordan 1, suede, low top": {
       "localizations": {
         "es": {
@@ -33884,6 +34332,7 @@
       }
     },
     "Jordan 1s in mocha, size 10.5": {
+      "extractionState": "stale",
       "localizations": {
         "es": {
           "stringUnit": {
@@ -34369,6 +34818,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "KAWS, Daft Punk"
+          }
+        }
+      }
+    },
+    "Keeps hunting every few hours": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sigue buscando cada pocas horas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chasse toutes les quelques heures"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cứ vài giờ lại săn tiếp"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每隔几小时持续搜寻"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "몇 시간마다 계속 찾아요"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数時間ごとに探し続けます"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "हर कुछ घंटों में खोजता रहता है"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ล่าต่อทุกไม่กี่ชั่วโมง"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naghahanap ulit kada ilang oras"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terus berburu tiap beberapa jam"
           }
         }
       }
@@ -39210,6 +39723,134 @@
         }
       }
     },
+    "New finds land in Finds": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los nuevos hallazgos llegan a Hallazgos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les nouvelles trouvailles arrivent dans Trouvailles"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phát hiện mới sẽ về mục Phát hiện"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新发现会出现在“发现”里"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새 발견은 발견 탭에 도착해요"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しい発見は「発見」に届きます"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "नई खोजें Finds में आती हैं"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ของที่เจอใหม่จะอยู่ในหน้าของที่เจอ"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lalabas sa Finds ang mga bagong find"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temuan baru masuk ke Temuan"
+          }
+        }
+      }
+    },
+    "New scout": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuevo explorador"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvel éclaireur"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scout mới"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新建侦察员"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새 스카우트"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しいスカウト"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "नया स्काउट"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "สเคาท์ใหม่"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bagong scout"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scout baru"
+          }
+        }
+      }
+    },
     "New · %lld": {
       "localizations": {
         "es": {
@@ -40121,7 +40762,72 @@
         }
       }
     },
+    "No scouts yet. Tap New scout above and tell it what to hunt.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aún no tienes exploradores. Toca Nuevo explorador arriba y dile qué buscar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun éclaireur pour l'instant. Touche Nouvel éclaireur ci-dessus et dis-lui quoi chasser."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa có scout nào. Nhấn Scout mới ở trên và cho nó biết cần săn gì nhé."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有侦察员。点上方的“新建侦察员”,告诉它要找什么。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아직 스카우트가 없어요. 위의 새 스카우트를 눌러 찾을 것을 알려 주세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スカウトはまだいません。上の「新しいスカウト」をタップして、探すものを伝えましょう。"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अभी कोई स्काउट नहीं है। ऊपर नया स्काउट पर टैप करें और बताएं कि क्या खोजना है।"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ยังไม่มีสเคาท์ แตะ สเคาท์ใหม่ ด้านบนแล้วบอกได้เลยว่าจะให้ล่าอะไร"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wala ka pang scout. I-tap ang Bagong scout sa itaas at sabihin kung ano ang hahanapin."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Belum ada scout. Ketuk Scout baru di atas dan beri tahu apa yang harus diburu."
+          }
+        }
+      }
+    },
     "No scouts yet. Tell Baget what you're hunting above.": {
+      "extractionState": "stale",
       "localizations": {
         "es": {
           "stringUnit": {
@@ -43062,6 +43768,134 @@
         }
       }
     },
+    "ONGOING": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EN CURSO"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EN COURS"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ĐANG CHẠY"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进行中"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "진행 중"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "進行中"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जारी है"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "กำลังดำเนินการ"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PATULOY"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BERJALAN"
+          }
+        }
+      }
+    },
+    "OR START FROM ONE OF THESE": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O EMPIEZA CON UNO DE ESTOS"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OU PARTIR D'UNE IDÉE"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HOẶC BẮT ĐẦU TỪ GỢI Ý NÀY"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "或从这些开始"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "또는 이 중에서 시작해 보세요"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "こちらからも始められます"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "या इनमें से किसी से शुरू करें"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "หรือเริ่มจากตัวอย่างเหล่านี้"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O MAGSIMULA SA ISA RITO"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ATAU MULAI DARI SALAH SATU INI"
+          }
+        }
+      }
+    },
     "OTHER STORES": {
       "localizations": {
         "es": {
@@ -44259,6 +45093,70 @@
         }
       }
     },
+    "Opens a short form to describe what your new scout should hunt": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre un formulario corto para describir qué debe buscar tu nuevo explorador"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvre un court formulaire pour décrire ce que ton nouvel éclaireur doit chasser"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mở biểu mẫu ngắn để mô tả thứ scout mới của bạn cần săn"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开简短表单,描述新侦察员要搜寻的东西"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새 스카우트가 찾을 것을 적는 간단한 양식이 열려요"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しいスカウトに探してほしいものを入力するフォームを開きます"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एक छोटा फ़ॉर्म खुलता है, जिसमें बताएं कि आपका नया स्काउट क्या खोजे"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เปิดแบบฟอร์มสั้นๆ เพื่ออธิบายสิ่งที่สเคาท์ใหม่ของคุณควรล่า"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Magbubukas ng maikling form para ilarawan ang hahanapin ng bago mong scout"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Membuka formulir singkat untuk menjelaskan apa yang harus diburu scout barumu"
+          }
+        }
+      }
+    },
     "Opens it in Finds": {
       "localizations": {
         "es": {
@@ -44675,6 +45573,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "其他"
+          }
+        }
+      }
+    },
+    "Oud fragrances like Frédéric Malle": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fragancias de oud como Frédéric Malle"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parfums oud comme Frédéric Malle"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nước hoa oud như Frédéric Malle"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "类似 Frédéric Malle 的乌木香水"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "프레데릭 말 같은 우드 향수"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フレデリック マルのようなウードの香水"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frédéric Malle जैसे ऊद परफ़्यूम"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "น้ำหอมกลิ่นอู๊ดแบบ Frédéric Malle"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oud na pabango tulad ng kay Frédéric Malle"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parfum oud seperti Frédéric Malle"
           }
         }
       }
@@ -48337,6 +49299,70 @@
         }
       }
     },
+    "READY": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LISTOS"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PRÊT"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SẴN SÀNG"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已就绪"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "준비됨"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完了"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "तैयार"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "พร้อมแล้ว"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HANDA NA"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SIAP"
+          }
+        }
+      }
+    },
     "RESTOCK WATCH": {
       "localizations": {
         "es": {
@@ -48473,6 +49499,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "依你的偵察隊對你喜好的了解排序"
+          }
+        }
+      }
+    },
+    "Ranked by your taste. Every ♥ and ✕ sharpens it.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ordenados según tu gusto. Cada ♥ y ✕ lo afina más."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Classées selon tes goûts. Chaque ♥ et ✕ l'affine."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xếp theo gu của bạn. Mỗi ♥ và ✕ giúp gợi ý chuẩn hơn."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按你的口味排序。每个 ♥ 和 ✕ 都会让它更精准。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "취향 순으로 정렬돼요. ♥와 ✕를 누를수록 더 정확해져요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あなたの好み順です。♥と✕でどんどん精度が上がります。"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपकी पसंद के हिसाब से क्रम में। हर ♥ और ✕ इसे और सटीक बनाता है।"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "จัดอันดับตามรสนิยมคุณ ทุก ♥ และ ✕ ช่วยให้แม่นขึ้น"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nakaayos ayon sa panlasa mo. Bawat ♥ at ✕ ay nagpapatalas dito."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diurutkan sesuai seleramu. Setiap ♥ dan ✕ membuatnya makin tepat."
           }
         }
       }
@@ -50310,6 +51400,7 @@
       }
     },
     "Replace it any time: type something new into \"What are you hunting?\" and a fresh scout starts right away": {
+      "extractionState": "stale",
       "localizations": {
         "es": {
           "stringUnit": {
@@ -51505,7 +52596,72 @@
         }
       }
     },
+    "Right to like, left to pass, up to buy": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Derecha para dar me gusta, izquierda para omitir, arriba para comprar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À droite pour aimer, à gauche pour passer, en haut pour acheter"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vuốt phải để thích, trái để bỏ qua, lên để mua"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "右滑喜欢,左滑跳过,上滑购买"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오른쪽은 좋아요, 왼쪽은 패스, 위로는 구매"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "右でいいね、左でパス、上で購入"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पसंद के लिए दाएं, छोड़ने के लिए बाएं, खरीदने के लिए ऊपर"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ปัดขวาถูกใจ ซ้ายข้าม ขึ้นเพื่อซื้อ"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kanan para i-like, kaliwa para i-pass, taas para bilhin"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kanan untuk suka, kiri untuk lewati, atas untuk beli"
+          }
+        }
+      }
+    },
     "Right to like, left to pass, up to buy. Every swipe teaches your squad.": {
+      "extractionState": "stale",
       "localizations": {
         "es": {
           "stringUnit": {
@@ -53465,6 +54621,70 @@
         }
       }
     },
+    "See all For You": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver todo Para ti"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voir tout Pour toi"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xem tất cả Dành cho bạn"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看全部“为你推荐”"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "추천 전체 보기"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あなたへのおすすめをすべて見る"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सभी For You देखें"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ดูทั้งหมดใน For You"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tingnan lahat ng For You"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lihat semua For You"
+          }
+        }
+      }
+    },
     "See mine": {
       "localizations": {
         "es": {
@@ -54025,6 +55245,198 @@
         }
       }
     },
+    "Send a new scout": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviar un nuevo explorador"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envoyer un nouvel éclaireur"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cử scout mới"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "派出新侦察员"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새 스카우트 보내기"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しいスカウトを送り出す"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "नया स्काउट भेजें"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ส่งสเคาท์ใหม่"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Magpadala ng bagong scout"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kirim scout baru"
+          }
+        }
+      }
+    },
+    "Send a new scout any time from Today, and it starts hunting right away": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envía un nuevo explorador cuando quieras desde Hoy y empezará a buscar de inmediato"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envoie un nouvel éclaireur quand tu veux depuis Aujourd'hui, il part en chasse tout de suite"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cử scout mới bất cứ lúc nào từ Hôm nay, nó sẽ bắt đầu săn ngay"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "随时可在“今天”派出新侦察员,它会立刻开始搜寻"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘 탭에서 언제든 새 스카우트를 보내면 바로 찾기 시작해요"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「今日」からいつでも新しいスカウトを送り出せて、すぐに探し始めます"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today से कभी भी नया स्काउट भेजें, वह तुरंत खोज शुरू कर देता है"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ส่งสเคาท์ใหม่ได้ทุกเมื่อจากหน้า Today แล้วจะเริ่มล่าทันที"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Magpadala ng bagong scout anumang oras mula sa Today, at agad itong maghahanap"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kirim scout baru kapan saja dari Today, dan langsung mulai berburu"
+          }
+        }
+      }
+    },
+    "Send another scout": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviar otro explorador"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envoyer un autre éclaireur"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cử thêm scout"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再派一个侦察员"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "스카우트 더 보내기"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "別のスカウトを送り出す"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एक और स्काउट भेजें"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ส่งสเคาท์อีกตัว"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Magpadala pa ng scout"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kirim scout lain"
+          }
+        }
+      }
+    },
     "Send feedback": {
       "localizations": {
         "es": {
@@ -54165,6 +55577,70 @@
         }
       }
     },
+    "Send scout": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviar explorador"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envoyer l'éclaireur"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cử scout"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "派出侦察员"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "스카우트 보내기"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スカウトを送り出す"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्काउट भेजें"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ส่งสเคาท์"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ipadala ang scout"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kirim scout"
+          }
+        }
+      }
+    },
     "Send to": {
       "localizations": {
         "es": {
@@ -54301,6 +55777,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "傳送給 %@"
+          }
+        }
+      }
+    },
+    "Sending…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviando…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envoi…"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang gửi…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在派出…"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "보내는 중…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "送信中…"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "भेज रहे हैं…"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "กำลังส่ง…"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ipinapadala…"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mengirim…"
           }
         }
       }
@@ -60620,6 +62160,7 @@
       }
     },
     "Supreme box logo in size L": {
+      "extractionState": "stale",
       "localizations": {
         "es": {
           "stringUnit": {
@@ -60969,7 +62510,136 @@
         }
       }
     },
+    "Swipe %lld more finds": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desliza %lld hallazgos más"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swipe %lld trouvailles de plus"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vuốt thêm %lld phát hiện"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再滑 %lld 个发现"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "발견 %lld개 더 넘겨 보세요"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あと%lld件の発見をスワイプ"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld और खोजें स्वाइप करें"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ปัดดูอีก %lld ชิ้นที่เจอ"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I-swipe ang %lld pang find"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geser %lld temuan lagi"
+          }
+        }
+      }
+    },
+    "Swipe 1 more find": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desliza 1 hallazgo más"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swipe 1 trouvaille de plus"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vuốt thêm 1 phát hiện"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再滑 1 个发现"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "발견 1개 더 넘겨 보세요"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あと1件の発見をスワイプ"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 और खोज स्वाइप करें"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ปัดดูอีก 1 ชิ้นที่เจอ"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I-swipe ang 1 pang find"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geser 1 temuan lagi"
+          }
+        }
+      }
+    },
     "Swipe through %lld new %@": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -61112,6 +62782,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "瀏覽 %1$lld 個新發現%2$@"
+          }
+        }
+      }
+    },
+    "Swipe through %lld new finds": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desliza %lld hallazgos nuevos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swipe %lld nouvelles trouvailles"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vuốt xem %lld phát hiện mới"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "滑看 %lld 个新发现"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새 발견 %lld개 넘겨 보기"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しい発見%lld件をスワイプ"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld नई खोजें स्वाइप करें"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ปัดดู %lld ชิ้นที่เจอใหม่"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I-swipe ang %lld bagong find"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geser %lld temuan baru"
           }
         }
       }
@@ -64147,6 +65881,70 @@
         }
       }
     },
+    "Tell a scout what to hunt. It keeps looking for days and texts you what it finds.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dile a un explorador qué buscar. Seguirá buscando por días y te enviará un mensaje con lo que encuentre."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dis à un éclaireur quoi chasser. Il cherche pendant des jours et t'envoie ses trouvailles par SMS."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cho scout biết cần săn gì. Nó sẽ tìm nhiều ngày và nhắn cho bạn những gì tìm được."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "告诉侦察员要找什么。它会连续数天不停搜寻,并用短信告诉你发现了什么。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "스카우트에게 찾을 것을 알려 주세요. 며칠 동안 계속 찾아서 발견한 것을 문자로 보내드려요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "探してほしいものをスカウトに伝えましょう。何日も探し続けて、見つけたらメッセージでお知らせします。"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्काउट को बताएं कि क्या खोजना है। वह कई दिनों तक खोजता रहता है और जो मिले, आपको मैसेज करता है।"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "บอกสเคาท์ว่าจะให้ล่าอะไร แล้วมันจะหาต่อหลายวันและส่งข้อความบอกสิ่งที่เจอ"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sabihin sa scout kung ano ang hahanapin. Maghahanap ito nang ilang araw at ite-text sa iyo ang mga makikita nito."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beri tahu scout apa yang harus diburu. Ia terus mencari berhari-hari dan mengirim SMS temuannya padamu."
+          }
+        }
+      }
+    },
     "Tell it more": {
       "localizations": {
         "es": {
@@ -65127,6 +66925,70 @@
         }
       }
     },
+    "Texts you the best ones": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Te escribe con los mejores"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "T'envoie les meilleures par SMS"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhắn cho bạn những món tốt nhất"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把最棒的短信发给你"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "가장 좋은 것만 문자로 보내드려요"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "いちおしをメッセージでお知らせ"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सबसे अच्छी खोजें आपको मैसेज करता है"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ส่งข้อความบอกชิ้นที่ดีที่สุด"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ite-text sa iyo ang mga pinakamaganda"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kirim SMS yang terbaik untukmu"
+          }
+        }
+      }
+    },
     "Thanks! Sent straight to the Baget team.": {
       "localizations": {
         "es": {
@@ -65543,6 +67405,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "已被使用了。"
+          }
+        }
+      }
+    },
+    "That's today. Pull down any time to check for more.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eso es todo por hoy. Desliza hacia abajo cuando quieras para ver si hay más."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "C'est tout pour aujourd'hui. Tire vers le bas pour voir s'il y a du nouveau."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hết hôm nay rồi. Kéo xuống bất cứ lúc nào để xem thêm."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天就到这里。随时下拉查看更多。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘은 여기까지예요. 아래로 당겨 언제든 더 확인해 보세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日は以上です。下に引っ張ると、いつでも新着を確認できます。"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आज के लिए बस इतना ही। और देखने के लिए कभी भी नीचे खींचें।"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "หมดของวันนี้แล้ว ดึงลงเพื่อเช็กของใหม่ได้ทุกเมื่อ"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iyan na ang para ngayon. Mag-pull down anumang oras para tingnan kung may bago."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Itu saja untuk hari ini. Tarik ke bawah kapan saja untuk cek yang baru."
           }
         }
       }
@@ -69271,6 +71197,7 @@
       }
     },
     "Type or say it in your own words. Baget builds the right scout and it starts searching right away.": {
+      "extractionState": "stale",
       "localizations": {
         "es": {
           "stringUnit": {
@@ -72701,6 +74628,7 @@
       }
     },
     "What are you hunting?": {
+      "extractionState": "stale",
       "localizations": {
         "es": {
           "stringUnit": {
@@ -74096,6 +76024,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "要搜尋什麼？黑膠、古著 Levi's、寶可夢卡…"
+          }
+        }
+      }
+    },
+    "What should your new scout hunt?": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Qué debe buscar tu nuevo explorador?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Que doit chasser ton nouvel éclaireur ?"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scout mới của bạn cần săn gì?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的新侦察员要搜寻什么?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새 스카우트가 무엇을 찾아야 할까요?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しいスカウトに何を探してもらいますか?"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपका नया स्काउट क्या खोजे?"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "จะให้สเคาท์ใหม่ล่าอะไรดี?"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ano ang dapat hanapin ng bago mong scout?"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apa yang harus diburu scout barumu?"
           }
         }
       }
@@ -77965,6 +79957,70 @@
         }
       }
     },
+    "Your scout knows what to look for": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu explorador sabe qué buscar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ton éclaireur sait quoi chercher"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scout của bạn biết cần tìm gì"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的侦察员知道该找什么"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "스카우트가 무엇을 찾을지 알고 있어요"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スカウトは探すものを把握しています"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपका स्काउट जानता है क्या खोजना है"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "สเคาท์รู้ว่าต้องหาอะไร"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alam ng scout mo kung ano ang hahanapin"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scout-mu tahu apa yang harus dicari"
+          }
+        }
+      }
+    },
     "Your scout learns the most from what you actually buy.": {
       "localizations": {
         "es": {
@@ -80290,6 +82346,7 @@
       }
     },
     "agent": {
+      "extractionState": "stale",
       "localizations": {
         "es": {
           "stringUnit": {
@@ -80360,6 +82417,7 @@
       }
     },
     "agents": {
+      "extractionState": "stale",
       "localizations": {
         "es": {
           "stringUnit": {
@@ -80710,6 +82768,7 @@
       }
     },
     "e.g. %@": {
+      "extractionState": "stale",
       "localizations": {
         "es": {
           "stringUnit": {
@@ -80845,6 +82904,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "例如：灰色或大地色系的 New Balance 990，10.5 號，預算 200 美元以內。也在找復古 Carhartt 工作外套。"
+          }
+        }
+      }
+    },
+    "e.g. black Dior men's sunglasses, under $500": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "p. ej., lentes de sol Dior negros para hombre, por menos de $500"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ex. lunettes Dior noires pour homme, moins de 500 $"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VD: kính râm nam Dior màu đen, dưới $500"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如:黑色 Dior 男士太阳镜,500 美元以内"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "예: 블랙 디올 남성 선글라스, 500달러 이하"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例:ディオールのメンズ ブラックサングラス、500ドル以下"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जैसे Dior के काले पुरुषों के सनग्लासेस, $500 से कम"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เช่น แว่นกันแดดผู้ชาย Dior สีดำ ไม่เกิน $500"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hal. itim na Dior sunglasses para sa lalaki, wala pang $500"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mis. kacamata hitam Dior pria warna hitam, di bawah $500"
           }
         }
       }
