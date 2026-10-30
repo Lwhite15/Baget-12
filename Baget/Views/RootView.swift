@@ -7,6 +7,8 @@ struct RootView: View {
     @AppStorage("baget.onboarded") private var onboarded = false
     @AppStorage("baget.howToSeen") private var howToSeen = false
     @State private var showHowTo = false
+    /// Setup is on screen (kept open until it's finished, see the cover below).
+    @State private var setupOpen = false
     #if DEBUG
     @State private var friendPreview = FriendPreview.enabled
     #endif
@@ -93,9 +95,10 @@ struct RootView: View {
             Text("Your scout learns the most from what you actually buy.")
         }
         // First run after signing in with no agents yet: the 30-second setup.
-        .fullScreenCover(isPresented: Binding(get: { !store.needsWelcome && store.isCloud && store.state.agents.isEmpty && !onboarded && store.state.lastSynced != nil },
-                                              set: { if !$0 { onboarded = true } })) {
-            OnboardingView().environment(store)
+        // Once open, it stays open until they finish: the new scouts arriving mid-setup mustn't close it before "Your squad is hunting".
+        .fullScreenCover(isPresented: Binding(get: { !onboarded && ((setupOpen && store.isCloud) || (!store.needsWelcome && store.isCloud && store.state.agents.isEmpty && store.state.lastSynced != nil)) },
+                                              set: { if !$0 { setupOpen = false; onboarded = true } })) {
+            OnboardingView().environment(store).onAppear { setupOpen = true }
         }
         // Right after setup, before Today: a short "How Baget works", once.
         .onChange(of: onboarded) { _, done in
