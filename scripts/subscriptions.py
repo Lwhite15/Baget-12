@@ -51,7 +51,8 @@ if not pages(f"/subscriptionGroups/{gid}/subscriptionGroupLocalizations"):
     call("POST", "/subscriptionGroupLocalizations", {"data": {"type": "subscriptionGroupLocalizations", "attributes": {"name": "Baget Pro", "locale": "en-US"},
                                                            "relationships": {"subscriptionGroup": {"data": {"type": "subscriptionGroups", "id": gid}}}}})
 
-territories = [t["id"] for t in pages("/territories?limit=200")]
+# US only (Baget launches in the US; scripts/us_only.py keeps it that way).
+territories = ["USA"]
 plans = [
     ("baget.pro.monthly", "Pro Monthly", "ONE_MONTH", os.environ.get("MONTHLY", "7.99"), 1),
     ("baget.pro.yearly", "Pro Yearly", "ONE_YEAR", os.environ.get("YEARLY", "59.99"), 1),
@@ -72,7 +73,7 @@ for pid, name, period, usd, level in plans:
             "relationships": {"subscription": {"data": {"type": "subscriptions", "id": sid}}}}})
     # Availability: everywhere, including new territories.
     try:
-        call("POST", "/subscriptionAvailabilities", {"data": {"type": "subscriptionAvailabilities", "attributes": {"availableInNewTerritories": True},
+        call("POST", "/subscriptionAvailabilities", {"data": {"type": "subscriptionAvailabilities", "attributes": {"availableInNewTerritories": False},
             "relationships": {"subscription": {"data": {"type": "subscriptions", "id": sid}},
                               "availableTerritories": {"data": [{"type": "territories", "id": t} for t in territories]}}}})
     except RuntimeError as e:
