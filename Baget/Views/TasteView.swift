@@ -153,8 +153,17 @@ struct OnboardingView: View {
     // MARK: 1. Interests
 
     /// Interests beyond the built-in categories. Each becomes its own scout with a custom mission.
-    static let moreInterests = [String(localized: "Tech & gadgets"), String(localized: "Home decor"), String(localized: "Bags"), String(localized: "Jewelry"), String(localized: "Beauty & skincare"), String(localized: "Vinyl & music"),
-                                String(localized: "Art & prints"), String(localized: "Outdoor gear"), String(localized: "Toys & games"), String(localized: "Books"), String(localized: "Vintage"), String(localized: "Gifts")]
+    /// Grouped so it's clear Baget hunts far beyond fashion: style, hobbies and gear, home and more.
+    private static let groups: [(title: String, categories: [Category], extras: [String])] = [
+        (String(localized: "STYLE"), [.sneakers, .apparel, .fragrance, .watches, .accessories],
+         [String(localized: "Bags"), String(localized: "Jewelry"), String(localized: "Beauty & skincare"), String(localized: "Vintage")]),
+        (String(localized: "HOBBIES & GEAR"), [.collectibles],
+         [String(localized: "Fishing"), String(localized: "Bike gear"), String(localized: "Golf"), String(localized: "Camping & outdoor"), String(localized: "Fitness"),
+          String(localized: "Cameras"), String(localized: "Trading cards"), String(localized: "Vinyl & music"), String(localized: "Toys & games")]),
+        (String(localized: "HOME & MORE"), [.furniture, .cars],
+         [String(localized: "Home decor"), String(localized: "Kitchen & coffee"), String(localized: "Tech & gadgets"), String(localized: "Art & prints"),
+          String(localized: "Books"), String(localized: "Gifts")]),
+    ]
 
     private var pickedCount: Int { picked.count + extras.count }
     private var full: Bool { pickedCount >= store.scoutLimit }
@@ -162,30 +171,35 @@ struct OnboardingView: View {
     private var interests: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("What are you into?").font(.system(size: 30, weight: .heavy)).foregroundStyle(Theme.ink)
-            Text(store.scoutLimit >= 5 ? String(localized: "Pick a few. You'll get a personal scout for each, hunting drops, restocks and deals.")
-                                       : String(localized: "Pick up to \(store.scoutLimit). You'll get a personal scout for each, hunting drops, restocks and deals."))
+            Text(store.scoutLimit >= 5 ? String(localized: "Pick a few. Each becomes a scout that hunts that whole world for you, for weeks, and learns your taste.")
+                                       : String(localized: "Pick up to \(store.scoutLimit). Each becomes a scout that hunts that whole world for you, for weeks, and learns your taste."))
                 .font(.subheadline).foregroundStyle(Theme.muted)
                 .fixedSize(horizontal: false, vertical: true)
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    FlowRow {
-                        ForEach(Category.allCases.filter { $0 != .other }) { c in
-                            Button {
-                                if picked.contains(c) { picked.remove(c) }
-                                else if !full { picked.insert(c) }
-                            } label: { Pill(text: c.info.label, selected: picked.contains(c)) }
-                                .opacity(!picked.contains(c) && full ? 0.4 : 1)
-                                .buttonStyle(.plain)
-                                .accessibilityAddTraits(picked.contains(c) ? .isSelected : [])
-                        }
-                        ForEach(Self.moreInterests, id: \.self) { i in
-                            Button {
-                                if extras.contains(i) { extras.remove(i) }
-                                else if !full { extras.insert(i) }
-                            } label: { Pill(text: i, selected: extras.contains(i)) }
-                                .opacity(!extras.contains(i) && full ? 0.4 : 1)
-                                .buttonStyle(.plain)
-                                .accessibilityAddTraits(extras.contains(i) ? .isSelected : [])
+                    ForEach(Self.groups, id: \.title) { g in
+                        VStack(alignment: .leading, spacing: 7) {
+                            Text(g.title).font(.caption.weight(.heavy)).tracking(1.1).foregroundStyle(Theme.muted)
+                            FlowRow {
+                                ForEach(g.categories) { c in
+                                    Button {
+                                        if picked.contains(c) { picked.remove(c) }
+                                        else if !full { picked.insert(c) }
+                                    } label: { Pill(text: c.info.label, selected: picked.contains(c)) }
+                                        .opacity(!picked.contains(c) && full ? 0.4 : 1)
+                                        .buttonStyle(.plain)
+                                        .accessibilityAddTraits(picked.contains(c) ? .isSelected : [])
+                                }
+                                ForEach(g.extras, id: \.self) { i in
+                                    Button {
+                                        if extras.contains(i) { extras.remove(i) }
+                                        else if !full { extras.insert(i) }
+                                    } label: { Pill(text: i, selected: extras.contains(i)) }
+                                        .opacity(!extras.contains(i) && full ? 0.4 : 1)
+                                        .buttonStyle(.plain)
+                                        .accessibilityAddTraits(extras.contains(i) ? .isSelected : [])
+                                }
+                            }
                         }
                     }
                     if full && store.isCloud && !store.isPro {
@@ -193,21 +207,21 @@ struct OnboardingView: View {
                             .font(.caption).foregroundStyle(Theme.muted)
                     }
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Tell your scouts in your own words")
+                        Text("Tell your scouts what you're into")
                             .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
-                        Text("The more you share, the better Baget gets. Be as descriptive as you like: brands you love, styles, colors, materials, sizes, your budget, what you're hunting for and why. Anything not listed above, just describe it and your scouts will find it.")
+                        Text("Your taste, not one item: styles, brands, what you use it for, what you don't like. Anything not listed above, just describe it and your scouts will hunt it.")
                             .font(.caption).foregroundStyle(Theme.muted)
                             .fixedSize(horizontal: false, vertical: true)
                         HStack(alignment: .firstTextBaseline, spacing: 6) {
                             Image(systemName: "sparkles").font(.caption2).foregroundStyle(Theme.cyan)
-                            Text("“Vintage Rolex Datejust 36, champagne dial, under $6k” finds far more than “watches.”")
+                            Text("“Indie citrus perfumes, nothing too sweet” · “Fly fishing gear for trout”")
                                 .font(.caption.italic()).foregroundStyle(Theme.ink.opacity(0.8))
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         // Opens a full-height editor, so what you write stays readable while you type.
                         Button { editingWords = true } label: {
                             HStack(alignment: .top, spacing: 10) {
-                                Text(text.isEmpty ? String(localized: "Describe what you love and what you're looking for") : text)
+                                Text(text.isEmpty ? String(localized: "Describe your taste in your own words") : text)
                                     .font(.body).foregroundStyle(text.isEmpty ? Theme.muted : Theme.ink)
                                     .multilineTextAlignment(.leading).lineLimit(6)
                                     .frame(maxWidth: .infinity, minHeight: 66, alignment: .topLeading)
@@ -218,7 +232,7 @@ struct OnboardingView: View {
                             .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Theme.line))
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel(text.isEmpty ? String(localized: "Describe what you love and what you're looking for") : String(localized: "Your description: \(text)"))
+                        .accessibilityLabel(text.isEmpty ? String(localized: "Describe your taste in your own words") : String(localized: "Your description: \(text)"))
                     }
                     .padding(.top, 4)
                 }
@@ -486,7 +500,7 @@ struct OnboardingView: View {
         let newest = store.state.finds.filter { $0.status == .open }.sorted { $0.foundAt > $1.foundAt }.prefix(3)
         return VStack(alignment: .leading, spacing: 14) {
             Text(newest.isEmpty ? String(localized: "Your squad is hunting") : String(localized: "First finds are in")).font(.system(size: 30, weight: .heavy)).foregroundStyle(Theme.ink)
-            Text(made > 0 ? String(localized: "They're searching stores, release calendars and resale sites for you right now.")
+            Text(made > 0 ? String(localized: "They're searching stores, resale sites and small shops for you right now.")
                           : String(localized: "Tell Baget what you're hunting on Today and a scout starts right away."))
                 .font(.subheadline).foregroundStyle(Theme.muted)
             ViewThatFits(in: .vertical) {
@@ -528,9 +542,12 @@ struct OnboardingView: View {
                     HStack(spacing: 10) {
                         AgentAvatarView(agent: a, size: 32)
                         VStack(alignment: .leading, spacing: 1) {
-                            Text(a.name).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
+                            HStack(spacing: 6) {
+                                Text(a.name).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink).lineLimit(1)
+                                FocusTag(specific: a.isSpecific)
+                            }
                             (Text(n > 0 ? "Found \(n)" : String(localized: "Searching")).foregroundStyle(n > 0 ? Theme.green : Theme.cyan)
-                             + Text(" · \(a.mission.label.lowercased())").foregroundStyle(Theme.muted))
+                             + Text(" · \(Self.hunting(a))").foregroundStyle(Theme.muted))
                                 .font(.caption).lineLimit(1)
                         }
                         Spacer()
@@ -541,6 +558,14 @@ struct OnboardingView: View {
                     .background(Theme.glass, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
             }
+    }
+
+    /// What a scout hunts, in a few words: its brands, then its style ("Orvis, Sage · fly rods, waders").
+    static func hunting(_ a: Agent) -> String {
+        let makers = a.style.makers.prefix(3).joined(separator: ", ")
+        let style = (a.style.traits.isEmpty ? a.keywords : a.style.traits).prefix(2).joined(separator: ", ")
+        let line = [makers, style].filter { !$0.isEmpty }.joined(separator: " · ")
+        return line.isEmpty ? a.mission.label.lowercased() : line
     }
 
     /// End of setup: the free trial, for people who can still take it.
@@ -575,6 +600,7 @@ struct OnboardingView: View {
             nextRow("clock", String(localized: "First finds land in a few minutes, right in Finds"))
             nextRow("arrow.triangle.2.circlepath", store.isPro ? String(localized: "Then they hunt every 6 hours, around the clock") : String(localized: "Then they hunt every day and keep your finds fresh"))
             nextRow("heart", String(localized: "Like or pass what they bring, and they learn your taste fast"))
+            nextRow("scope", String(localized: "Hunting one specific thing? Send a specific scout from Today any time"))
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -618,12 +644,12 @@ private struct OwnWordsEditor: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Brands you love, styles, colors, materials, sizes, your budget, what you're hunting for and why.")
+                Text("Your taste: styles, brands, colors, materials, sizes, your budget, what you use it for and what you don't like.")
                     .font(.subheadline).foregroundStyle(Theme.muted)
                     .fixedSize(horizontal: false, vertical: true)
                 ZStack(alignment: .topLeading) {
                     if text.isEmpty {
-                        Text("e.g. New Balance 990s in grey or earth tones, size 10.5, under $200. Also hunting a vintage Carhartt chore coat.")
+                        Text("e.g. Indie citrus perfumes, nothing too sweet. Also into fly fishing gear for trout, mostly Orvis and Simms.")
                             .font(.body).foregroundStyle(Theme.muted.opacity(0.7))
                             .padding(.horizontal, 5).padding(.vertical, 8)
                             .allowsHitTesting(false)

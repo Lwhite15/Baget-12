@@ -178,6 +178,8 @@ ${Object.keys(brands).length ? `Brands they picked: ${Object.entries(brands).map
 ${budget ? `They usually spend up to $${budget} on one item.` : ""}
 Make one agent brief per picked interest${text && !picked.length ? " (or one for what they said)" : ""}${text && picked.length ? ", plus one more if what they said is a separate hunt" : ""}.
 For an interest that isn't one of the categories, set category null and write it as "custom" (e.g. "Tech & gadgets" → custom "tech and gadgets").
+Each scout hunts a whole interest for weeks, not one item: make each brief wide (the makers, styles and kinds of things people
+into it love, including ones they didn't name), shaped by what they said and showed.
 ${department ? `They shop the ${department === "women" ? "women's" : "men's"} department: make every brief for that department (sizes, cuts, styles).` : ""}
 ${langOf(lang) ? `Write each agent's "name" and "intro" in ${langOf(lang)}. Keep keywords, traits, makers and creators in English: they're search terms.` : ""}
 Also say who they shop for: "department" is "women" or "men" only when their words, photos, picks or sizes clearly show it
