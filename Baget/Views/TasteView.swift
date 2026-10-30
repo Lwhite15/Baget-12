@@ -562,7 +562,7 @@ struct OnboardingView: View {
 
     /// What a scout hunts, in a few words: its brands, then its style ("Orvis, Sage · fly rods, waders").
     static func hunting(_ a: Agent) -> String {
-        let makers = a.style.makers.prefix(3).joined(separator: ", ")
+        let makers = a.style.makers.prefix(3).map(\.brandCased).joined(separator: ", ")
         let style = (a.style.traits.isEmpty ? a.keywords : a.style.traits).prefix(2).joined(separator: ", ")
         let line = [makers, style].filter { !$0.isEmpty }.joined(separator: " · ")
         return line.isEmpty ? a.mission.label.lowercased() : line

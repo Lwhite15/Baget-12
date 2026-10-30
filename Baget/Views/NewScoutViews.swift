@@ -264,7 +264,7 @@ struct ScoutLanes: View {
         let fragrance = a.mission.category == .fragrance
         let skips = a.learned.filter { $0.value < 0 }.sorted { $0.value < $1.value }.map(\.key)
         return [
-            (fragrance ? String(localized: "HOUSES") : String(localized: "BRANDS"), (a.style.makers + a.style.creators).prefix(4).joined(separator: ", ")),
+            (fragrance ? String(localized: "HOUSES") : String(localized: "BRANDS"), (a.style.makers + a.style.creators).prefix(4).map(\.brandCased).joined(separator: ", ")),
             (fragrance ? String(localized: "NOTES") : String(localized: "STYLE"), a.style.traits.prefix(4).joined(separator: ", ")),
             (String(localized: "LOOKING FOR"), a.keywords.prefix(4).joined(separator: ", ")),
             (String(localized: "SKIPS"), skips.prefix(4).joined(separator: ", ")),
@@ -393,4 +393,9 @@ struct ForYouScreen: View {
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
         }
     }
+}
+
+extension String {
+    /// Brand names saved in lowercase ("seiko", "audio-technica") shown as names ("Seiko", "Audio-Technica"); mixed case is kept.
+    var brandCased: String { self == lowercased() ? capitalized : self }
 }
