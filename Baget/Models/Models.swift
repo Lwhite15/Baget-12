@@ -232,6 +232,10 @@ struct Agent: Codable, Identifiable, Hashable {
     var paused: Bool? = nil
     /// How much this agent texts you. Nil means normal.
     var alerts: AgentAlerts? = nil
+    /// "specific": hunting one thing. Nil (older saves) or anything else means an interest, which hunts wide.
+    var focus: String? = nil
+
+    var isSpecific: Bool { focus == "specific" }
 
     var isOff: Bool {
         get { paused ?? false }

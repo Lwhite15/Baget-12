@@ -85,14 +85,16 @@ private struct OnboardReply: Decodable { let agents: [HuntReply] }
 
 extension AppStore {
     /// "What are you hunting?" One sentence in, a ready agent out. Returns the new agent's id and its hello.
-    func hunt(_ text: String) async -> (agentID: String, intro: String, needsSize: Bool)? {
+    /// `specific`: one thing (a grail, a size, a price). Otherwise it's something you're into, and the scout hunts wide.
+    func hunt(_ text: String, specific: Bool = false) async -> (agentID: String, intro: String, needsSize: Bool)? {
         let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard t.count >= 2 else { return nil }
         Analytics.track(.huntStarted, ["words": t.split(separator: " ").count])
         guard isCloud else {
             // Sample tour: a local agent on the spot.
             let a = Agent(id: UUID().uuidString.lowercased(), name: String("\(t.capitalizedFirst) Hunter".prefix(40)), mission: .custom(String(t.prefix(80))),
-                          keywords: [], style: StyleProfile(traits: [], makers: [], creators: []), size: "", mode: .ask, voice: .chill)
+                          keywords: [], style: StyleProfile(traits: [], makers: [], creators: []), size: "", mode: .ask, voice: .chill,
+                          focus: specific ? "specific" : "interest")
             deploy(a)
             // Tour scouts only look through the app's sample products: say so, so an empty result doesn't look broken.
             let n = state.finds.filter { $0.agentID == a.id }.count
@@ -106,12 +108,29 @@ extension AppStore {
             return nil
         }
         do {
-            let r: HuntReply = try await api.function("hunt", ["text": t, "lang": AppLanguage.code])
+            let r: HuntReply = try await api.function("hunt", ["text": t, "lang": AppLanguage.code, "focus": specific ? "specific" : "interest"])
             await pull()
             Task { @MainActor in _ = await self.cloudSweep(agentID: r.agentId) }
             return (r.agentId, r.intro.isEmpty ? String(localized: "I'm on it.") : r.intro, r.needsSize ?? false)
         } catch {
             syncProblem = (error as? LocalizedError)?.errorDescription ?? String(localized: "Couldn't start that hunt. Try again.")
+            return nil
+        }
+    }
+
+    /// A specific hunt that's done: the scout keeps going on the interest behind it (Explorer -> tool watches).
+    func broaden(_ agentID: String) async -> String? {
+        guard isCloud else {
+            if let i = agentIndex(agentID) { state.agents[i].focus = "interest" }
+            return state.agents.first { $0.id == agentID }?.name
+        }
+        do {
+            let r: HuntReply = try await api.function("hunt", ["broaden": agentID, "lang": AppLanguage.code])
+            await pull()
+            Task { @MainActor in _ = await self.cloudSweep(agentID: agentID) }
+            return r.name
+        } catch {
+            syncProblem = (error as? LocalizedError)?.errorDescription ?? String(localized: "Couldn't change that scout. Try again.")
             return nil
         }
     }

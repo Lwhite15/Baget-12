@@ -59,6 +59,7 @@ struct AgentRow: Decodable {
     let icon: IconRow?
     let paused: Bool?
     let alerts: String?
+    let focus: String?
 }
 
 struct FriendIconRow: Decodable { let friendId: String; let icon: IconRow; let ring: String?; let palette: [String]? }
@@ -324,7 +325,7 @@ extension AppStore {
                       learned: r.learned, priceNote: r.priceNote,
                       tasteBoard: (board[r.id] ?? []).map { TastePhoto(id: $0.id, addedAt: $0.createdAt, tags: $0.tags, summary: $0.summary, storagePath: $0.storagePath) },
                       icon: r.icon?.avatar,
-                      paused: r.paused ?? false, alerts: r.alerts.flatMap(AgentAlerts.init(rawValue:)) ?? .normal)
+                      paused: r.paused ?? false, alerts: r.alerts.flatMap(AgentAlerts.init(rawValue:)) ?? .normal, focus: r.focus)
             }
             state.finds = finds.map { f in
                 Find(id: f.id, itemID: f.listingId, agentID: f.agentId ?? "", score: f.score, why: f.why,

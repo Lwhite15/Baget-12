@@ -27,7 +27,19 @@ struct SquadView: View {
                 if store.state.agents.isEmpty {
                     EmptyCard(text: String(localized: "No scouts yet. Tap New scout above and tell it what to hunt."))
                 }
-                ForEach(store.state.agents) { a in AgentCard(agent: a) }
+                HuntDoneCard()
+                let specific = store.state.agents.filter(\.isSpecific)
+                if specific.isEmpty {
+                    ForEach(store.state.agents) { a in AgentCard(agent: a) }
+                } else {
+                    let interests = store.state.agents.filter { !$0.isSpecific }
+                    if !interests.isEmpty {
+                        Text("INTERESTS").font(.caption.weight(.bold)).tracking(1).foregroundStyle(Theme.muted).padding(.top, 4)
+                        ForEach(interests) { a in AgentCard(agent: a) }
+                    }
+                    Text("SPECIFIC HUNTS").font(.caption.weight(.bold)).tracking(1).foregroundStyle(Theme.muted).padding(.top, 4)
+                    ForEach(specific) { a in AgentCard(agent: a) }
+                }
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("SQUAD ACTIVITY").font(.caption.weight(.bold)).tracking(1).foregroundStyle(Theme.muted)
@@ -77,7 +89,10 @@ struct AgentCard: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel("Change \(agent.name)'s icon")
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(agent.name).font(.title3.weight(.heavy)).foregroundStyle(Theme.ink)
+                    HStack(spacing: 6) {
+                        Text(agent.name).font(.title3.weight(.heavy)).foregroundStyle(Theme.ink).lineLimit(1)
+                        FocusTag(specific: agent.isSpecific)
+                    }
                     Text("\(agent.mission.label) · \(finds) \(finds == 1 ? String(localized: "find") : String(localized: "finds"))").font(.caption.monospacedDigit()).foregroundStyle(Theme.muted)
                 }
                 Spacer()
