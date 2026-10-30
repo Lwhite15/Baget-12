@@ -665,6 +665,39 @@ await test("one sentence becomes an agent", async () => {
   assert.deepEqual(inserted.traits, ["oud", "saffron"]);
   assert.equal(out.needs_size, false);
 });
+await test("interest scouts hunt wide, specific ones stay tight; what they don't want starts as a pass", async () => {
+  let inserted: any; let asked = "";
+  reset([
+    [/auth\/v1\/user$/, () => ok({ id: jumpman.user_id })],
+    [/api\.anthropic\.com/, (_u, _i, b) => { asked = b.messages[0].content; return ok({ content: [{ type: "text", text: '{"name":"Citrus Scout","category":"fragrance","custom":null,"keywords":["eau de parfum"],"makers":["Lost Tribe"],"traits":["citrus","green"],"creators":[],"size":"","voice":"chill","intro":"On it.","avoid":["sweet","Gourmand"]}' }], stop_reason: "end_turn" }); }],
+    [/POST .*rest\/v1\/agents/, (_u, _i, b) => { inserted = b; return ok([{ id: "new-agent" }]); }],
+  ]);
+  const res = await hunt.handler(post("hunt", { text: "indie citrus perfumes, nothing too sweet", focus: "interest" }, { Authorization: "Bearer user-jwt" }));
+  assert.equal(res.status, 200);
+  assert.match(asked, /what they're into/);
+  assert.equal(inserted.focus, "interest");
+  assert.deepEqual(inserted.learned, { sweet: -2, gourmand: -2 });
+  await hunt.handler(post("hunt", { text: "black Dior sunglasses", focus: "specific" }, { Authorization: "Bearer user-jwt" }));
+  assert.match(asked, /one specific thing/);
+  assert.equal(inserted.focus, "specific");
+  const base = { ...jumpman, learned: {} };
+  assert.match(sweep.sweepPrompt({ ...base, focus: "specific" } as any, "today"), /stay tight/);
+  assert.match(sweep.sweepPrompt({ ...base, focus: "interest" } as any, "today"), /range across the whole world/);
+});
+await test("a finished specific hunt keeps going on the interest behind it", async () => {
+  let patched: any;
+  reset([
+    [/auth\/v1\/user$/, () => ok({ id: jumpman.user_id })],
+    [/GET .*rest\/v1\/agents/, () => ok([{ id: "11111111-2222-3333-4444-555555555555", name: "Explorer Scout", mission_category: "watches", mission_custom: null, keywords: ["explorer 1016"], makers: ["Rolex"], traits: ["vintage"], creators: [], size: "" }])],
+    [/api\.anthropic\.com/, () => ok({ content: [{ type: "text", text: '{"name":"Tool Watch Scout","category":"watches","keywords":["tool watch","field watch"],"makers":["Rolex","Tudor","Omega"],"traits":["vintage","steel"],"creators":[],"voice":"straight","intro":"Keeping an eye on tool watches."}' }], stop_reason: "end_turn" })],
+    [/PATCH .*rest\/v1\/agents/, (_u, _i, b) => { patched = b; return ok([]); }],
+  ]);
+  const res = await hunt.handler(post("hunt", { broaden: "11111111-2222-3333-4444-555555555555" }, { Authorization: "Bearer user-jwt" }));
+  assert.equal(res.status, 200);
+  assert.equal(patched.focus, "interest");
+  assert.equal(patched.name, "Tool Watch Scout");
+  assert.deepEqual(patched.makers, ["Rolex", "Tudor", "Omega"]);
+});
 await test("a hunt that fits no category becomes a custom mission; sneakers without a size ask for one", () => {
   const custom = hunt.cleanPlan({ name: "Nest Finder", category: null, custom: "high-rise apartments in McLean" }, "apartments");
   assert.equal(custom.category, null);

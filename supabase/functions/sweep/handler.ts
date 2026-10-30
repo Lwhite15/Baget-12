@@ -143,7 +143,10 @@ export function sweepPrompt(a: Agent, today: string, r: Reactions = { liked: [],
   const leaning = Object.entries(a.learned ?? {}).filter(([, w]) => w >= 2).sort((x, y) => y[1] - x[1]).map(([k]) => k).slice(0, 10);
   const parts = [
     `Mission: ${missionLabel(a)}`,
-    a.keywords.length ? `Must-have keywords: ${a.keywords.join(", ")}` : "",
+    a.focus === "specific"
+      ? "This is one specific hunt: stay tight on exactly what they described (model, size, color, price)."
+      : "This is something they're into, not one item: range across the whole world of it (makers, styles, kinds of things, price points), and keep surprising them.",
+    a.keywords.length ? `${a.focus === "specific" ? "Must-have keywords" : "Kinds of things they're after"}: ${a.keywords.join(", ")}` : "",
     a.traits.length ? `Styles and traits they love: ${a.traits.join(", ")}` : "",
     a.makers.length ? `Brands and makers they like: ${a.makers.join(", ")}` : "",
     a.creators.length ? `Creators they follow: ${a.creators.join(", ")}` : "",

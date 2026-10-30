@@ -15,14 +15,20 @@ export interface Plan {
   size: string;
   voice: "hype" | "chill" | "straight";
   intro: string;
+  /** "interest": built around what they're into and hunts wide; "specific": one thing (a grail, a size, a price). */
+  focus: "interest" | "specific";
+  /** What they said they don't want ("nothing too sweet" -> "sweet"); seeded as passes so the scout steers clear. */
+  avoid: string[];
 }
+
+export const cleanFocus = (v: unknown): "interest" | "specific" => v === "specific" ? "specific" : "interest";
 
 const strs = (v: unknown, n: number, lower = false) =>
   Array.isArray(v) ? v.filter((x) => typeof x === "string").map((x) => (x as string).trim()).filter((x) => x && x.length <= 40)
     .map((x) => (lower ? x.toLowerCase() : x)).slice(0, n) : [];
 
 /** Validates Claude's plan so only sane values reach the database. */
-export function cleanPlan(raw: unknown, text: string, size?: string): Plan {
+export function cleanPlan(raw: unknown, text: string, size?: string, focus: "interest" | "specific" = "interest"): Plan {
   const r = (raw ?? {}) as Record<string, unknown>;
   const category = typeof r.category === "string" && (CATEGORIES as string[]).includes(r.category) && r.category !== "other" ? r.category : null;
   let custom = !category ? (typeof r.custom === "string" && r.custom.trim() ? r.custom.trim() : text.trim()).slice(0, 80) : null;
@@ -34,6 +40,7 @@ export function cleanPlan(raw: unknown, text: string, size?: string): Plan {
     keywords: strs(r.keywords, 8, true), makers: strs(r.makers, 8), traits: strs(r.traits, 10, true), creators: strs(r.creators, 6),
     size: (size?.trim() || (typeof r.size === "string" ? r.size.trim() : "")).slice(0, 40),
     voice, intro: (typeof r.intro === "string" ? r.intro.trim() : "").slice(0, 240),
+    focus, avoid: strs(r.avoid, 6, true),
   };
 }
 
@@ -55,7 +62,8 @@ async function insertAgent(userId: string, plan: Plan, budget: number | null = n
   const row: Record<string, unknown> = {
     ...(budget && plan.category !== "cars" ? { price_note: budget } : {}),   // an item budget makes no sense for a car
     user_id: userId, name: plan.name, keywords: plan.keywords, traits: plan.traits, makers: plan.makers,
-    creators: plan.creators, size: plan.size, voice: plan.voice, mode: "ask",
+    creators: plan.creators, size: plan.size, voice: plan.voice, mode: "ask", focus: plan.focus,
+    ...(plan.avoid.length ? { learned: Object.fromEntries(plan.avoid.map((x) => [x, -2])) } : {}),
     ...(plan.category ? { mission_category: plan.category } : { mission_custom: plan.custom }),
   };
   try {
@@ -214,6 +222,30 @@ Use only what they said, picked or showed. Keep every list item short (1-4 words
   return { agents };
 }
 
+/** A specific hunt that's done (they bought it): the scout keeps going on the wider interest behind it. */
+async function broaden(userId: string, agentId: string, lang = "en") {
+  if (!/^[0-9a-f-]{36}$/i.test(agentId)) throw new HttpError(400, "Unknown scout");
+  const [a] = await db.select<{ id: string; name: string; mission_category: string | null; mission_custom: string | null; keywords: string[];
+    makers: string[]; traits: string[]; creators: string[]; size: string }>("agents",
+    `select=id,name,mission_category,mission_custom,keywords,makers,traits,creators,size&id=eq.${agentId}&user_id=eq.${userId}`);
+  if (!a) throw new HttpError(404, "Unknown scout");
+  const was = [a.mission_custom ?? a.mission_category, a.keywords.join(", "), a.makers.join(", "), a.traits.join(", ")].filter(Boolean).join("; ");
+  const res = await claude({
+    purpose: "hunt", max_tokens: 3000,
+    messages: [{ role: "user", content: `A shopping scout was hunting one specific thing: ${was}. They found and bought it.
+Now the scout keeps going on the wider interest behind it (a vintage Rolex Explorer -> tool watches; one Dior sunglass -> designer sunglasses).
+Write a wide brief for that interest. Reply with only JSON: ${BRIEF_FIELDS}
+Keep every list item short (1-4 words).${langOf(lang) ? ` Write "name" and "intro" in ${langOf(lang)}. Keep the lists in English.` : ""}` }],
+  });
+  const plan = cleanPlan(parseJSON(textOf(res.content)), a.mission_custom ?? a.mission_category ?? "", a.size, "interest");
+  if (isAdultText(plan.name, plan.custom, plan.keywords, plan.makers, plan.traits, plan.creators)) throw new HttpError(400, ADULT_REFUSAL);
+  await db.update("agents", `id=eq.${a.id}&user_id=eq.${userId}`, {
+    focus: "interest", name: plan.name, keywords: plan.keywords, makers: plan.makers, traits: plan.traits, creators: plan.creators,
+    ...(plan.category ? { mission_category: plan.category, mission_custom: null } : { mission_category: null, mission_custom: plan.custom }),
+  });
+  return { agent_id: a.id, ...plan };
+}
+
 export const handler = handle(async (req) => {
   const user = await requireUser(req);
   await quota(user.id, "hunt", 20, 50);
@@ -229,14 +261,23 @@ export const handler = handle(async (req) => {
       cleanVibes(body.vibes), cleanBudget(body.budget), cleanVibes(body.brands, false), cleanInterests(body.interests), cleanSizes(body.sizes), cleanDepartment(body.department),
       langCode(body.lang)));
   }
+  if (typeof (body as { broaden?: unknown }).broaden === "string") return json(await broaden(user.id, (body as { broaden: string }).broaden, langCode(body.lang)));
   if (text.length < 2) throw new HttpError(400, "Tell me what to hunt for");
+  const focus = cleanFocus((body as { focus?: unknown }).focus);
+  // Builds before interest scouts don't send a focus: their brief stays as it was.
+  const legacy = (body as { focus?: unknown }).focus === undefined;
   if (isAdultText(text)) throw new HttpError(400, ADULT_REFUSAL);
 
   const res = await claude({
     purpose: "hunt",
     max_tokens: 4000,
-    messages: [{ role: "user", content: `Someone told their shopping scout app what they want: "${text}"
+    messages: [{ role: "user", content: `Someone told their shopping scout app ${legacy ? "what they want" : focus === "interest" ? "what they're into" : "the one specific thing they're hunting"}: "${text}"
 
+${legacy ? "" : focus === "interest"
+  ? `This is an interest, not one item: the scout hunts this whole world for weeks and brings back many different things.
+Make the brief wide: the makers, brands, styles and specs people who are into this love (include ones they didn't name),
+and keywords for the kinds of things in it (not one model). Name the agent after the interest.`
+  : `This is one specific thing: keep the brief tight on exactly what they described (model, size, color, price).`}
 Turn it into a brief for a personal shopping agent. Reply with only JSON:
 {"name": "a short fun agent name (2-3 words, e.g. Oud Hunter, Grail Scout)",
  "category": one of ${JSON.stringify(CATEGORIES.filter((c) => c !== "other"))} if it clearly fits, else null,
@@ -247,11 +288,12 @@ Turn it into a brief for a personal shopping agent. Reply with only JSON:
  "creators": designers, perfumers, artists, collaborators (0-4),
  "size": their size if they said one, else "",
  "voice": "hype" for streetwear and sneakers, "straight" for cars and big purchases, else "chill",
- "intro": one friendly sentence in the agent's voice saying what it will hunt, e.g. "I'm on it: oud-heavy niche fragrances in the Frederic Malle lane."}
+ "intro": one friendly sentence in the agent's voice saying what it will hunt, e.g. "I'm on it: oud-heavy niche fragrances in the Frederic Malle lane.",
+ "avoid": things they said they don't want (0-4 short lowercase terms, e.g. "nothing too sweet" -> "sweet"), else []}
 Use only what they said or clearly implied. Keep every list item short (1-4 words).${langOf(body.lang) ? `
 Write "name" and "intro" in ${langOf(body.lang)}. Keep keywords, makers, traits and creators in English: they're search terms.` : ""}` }],
   });
-  const plan = cleanPlan(parseJSON(textOf(res.content)), text, body.size);
+  const plan = cleanPlan(parseJSON(textOf(res.content)), text, body.size, focus);
   if (isAdultText(plan.name, plan.custom, plan.keywords, plan.makers, plan.traits, plan.creators)) throw new HttpError(400, ADULT_REFUSAL);
 
   const id = await insertAgent(user.id, plan);

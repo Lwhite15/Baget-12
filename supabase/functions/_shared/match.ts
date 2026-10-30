@@ -20,6 +20,8 @@ export interface Agent {
   voice: "hype" | "chill" | "straight";
   learned: Record<string, number>;
   price_note: number;
+  /** "interest" (default) hunts wide; "specific" stays tight on one thing. */
+  focus?: "interest" | "specific";
 }
 
 export interface Listing {
