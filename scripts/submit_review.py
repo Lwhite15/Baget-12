@@ -26,6 +26,25 @@ aid = call("GET", f"/apps?filter[bundleId]={os.environ['BUNDLE_ID']}")["data"][0
 ver = call("GET", f"/apps/{aid}/appStoreVersions?filter[platform]=IOS&limit=1")["data"][0]
 vid, vs = ver["id"], ver["attributes"]
 note(f"Version {vs['versionString']}: {vs.get('appStoreState') or vs.get('appVersionState')}")
+if os.environ.get("CANCEL_FIRST") == "1":
+    subs = call("GET", f"/reviewSubmissions?filter[app]={aid}&filter[platform]=IOS&limit=20")["data"]
+    # Pull a waiting submission back (e.g. to add the subscriptions), then build it again below.
+    for s in subs:
+        if s["attributes"]["state"] == "WAITING_FOR_REVIEW":
+            call("PATCH", f"/reviewSubmissions/{s['id']}", {"data": {"type": "reviewSubmissions", "id": s["id"], "attributes": {"canceled": True}}})
+            note("Pulled the waiting submission back from review")
+            for _ in range(30):
+                time.sleep(10)
+                st = call("GET", f"/reviewSubmissions/{s['id']}")["data"]["attributes"]["state"]
+                if st not in ("CANCELING", "WAITING_FOR_REVIEW"): break
+            note(f"Previous submission now: {st}")
+# Swap in a different build (by number) when asked.
+want = os.environ.get("ATTACH_BUILD", "")
+if want:
+    bs = call("GET", f"/builds?filter[app]={aid}&filter[version]={want}&filter[preReleaseVersion.platform]=IOS&limit=5")["data"]
+    if not bs: sys.exit(f"::error::Build {want} not found")
+    call("PATCH", f"/appStoreVersions/{vid}/relationships/build", {"data": {"type": "builds", "id": bs[0]["id"]}})
+    note(f"Build {want} attached to version {vs['versionString']}")
 b = call("GET", f"/appStoreVersions/{vid}/build").get("data")
 if not b:
     sys.exit("::error::No build attached to the version")
@@ -47,20 +66,6 @@ for st in call("GET", f"/appStoreVersionLocalizations/{loc['id']}/appScreenshotS
     shots = call("GET", f"/appScreenshotSets/{st['id']}/appScreenshots")["data"]
     states = [(x["attributes"].get("fileName"), (x["attributes"].get("assetDeliveryState") or {}).get("state")) for x in shots]
     note(f"Screenshots {st['attributes']['screenshotDisplayType']}: " + ", ".join(f"{n}={s}" for n, s in states))
-
-# Subscriptions ride along with the version (first-time subscriptions must go with an app version).
-for g in call("GET", f"/apps/{aid}/subscriptionGroups")["data"]:
-    for s in call("GET", f"/subscriptionGroups/{g['id']}/subscriptions")["data"]:
-        name, state = s["attributes"]["name"], s["attributes"]["state"]
-        if state == "READY_TO_SUBMIT":
-            try:
-                call("POST", "/subscriptionSubmissions", {"data": {"type": "subscriptionSubmissions",
-                     "relationships": {"subscription": {"data": {"type": "subscriptions", "id": s["id"]}}}}})
-                note(f"Subscription '{name}' added to the submission")
-            except Exception as e:
-                warn(f"Subscription '{name}': {e}")
-        else:
-            note(f"Subscription '{name}': {state}")
 
 # One review submission for iOS: reuse an open one, otherwise make it.
 open_states = ("READY_FOR_REVIEW", "UNRESOLVED_ISSUES")
@@ -86,6 +91,26 @@ if not has_version:
         msg = str(e)
         for k in range(0, len(msg), 900): print(f"::error::Couldn't add the version ({k // 900 + 1}): {msg[k:k + 900]}")
         sys.exit(1)
+
+# Subscriptions ride along with the version (first-time subscriptions must go with an app version, so this runs after
+# the version is in the review submission). If they can't be added, stop before submitting.
+missing = []
+for g in call("GET", f"/apps/{aid}/subscriptionGroups")["data"]:
+    for s in call("GET", f"/subscriptionGroups/{g['id']}/subscriptions")["data"]:
+        name, state = s["attributes"]["name"], s["attributes"]["state"]
+        if state == "READY_TO_SUBMIT":
+            try:
+                call("POST", "/subscriptionSubmissions", {"data": {"type": "subscriptionSubmissions",
+                     "relationships": {"subscription": {"data": {"type": "subscriptions", "id": s["id"]}}}}})
+                note(f"Subscription '{name}' added to the submission")
+            except Exception as e:
+                warn(f"Subscription '{name}': {e}")
+                missing.append(name)
+        else:
+            note(f"Subscription '{name}': {state}")
+
+if missing and os.environ.get("REQUIRE_SUBS") == "1":
+    sys.exit(f"::error::Not submitted: couldn't add {', '.join(missing)}. Add them on the version page (In-App Purchases and Subscriptions), then submit.")
 
 try:
     r = call("PATCH", f"/reviewSubmissions/{rid}", {"data": {"type": "reviewSubmissions", "id": rid, "attributes": {"submitted": True}}})

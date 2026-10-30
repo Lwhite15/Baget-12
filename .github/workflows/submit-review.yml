@@ -6,6 +6,17 @@ on:
       build:
         description: "Build number that must be attached"
         required: true
+      attach_build:
+        description: "Attach this build number first (optional)"
+        default: ""
+      cancel_first:
+        description: "Pull a waiting submission back first (to add the subscriptions)"
+        type: boolean
+        default: false
+      require_subs:
+        description: "Don't submit unless the Pro subscriptions go with it"
+        type: boolean
+        default: true
 permissions:
   contents: read
 jobs:
@@ -16,6 +27,9 @@ jobs:
       ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
       BUNDLE_ID: ${{ secrets.BUNDLE_ID }}
       EXPECT_BUILD: ${{ inputs.build }}
+      ATTACH_BUILD: ${{ inputs.attach_build }}
+      CANCEL_FIRST: ${{ inputs.cancel_first && '1' || '' }}
+      REQUIRE_SUBS: ${{ inputs.require_subs && '1' || '' }}
     steps:
       - uses: actions/checkout@v5
       - name: Write key
