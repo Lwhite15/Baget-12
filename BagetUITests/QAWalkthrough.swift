@@ -169,7 +169,11 @@ final class QAWalkthrough: XCTestCase {
         app.swipeUp(); snap("today-scroll-3", wait: 2)
         app.swipeDown(); app.swipeDown(); app.swipeDown()
         // Send a new scout: the button opens its sheet.
-        if tap("Send a new scout", timeout: 3) { snap("new-scout-sheet", wait: 2); closeSheet() } else { note("MISSING Send a new scout") }
+        if tap("Send a new scout", timeout: 3) {
+            snap("new-scout-sheet", wait: 2)
+            if tap("Hunting one specific thing?", timeout: 3) { snap("new-scout-specific", wait: 1) } else { note("MISSING specific hunt option") }
+            closeSheet()
+        } else { note("MISSING Send a new scout") }
         if tap("See all", timeout: 2) { snap("for-you-all", wait: 3); tap("Done", timeout: 2) }
 
         // Finds.
