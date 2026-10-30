@@ -109,6 +109,25 @@ for g in call("GET", f"/apps/{aid}/subscriptionGroups")["data"]:
         else:
             note(f"Subscription '{name}': {state}")
 
+# The subscription group goes with its subscriptions: reset a rejected group name, then add the group itself.
+for g in call("GET", f"/apps/{aid}/subscriptionGroups")["data"]:
+    for gl in call("GET", f"/subscriptionGroups/{g['id']}/subscriptionGroupLocalizations")["data"]:
+        st = gl["attributes"].get("state")
+        note(f"Group '{g['attributes']['referenceName']}' {gl['attributes'].get('locale')}: {st}")
+        if st and st not in ("APPROVED", "WAITING_FOR_REVIEW", "PREPARE_FOR_SUBMISSION"):
+            try:
+                call("PATCH", f"/subscriptionGroupLocalizations/{gl['id']}", {"data": {"type": "subscriptionGroupLocalizations", "id": gl["id"],
+                     "attributes": {"name": gl["attributes"]["name"], "customAppName": gl["attributes"].get("customAppName")}}})
+                note("Group name re-saved")
+            except Exception as e:
+                warn(f"Group name: {e}")
+    try:
+        call("POST", "/subscriptionGroupSubmissions", {"data": {"type": "subscriptionGroupSubmissions",
+             "relationships": {"subscriptionGroup": {"data": {"type": "subscriptionGroups", "id": g["id"]}}}}})
+        note(f"Group '{g['attributes']['referenceName']}' added to the submission")
+    except Exception as e:
+        warn(f"Group submission: {e}")
+
 if missing and os.environ.get("REQUIRE_SUBS") == "1":
     sys.exit(f"::error::Not submitted: couldn't add {', '.join(missing)}. Add them on the version page (In-App Purchases and Subscriptions), then submit.")
 
