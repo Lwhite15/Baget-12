@@ -115,11 +115,12 @@ final class QAWalkthrough: XCTestCase {
         snap("setup-1-interests")
 
         // 1. Interests: one built-in category, one custom interest, plus my own words.
-        tap("Sneakers"); tap("Vinyl & music")
+        // `last`: Today's For You chips ("Sneakers") sit behind the setup screen; the setup's own pill comes later in the tree.
+        tap("Sneakers", last: true); tap("Vinyl & music", last: true)
         snap("setup-1-picked", wait: 0.5)
-        tap("Watches")   // over the free limit: should be blocked
+        tap("Watches", last: true)   // over the free limit: should be blocked
         snap("setup-1-third-pick", wait: 0.5)
-        if tap("Describe what you love and what you're looking for", timeout: 4) {
+        if tap("Describe your taste in your own words", timeout: 4) {
             snap("setup-1-editor", wait: 1)
             let editor = app.textViews.firstMatch
             if editor.waitForExistence(timeout: 4) { editor.typeText("New Balance 990s and Salomon trail runners in earth tones, size 10.5. I also collect 90s hip hop vinyl, original pressings under $80.") }
