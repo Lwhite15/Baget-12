@@ -122,7 +122,7 @@ Without any of the secrets below it still builds and runs, with sample data only
 4. **Push notifications.** Create a Firebase project, add an Android app with package `app.baget`, download
    `google-services.json` and add its contents as the `GOOGLE_SERVICES_JSON` secret. In Firebase > Project settings >
    Service accounts, generate a private key and add the JSON as the `GOOGLE_SERVICE_ACCOUNT` secret.
-5. **Baget Pro on Google Play.** In Play Console, create subscriptions `baget.pro.monthly` ($14.99) and `baget.pro.yearly`
+5. **Baget Pro on Google Play.** In Play Console, create subscriptions `baget.pro.monthly` ($9.99) and `baget.pro.yearly`
    ($99.99). Under Users and permissions, invite the same service account's email with "View financial data" and
    "Manage orders and subscriptions", so the server can confirm purchases.
 6. **Google Play.** New personal developer accounts must run a closed test with at least 12 testers for 14 days before

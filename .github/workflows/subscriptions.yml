@@ -6,7 +6,7 @@ on:
     inputs:
       monthly:
         description: "US monthly price"
-        default: "14.99"
+        default: "9.99"
       yearly:
         description: "US yearly price"
         default: "99.99"

@@ -86,8 +86,8 @@ struct PaywallView: View {
         let yearly = store.proProducts.first { $0.id == "baget.pro.yearly" }
         if monthly == nil && yearly == nil {
             guard Self.screenshotMode else { return [] }
-            return [PlanOption(id: "baget.pro.yearly", title: String(localized: "Yearly"), price: "$99.99 / year", note: "Save 44%"),
-                    PlanOption(id: "baget.pro.monthly", title: String(localized: "Monthly"), price: "$14.99 / month", note: nil)]
+            return [PlanOption(id: "baget.pro.yearly", title: String(localized: "Yearly"), price: "$99.99 / year", note: "Save 17%"),
+                    PlanOption(id: "baget.pro.monthly", title: String(localized: "Monthly"), price: "$9.99 / month", note: nil)]
         }
         var out: [PlanOption] = []
         if let y = yearly {
