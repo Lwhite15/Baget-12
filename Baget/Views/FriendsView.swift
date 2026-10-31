@@ -73,7 +73,7 @@ struct FriendsView: View {
                         HStack(alignment: .top, spacing: 16) {
                             ForEach(circle) { f in
                                 Button { open = f } label: {
-                                    CircleMember(friend: f, hasNew: suggestions.contains { $0.friendID == f.id }, match: matches[f.id])
+                                    CircleMember(friend: f, hasNew: suggestions.contains { $0.friendID == f.id }, match: f.isPending ? nil : matches[f.id])
                                 }
                                 .buttonStyle(.plain)
                             }
@@ -370,7 +370,7 @@ struct FriendAvatar: View {
             if let icon = store.friendIcons[friend.id], !hidden {
                 FriendIconView(friendID: friend.id, name: friend.name, icon: icon, size: s)
             } else {
-                Text(hidden ? "?" : String(friend.name.first ?? "?").uppercased())
+                Text(FriendIconView.initials(friend.name))
                     .font(FriendsStyle.serif(s * 0.4))
                     .foregroundStyle(Theme.ink)
                     .frame(width: s, height: s)
@@ -429,8 +429,8 @@ private struct CircleMember: View {
                 if let icon, !friend.isPending {
                     FriendIconView(friendID: friend.id, name: friend.name, icon: icon, size: s)
                 } else {
-                    Text(friend.isPending && !friend.incoming ? "?" : String(friend.name.first ?? "?").uppercased())
-                        .font(.system(size: s * 0.38, weight: .heavy)).foregroundStyle(.white)
+                    Text(FriendIconView.initials(friend.name))
+                        .font(.system(size: s * 0.38, weight: .heavy)).foregroundStyle(friend.isPending ? Theme.ink.opacity(0.75) : .white)
                         .frame(width: s, height: s)
                         .background(Circle().fill(LinearGradient(colors: friend.isPending ? [Theme.glass, Theme.glass] : colors,
                                                                  startPoint: .topLeading, endPoint: .bottomTrailing)))
@@ -440,10 +440,15 @@ private struct CircleMember: View {
                 .overlay(alignment: .topTrailing) {
                     if hasNew { Circle().fill(Theme.warn).frame(width: 12, height: 12).overlay(Circle().strokeBorder(Theme.bg, lineWidth: 2)) }
                 }
-            Text(friend.isPending ? String(localized: "Invited") : (friend.name.split(separator: " ").first.map(String.init) ?? friend.name))
-                .font(.caption).foregroundStyle(friend.isPending ? Theme.muted : Theme.ink.opacity(0.9))
-                .lineLimit(1)
-            if let match {
+            Text(friend.isPending ? friend.handle : (friend.name.split(separator: " ").first.map(String.init) ?? friend.name))
+                .font(.caption).foregroundStyle(Theme.ink.opacity(friend.isPending ? 0.75 : 0.9))
+                .lineLimit(1).minimumScaleFactor(0.75)
+            if friend.isPending {
+                Text(friend.incoming ? String(localized: "Wants to connect") : String(localized: "Pending"))
+                    .font(.system(size: 10.5, weight: .semibold)).foregroundStyle(Theme.muted)
+                    .padding(.horizontal, 6).padding(.vertical, 1)
+                    .overlay(Capsule().strokeBorder(Theme.line))
+            } else if let match {
                 Text("\(match)%").font(.system(size: 10.5, weight: .heavy)).foregroundStyle(Theme.accentInk)
                     .padding(.horizontal, 6).padding(.vertical, 1)
                     .background(Capsule().fill(match >= 85 ? Theme.cyan : Theme.green))
