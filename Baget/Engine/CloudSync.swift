@@ -235,6 +235,8 @@ extension AppStore {
         }
         try? await api.update("profiles", "id=eq.\(uid)", ["tz": TimeZone.current.identifier])
         await pull()
+        // A new account (no scouts yet) always gets setup, even if this phone finished setup for an earlier account.
+        if state.agents.isEmpty, state.lastSynced != nil { UserDefaults.standard.set(false, forKey: "baget.onboarded") }
         Analytics.track(.signedIn, ["newAccount": state.agents.isEmpty])
         // Don't pop the system prompt the moment someone signs up: setup asks at the end, with a reason.
         await registerForPushIfAsked()
@@ -258,6 +260,8 @@ extension AppStore {
     }
 
     func resetToWelcome() {
+        // Signed out or deleted: the next account on this phone starts with setup.
+        UserDefaults.standard.set(false, forKey: "baget.onboarded")
         state = AppState()
         Catalog.cloud = [:]
         Catalog.useCloud = false
