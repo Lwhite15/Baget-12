@@ -6,6 +6,9 @@ on:
       build:
         description: "Build number that must be attached"
         required: true
+      video_link:
+        description: "Screen recording link: puts docs/review-notes.txt into the App Review notes first (optional)"
+        default: ""
       attach_build:
         description: "Attach this build number first (optional)"
         default: ""
@@ -43,8 +46,10 @@ jobs:
       - name: Submit
         env:
           ASC_KEY_PATH: ${{ runner.temp }}/keys/k.p8
+          VIDEO_LINK: ${{ inputs.video_link }}
         run: |
           pip install -q pyjwt cryptography requests
+          if [ -n "$VIDEO_LINK" ]; then python3 scripts/review_notes.py; fi
           python3 scripts/submit_review.py
       - name: Remove key
         if: always()

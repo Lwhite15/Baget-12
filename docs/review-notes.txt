@@ -1,0 +1,26 @@
+SCREEN RECORDING (physical iPhone, latest iOS): {VIDEO_LINK}
+It starts at launch and shows sign-up, setup, finds, opening a store page, friends with report and block, buying Pro, and deleting the account.
+
+1. PURPOSE AND AUDIENCE
+Baget gives shoppers personal AI "scouts" that learn their taste and keep searching the web for products they'd love: new finds, upcoming drops, restocks and price drops. People tell a scout what they're into (sneakers, fragrance, watches, fishing gear, anything), like or pass what it brings back, and it learns. The problem it solves: great products are scattered across thousands of stores, resale sites and small boutiques, and people miss them. Baget is for adults in the US who shop sneakers, clothing, fragrance, watches and hobby gear.
+
+2. HOW TO USE IT
+Sign in with the demo account in Sign-In Information (email and password), or create a new account with "Continue with email" or Sign in with Apple. A new account goes through a short setup (pick interests, optional taste check and photos) and its scouts start searching right away; first finds arrive within a few minutes. The demo account already has scouts and finds.
+- Today: the day's best finds and picks. Finds: everything the scouts found (tap ♥ to like, ✕ to pass, tap a find for details; Buy opens the store's own page). Squad: your scouts; "Send a new scout" adds one. Friends: add friends by @username, send each other recommendations, report or block anyone (on their profile, or the ••• menu on a request or recommendation). Settings (your icon, top left): Pro, Blocked people, Delete account.
+- Baget Pro (monthly or yearly auto-renewing subscription, with a free trial for new subscribers) lets scouts hunt more often and more deeply, and allows up to 5 scouts. Open it from Settings or any "Go Pro" prompt.
+- Account deletion: Settings > Delete account. It permanently deletes the account and all its data.
+- User content: friends can send each other product recommendations with a short note, and have a display name, @username and profile icon. Anyone can be reported (reasons: spam, inappropriate photo or name, harassment, other) and blocked. Reports notify our team immediately and are reviewed within 24 hours; we remove offending content and accounts. Blocking removes the friendship and anything they sent, and stops them finding, adding or messaging the person.
+
+3. EXTERNAL SERVICES
+- Supabase: accounts, sign-in, database and server functions.
+- Sign in with Apple.
+- Anthropic Claude and Google Gemini: the AI that powers the scouts (reading what people want, searching and choosing products).
+- Serper, Brave Search and the eBay Browse API: product search.
+- Apple Push Notification service: alerts about finds.
+- StoreKit / App Store: the Baget Pro subscription. Baget sells no physical goods; purchases happen on the retailer's own website.
+
+4. REGIONS
+Baget is available in the United States only, and works the same for everyone there.
+
+5. THIRD-PARTY CONTENT
+Product names, photos and prices come from public store and marketplace pages and are always shown with the store's name and a link to the original listing, where the purchase happens. Baget doesn't sell, resell or host any of these products. Store links may carry affiliate tracking, which is disclosed in the privacy policy. We aren't in a regulated industry.
