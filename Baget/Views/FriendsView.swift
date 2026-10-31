@@ -56,7 +56,7 @@ struct FriendsView: View {
                 }
                 .padding(.bottom, 4)
 
-                ForEach(requests) { f in RequestRow(friend: f) }
+                if !requests.isEmpty { RequestList(requests: requests) }
 
                 ForEach(birthdays) { b in
                     BirthdayCard(birthday: b, friend: accepted.first { $0.id == b.friendId }) {
@@ -468,29 +468,75 @@ private struct RequestRow: View {
     @State private var reporting: SafetyTarget?
     @State private var blocking: SafetyTarget?
     var body: some View {
-        HStack(spacing: 12) {
-            FriendAvatar(friend: friend, size: 34)
-            (Text(friend.name).bold() + Text(" wants to connect")).font(.subheadline).foregroundStyle(Theme.ink).lineLimit(1)
-            Spacer(minLength: 8)
-            Button("Accept") { store.respondToFriend(friend, accept: true); router.say(String(localized: "You and \(friend.name) are now friends")) }
-                .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
-            Button("Decline") { store.respondToFriend(friend, accept: false) }
-                .font(.subheadline).foregroundStyle(Theme.muted)
-            if store.isCloud && !friend.isSample {
-                Menu {
-                    Button { reporting = SafetyTarget(friend) } label: { Label("Report", systemImage: "flag") }
-                    Button(role: .destructive) { blocking = SafetyTarget(friend) } label: { Label("Block \(friend.handle)", systemImage: "nosign") }
-                } label: {
-                    Image(systemName: "ellipsis").font(.subheadline.weight(.bold)).foregroundStyle(Theme.muted).frame(width: 28, height: 28).contentShape(Rectangle())
+        let showsHandle = !friend.handle.isEmpty && friend.handle != friend.name
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .center, spacing: 12) {
+                FriendAvatar(friend: friend, size: 50)
+                    .padding(3)
+                    .overlay(Circle().strokeBorder(Theme.cyan.opacity(0.55), lineWidth: 2))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("FRIEND REQUEST").font(.system(size: 10, weight: .heavy)).tracking(0.8).foregroundStyle(Theme.cyan)
+                    Text(friend.name).font(.headline).foregroundStyle(Theme.ink).lineLimit(1)
+                    Text(showsHandle ? String(localized: "\(friend.handle) wants to join your circle") : String(localized: "Wants to join your circle"))
+                        .font(.caption).foregroundStyle(Theme.muted).lineLimit(2)
                 }
-                .accessibilityLabel("More options for \(friend.name)")
+                Spacer(minLength: 0)
+                if store.isCloud && !friend.isSample {
+                    Menu {
+                        Button { reporting = SafetyTarget(friend) } label: { Label("Report", systemImage: "flag") }
+                        Button(role: .destructive) { blocking = SafetyTarget(friend) } label: { Label("Block \(friend.handle)", systemImage: "nosign") }
+                    } label: {
+                        Image(systemName: "ellipsis").font(.subheadline.weight(.bold)).foregroundStyle(Theme.muted).frame(width: 30, height: 30).contentShape(Rectangle())
+                    }
+                    .accessibilityLabel("More options for \(friend.name)")
+                }
+            }
+            HStack(spacing: 8) {
+                Button {
+                    withAnimation(.snappy) { store.respondToFriend(friend, accept: true) }
+                    router.say(String(localized: "You and \(friend.name) are now friends"))
+                } label: {
+                    Text("Accept").font(.subheadline.weight(.heavy)).foregroundStyle(Theme.accentInk)
+                        .frame(maxWidth: .infinity).frame(height: 42)
+                        .background(Theme.gradient, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                }
+                Button { withAnimation(.snappy) { store.respondToFriend(friend, accept: false) } } label: {
+                    Text("Decline").font(.subheadline.weight(.bold)).foregroundStyle(Theme.ink.opacity(0.85))
+                        .frame(maxWidth: .infinity).frame(height: 42)
+                        .background(Theme.glass, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 13, style: .continuous).strokeBorder(Theme.line))
+                }
             }
         }
-        .safetyActions(reporting: $reporting, blocking: $blocking)
         .buttonStyle(.plain)
-        .padding(.vertical, 12)
-        .overlay(alignment: .top) { Divider().overlay(FriendsStyle.rule) }
-        .overlay(alignment: .bottom) { Divider().overlay(FriendsStyle.rule) }
+        .padding(14)
+        .background(LinearGradient(colors: [Theme.blue.opacity(0.18), Theme.green.opacity(0.10)], startPoint: .topLeading, endPoint: .bottomTrailing),
+                    in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Theme.cyan.opacity(0.35)))
+        .safetyActions(reporting: $reporting, blocking: $blocking)
+        .transition(.opacity.combined(with: .move(edge: .top)))
+    }
+}
+
+/// Friend requests: the two newest as cards, the rest behind "Show N more requests".
+private struct RequestList: View {
+    let requests: [Friend]
+    @State private var showAll = false
+    var body: some View {
+        let shown = showAll ? requests : Array(requests.prefix(2))
+        VStack(alignment: .leading, spacing: 10) {
+            ForEach(shown) { f in RequestRow(friend: f) }
+            if requests.count > 2 {
+                Button { withAnimation(.snappy) { showAll.toggle() } } label: {
+                    Label(showAll ? String(localized: "Show fewer") : String(localized: "Show \(requests.count - 2) more requests"),
+                          systemImage: showAll ? "chevron.up" : "chevron.down")
+                        .font(.footnote.weight(.semibold)).foregroundStyle(Theme.cyan)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 2)
+            }
+        }
     }
 }
 
