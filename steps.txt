@@ -1,0 +1,10 @@
+[01] snap 01-friend-1
+[02] snap 02-friend-2
+[03] snap 03-friend-3
+[04] snap 04-friend-4
+[05] snap 05-friend-5
+[06] snap 06-friend-6
+[06] MISSING Swap Taste Cards
+[06] MISSING Close
+[06] tap (forced) Friends
+[07] snap 07-friends-birthday

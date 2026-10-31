@@ -1,0 +1,183 @@
+Command line invocation:
+    /Applications/Xcode_26.6.app/Contents/Developer/usr/bin/xcodebuild test-without-building "-only-testing:BagetUITests/QAWalkthrough/testFriendPreview" -project Baget.xcodeproj -scheme BagetQA -derivedDataPath build -destination id=58FBEAC1-8EC6-4E83-B597-D6801A423A50 -resultBundlePath /Users/runner/work/_temp/qa.xcresult
+
+Writing result bundle at path:
+	/Users/runner/work/_temp/qa.xcresult
+
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:iOS Simulator, arch:arm64, id:58FBEAC1-8EC6-4E83-B597-D6801A423A50, OS:26.4.1, name:iPhone 17 Pro }
+{ platform:iOS Simulator, arch:x86_64, id:58FBEAC1-8EC6-4E83-B597-D6801A423A50, OS:26.4.1, name:iPhone 17 Pro }
+2026-10-31 18:11:30.272741+0000 BagetUITests-Runner[9239:33828] [Default] Running tests...
+objc[9239]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23E254a/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.4.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x107b00310) and /Library/Developer/CoreSimulator/Volumes/iOS_23E254a/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.4.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x108e0c398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-10-31 18:11:34.919.
+2026-10-31 18:11:38.154 xcodebuild[7254:28141] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-31 18:11:38.154 xcodebuild[7254:28141] [MT] IDELaunchParametersSnapshot: no debugger version
+Test Suite 'BagetUITests.xctest' started at 2026-10-31 18:11:34.919.
+Test Suite 'QAWalkthrough' started at 2026-10-31 18:11:34.920.
+Test Case '-[BagetUITests.QAWalkthrough testFriendPreview]' started.
+    t =     0.00s Start Test at 2026-10-31 18:11:34.921
+    t =     0.70s Set Up
+    t =     0.71s Open app.baget.ios
+    t =     0.71s     Launch app.baget.ios
+    t =     8.07s         Setting up automation session
+    t =     9.75s         Wait for app.baget.ios to idle
+    t =    13.16s Get all elements bound by index for: Descendants matching type Button
+    t =    27.59s Find the Button (Element at index 0)
+    t =    28.68s Find the Button (Element at index 1)
+    t =    28.93s Find the Button (Element at index 2)
+    t =    29.03s Find the Button (Element at index 3)
+    t =    29.19s Find the Button (Element at index 4)
+    t =    29.53s Find the Button (Element at index 5)
+    t =    29.63s Find the Button (Element at index 6)
+    t =    29.72s Find the Button (Element at index 7)
+    t =    29.80s Find the Button (Element at index 8)
+    t =    29.89s Find the Button (Element at index 9)
+    t =    29.97s Find the Button (Element at index 10)
+    t =    30.10s Find the Button (Element at index 11)
+    t =    30.45s Find the Button (Element at index 12)
+    t =    30.54s Find the Button (Element at index 13)
+    t =    30.63s Find the Button (Element at index 14)
+    t =    30.74s Find the Button (Element at index 15)
+    t =    30.84s Find the Button (Element at index 16)
+    t =    30.93s Find the Button (Element at index 17)
+    t =    31.02s Find the Button (Element at index 18)
+    t =    31.10s Find the Button (Element at index 19)
+    t =    31.17s Find the Button (Element at index 20)
+    t =    31.25s Find the Button (Element at index 21)
+    t =    31.34s Find the Button (Element at index 22)
+    t =    31.42s Find the Button (Element at index 23)
+    t =    31.49s Find the Button (Element at index 24)
+    t =    31.59s Find the Button (Element at index 25)
+    t =    31.67s Find the Button (Element at index 26)
+    t =    31.75s Find the Button (Element at index 27)
+    t =    31.83s Find the Button (Element at index 28)
+    t =    31.90s Find the Button (Element at index 29)
+    t =    32.04s Tap "Take a look first" Button
+    t =    32.04s     Wait for app.baget.ios to idle
+    t =    32.05s     Find the "Take a look first" Button
+    t =    32.11s     Check for interrupting elements affecting "Take a look first" Button
+    t =    32.22s     Synthesize event
+    t =    32.64s     Wait for app.baget.ios to idle
+    t =    38.10s Added attachment named '01-friend-1'
+    t =    38.10s Requesting snapshot of accessibility hierarchy for app with pid 9616
+    t =    38.52s Requesting snapshot of accessibility hierarchy for app with pid 9616
+QA: [01] snap 01-friend-1
+    t =    38.64s Swipe up Target Application 'app.baget.ios'
+    t =    38.64s     Wait for app.baget.ios to idle
+    t =    38.64s     Find the Target Application 'app.baget.ios'
+    t =    38.70s     Check for interrupting elements affecting "Baget" Application
+    t =    38.76s     Synthesize event
+    t =    39.19s     Wait for app.baget.ios to idle
+    t =    41.04s Added attachment named '02-friend-2'
+    t =    41.05s Requesting snapshot of accessibility hierarchy for app with pid 9616
+    t =    41.40s Requesting snapshot of accessibility hierarchy for app with pid 9616
+QA: [02] snap 02-friend-2
+    t =    41.51s Swipe up Target Application 'app.baget.ios'
+    t =    41.51s     Wait for app.baget.ios to idle
+    t =    41.51s     Find the Target Application 'app.baget.ios'
+    t =    41.56s     Check for interrupting elements affecting "Baget" Application
+    t =    41.62s     Synthesize event
+    t =    42.04s     Wait for app.baget.ios to idle
+    t =    43.92s Added attachment named '03-friend-3'
+    t =    43.92s Requesting snapshot of accessibility hierarchy for app with pid 9616
+    t =    44.29s Requesting snapshot of accessibility hierarchy for app with pid 9616
+QA: [03] snap 03-friend-3
+    t =    44.39s Swipe up Target Application 'app.baget.ios'
+    t =    44.39s     Wait for app.baget.ios to idle
+    t =    44.39s     Find the Target Application 'app.baget.ios'
+    t =    44.44s     Check for interrupting elements affecting "Baget" Application
+    t =    44.51s     Synthesize event
+    t =    44.93s     Wait for app.baget.ios to idle
+    t =    46.80s Added attachment named '04-friend-4'
+    t =    46.80s Requesting snapshot of accessibility hierarchy for app with pid 9616
+    t =    47.14s Requesting snapshot of accessibility hierarchy for app with pid 9616
+QA: [04] snap 04-friend-4
+    t =    47.25s Swipe up Target Application 'app.baget.ios'
+    t =    47.25s     Wait for app.baget.ios to idle
+    t =    47.25s     Find the Target Application 'app.baget.ios'
+    t =    47.30s     Check for interrupting elements affecting "Baget" Application
+    t =    47.36s     Synthesize event
+    t =    47.79s     Wait for app.baget.ios to idle
+    t =    49.68s Added attachment named '05-friend-5'
+    t =    49.68s Requesting snapshot of accessibility hierarchy for app with pid 9616
+    t =    50.08s Requesting snapshot of accessibility hierarchy for app with pid 9616
+QA: [05] snap 05-friend-5
+    t =    50.19s Swipe up Target Application 'app.baget.ios'
+    t =    50.19s     Wait for app.baget.ios to idle
+    t =    50.19s     Find the Target Application 'app.baget.ios'
+    t =    50.25s     Check for interrupting elements affecting "Baget" Application
+    t =    50.32s     Synthesize event
+    t =    50.74s     Wait for app.baget.ios to idle
+    t =    52.62s Added attachment named '06-friend-6'
+    t =    52.62s Requesting snapshot of accessibility hierarchy for app with pid 9616
+    t =    52.99s Requesting snapshot of accessibility hierarchy for app with pid 9616
+QA: [06] snap 06-friend-6
+    t =    53.09s Get number of matches for: Elements matching predicate 'label == "Swap Taste Cards"'
+    t =    53.16s Get number of matches for: Elements matching predicate 'label == "Swap Taste Cards"'
+    t =    53.22s Get number of matches for: Elements matching predicate 'label == "Swap Taste Cards"'
+    t =    53.79s Get number of matches for: Elements matching predicate 'label == "Swap Taste Cards"'
+    t =    53.89s Get number of matches for: Elements matching predicate 'label == "Swap Taste Cards"'
+    t =    53.95s Get number of matches for: Elements matching predicate 'label == "Swap Taste Cards"'
+    t =    54.54s Get number of matches for: Elements matching predicate 'label == "Swap Taste Cards"'
+    t =    54.61s Get number of matches for: Elements matching predicate 'label == "Swap Taste Cards"'
+    t =    54.70s Get number of matches for: Elements matching predicate 'label == "Swap Taste Cards"'
+    t =    55.28s Get number of matches for: Elements matching predicate 'label == "Swap Taste Cards"'
+    t =    55.38s Get number of matches for: Elements matching predicate 'label == "Swap Taste Cards"'
+    t =    55.46s Get number of matches for: Elements matching predicate 'label == "Swap Taste Cards"'
+    t =    56.06s Get number of matches for: Elements matching predicate 'label == "Swap Taste Cards"'
+    t =    56.13s Get number of matches for: Elements matching predicate 'label == "Swap Taste Cards"'
+    t =    56.21s Get number of matches for: Elements matching predicate 'label == "Swap Taste Cards"'
+QA: [06] MISSING Swap Taste Cards
+    t =    56.79s Get number of matches for: Elements matching predicate 'label == "Close"'
+    t =    56.88s Get number of matches for: Elements matching predicate 'label == "Close"'
+    t =    56.95s Get number of matches for: Elements matching predicate 'label == "Close"'
+    t =    57.53s Get number of matches for: Elements matching predicate 'label == "Close"'
+    t =    57.62s Get number of matches for: Elements matching predicate 'label == "Close"'
+    t =    57.68s Get number of matches for: Elements matching predicate 'label == "Close"'
+    t =    58.27s Get number of matches for: Elements matching predicate 'label == "Close"'
+    t =    58.35s Get number of matches for: Elements matching predicate 'label == "Close"'
+    t =    58.43s Get number of matches for: Elements matching predicate 'label == "Close"'
+    t =    59.01s Get number of matches for: Elements matching predicate 'label == "Close"'
+    t =    59.08s Get number of matches for: Elements matching predicate 'label == "Close"'
+    t =    59.14s Get number of matches for: Elements matching predicate 'label == "Close"'
+    t =    59.73s Get number of matches for: Elements matching predicate 'label == "Close"'
+    t =    59.80s Get number of matches for: Elements matching predicate 'label == "Close"'
+    t =    59.88s Get number of matches for: Elements matching predicate 'label == "Close"'
+QA: [06] MISSING Close
+    t =    60.45s Get number of matches for: Elements matching predicate 'label == "Friends"'
+    t =    60.52s Checking existence of `Button (Element at index 0)`
+    t =    60.59s Find the Button (Element at index 0)
+    t =    60.66s Find the "heart.circle.fill" Button
+    t =    61.52s Tap "heart.circle.fill" Button[0.50, 0.50]
+    t =    61.52s     Wait for app.baget.ios to idle
+    t =    61.52s     Find the "heart.circle.fill" Button
+    t =    61.60s     Check for interrupting elements affecting "heart.circle.fill" Button
+    t =    61.66s     Synthesize event
+    t =    61.67s         Find the "heart.circle.fill" Button
+    t =    61.75s         Find the "heart.circle.fill" Button
+    t =    61.83s         Find the "heart.circle.fill" Button
+    t =    62.18s     Wait for app.baget.ios to idle
+QA: [06] tap (forced) Friends
+    t =    64.37s Added attachment named '07-friends-birthday'
+    t =    64.37s Requesting snapshot of accessibility hierarchy for app with pid 9616
+    t =    64.72s Requesting snapshot of accessibility hierarchy for app with pid 9616
+QA: [07] snap 07-friends-birthday
+    t =    64.83s Tear Down
+Test Case '-[BagetUITests.QAWalkthrough testFriendPreview]' passed (65.524 seconds).
+Test Suite 'QAWalkthrough' passed at 2026-10-31 18:12:40.446.
+	 Executed 1 test, with 0 failures (0 unexpected) in 65.524 (65.526) seconds
+Test Suite 'BagetUITests.xctest' passed at 2026-10-31 18:12:40.446.
+	 Executed 1 test, with 0 failures (0 unexpected) in 65.524 (65.527) seconds
+Test Suite 'Selected tests' passed at 2026-10-31 18:12:40.447.
+	 Executed 1 test, with 0 failures (0 unexpected) in 65.524 (65.528) seconds
+2026-10-31 18:12:41.338 xcodebuild[7254:28141] [MT] IDETestOperationsObserverDebug: 93.928 elapsed -- Testing started completed.
+2026-10-31 18:12:41.338 xcodebuild[7254:28141] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-31 18:12:41.338 xcodebuild[7254:28141] [MT] IDETestOperationsObserverDebug: 93.928 sec, +93.928 sec -- end
+
+Test session results, code coverage, and logs:
+	/Users/runner/work/_temp/qa.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started
