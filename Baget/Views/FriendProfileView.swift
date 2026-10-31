@@ -100,6 +100,8 @@ struct FriendProfileView: View {
     @State private var confirmRemove = false
     @State private var showCards = false
     @State private var hunting: String?
+    @State private var reporting: SafetyTarget?
+    @State private var blocking: SafetyTarget?
 
     private var first: String { friend.name.split(separator: " ").first.map(String.init) ?? friend.name }
     private static let themGradient = LinearGradient(colors: [Color(red: 1, green: 0.54, blue: 0.36), Theme.hot], startPoint: .topLeading, endPoint: .bottomTrailing)
@@ -130,6 +132,7 @@ struct FriendProfileView: View {
         .overlay(alignment: .topTrailing) { CloseButton { dismiss() }.padding(.top, 14).padding(.trailing, 16) }
         .task { await load() }
         .refreshable { await load() }
+        .safetyActions(reporting: $reporting, blocking: $blocking) { dismiss() }
         .sheet(isPresented: $showCards) {
             TasteCardSwapView(friendName: friend.name, theirs: profile?.card, mine: profile?.myCard, match: profile?.match)
                 .presentationBackground(Theme.bg)
@@ -384,6 +387,17 @@ struct FriendProfileView: View {
                 .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.line))
             Button("Remove friend") { confirmRemove = true }
                 .font(.footnote).foregroundStyle(Theme.muted).padding(.top, 4)
+            if store.isCloud && !friend.isSample {
+                Divider().overlay(Theme.line).padding(.top, 8)
+                HStack(spacing: 26) {
+                    Button { reporting = SafetyTarget(friend) } label: { Label("Report", systemImage: "flag.fill") }
+                        .foregroundStyle(Theme.warn)
+                    Button { blocking = SafetyTarget(friend) } label: { Label("Block \(friend.handle)", systemImage: "nosign") }
+                        .foregroundStyle(Theme.hot)
+                }
+                .font(.footnote.weight(.semibold))
+                .padding(.top, 4)
+            }
         }
         .buttonStyle(.plain)
         .padding(.top, 4)

@@ -592,6 +592,30 @@ insert into public.finds (user_id, agent_id, listing_id, score, why)
 delete from public.agents where name = 'Temp Ring';
 select t.ok((select f.agent_id is null from public.finds f join public.listings l on l.id = f.listing_id where l.fingerprint = 'orphan|2'), 'but never to a scout that hunts something else');
 
+-- Report and block
+reset role;
+select handle as carol_handle from public.profiles where id = 'cccccccc-0000-0000-0000-000000000003' \gset
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'cccccccc-0000-0000-0000-000000000003', false);
+select public.request_friend(:'bob_handle');
+select set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-0000-0000-000000000002', false);
+select public.report_user('cccccccc-0000-0000-0000-000000000003', 'spam', 'sends junk');
+select t.err($$select public.report_user('cccccccc-0000-0000-0000-000000000003', 'whatever')$$, 'report reasons are fixed');
+select t.ok(t.n('select * from public.user_reports') = 0, 'people cannot read reports');
+select public.block_user('cccccccc-0000-0000-0000-000000000003');
+select t.ok(t.n($$select * from public.my_friends() where friend_id = 'cccccccc-0000-0000-0000-000000000003'$$) = 0, 'a block removes their request');
+select t.ok(t.n('select * from public.my_blocks()') = 1, 'blocked people are listed');
+select set_config('request.jwt.claim.sub', 'cccccccc-0000-0000-0000-000000000003', false);
+select t.ok((public.request_friend(:'bob_handle') ->> 'status') = 'not_found', 'a blocked person cannot find or add you');
+select t.ok(t.n('select * from public.my_blocks()') = 0, 'and cannot see the block');
+select t.err($$insert into public.friendships (requester, addressee) values ('cccccccc-0000-0000-0000-000000000003', 'bbbbbbbb-0000-0000-0000-000000000002')$$, 'nor sneak a request in');
+select set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-0000-0000-000000000002', false);
+select t.ok((public.request_friend(:'carol_handle') ->> 'status') = 'not_found', 'blocking works both ways');
+select public.unblock_user('cccccccc-0000-0000-0000-000000000003');
+select t.ok(t.n('select * from public.my_blocks()') = 0, 'unblock');
+reset role;
+select t.ok((select count(*) = 1 from public.user_reports where reason = 'spam'), 'the report is saved for the team');
+
 -- morning release and account deletion
 set role service_role;
 select t.ok(t.n('select * from public.release_held_notes()') >= 0, 'release runs');

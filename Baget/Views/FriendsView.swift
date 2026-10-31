@@ -460,6 +460,8 @@ private struct RequestRow: View {
     @Environment(AppStore.self) private var store
     @Environment(Router.self) private var router
     let friend: Friend
+    @State private var reporting: SafetyTarget?
+    @State private var blocking: SafetyTarget?
     var body: some View {
         HStack(spacing: 12) {
             FriendAvatar(friend: friend, size: 34)
@@ -469,7 +471,17 @@ private struct RequestRow: View {
                 .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
             Button("Decline") { store.respondToFriend(friend, accept: false) }
                 .font(.subheadline).foregroundStyle(Theme.muted)
+            if store.isCloud && !friend.isSample {
+                Menu {
+                    Button { reporting = SafetyTarget(friend) } label: { Label("Report", systemImage: "flag") }
+                    Button(role: .destructive) { blocking = SafetyTarget(friend) } label: { Label("Block \(friend.handle)", systemImage: "nosign") }
+                } label: {
+                    Image(systemName: "ellipsis").font(.subheadline.weight(.bold)).foregroundStyle(Theme.muted).frame(width: 28, height: 28).contentShape(Rectangle())
+                }
+                .accessibilityLabel("More options for \(friend.name)")
+            }
         }
+        .safetyActions(reporting: $reporting, blocking: $blocking)
         .buttonStyle(.plain)
         .padding(.vertical, 12)
         .overlay(alignment: .top) { Divider().overlay(FriendsStyle.rule) }
@@ -485,6 +497,8 @@ struct SuggestionCard: View {
     @State private var replying = false
     @State private var replied = false
     @State private var viewing: URL?
+    @State private var reporting: SafetyTarget?
+    @State private var blocking: SafetyTarget?
 
     var body: some View {
         if let f = store.friend(suggestion.friendID), let item = Catalog.item(suggestion.itemID) {
@@ -496,6 +510,16 @@ struct SuggestionCard: View {
                     FriendAvatar(friend: f, size: 24)
                     (Text(f.name).bold().foregroundStyle(Theme.ink) + Text(" · \(Fmt.ago(suggestion.date))").foregroundStyle(Theme.muted))
                         .font(.footnote)
+                    Spacer(minLength: 0)
+                    if store.isCloud && !f.isSample {
+                        Menu {
+                            Button { reporting = SafetyTarget(f, suggestionID: suggestion.id) } label: { Label("Report this", systemImage: "flag") }
+                            Button(role: .destructive) { blocking = SafetyTarget(f) } label: { Label("Block \(f.handle)", systemImage: "nosign") }
+                        } label: {
+                            Image(systemName: "ellipsis").font(.subheadline.weight(.bold)).foregroundStyle(Theme.muted).frame(width: 30, height: 24).contentShape(Rectangle())
+                        }
+                        .accessibilityLabel("More options for this recommendation")
+                    }
                 }
                 // Tap the product to see the store's page in Baget before deciding.
                 let link = BuyLink.tracked(item, from: "suggestion")
@@ -564,6 +588,7 @@ struct SuggestionCard: View {
             .sheet(item: Binding(get: { viewing.map { IdentifiedURL(url: $0) } }, set: { viewing = $0?.url })) { x in
                 SafariView(url: x.url).ignoresSafeArea()
             }
+            .safetyActions(reporting: $reporting, blocking: $blocking)
         }
     }
 
@@ -613,6 +638,8 @@ private struct FriendSheet: View {
     @Environment(Router.self) private var router
     @Environment(\.dismiss) private var dismiss
     let friend: Friend
+    @State private var reporting: SafetyTarget?
+    @State private var blocking: SafetyTarget?
     @State private var confirmRemove = false
 
     var body: some View {
@@ -651,9 +678,20 @@ private struct FriendSheet: View {
                     Button("Remove friend") { confirmRemove = true }
                         .font(.footnote).foregroundStyle(Theme.muted).buttonStyle(.plain).padding(.top, 16)
                 }
+                if store.isCloud && !friend.isSample {
+                    HStack(spacing: 26) {
+                        Button { reporting = SafetyTarget(friend) } label: { Label("Report", systemImage: "flag.fill") }
+                            .foregroundStyle(Theme.warn)
+                        Button { blocking = SafetyTarget(friend) } label: { Label("Block \(friend.handle)", systemImage: "nosign") }
+                            .foregroundStyle(Theme.hot)
+                    }
+                    .font(.footnote.weight(.semibold)).buttonStyle(.plain)
+                    .frame(maxWidth: .infinity).padding(.top, 18)
+                }
             }
             .padding(.horizontal, 24).padding(.bottom, 24)
         }
+        .safetyActions(reporting: $reporting, blocking: $blocking) { dismiss() }
         .confirmationDialog("Remove \(friend.name)?", isPresented: $confirmRemove, titleVisibility: .visible) {
             Button("Remove", role: .destructive) { store.removeFriend(friend.id); router.say("Removed \(friend.name)"); dismiss() }
         }

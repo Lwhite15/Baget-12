@@ -392,6 +392,9 @@ struct ProfileView: View {
             Button { router.sheet = .taste } label: {
                 Label("What Baget knows about you", systemImage: "brain.head.profile")
             }
+            if store.isCloud {
+                NavigationLink { BlockedPeopleView() } label: { Label("Blocked people", systemImage: "nosign") }
+            }
             Button { showHowTo = true } label: {
                 Label("How Baget works", systemImage: "questionmark.circle")
             }
