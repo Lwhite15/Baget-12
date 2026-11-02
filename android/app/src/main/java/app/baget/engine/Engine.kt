@@ -43,6 +43,27 @@ object TextMatch {
     fun haystack(item: Item): String =
         norm((listOf(item.title, item.brand, item.category.info.label, item.creator ?: "") + item.traits + item.tags).joinToString(" "))
 
+    /** Words that say little about what someone wants (colors, sizes, conditions): they can't carry a match alone. */
+    val generic: Set<String> = listOf("black", "white", "red", "blue", "green", "grey", "gray", "brown", "pink", "purple", "orange", "yellow",
+        "gold", "silver", "beige", "cream", "tan", "navy", "dark", "light", "new", "used", "vintage", "rare", "cheap", "best", "good", "nice",
+        "small", "large", "big", "mini", "size", "men", "women", "mens", "womens", "man", "woman", "kid", "kids", "pair", "set", "deal", "sale",
+        "find", "finds", "classic", "original", "authentic", "limited", "edition", "style", "look", "like", "cool")
+        .map { if (it.endsWith("s") && it.length > 2) it.dropLast(1) else it }.toSet()
+
+    private fun tokens(s: String): List<String> =
+        words(norm(s).map { if (it.isLetterOrDigit() || it == '.') it.toString() else " " }.joinToString(""))
+
+    /** A typed-in mission covers a product only when its distinctive words are in it, whole words only: both for a one-
+     *  or two-word mission ("Dior glasses"), at least two for longer ones. */
+    fun missionCovers(mission: String, hay: String): Boolean {
+        val all = tokens(mission)
+        val sig = all.filter { it !in generic }
+        val use = sig.ifEmpty { all }
+        if (use.isEmpty()) return false
+        val have = tokens(hay).toSet()
+        return use.count { it in have } >= min(use.size, 2)
+    }
+
     /** Every word of the query appears somewhere in the listing. */
     fun matches(item: Item, query: String): Boolean {
         val ws = words(query)
@@ -109,10 +130,7 @@ data class Match(val score: Int, val why: List<String>, val notInSize: Boolean =
 object Matcher {
     fun covers(a: Agent, item: Item): Boolean = when (val m = a.mission) {
         is Mission.Cat -> m.category == item.category
-        is Mission.Custom -> {
-            val hay = TextMatch.haystack(item)
-            TextMatch.words(m.text).any { hay.contains(it) }
-        }
+        is Mission.Custom -> TextMatch.missionCovers(m.text, TextMatch.haystack(item))
     }
 
     /** How well the agent knows the shopper, 0-100. */

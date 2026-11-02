@@ -59,11 +59,11 @@ fun LiveFeed() {
             list.isEmpty() -> when (val k = tab.kind) {
                 is LiveTabKind.Custom -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     EmptyCard("Nothing in today's stories matches “${k.query}” yet.")
-                    PrimaryButton("Deploy an agent to hunt ${tab.label}", Modifier.fillMaxWidth()) {
+                    PrimaryButton("Set up a scout to hunt ${tab.label}", Modifier.fillMaxWidth()) {
                         Router.deployPrefill = Mission.Custom(k.query); Router.open(Sheet.Deploy)
                     }
                 }
-                LiveTabKind.ForYou -> EmptyCard("Your squad hasn't picked anything yet. Brief an agent or rate a few finds and this fills up.")
+                LiveTabKind.ForYou -> EmptyCard("Your squad hasn't picked anything yet. Set up a scout or rate a few finds and this fills up.")
                 else -> EmptyCard("No stories here yet.")
             }
             else -> {
@@ -111,7 +111,7 @@ private fun StoryActions(story: Story) {
                 Router.say("Sent to ${agent.name}. It's in your Finds.")
             }
         } else if (story.agentID == null) {
-            GhostButton("Deploy a ${story.item.category.info.label.lowercase()} agent", Modifier.weight(1f)) {
+            GhostButton("Set up a ${story.item.category.info.label.lowercase()} scout", Modifier.weight(1f)) {
                 Router.deployPrefill = Mission.Cat(story.item.category); Router.open(Sheet.Deploy)
             }
         }
@@ -223,7 +223,7 @@ fun CustomizeBarSheet() {
         store.save()
         Analytics.track(AnalyticsEvent.CUSTOM_SECTION_ADDED, mapOf("words" to TextMatch.words(q).size))
         val n = Catalog.all.count { TextMatch.matches(it, q) }
-        Router.say(if (n > 0) "Added $label · $n stor${if (n == 1) "y" else "ies"} today" else "Added $label. Deploy an agent to hunt it.")
+        Router.say(if (n > 0) "Added $label · $n stor${if (n == 1) "y" else "ies"} today" else "Added $label. Set up a scout to hunt it.")
         newSection = ""
     }
 
@@ -248,7 +248,7 @@ fun CustomizeBarSheet() {
                     }
                 }
             }
-            FormSection("Add your own section", "It shows every story that matches, with your agents' picks first.") {
+            FormSection("Add your own section", "It shows every story that matches, with your scouts' picks first.") {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Field(newSection, { newSection = it }, "Anything: vinyl, Porsche, Chrome Hearts", Modifier.weight(1f))
                     Spacer(Modifier.width(8.dp))

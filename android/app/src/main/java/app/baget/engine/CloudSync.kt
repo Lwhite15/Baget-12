@@ -20,6 +20,7 @@ data class ListingRow(
     val traits: List<String> = emptyList(), val tags: List<String> = emptyList(), val sizesInStock: List<String>? = null,
     val firstSeenAt: String? = null, val offers: List<Offer>? = null, val lowPrice: Double? = null, val lowStore: String? = null,
     val about: String? = null, val brandAbout: String? = null,
+    val origPrice: Double? = null, val origCurrency: String? = null,
 ) {
     val item: Item get() {
         val cat = Category.of(category) ?: Category.OTHER
@@ -29,7 +30,8 @@ data class ListingRow(
             shoeSizes = if (cat == Category.SNEAKERS && sizes.isNotEmpty()) sizes.mapNotNull(Sizes::shoeUS) else null,
             topSizes = if (cat == Category.APPAREL && sizes.isNotEmpty()) sizes.mapNotNull(Sizes::topSize) else null,
             url = url, imageURL = imageUrl, dropAt = parseDate(dropAt), firstSeen = parseDate(firstSeenAt), priceKnown = price != null,
-            isSample = false, offers = offers, lowPrice = lowPrice, lowStore = lowStore, about = about, brandAbout = brandAbout)
+            isSample = false, offers = offers, lowPrice = lowPrice, lowStore = lowStore, about = about, brandAbout = brandAbout,
+            origPrice = origPrice, origCurrency = origCurrency)
     }
 }
 
@@ -39,7 +41,7 @@ data class AgentRow(
     val keywords: List<String> = emptyList(), val traits: List<String> = emptyList(), val makers: List<String> = emptyList(),
     val creators: List<String> = emptyList(), val size: String = "", val mode: String = "ask", val voice: String = "chill",
     val learned: Map<String, Int> = emptyMap(), val priceNote: Double = 0.0, val icon: JsonElement? = null,
-    val paused: Boolean? = null, val alerts: String? = null,
+    val paused: Boolean? = null, val alerts: String? = null, val focus: String? = null,
 )
 
 @Serializable
@@ -88,12 +90,13 @@ fun iconFromJson(e: JsonElement?): Avatar? {
     return Avatar(style = style,
         emoji = o["emoji"]?.jsonPrimitive?.contentOrNull ?: "🔥",
         color = o["color"]?.jsonPrimitive?.intOrNull ?: 0,
-        photoID = o["photoID"]?.jsonPrimitive?.contentOrNull)
+        photoID = o["photoID"]?.jsonPrimitive?.contentOrNull,
+        glyph = o["glyph"]?.jsonPrimitive?.contentOrNull)
 }
 
 fun iconToJson(icon: Avatar?): JsonObject {
     icon ?: return JsonObject(emptyMap())
-    return jobj("style" to icon.style.raw, "emoji" to icon.emoji, "color" to icon.color, "photoID" to icon.photoID)
+    return jobj("style" to icon.style.raw, "emoji" to icon.emoji, "color" to icon.color, "photoID" to icon.photoID, "glyph" to icon.glyph)
 }
 
 /** Live bar tabs in the iPhone app's format ({"kind":{"category":{"_0":"sneakers"}}}), so both apps share one setting. */
@@ -150,7 +153,10 @@ suspend fun AppStore.didSignIn(fullName: String?) {
     if (!name.isNullOrEmpty()) runCatching { Backend.update("profiles", "id=eq.$uid", jobj("display_name" to name.take(60))) }
     runCatching { Backend.update("profiles", "id=eq.$uid", jobj("tz" to TimeZone.getDefault().id)) }
     pull()
+    // A new account (no scouts yet) always gets setup, even if this phone finished setup for an earlier account.
+    if (state.agents.isEmpty() && state.lastSynced != null) setOnboarded(false)
     Analytics.track(AnalyticsEvent.SIGNED_IN, mapOf("newAccount" to state.agents.isEmpty(), "platform" to "android"))
+    // Never a cold prompt right after sign-up: this only registers if notifications are already allowed; setup asks at the end.
     registerForPushIfAllowed()
 }
 
@@ -168,7 +174,14 @@ suspend fun AppStore.deleteAccount() {
     resetToWelcome()
 }
 
+/** Whether setup is finished on this phone (Root shows setup to a signed-in account with no scouts until it is). */
+fun AppStore.setOnboarded(done: Boolean) {
+    context.getSharedPreferences("baget.ui", 0).edit().putBoolean("onboarded", done).apply()
+}
+
 fun AppStore.resetToWelcome() {
+    // Signed out or deleted: the next account on this phone starts with setup.
+    setOnboarded(false)
     state = AppState()
     Catalog.cloud = mutableMapOf()
     Catalog.useCloud = false
@@ -231,7 +244,7 @@ suspend fun AppStore.pull() {
                     size = r.size, mode = BuyMode.of(r.mode) ?: BuyMode.ASK, voice = Voice.of(r.voice) ?: Voice.CHILL,
                     learned = r.learned.toMutableMap(), priceNote = r.priceNote,
                     tasteBoard = (board[r.id] ?: emptyList()).map { TastePhoto(it.id, parseDate(it.createdAt) ?: now(), it.tags, it.summary, it.storagePath) }.toMutableList(),
-                    icon = iconFromJson(r.icon), paused = r.paused ?: false, alerts = AgentAlerts.of(r.alerts) ?: AgentAlerts.NORMAL)
+                    icon = iconFromJson(r.icon), paused = r.paused ?: false, alerts = AgentAlerts.of(r.alerts) ?: AgentAlerts.NORMAL, focus = r.focus)
             }.toMutableList()
             state.finds = finds.map { f ->
                 Find(f.id, f.listingId, f.agentId ?: "", f.score, f.why, FindStatus.of(f.status) ?: FindStatus.OPEN, f.passReason, f.watching,
@@ -259,6 +272,8 @@ suspend fun AppStore.pull() {
                         .map { ShareReply(it.fromUser, it.body, parseDate(it.createdAt) ?: now()) }.toMutableList())
             }.toMutableList()
             applyProfile(profile)
+            // Friends' icons, rings and palettes (server: friend_icons), and your rings.
+            scope.launch { refreshFriendIcons(); refreshRings() }
             state.lastSynced = now()
             save()
         }
@@ -449,7 +464,7 @@ suspend fun AppStore.sendChat(agentID: String, text: String) {
     save()
     val history = turns.takeLast(14).map { mapOf("role" to it.role, "content" to it.text) }
     try {
-        val r = Backend.function("chat", jobj("agent_id" to agentID, "messages" to history)).jsonObject
+        val r = Backend.function("chat", jobj("agent_id" to agentID, "messages" to history, "lang" to AppLanguage.code)).jsonObject
         val actions = (r["actions"] as? JsonArray)?.mapNotNull { a ->
             val o = a as? JsonObject ?: return@mapNotNull null
             ChatAction(o["type"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null,

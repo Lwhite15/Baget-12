@@ -1,11 +1,12 @@
 package app.baget.ui.screens
 
-import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -15,6 +16,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ListAlt
+import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -23,24 +26,43 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import app.baget.engine.*
 import app.baget.model.*
 import app.baget.ui.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.abs
+import kotlin.math.roundToInt
 
-private data class FindGroup(val id: String, val title: String, val symbol: String, val agent: Agent?, val finds: MutableList<Find>) {
+/** One scout's finds (or a category's, for finds whose scout is gone). */
+private data class FindGroup(val id: String, val title: String, val subtitle: String?, val symbol: String, val agent: Agent?, val finds: MutableList<Find>) {
     val newCount: Int get() = finds.count { it.status == FindStatus.OPEN }
 }
 
-private enum class FindsShow { ALL, NEW, LIKED }
+/** In the order the filter row shows them. */
+private enum class FindsShow { NEW, SAVED, UPCOMING, ALL }
+
+private enum class FindsSort(val raw: String, val label: String) {
+    BEST("best", "Best match"), NEWEST("newest", "Newest"), PRICE_LOW("priceLow", "Price: low to high"),
+    PRICE_HIGH("priceHigh", "Price: high to low"), SCOUT("scout", "By scout");
+    companion object { fun of(raw: String?) = entries.firstOrNull { it.raw == raw } ?: BEST }
+}
 
 fun categoryIcon(symbol: String): ImageVector = when (symbol) {
     "shoe" -> Icons.Filled.DirectionsRun
@@ -55,224 +77,481 @@ fun categoryIcon(symbol: String): ImageVector = when (symbol) {
     else -> Icons.Filled.AutoAwesome
 }
 
+/** A product that hasn't dropped yet (it has a release date still to come). */
+fun comingSoon(item: Item): Boolean = item.isProduct && (item.dropAt ?: 0L) > now()
+
+/** Passed and bought finds leave the screen; the scouts still learn from them and never show them again. */
+private fun filterFinds(finds: List<Find>, show: FindsShow): List<Find> = finds.filter { f ->
+    if (f.status != FindStatus.OPEN && f.status != FindStatus.LIKED) return@filter false
+    val item = Catalog.item(f.itemID) ?: return@filter false
+    if (!item.showsInFinds) return@filter false
+    when (show) {
+        FindsShow.ALL -> true
+        FindsShow.NEW -> f.status == FindStatus.OPEN
+        FindsShow.SAVED -> f.status == FindStatus.LIKED || f.watching
+        FindsShow.UPCOMING -> comingSoon(item)
+    }
+}
+
+private fun sortFinds(finds: List<Find>, sort: FindsSort): List<Find> {
+    fun price(f: Find): Double? = Catalog.item(f.itemID)?.let { if (it.priceKnown && it.price > 0) it.price else null }
+    return when (sort) {
+        FindsSort.NEWEST -> finds.sortedByDescending { it.foundAt }
+        FindsSort.PRICE_LOW, FindsSort.PRICE_HIGH -> finds.sortedWith { a, b ->
+            val x = price(a); val y = price(b)
+            when {
+                x != null && y != null -> if (sort == FindsSort.PRICE_LOW) x.compareTo(y) else y.compareTo(x)
+                x == null && y != null -> 1
+                x != null && y == null -> -1
+                else -> b.score.compareTo(a.score)
+            }
+        }
+        // New first, then liked; strongest match first; newest first on ties.
+        FindsSort.BEST, FindsSort.SCOUT -> finds.sortedWith(compareBy<Find> { if (it.status == FindStatus.OPEN) 0 else 1 }
+            .thenByDescending { it.score }.thenByDescending { it.foundAt })
+    }
+}
+
+private fun groupFinds(visible: List<Find>, agents: List<Agent>, sort: FindsSort): List<FindGroup> {
+    val byID = agents.associateBy { it.id }
+    val byKey = linkedMapOf<String, FindGroup>()
+    for (f in visible) {
+        val item = Catalog.item(f.itemID) ?: continue
+        val agent = byID[f.agentID]
+        if (agent != null) byKey.getOrPut(agent.id) {
+            FindGroup(agent.id, agent.name, agent.mission.label.capitalizedFirst(), agent.mission.info.symbol, agent, mutableListOf())
+        }.finds.add(f)
+        else byKey.getOrPut(item.category.raw) {
+            FindGroup(item.category.raw, item.category.info.label, null, item.category.info.symbol, null, mutableListOf())
+        }.finds.add(f)
+    }
+    return byKey.values.map { g -> g.copy(finds = sortFinds(g.finds, sort).toMutableList()) }
+        .sortedWith(compareByDescending<FindGroup> { it.newCount }.thenBy { it.title })
+}
+
+/** What the list shows, in order, so a find can be scrolled to by position. */
+private sealed class FindsEntry(val key: String) {
+    class Header(val g: FindGroup) : FindsEntry("g-" + g.id)
+    class One(val f: Find, val agent: Agent?) : FindsEntry(f.id)
+    class Tiles(val finds: List<Find>) : FindsEntry("t-" + finds.first().id)
+}
+
 @Composable
 fun FindsScreen() {
     val store = AppStore
     val s = store.observe()
     val prefs = remember { store.context.getSharedPreferences("baget.ui", 0) }
-    var show by remember { mutableStateOf(FindsShow.ALL) }
+    var show by remember { mutableStateOf(FindsShow.NEW) }
+    var sort by remember { mutableStateOf(FindsSort.of(prefs.getString("findsSort", null))) }
+    var grid by remember { mutableStateOf(prefs.getBoolean("findsGrid", false)) }
+    // The one-line tip: shown until dismissed (any value of 3 or more means done).
+    var tipStep by remember { mutableIntStateOf(prefs.getInt("findsTips", 0)) }
     val collapsed = remember { mutableStateListOf<String>() }
-    var expanded by remember { mutableStateOf<String?>(null) }
     var highlighted by remember { mutableStateOf<String?>(null) }
+    var opened by remember { mutableStateOf<String?>(null) }
     var sweeping by remember { mutableStateOf(false) }
     var confirmClear by remember { mutableStateOf(false) }
-    var tipStep by remember { mutableIntStateOf(prefs.getInt("findsTips", 0)) }
     val listState = rememberLazyListState()
 
-    val visible = s.finds.filter { f ->
-        (f.status == FindStatus.OPEN || f.status == FindStatus.LIKED) && Catalog.item(f.itemID)?.showable == true && when (show) {
-            FindsShow.ALL -> true; FindsShow.NEW -> f.status == FindStatus.OPEN; FindsShow.LIKED -> f.status == FindStatus.LIKED
+    // One pass for the counts, one filter, one sort.
+    var newTotal = 0; var savedTotal = 0; var upcomingTotal = 0
+    for (f in s.finds) {
+        if (f.status != FindStatus.OPEN && f.status != FindStatus.LIKED) continue
+        val item = Catalog.item(f.itemID) ?: continue
+        if (!item.showsInFinds) continue
+        if (f.status == FindStatus.OPEN) newTotal++
+        if (f.status == FindStatus.LIKED || f.watching) savedTotal++
+        if (comingSoon(item)) upcomingTotal++
+    }
+    val visible = filterFinds(s.finds, show)
+    // Grouped by scout for "Best match" and "By scout" in the list; one flat list otherwise, and always in the grid.
+    val grouped = !grid && (sort == FindsSort.BEST || sort == FindsSort.SCOUT)
+    val groups = if (grouped) groupFinds(visible, s.agents, sort) else emptyList()
+    val flat = if (grouped) emptyList() else sortFinds(visible, sort)
+    val entries = buildList<FindsEntry> {
+        when {
+            grid -> flat.chunked(2).forEach { add(FindsEntry.Tiles(it)) }
+            grouped -> groups.forEach { g ->
+                add(FindsEntry.Header(g))
+                if (g.id !in collapsed) g.finds.forEach { add(FindsEntry.One(it, g.agent)) }
+            }
+            else -> flat.forEach { add(FindsEntry.One(it, null)) }
         }
     }
-    val groups = run {
-        val byKey = linkedMapOf<String, FindGroup>()
-        for (f in visible) {
-            val item = Catalog.item(f.itemID) ?: continue
-            val agent = store.agent(f.agentID)
-            val mission = agent?.mission
-            val (key, title, symbol) = if (mission is Mission.Custom) Triple("custom-" + (agent?.id ?: mission.text), mission.text.capitalizedFirst(), customMissionInfo.symbol)
-                else (mission?.category ?: item.category).let { c -> Triple(c.raw, c.info.label, c.info.symbol) }
-            byKey.getOrPut(key) { FindGroup(key, title, symbol, agent, mutableListOf()) }.finds.add(f)
-        }
-        byKey.values.onEach { g -> g.finds.sortWith(compareBy<Find> { if (it.status == FindStatus.OPEN) 0 else 1 }.thenByDescending { it.score }.thenByDescending { it.foundAt }) }
-            .sortedWith(compareByDescending<FindGroup> { it.newCount }.thenBy { it.title })
+    val clearLabel = when (show) {
+        FindsShow.ALL -> "Clear all"; FindsShow.NEW -> "Clear new"; FindsShow.SAVED -> "Clear saved"; FindsShow.UPCOMING -> "Clear coming soon"
     }
-    val newTotal = s.finds.count { it.status == FindStatus.OPEN && Catalog.item(it.itemID)?.showable == true }
-    val likedTotal = s.finds.count { it.status == FindStatus.LIKED && Catalog.item(it.itemID)?.showable == true }
-    val clearLabel = when (show) { FindsShow.ALL -> "Clear all"; FindsShow.NEW -> "Clear new"; FindsShow.LIKED -> "Clear liked" }
+    val emptyText = when {
+        s.agents.isEmpty() -> "Set up a scout first, then tap Hunt now."
+        show == FindsShow.NEW -> "You're all caught up. Your squad keeps hunting in the background."
+        show == FindsShow.SAVED -> "Nothing saved yet. Tap ♥ on a find you love, or watch one for price drops, and it shows up here."
+        show == FindsShow.ALL -> "Nothing here yet. Tap Hunt now, or pull down on Today."
+        else -> "No drops coming up yet. When your scouts spot a release with a date, it lands here, and you can set a reminder for it."
+    }
+    val leading = 4   // header, filters, tools, empty card or tip
 
-    // Opened from Today, a notification or Live: show everything, open its section and card, then scroll to it.
+    // Opened from Today, a notification or Live: show everything, its section open, scrolled to and opened.
     LaunchedEffect(Router.focusFind) {
         val id = Router.focusFind ?: return@LaunchedEffect
         show = FindsShow.ALL
         Router.focusFind = null
-        expanded = id
-        groups.firstOrNull { g -> g.finds.any { it.id == id } }?.let { collapsed.remove(it.id) }
+        groupFinds(filterFinds(store.state.finds, FindsShow.ALL), store.state.agents, sort)
+            .firstOrNull { g -> g.finds.any { it.id == id } }?.let { collapsed.remove(it.id) }
         delay(250)
-        var index = 3
-        for (g in groups) {
-            index++
-            if (g.id in collapsed) continue
-            val i = g.finds.indexOfFirst { it.id == id }
-            if (i >= 0) { index += i; break }
-            index += g.finds.size
+        // Recomputed after the filter change has been applied.
+        val all = filterFinds(store.state.finds, FindsShow.ALL)
+        val keys = buildList<List<String>> {
+            when {
+                grid -> sortFinds(all, sort).chunked(2).forEach { row -> add(row.map { it.id }) }
+                grouped -> groupFinds(all, store.state.agents, sort).forEach { g -> add(emptyList()); if (g.id !in collapsed) g.finds.forEach { add(listOf(it.id)) } }
+                else -> sortFinds(all, sort).forEach { add(listOf(it.id)) }
+            }
         }
-        runCatching { listState.animateScrollToItem(index) }
+        val i = keys.indexOfFirst { id in it }
+        if (i >= 0) runCatching { listState.animateScrollToItem(leading + i) }
         highlighted = id
+        opened = id
         delay(2200)
         if (highlighted == id) highlighted = null
     }
 
     LazyColumn(state = listState, modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        item {
-            Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Txt("Finds", size = 30.sp, weight = FontWeight.Black, tracking = (-0.8).sp)
-                    Txt("${s.agents.size} agents hunting · $newTotal new · $likedTotal liked", size = T.footnote, color = T.muted)
+        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        item(key = "header") {
+            FindsHeader(newTotal, sweeping, visible.isEmpty(), clearLabel, onSweep = {
+                if (store.isCloud) {
+                    sweeping = true
+                    store.scope.launch { val m = store.cloudSweep(); sweeping = false; m?.let { Router.say(it) } }
+                } else {
+                    val res = store.sweep()
+                    Analytics.track(AnalyticsEvent.SWEEP_RUN, mapOf("found" to res.found, "manual" to true))
+                    if (res.found == 0) Router.say("Nothing new fits you right now")
                 }
-                GhostButton("Sweep", Modifier.width(110.dp), icon = Icons.Filled.Refresh, busy = sweeping) {
-                    if (store.isCloud) {
-                        sweeping = true
-                        store.scope.launch { val m = store.cloudSweep(); sweeping = false; m?.let { Router.say(it) } }
-                    } else {
-                        val res = store.sweep()
-                        Analytics.track(AnalyticsEvent.SWEEP_RUN, mapOf("found" to res.found, "manual" to true))
-                        if (res.found == 0) Router.say("Nothing new fits you right now")
-                    }
+            }, onClear = { confirmClear = true })
+        }
+        item(key = "filters") {
+            FilterRow(show, mapOf(FindsShow.NEW to newTotal, FindsShow.SAVED to savedTotal, FindsShow.UPCOMING to upcomingTotal)) { show = it }
+        }
+        item(key = "tools") {
+            ToolsRow(sort, grid, onSort = { sort = it; prefs.edit().putString("findsSort", it.raw).apply() },
+                onGrid = { grid = it; prefs.edit().putBoolean("findsGrid", it).apply() })
+        }
+        item(key = "top") {
+            if (visible.isEmpty()) EmptyCard(emptyText)
+            else if (tipStep < 3) FindsTipLine { tipStep = 3; prefs.edit().putInt("findsTips", 3).apply() }
+            else Spacer(Modifier.height(0.dp))
+        }
+        for (e in entries) item(key = e.key) {
+            when (e) {
+                is FindsEntry.Header -> {
+                    val isCollapsed = e.g.id in collapsed
+                    SectionHeader(e.g, isCollapsed) { if (isCollapsed) collapsed.remove(e.g.id) else collapsed.add(e.g.id) }
+                }
+                is FindsEntry.One -> FindListRow(e.f, e.agent, highlighted == e.f.id) { opened = e.f.id }
+                is FindsEntry.Tiles -> Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    e.finds.forEach { f -> Box(Modifier.weight(1f)) { FindTile(f) { opened = f.id } } }
+                    if (e.finds.size == 1) Spacer(Modifier.weight(1f))
                 }
             }
         }
-        item {
-            Row(Modifier.fillMaxWidth().glass(RoundedCornerShape(12.dp)).padding(3.dp)) {
-                listOf(FindsShow.ALL to "All", FindsShow.NEW to (if (newTotal > 0) "New · $newTotal" else "New"),
-                    FindsShow.LIKED to (if (likedTotal > 0) "♥ Liked · $likedTotal" else "♥ Liked")).forEach { (v, label) ->
-                    Box(Modifier.weight(1f).clip(RoundedCornerShape(10.dp)).background(if (show == v) T.accent.copy(alpha = 0.22f) else Color.Transparent)
-                        .clickable { show = v }.padding(vertical = 8.dp), contentAlignment = Alignment.Center) {
-                        Txt(label, size = T.footnote, weight = FontWeight.SemiBold, color = if (show == v) T.ink else T.muted, maxLines = 1)
-                    }
-                }
-            }
-        }
-        item {
-            if (visible.isNotEmpty()) Row(verticalAlignment = Alignment.CenterVertically) {
-                Txt("Long-press a find, or tap its trash, to remove one", size = T.caption2, color = T.muted, modifier = Modifier.weight(1f))
-                Row(Modifier.clickable { confirmClear = true }.padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Delete, null, tint = T.hot, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Txt(clearLabel, size = T.footnote, weight = FontWeight.SemiBold, color = T.hot)
-                }
-            }
-            if (groups.isEmpty()) EmptyCard(when {
-                s.agents.isEmpty() -> "Deploy an agent first, then run a sweep."
-                show == FindsShow.NEW -> "You're all caught up. Your squad keeps hunting in the background."
-                show == FindsShow.LIKED -> "Nothing liked yet. Tap ♥ on a find you love and your agents will find more like it."
-                else -> "Nothing here yet. Tap Sweep, or pull down on Today."
-            })
-            if (tipStep < FindsTips.size && visible.isNotEmpty()) FindsTipCard(tipStep) { tipStep = it; prefs.edit().putInt("findsTips", it).apply() }
-        }
-        for (g in groups) {
-            val isCollapsed = g.id in collapsed
-            item(key = "g-" + g.id) {
-                Row(Modifier.fillMaxWidth().clickable { if (isCollapsed) collapsed.remove(g.id) else collapsed.add(g.id) }.padding(vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically) {
-                    Box(Modifier.size(30.dp).clip(RoundedCornerShape(9.dp)).background(T.gradient), contentAlignment = Alignment.Center) {
-                        Icon(categoryIcon(g.symbol), null, tint = T.accentInk, modifier = Modifier.size(17.dp))
-                    }
-                    Spacer(Modifier.width(10.dp))
-                    Column(Modifier.weight(1f)) {
-                        Txt(g.title, size = T.body, weight = FontWeight.SemiBold, maxLines = 1)
-                        Txt(listOfNotNull(g.agent?.name, "${g.finds.size} find${if (g.finds.size == 1) "" else "s"}").joinToString(" · "),
-                            size = T.caption, color = T.muted, maxLines = 1)
-                    }
-                    if (g.newCount > 0) Box(Modifier.clip(CircleShape).background(T.gradient).padding(horizontal = 8.dp, vertical = 3.dp)) {
-                        Txt("${g.newCount} new", size = T.caption2, weight = FontWeight.Bold, color = T.accentInk)
-                    }
-                    Spacer(Modifier.width(6.dp))
-                    Icon(Icons.Filled.ExpandMore, null, tint = T.muted, modifier = Modifier.rotate(if (isCollapsed) -90f else 0f))
-                }
-            }
-            if (!isCollapsed) for (f in g.finds) item(key = f.id) {
-                FindCard(f, highlighted == f.id, expanded == f.id) { open -> expanded = if (open) f.id else null }
-            }
-        }
-        if (!store.isCloud) item { Txt("Sample data: listings, prices and drop times are illustrative, and nothing is purchased.", size = T.caption, color = T.muted) }
+        if (!store.isCloud) item(key = "sample") { Txt("Sample data: listings, prices and drop times are illustrative, and nothing is purchased.", size = T.caption, color = T.muted) }
     }
+
+    opened?.let { id -> FindDetailDialog(id) { opened = null } }
 
     if (confirmClear) AlertDialog(onDismissRequest = { confirmClear = false }, containerColor = T.panel,
         title = { Txt("$clearLabel?", size = T.body, weight = FontWeight.Bold) },
-        text = { Txt("They leave Finds and your agents won't show them again. What your agents learned about your taste stays.", color = T.muted) },
+        text = { Txt("They leave Finds and your scouts won't show them again. What your scouts learned about your taste stays.", color = T.muted) },
         confirmButton = { TextButton(onClick = {
-            val n = visible.size
-            store.removeFinds(visible.map { it.id })
+            val gone = filterFinds(store.state.finds, show)
+            val n = gone.size
+            store.removeFinds(gone.map { it.id })
             Router.say(if (n == 1) "Cleared 1 find" else "Cleared $n finds")
             confirmClear = false
         }) { Txt("$clearLabel (${visible.size})", color = T.hot, weight = FontWeight.Bold) } },
         dismissButton = { TextButton(onClick = { confirmClear = false }) { Txt("Cancel", color = T.muted) } })
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun FindCard(find: Find, highlighted: Boolean, expanded: Boolean, setExpanded: (Boolean) -> Unit) {
-    val store = AppStore
-    store.observe()
-    val item = Catalog.item(find.itemID) ?: return
-    val agent = store.agent(find.agentID)
-    var askingWhy by remember { mutableStateOf(false) }
-    var menu by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(18.dp)
-    fun remove() { store.removeFinds(listOf(find.id)); Router.say("Removed") }
+private fun SquareButton(label: String, onClick: () -> Unit, enabled: Boolean = true, content: @Composable () -> Unit) {
+    Box(Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(T.glass).border(1.dp, T.line, RoundedCornerShape(12.dp))
+        .clickable(enabled = enabled, onClickLabel = label, onClick = onClick), contentAlignment = Alignment.Center) { content() }
+}
 
-    Box {
-        Column(Modifier.fillMaxWidth().clip(shape).background(if (highlighted) T.accent.copy(alpha = 0.12f) else T.glass)
-            .border(1.dp, if (highlighted) T.accent.copy(alpha = 0.6f) else T.line, shape).animateContentSize().padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Box(Modifier.combinedClickable(onClick = { setExpanded(!expanded) }, onLongClick = { menu = true })) { Summary(find, item, expanded) }
-            if (expanded) Details(find, item, agent)
-            Actions(find, item, agent, onPass = { askingWhy = true }, onRemove = ::remove)
+@Composable
+private fun FindsHeader(newTotal: Int, sweeping: Boolean, empty: Boolean, clearLabel: String, onSweep: () -> Unit, onClear: () -> Unit) {
+    val n = AppStore.state.agents.size
+    var menu by remember { mutableStateOf(false) }
+    Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Txt("Finds", size = 30.sp, weight = FontWeight.Black, tracking = (-0.8).sp)
+            Txt("$newTotal new · $n ${if (n == 1) "scout" else "scouts"} hunting", size = T.footnote, color = T.muted, maxLines = 1)
         }
-        DropdownMenu(menu, onDismissRequest = { menu = false }, containerColor = T.panel) {
-            DropdownMenuItem(text = { Txt("Remove", color = T.hot) }, leadingIcon = { Icon(Icons.Filled.Delete, null, tint = T.hot) },
-                onClick = { menu = false; remove() })
+        SquareButton("Hunt now", onSweep, enabled = !sweeping) {
+            if (sweeping) Spinner(18.dp) else Icon(Icons.Filled.Refresh, "Hunt now", tint = T.ink, modifier = Modifier.size(20.dp))
+        }
+        Spacer(Modifier.width(8.dp))
+        // Clearing lives behind this menu (and asks first), so it can't be hit by accident.
+        Box {
+            SquareButton("More", { menu = true }) { Icon(Icons.Filled.MoreHoriz, "More", tint = T.ink, modifier = Modifier.size(20.dp)) }
+            DropdownMenu(menu, onDismissRequest = { menu = false }, containerColor = T.panel) {
+                Txt("Swipe a find left, or tap ✕, to pass on one", size = T.caption, color = T.muted,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).widthIn(max = 260.dp))
+                DropdownMenuItem(text = { Txt("$clearLabel…", color = if (empty) T.muted else T.hot) }, enabled = !empty,
+                    leadingIcon = { Icon(Icons.Outlined.Delete, null, tint = if (empty) T.muted else T.hot) },
+                    onClick = { menu = false; onClear() })
+            }
         }
     }
-    if (askingWhy) AlertDialog(onDismissRequest = { askingWhy = false }, containerColor = T.panel,
-        title = { Txt("What was off? ${agent?.name ?: "Your agent"} will learn from it.", size = T.body, weight = FontWeight.Bold) },
+}
+
+/** New, Saved, Coming soon, All: one tap each, with counts. */
+@Composable
+private fun FilterRow(show: FindsShow, counts: Map<FindsShow, Int>, onShow: (FindsShow) -> Unit) {
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        FindsShow.entries.forEach { f ->
+            val n = counts[f] ?: 0
+            val label = when (f) {
+                FindsShow.SAVED -> if (n > 0) "♥ Saved · $n" else "♥ Saved"
+                FindsShow.ALL -> "All"
+                FindsShow.NEW -> if (n > 0) "New · $n" else "New"
+                FindsShow.UPCOMING -> if (n > 0) "Coming soon · $n" else "Coming soon"
+            }
+            val on = show == f
+            Box(Modifier.clip(CircleShape).then(if (on) Modifier.background(T.gradient) else Modifier.background(T.glass).border(1.dp, T.line, CircleShape))
+                .clickable { onShow(f) }.padding(horizontal = 11.dp, vertical = 7.dp)) {
+                Txt(label, size = T.footnote, weight = FontWeight.SemiBold, color = if (on) T.accentInk else T.ink, maxLines = 1)
+            }
+        }
+    }
+}
+
+/** Sort, and list or grid. */
+@Composable
+private fun ToolsRow(sort: FindsSort, grid: Boolean, onSort: (FindsSort) -> Unit, onGrid: (Boolean) -> Unit) {
+    var menu by remember { mutableStateOf(false) }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box {
+            Row(Modifier.clip(RoundedCornerShape(8.dp)).clickable { menu = true }.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Txt("Sort: ", size = T.footnote, color = T.muted)
+                Txt(sort.label, size = T.footnote, weight = FontWeight.SemiBold)
+                Icon(Icons.Filled.ExpandMore, null, tint = T.muted, modifier = Modifier.size(16.dp))
+            }
+            DropdownMenu(menu, onDismissRequest = { menu = false }, containerColor = T.panel) {
+                FindsSort.entries.forEach { o ->
+                    DropdownMenuItem(text = { Txt(o.label, weight = if (o == sort) FontWeight.Bold else FontWeight.Normal) },
+                        trailingIcon = { if (o == sort) Icon(Icons.Filled.Check, null, tint = T.accent) },
+                        onClick = { menu = false; onSort(o) })
+                }
+            }
+        }
+        Spacer(Modifier.weight(1f))
+        Row(Modifier.clip(RoundedCornerShape(10.dp)).background(T.glass).border(1.dp, T.line, RoundedCornerShape(10.dp))) {
+            ViewButton(Icons.AutoMirrored.Filled.ViewList, "List", !grid) { onGrid(false) }
+            ViewButton(Icons.Filled.GridView, "Grid", grid) { onGrid(true) }
+        }
+    }
+}
+
+@Composable
+private fun ViewButton(icon: ImageVector, label: String, on: Boolean, onClick: () -> Unit) {
+    Box(Modifier.width(36.dp).height(30.dp).background(if (on) T.cyan.copy(alpha = 0.18f) else Color.Transparent).clickable(onClick = onClick),
+        contentAlignment = Alignment.Center) {
+        Icon(icon, label, tint = if (on) T.cyan else T.muted, modifier = Modifier.size(17.dp))
+    }
+}
+
+@Composable
+private fun FindsTipLine(onDismiss: () -> Unit) {
+    val shape = RoundedCornerShape(12.dp)
+    Row(Modifier.fillMaxWidth().clip(shape).background(T.hot.copy(alpha = 0.10f)).border(1.dp, T.hot.copy(alpha = 0.25f), shape)
+        .padding(horizontal = 12.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
+        Icon(Icons.Filled.Favorite, null, tint = T.hot, modifier = Modifier.size(13.dp))
+        Spacer(Modifier.width(8.dp))
+        Txt("Tap the heart (or swipe right) to teach your scout", size = T.footnote, color = T.ink.copy(alpha = 0.9f), modifier = Modifier.weight(1f))
+        Box(Modifier.size(24.dp).clip(CircleShape).clickable(onClick = onDismiss), contentAlignment = Alignment.Center) {
+            Icon(Icons.Filled.Close, "Dismiss tip", tint = T.muted, modifier = Modifier.size(14.dp))
+        }
+    }
+}
+
+@Composable
+private fun SectionHeader(g: FindGroup, isCollapsed: Boolean, onToggle: () -> Unit) {
+    Row(Modifier.fillMaxWidth().clickable(onClick = onToggle).padding(top = 10.dp, bottom = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+        if (g.agent != null) AgentAvatar(g.agent, 30.dp)
+        else Box(Modifier.size(30.dp).clip(RoundedCornerShape(9.dp)).background(T.gradient), contentAlignment = Alignment.Center) {
+            Icon(categoryIcon(g.symbol), null, tint = T.accentInk, modifier = Modifier.size(17.dp))
+        }
+        Spacer(Modifier.width(10.dp))
+        Column(Modifier.weight(1f)) {
+            Txt(g.title, size = T.body, weight = FontWeight.SemiBold, maxLines = 1)
+            g.subtitle?.let { Txt(it, size = T.caption, color = T.muted, maxLines = 1) }
+        }
+        if (g.newCount > 0) Box(Modifier.clip(CircleShape).background(T.gradient).padding(horizontal = 8.dp, vertical = 3.dp)) {
+            Txt("${g.newCount} new", size = T.caption2, weight = FontWeight.Bold, color = T.accentInk)
+        }
+        Spacer(Modifier.width(6.dp))
+        Icon(Icons.Filled.ExpandMore, if (isCollapsed) "Expands the section" else "Collapses the section", tint = T.muted,
+            modifier = Modifier.rotate(if (isCollapsed) -90f else 0f))
+    }
+}
+
+/** What a find shows at a glance: store · price · match, and its state (sold out, drops soon). */
+@Composable
+private fun FindMeta(find: Find, item: Item) {
+    val store = AppStore
+    val known = item.priceKnown && item.price > 0
+    val text = buildAnnotatedString {
+        withStyle(SpanStyle(color = T.muted)) { append(listOfNotNull(item.source, if (known) item.priceLabel else null).joinToString(" · ")); append(" · ") }
+        withStyle(SpanStyle(color = if (find.score >= 80) T.green else if (find.score >= 60) T.accent else T.muted, fontWeight = FontWeight.SemiBold)) {
+            append("${find.score}% match")
+        }
+        if (store.isSoldOut(item)) { withStyle(SpanStyle(color = T.muted)) { append(" · ") }; withStyle(SpanStyle(color = T.warn)) { append("Sold out") } }
+        else if (!store.isLive(item)) { withStyle(SpanStyle(color = T.muted)) { append(" · ") }; withStyle(SpanStyle(color = T.blue)) { append(store.whenLabel(item)) } }
+    }
+    Text(text, fontSize = T.caption, maxLines = 1, overflow = TextOverflow.Ellipsis)
+}
+
+@Composable
+private fun PassDialog(find: Find, item: Item, agent: Agent?, onDone: () -> Unit, onDismiss: () -> Unit) {
+    val store = AppStore
+    AlertDialog(onDismissRequest = onDismiss, containerColor = T.panel,
+        title = { Txt("What was off? ${agent?.name ?: "Your scout"} will learn from it.", size = T.body, weight = FontWeight.Bold) },
         text = {
             Column {
                 PassReason.entries.forEach { r ->
                     Txt(r.label, size = T.body, color = T.accent, modifier = Modifier.fillMaxWidth().clickable {
-                        askingWhy = false
+                        onDismiss()
                         store.pass(find.id, r)
                         Analytics.track(AnalyticsEvent.FIND_PASSED, mapOf("reason" to r.label, "category" to item.category.raw))
-                        Router.say(if (r == PassReason.LATER) "Passed" else "Passed. ${agent?.name ?: "Your agent"} is learning from that")
+                        Router.say(if (r == PassReason.LATER) "Passed" else "Passed. ${agent?.name ?: "Your scout"} is learning from that")
+                        onDone()
                     }.padding(vertical = 12.dp))
                 }
             }
         },
-        confirmButton = {}, dismissButton = { TextButton(onClick = { askingWhy = false }) { Txt("Cancel", color = T.muted) } })
+        confirmButton = {}, dismissButton = { TextButton(onClick = onDismiss) { Txt("Cancel", color = T.muted) } })
 }
 
 @Composable
-private fun Summary(find: Find, item: Item, expanded: Boolean) {
+private fun RoundAction(icon: ImageVector, label: String, filled: Boolean, tint: Color, onClick: () -> Unit) {
+    Box(Modifier.size(36.dp).clip(CircleShape).then(if (filled) Modifier.background(T.gradient) else Modifier.background(T.glass).border(1.dp, T.line, CircleShape))
+        .clickable(onClick = onClick), contentAlignment = Alignment.Center) {
+        Icon(icon, label, tint = tint, modifier = Modifier.size(16.dp))
+    }
+}
+
+/** One find in the list: photo, title, store · price · match, one line on why; ♥ and ✕. Swipe right to like, left to pass. */
+@Composable
+private fun FindListRow(find: Find, groupAgent: Agent?, highlighted: Boolean, open: () -> Unit) {
     val store = AppStore
-    val known = item.priceKnown && item.price > 0
-    val isNew = find.status == FindStatus.OPEN && find.foundAt > now() - 24 * 3_600_000L
-    Row {
-        ProductThumb(item)
-        Spacer(Modifier.width(12.dp))
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                if (isNew) MonoBadge("NEW", T.accent)
-                if (store.isSoldOut(item)) MonoBadge("SOLD OUT", T.warn)
-                else if (!store.isLive(item)) MonoBadge(store.whenLabel(item), T.blue)
-                if ("limited" in item.tags) MonoBadge("LIMITED", T.hot)
-                if (store.reminder(item) != null) Icon(Icons.Filled.Notifications, "Reminder set", tint = T.blue, modifier = Modifier.size(12.dp))
-                if (find.status == FindStatus.LIKED) Icon(Icons.Filled.Favorite, null, tint = T.hot, modifier = Modifier.size(13.dp))
-                Spacer(Modifier.weight(1f))
-                Txt("${find.score}%", size = T.caption, weight = FontWeight.Bold, mono = true,
-                    color = if (find.score >= 80) T.green else if (find.score >= 60) T.accent else T.muted)
+    val item = Catalog.item(find.itemID) ?: return
+    val agent = groupAgent ?: store.agent(find.agentID)
+    val scope = rememberCoroutineScope()
+    val dx = remember(find.id) { Animatable(0f) }
+    var askingWhy by remember { mutableStateOf(false) }
+    val discovery = find.why.any { it.startsWith("Discovery") }
+    val shape = RoundedCornerShape(16.dp)
+    fun like() {
+        store.like(find.id)
+        Router.say("${agent?.name ?: "Your scout"} will find more like this")
+    }
+    val d = dx.value
+    val swipeTint = if (d > 0) T.green else T.hot
+    Row(Modifier.fillMaxWidth()
+        .offset { IntOffset(d.roundToInt(), 0) }
+        .clip(shape)
+        .background(if (highlighted) T.accent.copy(alpha = 0.12f) else T.glass)
+        .then(if (d != 0f) Modifier.background(Brush.horizontalGradient(
+            if (d > 0) listOf(swipeTint.copy(alpha = minOf(0.45f, abs(d) / 220f)), Color.Transparent)
+            else listOf(Color.Transparent, swipeTint.copy(alpha = minOf(0.45f, abs(d) / 220f))))) else Modifier)
+        .border(1.dp, if (highlighted) T.accent.copy(alpha = 0.6f) else T.line, shape)
+        .pointerInput(find.id, find.status) {
+            // Only sideways drags: an up-and-down one belongs to the list's scrolling.
+            detectHorizontalDragGestures(
+                onDragEnd = {
+                    val w = dx.value / 0.85f
+                    when {
+                        w > 100 && find.status != FindStatus.LIKED -> { scope.launch { dx.animateTo(0f) }; like() }
+                        w < -100 -> scope.launch {
+                            dx.animateTo(-1500f, tween(200))
+                            store.pass(find.id, PassReason.STYLE)
+                            Analytics.track(AnalyticsEvent.FIND_PASSED, mapOf("reason" to "swipe", "category" to item.category.raw))
+                            Router.say("Passed. ${agent?.name ?: "Your scout"} is learning from that")
+                            dx.snapTo(0f)
+                        }
+                        else -> scope.launch { dx.animateTo(0f) }
+                    }
+                },
+                onDragCancel = { scope.launch { dx.animateTo(0f) } },
+            ) { change, amount ->
+                change.consume()
+                scope.launch { dx.snapTo(dx.value + amount * 0.85f) }
             }
-            Txt(item.title, weight = FontWeight.SemiBold, maxLines = 2)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                DealVerdict.of(item)?.let { VerdictChip(it); Spacer(Modifier.width(6.dp)) }
-                Txt(listOfNotNull(item.source, if (known) Fmt.money(item.price) else null).joinToString(" · "), size = T.caption, color = T.muted,
-                    maxLines = 1, modifier = Modifier.weight(1f, fill = false))
-                if (find.watching) { Spacer(Modifier.width(4.dp)); Icon(Icons.Filled.Visibility, "Watching", tint = T.warn, modifier = Modifier.size(12.dp)) }
-            }
-            if (hasAbout(item, expanded)) AboutBlock(item, expanded, if (expanded) 6 else 2)
-            find.why.firstOrNull()?.takeIf { it.isNotEmpty() }?.let { Txt(it, size = T.caption, color = T.green.copy(alpha = 0.9f), maxLines = if (expanded) 4 else 1) }
         }
+        .clickable(onClick = open)
+        .padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box {
+            ProductThumb(item, 66.dp)
+            if (discovery) Box(Modifier.offset((-3).dp, (-3).dp).size(11.dp).clip(CircleShape).background(T.bg).padding(2.dp).clip(CircleShape).background(T.cyan))
+        }
+        Spacer(Modifier.width(11.dp))
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Txt(item.title, weight = FontWeight.SemiBold, maxLines = 2)
+            FindMeta(find, item)
+            (find.why.firstOrNull { !it.startsWith("Discovery") && it.isNotEmpty() } ?: find.why.firstOrNull())?.let {
+                Txt(it, size = T.caption, color = T.green.copy(alpha = 0.9f), maxLines = 1)
+            }
+        }
+        Spacer(Modifier.width(8.dp))
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            if (find.status == FindStatus.LIKED) RoundAction(Icons.Filled.Favorite, "Liked. Tap to unlike", false, T.hot) { store.unlike(find.id) }
+            else {
+                RoundAction(Icons.Filled.Favorite, "Like", true, T.accentInk) { like() }
+                RoundAction(Icons.Filled.Close, "Pass", false, T.muted) { askingWhy = true }
+            }
+            if (find.watching) Icon(Icons.Filled.Visibility, "Watching", tint = T.warn, modifier = Modifier.size(12.dp))
+        }
+    }
+    if (askingWhy) PassDialog(find, item, agent, onDone = {}, onDismiss = { askingWhy = false })
+}
+
+/** One find in the grid: a big photo with its match, title, store · price, ♥ and ✕. */
+@Composable
+private fun FindTile(find: Find, open: () -> Unit) {
+    val store = AppStore
+    val item = Catalog.item(find.itemID) ?: return
+    val agent = store.agent(find.agentID)
+    var askingWhy by remember { mutableStateOf(false) }
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Box(Modifier.clip(RoundedCornerShape(18.dp)).clickable(onClick = open)) {
+            Plate(item, item.brand.ifEmpty { item.category.info.label }, height = 140.dp)
+            Box(Modifier.align(Alignment.TopEnd).padding(7.dp).clip(CircleShape).background(T.bg.copy(alpha = 0.85f)).padding(horizontal = 6.dp, vertical = 3.dp)) {
+                Txt("${find.score}%", size = T.caption2, weight = FontWeight.Black, mono = true, color = if (find.score >= 80) T.green else T.accent)
+            }
+        }
+        Txt(item.title, size = T.footnote, weight = FontWeight.SemiBold, maxLines = 2, modifier = Modifier.fillMaxWidth().heightIn(min = 34.dp))
+        Txt(listOfNotNull(item.source, if (item.priceKnown && item.price > 0) item.priceLabel else null).joinToString(" · "),
+            size = T.caption2, color = T.muted, maxLines = 1)
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            if (find.status == FindStatus.LIKED) TilePill(Icons.Filled.Favorite, "Liked. Tap to unlike", false, T.hot, Modifier.weight(1f)) { store.unlike(find.id) }
+            else {
+                TilePill(Icons.Filled.Favorite, "Like", true, T.accentInk, Modifier.weight(1f)) {
+                    store.like(find.id)
+                    Router.say("${agent?.name ?: "Your scout"} will find more like this")
+                }
+                TilePill(Icons.Filled.Close, "Pass", false, T.muted, Modifier.weight(1f)) { askingWhy = true }
+            }
+        }
+    }
+    if (askingWhy) PassDialog(find, item, agent, onDone = {}, onDismiss = { askingWhy = false })
+}
+
+@Composable
+private fun TilePill(icon: ImageVector, label: String, filled: Boolean, tint: Color, modifier: Modifier, onClick: () -> Unit) {
+    Box(modifier.height(32.dp).clip(CircleShape).then(if (filled) Modifier.background(T.gradient) else Modifier.background(T.glass).border(1.dp, T.line, CircleShape))
+        .clickable(onClick = onClick), contentAlignment = Alignment.Center) {
+        Icon(icon, label, tint = tint, modifier = Modifier.size(15.dp))
     }
 }
 
@@ -291,15 +570,169 @@ fun AboutBlock(item: Item, brand: Boolean = true, lines: Int = Int.MAX_VALUE) {
     }
 }
 
+fun isUpcoming(item: Item): Boolean = !item.isSample && (item.dropAt ?: 0) > now()
+
+// MARK: A find on its own page
+
+/** A find on its own page: a big photo, why it's for you, what it is, prices, Buy, and everything else you can do. */
 @Composable
-private fun Details(find: Find, item: Item, agent: Agent?) {
+private fun FindDetailDialog(findID: String, onClose: () -> Unit) {
+    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false, dismissOnClickOutside = false)) {
+        Box(Modifier.fillMaxSize().litBackground()) { FindDetail(findID, onClose) }
+    }
+}
+
+@Composable
+private fun FindDetail(findID: String, close: () -> Unit) {
     val store = AppStore
+    val s = store.observe()
+    val find = s.finds.firstOrNull { it.id == findID }
+    val item = find?.let { Catalog.item(it.itemID) }
+    var askingWhy by remember { mutableStateOf(false) }
+    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)) {
+            Spacer(Modifier.weight(1f))
+            Box(Modifier.size(34.dp).clip(CircleShape).background(T.glass).border(1.dp, T.line, CircleShape).clickable(onClick = close),
+                contentAlignment = Alignment.Center) { Icon(Icons.Filled.Close, "Close", tint = T.ink, modifier = Modifier.size(17.dp)) }
+        }
+        if (find == null || item == null) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Txt("This find isn't here anymore.", color = T.muted) }
+        } else {
+        val agent = store.agent(find.agentID)
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 18.dp, end = 18.dp, bottom = 30.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Box {
+                Plate(item, item.brand.ifEmpty { item.category.info.label }, height = 290.dp)
+                // Top right, clear of the brand name.
+                Box(Modifier.align(Alignment.TopEnd).padding(10.dp).clip(CircleShape).background(T.bg.copy(alpha = 0.85f)).padding(horizontal = 8.dp, vertical = 4.dp)) {
+                    Txt("${find.score}% MATCH", size = T.caption2, weight = FontWeight.Black, tracking = 0.6.sp, color = if (find.score >= 80) T.green else T.accent)
+                }
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Txt(item.title, size = T.title3, weight = FontWeight.Black)
+                Text(buildAnnotatedString {
+                    withStyle(SpanStyle(color = T.ink, fontWeight = FontWeight.SemiBold, fontSize = T.body)) {
+                        append(if (item.priceKnown && item.price > 0) item.priceLabel else "Price at store")
+                    }
+                    withStyle(SpanStyle(color = T.muted, fontSize = T.subhead)) { append(" · ${item.source}${agent?.let { " · from ${it.name}" } ?: ""}") }
+                })
+            }
+            find.why.firstOrNull()?.takeIf { it.isNotEmpty() }?.let { reason ->
+                val shape = RoundedCornerShape(14.dp)
+                Row(Modifier.fillMaxWidth().clip(shape).background(T.green.copy(alpha = 0.08f)).border(1.dp, T.green.copy(alpha = 0.25f), shape).padding(12.dp)) {
+                    Icon(Icons.Filled.Favorite, null, tint = T.green, modifier = Modifier.size(16.dp).padding(top = 2.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Txt(reason, color = T.green.copy(alpha = 0.95f))
+                }
+            }
+            if (hasAbout(item, true)) AboutBlock(item, true)
+            DetailActions(find, item, agent, onPass = { askingWhy = true }, close = close)
+            DetailFacts(find, item, agent)
+        }
+        }
+    }
+    if (askingWhy && find != null && item != null) PassDialog(find, item, store.agent(find.agentID), onDone = close, onDismiss = { askingWhy = false })
+}
+
+@Composable
+private fun DetailActions(find: Find, item: Item, agent: Agent?, onPass: () -> Unit, close: () -> Unit) {
+    val store = AppStore
+    val context = LocalContext.current
+    val link = BuyLink.url(item)
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            when {
+                item.isProduct && store.isSoldOut(item) && !item.isSample -> {
+                    // Sold out: watch the store's page and get a text when it's back.
+                    val on = find.watching
+                    BigButton(if (on) Icons.Filled.Notifications else Icons.Outlined.Notifications,
+                        if (on) "Watching for a restock" else "Notify me when it's back", primary = !on, modifier = Modifier.weight(1f)) {
+                        store.toggleWatch(find.id)
+                        Router.say(if (on) "Stopped watching this one" else "I'll check ${item.source} and text you the moment it's back")
+                    }
+                }
+                isUpcoming(item) -> {
+                    val r = store.reminder(item)
+                    BigButton(if (r == null) Icons.Outlined.Notifications else Icons.Filled.Notifications, if (r == null) "Remind me" else "Reminder set",
+                        primary = r == null, modifier = Modifier.weight(1f)) { Router.open(Sheet.Reminder(item.id, find.id)) }
+                }
+                link != null -> BigButton(Icons.Filled.ArrowOutward, "Buy at ${item.source}", primary = true, modifier = Modifier.weight(1f)) {
+                    Analytics.track(AnalyticsEvent.CHECKOUT_OPENED, mapOf("category" to item.category.raw, "toStore" to true, "from" to "find"))
+                    Router.buyOpened = find.id
+                    openUrl(context, BuyLink.tracked(item, "find") ?: link)
+                }
+            }
+            if (find.status == FindStatus.LIKED) BigButton(Icons.Filled.Favorite, "Liked", primary = false, tint = T.hot, modifier = Modifier.weight(1f)) { store.unlike(find.id) }
+            else BigButton(Icons.Outlined.FavoriteBorder, "Like", primary = link == null && !isUpcoming(item), modifier = Modifier.weight(1f)) {
+                store.like(find.id)
+                Router.say("${agent?.name ?: "Your scout"} will find more like this")
+            }
+        }
+        Row(Modifier.fillMaxWidth()) {
+            SmallAction(if (find.watching) Icons.Filled.Visibility else Icons.Outlined.Visibility, if (find.watching) "Watching" else "Watch price",
+                if (find.watching) T.warn else null, Modifier.weight(1f)) {
+                val was = find.watching
+                store.toggleWatch(find.id)
+                if (!was) Router.say("${agent?.name ?: "Your scout"} will text you on a price drop, restock or release")
+            }
+            SmallAction(Icons.Outlined.Forum, "Ask scout", null, Modifier.weight(1f)) { Router.open(Sheet.Chat(find.agentID, find.id)) }
+            SmallAction(Icons.Outlined.Share, "Share", null, Modifier.weight(1f)) { Router.open(Sheet.ShareItem(item.id, null, false)) }
+            if (find.status == FindStatus.OPEN) SmallAction(Icons.Filled.Close, "Pass", null, Modifier.weight(1f), onPass)
+            else SmallAction(Icons.Outlined.Delete, "Remove", null, Modifier.weight(1f)) {
+                store.removeFinds(listOf(find.id)); Router.say("Removed"); close()
+            }
+        }
+        if (find.watching) Txt("${agent?.name ?: "Your scout"} checks the price twice a day and texts you if it drops" +
+            "${if (store.isSoldOut(item)) ", or the moment it restocks" else if (!store.isLive(item)) ", and at release" else ""}.", size = T.caption, color = T.muted)
+    }
+}
+
+@Composable
+private fun BigButton(icon: ImageVector, text: String, primary: Boolean, modifier: Modifier = Modifier, tint: Color? = null, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(14.dp)
+    Row(modifier.height(48.dp).clip(shape).then(if (primary) Modifier.background(T.gradient) else Modifier.background(T.glass).border(1.dp, T.line, shape))
+        .clickable(onClick = onClick).padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+        val c = if (primary) T.accentInk else tint ?: T.ink
+        Icon(icon, null, tint = c, modifier = Modifier.size(17.dp))
+        Spacer(Modifier.width(6.dp))
+        Txt(text, size = T.subhead, weight = FontWeight.Black, color = c, maxLines = 1)
+    }
+}
+
+@Composable
+private fun SmallAction(icon: ImageVector, text: String, tint: Color?, modifier: Modifier, onClick: () -> Unit) {
+    Column(modifier.clip(RoundedCornerShape(10.dp)).clickable(onClick = onClick).padding(vertical = 6.dp), horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Icon(icon, null, tint = tint ?: T.muted, modifier = Modifier.size(19.dp))
+        Txt(text, size = T.caption2, color = tint ?: T.muted, maxLines = 1)
+    }
+}
+
+@Composable
+private fun DetailFacts(find: Find, item: Item, agent: Agent?) {
+    val store = AppStore
+    val context = LocalContext.current
     val known = item.priceKnown && item.price > 0
     val diff = if (known && item.market > 0) item.market - item.price else 0.0
     val pct = if (known && item.market > 0) safeRound(diff / item.price * 100) else 0
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         if (isUpcoming(item)) ReleaseRow(item, find.id)
-        DealVerdict.of(item)?.let { v ->
+        if (!item.isProduct) {
+            // Intel or a results page: what it is, and a way to read it.
+            Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(T.cyan.copy(alpha = 0.08f)).padding(10.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(if (item.isIntel) Icons.Outlined.Newspaper else Icons.AutoMirrored.Filled.ListAlt, null, tint = T.ink, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Txt(if (item.isIntel) "Intel from ${item.source}: worth knowing, not a product to buy" else "A page of listings on ${item.source}, not a single item",
+                        size = T.footnote)
+                }
+                item.url?.takeIf { it.startsWith("https://") }?.let { url ->
+                    Chip(Icons.Filled.ArrowOutward, if (item.isIntel) "Read it" else "See listings") { openUrl(context, url) }
+                }
+            }
+        }
+        if (item.isProduct) DealVerdict.of(item)?.let { v ->
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Txt(v.emoji); Spacer(Modifier.width(6.dp))
                 Txt(v.title, weight = FontWeight.Bold, color = when (v.level) { DealVerdict.Level.GREAT -> T.green; DealVerdict.Level.FAIR -> T.warn; DealVerdict.Level.WAIT -> T.hot; else -> T.accent })
@@ -307,7 +740,7 @@ private fun Details(find: Find, item: Item, agent: Agent?) {
                 Txt(v.detail, size = T.footnote)
             }
         }
-        item.offers?.takeIf { it.isNotEmpty() }?.let { offers ->
+        if (item.isProduct) item.offers?.takeIf { it.isNotEmpty() }?.let { offers ->
             Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Txt("OTHER STORES", size = 9.sp, weight = FontWeight.SemiBold, tracking = 1.sp, color = T.muted)
                 offers.take(4).forEach { o ->
@@ -318,17 +751,27 @@ private fun Details(find: Find, item: Item, agent: Agent?) {
                 }
             }
         }
-        Hairline()
-        Row {
-            Stat("Price", if (known) Fmt.money(item.price) else "See store", modifier = Modifier.weight(1f))
-            Stat("Market", if (known && item.market > 0) Fmt.money(item.market) else "—", modifier = Modifier.weight(1f))
-            Stat("Spread", if (known && item.market > 0) "${if (diff > 0) "+" else ""}$pct%" else "—", if (diff > 0) T.green else if (diff < 0) T.hot else null, Modifier.weight(1f))
+        if (item.isProduct) item.localPriceLabel?.let { local ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Filled.Public, null, tint = T.muted, modifier = Modifier.size(14.dp))
+                Spacer(Modifier.width(6.dp))
+                Txt("$local. Ships from outside the US, so duties or import fees may apply.", size = T.caption, color = T.muted)
+            }
         }
-        Hairline()
+        if (item.isProduct) {
+            Hairline()
+            Row {
+                Stat("Price", if (known) item.priceLabel else "See store", modifier = Modifier.weight(1f))
+                Stat("Market", if (known && item.market > 0) Fmt.money(item.market) else "—", modifier = Modifier.weight(1f))
+                Stat("Spread", if (known && item.market > 0) "${if (diff > 0) "+" else ""}$pct%" else "—", if (diff > 0) T.green else if (diff < 0) T.hot else null, Modifier.weight(1f))
+            }
+            Hairline()
+        }
         val traits = item.traits + listOfNotNull(item.creator)
         if (traits.isNotEmpty()) Txt(traits.joinToString(" · "), size = T.caption, color = T.muted, italic = true)
         if (agent != null) {
             if (find.why.size > 1) Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Txt("WHY YOUR SCOUT PICKED IT", size = 9.sp, weight = FontWeight.SemiBold, tracking = 1.sp, color = T.muted)
                 find.why.drop(1).forEach { w ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(5.dp).clip(CircleShape).background(T.accent)); Spacer(Modifier.width(7.dp)); Txt(w, size = T.footnote)
@@ -338,27 +781,14 @@ private fun Details(find: Find, item: Item, agent: Agent?) {
             if (find.status == FindStatus.OPEN) {
                 val take = store.take(agent, item)
                 val tint = if (take.caution) T.warn else T.accent
-                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(tint.copy(alpha = 0.10f)).padding(10.dp)) {
-                    Txt("${agent.name}: ", size = T.footnote, weight = FontWeight.Bold, color = tint)
-                    Txt(take.text, size = T.footnote)
-                }
+                Text(buildAnnotatedString {
+                    withStyle(SpanStyle(color = tint, fontWeight = FontWeight.Bold)) { append("${agent.name}: ") }
+                    withStyle(SpanStyle(color = T.ink)) { append(take.text) }
+                }, fontSize = T.footnote, modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(tint.copy(alpha = 0.10f)).padding(10.dp))
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Chip(if (find.watching) Icons.Filled.Visibility else Icons.Outlined.Visibility, if (find.watching) "Watching" else "Watch it for me",
-                tint = if (find.watching) T.warn else null) {
-                val was = find.watching
-                store.toggleWatch(find.id)
-                if (!was) Router.say("${agent?.name ?: "Your agent"} will text you on a price drop, restock or release")
-            }
-            Chip(Icons.Outlined.Forum, "Ask about this") { Router.open(Sheet.Chat(find.agentID, find.id)) }
-        }
-        if (find.watching) Txt("${agent?.name ?: "Your agent"} checks the price twice a day and texts you if it drops" +
-            "${if (store.isSoldOut(item)) ", or the moment it restocks" else if (!store.isLive(item)) ", and at release" else ""}.", size = T.caption, color = T.muted)
     }
 }
-
-fun isUpcoming(item: Item): Boolean = !item.isSample && (item.dropAt ?: 0) > now()
 
 @Composable
 private fun ReleaseRow(item: Item, findID: String) {
@@ -376,47 +806,6 @@ private fun ReleaseRow(item: Item, findID: String) {
 }
 
 @Composable
-private fun Actions(find: Find, item: Item, agent: Agent?, onPass: () -> Unit, onRemove: () -> Unit) {
-    val store = AppStore
-    val context = LocalContext.current
-    val link = BuyLink.url(item)
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-        if (find.status == FindStatus.LIKED) Chip(Icons.Filled.Favorite, "Liked", tint = T.hot) { store.unlike(find.id) }
-        else {
-            Chip(Icons.Outlined.FavoriteBorder, "Like", primary = true) {
-                store.like(find.id)
-                Router.say("${agent?.name ?: "Your agent"} will find more like this")
-            }
-            Chip(Icons.Filled.Close, "Pass", onClick = onPass)
-        }
-        if (store.isSoldOut(item) && !item.isSample) {
-            val on = find.watching
-            Chip(if (on) Icons.Filled.Notifications else Icons.Outlined.Notifications, if (on) "Watching" else "Notify me", tint = if (on) T.warn else null) {
-                store.toggleWatch(find.id)
-                Router.say(if (on) "Stopped watching this one" else "I'll check ${item.source} and text you the moment it's back")
-            }
-        } else if (isUpcoming(item)) {
-            val r = store.reminder(item)
-            Chip(if (r == null) Icons.Outlined.Notifications else Icons.Filled.Notifications, if (r == null) "Remind me" else "Reminder set",
-                tint = if (r == null) null else T.blue) { Router.open(Sheet.Reminder(item.id, find.id)) }
-        } else if (link != null) {
-            Chip(Icons.Filled.ArrowOutward, "Buy") {
-                Analytics.track(AnalyticsEvent.CHECKOUT_OPENED, mapOf("category" to item.category.raw, "toStore" to true, "from" to "find"))
-                Router.buyOpened = find.id
-                openUrl(context, BuyLink.tracked(item, "find") ?: link)
-            }
-        }
-        Spacer(Modifier.weight(1f))
-        Box(Modifier.size(34.dp).clip(CircleShape).background(T.glass).clickable(onClick = onRemove), contentAlignment = Alignment.Center) {
-            Icon(Icons.Outlined.Delete, "Remove from Finds", tint = T.muted, modifier = Modifier.size(17.dp))
-        }
-        Box(Modifier.size(34.dp).glass(CircleShape).clickable { Router.open(Sheet.ShareItem(item.id, null, false)) }, contentAlignment = Alignment.Center) {
-            Icon(Icons.Filled.Share, "Share with friends", tint = T.ink, modifier = Modifier.size(16.dp))
-        }
-    }
-}
-
-@Composable
 fun Chip(icon: ImageVector, text: String, primary: Boolean = false, tint: Color? = null, onClick: () -> Unit) {
     Row(Modifier.height(34.dp).clip(CircleShape).then(if (primary) Modifier.background(T.gradient) else Modifier.background(T.glass).border(1.dp, T.line, CircleShape))
         .clickable(onClick = onClick).padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -424,48 +813,6 @@ fun Chip(icon: ImageVector, text: String, primary: Boolean = false, tint: Color?
         Icon(icon, null, tint = c, modifier = Modifier.size(15.dp))
         Spacer(Modifier.width(5.dp))
         Txt(text, size = T.footnote, weight = FontWeight.Bold, color = c, maxLines = 1)
-    }
-}
-
-// MARK: First-run tips
-
-private data class FindsTip(val icon: ImageVector, val tint: Color, val title: String, val body: String)
-
-private val FindsTips = listOf(
-    FindsTip(Icons.Filled.Favorite, T.hot, "Like teaches your scout",
-        "Tap Like on anything that's your taste. Your scout leans into that brand and style and finds more like it."),
-    FindsTip(Icons.Filled.Close, T.accent, "Pass, and say why",
-        "Too pricey, wrong style, not your brand: every reason sharpens the next hunt. The more you react, the better it gets."),
-    FindsTip(Icons.Filled.Notifications, T.warn, "Never miss a drop",
-        "On something not out yet, tap Remind me and pick when. On something sold out, tap Notify me and you'll get a text when it's back."),
-)
-
-@Composable
-private fun FindsTipCard(step: Int, setStep: (Int) -> Unit) {
-    val i = minOf(step, FindsTips.size - 1)
-    val tip = FindsTips[i]
-    val last = i == FindsTips.size - 1
-    Column(Modifier.fillMaxWidth().glass(RoundedCornerShape(18.dp), T.accent.copy(alpha = 0.08f), T.accent.copy(alpha = 0.35f)).padding(14.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row {
-            Box(Modifier.size(38.dp).clip(CircleShape).background(tip.tint.copy(alpha = 0.16f)), contentAlignment = Alignment.Center) {
-                Icon(tip.icon, null, tint = tip.tint, modifier = Modifier.size(18.dp))
-            }
-            Spacer(Modifier.width(12.dp))
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Txt(tip.title, weight = FontWeight.Bold)
-                Txt(tip.body, size = T.footnote, color = T.muted)
-            }
-        }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            FindsTips.indices.forEach { d -> Box(Modifier.height(6.dp).width(if (d == i) 16.dp else 6.dp).clip(CircleShape).background(if (d == i) T.gradient else androidx.compose.ui.graphics.SolidColor(T.line))) }
-            Spacer(Modifier.weight(1f))
-            if (!last) Txt("Skip", size = T.footnote, color = T.muted, modifier = Modifier.clickable { setStep(FindsTips.size) }.padding(6.dp))
-            Box(Modifier.clip(CircleShape).background(T.accent).clickable { setStep(i + 1) }.padding(horizontal = 14.dp, vertical = 7.dp)) {
-                Txt(if (last) "Got it" else "Next", size = T.footnote, weight = FontWeight.Bold, color = T.accentInk)
-            }
-        }
-        if (i < 2) Txt("↓ Try it on a find below", size = T.caption2, weight = FontWeight.SemiBold, color = T.accent)
     }
 }
 
@@ -484,8 +831,8 @@ fun CheckoutSheet(findID: String) {
         val a = store.agent(f.agentID)
         val live = store.isLive(item); val soldOut = store.isSoldOut(item)
         val block = when {
-            soldOut -> "Sold out right now. ${a?.name ?: "Your agent"} will watch for a restock and tell you the moment it's back."
-            !live -> "This isn't available yet. Your agent will hold your spot and ask again at release."
+            soldOut -> "Sold out right now. ${a?.name ?: "Your scout"} will watch for a restock and tell you the moment it's back."
+            !live -> "This isn't available yet. Your scout will hold your spot and ask again at release."
             else -> null
         }
         val cloud = store.isCloud && !item.isSample
@@ -496,8 +843,8 @@ fun CheckoutSheet(findID: String) {
             if (hasAbout(item)) Box(Modifier.glassCard()) { AboutBlock(item) }
             Column(Modifier.fillMaxWidth().glassCard(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row {
-                    Stat("Price", if (item.priceKnown) Fmt.money(item.price) else "Not listed", modifier = Modifier.weight(1f))
-                    Stat("Agent", a?.name ?: "—", modifier = Modifier.weight(1f))
+                    Stat("Price", if (item.priceKnown) item.priceLabel else "Not listed", modifier = Modifier.weight(1f))
+                    Stat("Scout", a?.name ?: "—", modifier = Modifier.weight(1f))
                 }
                 Row {
                     val info = item.category.info
@@ -508,7 +855,7 @@ fun CheckoutSheet(findID: String) {
             }
             if (cloud) {
                 Txt(if (soldOut || !live) block ?: "" else (block?.let { "Heads up: $it " } ?: "") +
-                    "You buy it at ${item.source}; Baget never charges you. Tap \"I bought it\" afterwards so your agent learns from it.", color = T.muted)
+                    "You buy it at ${item.source}; Baget never charges you. Tap \"I bought it\" afterwards so your scout learns from it.", color = T.muted)
                 val link = BuyLink.url(item)
                 if (link != null && !soldOut) PrimaryButton("Open at ${item.source}", Modifier.fillMaxWidth(), icon = Icons.Filled.ArrowOutward) {
                     Analytics.track(AnalyticsEvent.CHECKOUT_OPENED, mapOf("category" to item.category.raw, "toStore" to true))
@@ -525,7 +872,7 @@ fun CheckoutSheet(findID: String) {
                     soldOut || !live -> PrimaryButton(if (soldOut) "Watch for restock" else "Remind me at release", Modifier.weight(1f)) {
                         store.watch(findID)
                         Analytics.track(AnalyticsEvent.FIND_WATCHED, mapOf("category" to item.category.raw))
-                        Router.say(if (soldOut) "Restock watch on" else "Got it. Your agent will ping you at release.")
+                        Router.say(if (soldOut) "Restock watch on" else "Got it. Your scout will ping you at release.")
                         Router.close()
                     }
                     cloud -> {
@@ -534,7 +881,7 @@ fun CheckoutSheet(findID: String) {
                             val amount = if (item.priceKnown) item.price else typed
                             store.confirmPurchase(findID, amount)
                             Analytics.track(AnalyticsEvent.PURCHASE_CONFIRMED, mapOf("amount" to amount, "category" to item.category.raw, "score" to f.score))
-                            Router.say("Logged and off your list. ${a?.name ?: "Your agent"} will learn from it.")
+                            Router.say("Logged and off your list. ${a?.name ?: "Your scout"} will learn from it.")
                             Router.close()
                         }
                     }

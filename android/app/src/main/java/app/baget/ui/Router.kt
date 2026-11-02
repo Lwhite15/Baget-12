@@ -36,8 +36,14 @@ sealed class Sheet {
     data object Taste : Sheet()
     data object Pro : Sheet()
     data object Feedback : Sheet()
+    data object HowTo : Sheet()
     data class Reminder(val itemID: String, val findID: String?) : Sheet()
+    data object NewScout : Sheet()
+    data object ForYou : Sheet()
 }
+
+/** The scout you just sent from "Send a new scout" (its confirmation card shows on Today). */
+data class ScoutSent(val agentID: String, val intro: String)
 
 enum class AppTab { LIVE, FINDS, SQUAD, FRIENDS }
 
@@ -52,6 +58,7 @@ object Router {
     var askBought by mutableStateOf<String?>(null)
     /** A find to scroll to and highlight on the Finds tab. */
     var focusFind by mutableStateOf<String?>(null)
+    var scoutSent by mutableStateOf<ScoutSent?>(null)
 
     val sheet: Sheet? get() = sheets.lastOrNull()
     fun open(s: Sheet) { sheets.add(s) }
@@ -67,7 +74,7 @@ object Router {
             if (find != null) Analytics.track(AnalyticsEvent.STORY_SENT_TO_AGENT, mapOf("category" to story.item.category.raw, "from" to "tap"))
         }
         val f = find ?: run {
-            say(if (story.agentID == null) "Deploy a ${story.item.category.info.label.lowercase()} agent to track this" else "Not in your size, so it isn't in Finds")
+            say(if (story.agentID == null) "Set up a ${story.item.category.info.label.lowercase()} scout to track this" else "Not in your size, so it isn't in Finds")
             return
         }
         when (f.status) {
@@ -133,7 +140,7 @@ fun AgentAvatar(agent: Agent?, size: Dp = 36.dp, preview: Avatar? = null, previe
                 nameOverride: String? = null, mission: Mission? = null) {
     val store = AppStore
     val icon = preview ?: agent?.icon
-    val name = nameOverride ?: agent?.name ?: "Agent"
+    val name = nameOverride ?: agent?.name ?: "Scout"
     val shape = RoundedCornerShape(size * 0.3f)
     val photo = if (icon?.style == Avatar.Style.PHOTO) previewPhoto ?: store.iconImage(icon.photoID) else null
     Box(Modifier.size(size).clip(shape).background(AvatarPalette.gradient(icon?.color ?: 0)).border(1.dp, T.line, shape), contentAlignment = Alignment.Center) {
@@ -146,26 +153,69 @@ fun AgentAvatar(agent: Agent?, size: Dp = 36.dp, preview: Avatar? = null, previe
     }
 }
 
-/** Your icon: a photo, an emoji or your initials on a colored tile. */
+/** Your icon: a photo, an emoji, a Baget icon or your initials, inside the ring you wear. */
 @Composable
-fun AvatarView(size: Dp = 32.dp) {
+fun AvatarView(size: Dp = 32.dp, showRing: Boolean = true, preview: Avatar? = null) {
     val store = AppStore
-    val a = store.observe().avatar
+    val a = preview ?: store.observe().avatar
     val photo = store.avatarImage
-    Box(Modifier.size(size).clip(CircleShape).background(AvatarPalette.gradient(a.color)).border(1.dp, T.line, CircleShape), contentAlignment = Alignment.Center) {
-        when {
-            a.style == Avatar.Style.PHOTO && photo != null -> BitmapImage(photo, Modifier.fillMaxSize())
-            a.style == Avatar.Style.EMOJI -> Txt(a.emoji, size = (size.value * 0.5f).sp, maxLines = 1)
-            else -> Txt(store.initials, size = (size.value * 0.38f).sp, weight = FontWeight.Black, color = AvatarPalette.ink(a.color), maxLines = 1)
+    val ring = if (showRing) Ring.of(store.rings?.wearing) else null
+    // A ring you just earned: say so once.
+    val earned = FriendsState.ringEarned
+    LaunchedEffect(earned) {
+        Ring.of(earned)?.let { Router.say("Ring earned: ${it.title}. Wear it from your icon in Settings.") }
+        if (earned != null) FriendsState.ringEarned = null
+    }
+    RingFrame(ring, size) { s ->
+        Box(Modifier.size(s).clip(CircleShape).background(AvatarFill.brush(a.color, store.myPalette)).border(1.dp, T.line, CircleShape),
+            contentAlignment = Alignment.Center) {
+            when {
+                a.style == Avatar.Style.PHOTO && photo != null -> BitmapImage(photo, Modifier.fillMaxSize())
+                a.style == Avatar.Style.EMOJI -> Txt(a.emoji, size = (s.value * 0.5f).sp, maxLines = 1)
+                a.style == Avatar.Style.BAGET -> androidx.compose.material3.Icon(BagetGlyph.icon(a.glyph), null, tint = AvatarFill.ink(a.color),
+                    modifier = Modifier.size(s * 0.5f))
+                else -> Txt(store.initials, size = (s.value * 0.38f).sp, weight = FontWeight.Black, color = AvatarFill.ink(a.color), maxLines = 1)
+            }
         }
     }
 }
 
+/** Initials for someone's name: first and last word, or the first letter. */
+fun nameInitials(name: String): String {
+    val words = name.trim('@', ' ').split(" ").filter { it.isNotEmpty() }
+    if (words.size >= 2) return (words.first().take(1) + words.last().take(1)).uppercase()
+    return (words.firstOrNull() ?: "?").take(1).uppercase()
+}
+
+/** Someone's chosen icon, drawn the same way as your own (AvatarView). No ring: wrap it in RingFrame for that. */
+@Composable
+fun FriendIconView(friendID: String, name: String, icon: Avatar, size: Dp) {
+    val store = AppStore
+    val photo = if (icon.style == Avatar.Style.PHOTO) store.friendIconImage(friendID, icon.photoID) else null
+    Box(Modifier.size(size).clip(CircleShape).background(if (photo != null) Brush.linearGradient(listOf(T.panel, T.panel)) else AvatarFill.brush(icon.color, store.friendPalettes[friendID])),
+        contentAlignment = Alignment.Center) {
+        when {
+            photo != null -> BitmapImage(photo, Modifier.fillMaxSize())
+            icon.style == Avatar.Style.EMOJI -> Txt(icon.emoji, size = (size.value * 0.5f).sp, maxLines = 1)
+            icon.style == Avatar.Style.BAGET -> androidx.compose.material3.Icon(BagetGlyph.icon(icon.glyph), null, tint = AvatarFill.ink(icon.color),
+                modifier = Modifier.size(size * 0.5f))
+            else -> Txt(nameInitials(name), size = (size.value * 0.38f).sp, weight = FontWeight.Black, color = AvatarFill.ink(icon.color), maxLines = 1)
+        }
+    }
+}
+
+/** A friend's icon: what they picked in Settings, inside the ring they wear; an initial in a thin ring until they pick one. */
 @Composable
 fun FriendAvatar(friend: Friend, size: Dp = 32.dp) {
-    Box(Modifier.size(size).clip(CircleShape).background(T.gradient), contentAlignment = Alignment.Center) {
-        Txt(if (friend.isPending) "?" else friend.name.split(" ").mapNotNull { it.firstOrNull()?.toString() }.take(2).joinToString("").uppercase(),
-            size = (size.value * 0.38f).sp, weight = FontWeight.Bold, color = T.accentInk, maxLines = 1)
+    val store = AppStore
+    val hidden = friend.isPending && !friend.incoming
+    val icon = if (hidden) null else store.friendIcons[friend.id]
+    RingFrame(if (hidden) null else Ring.of(store.friendRings[friend.id]), size) { s ->
+        if (icon != null) FriendIconView(friend.id, friend.name, icon, s)
+        else Box(Modifier.size(s).clip(CircleShape).background(Color.White.copy(alpha = 0.04f)).border(1.dp, Color.White.copy(alpha = 0.22f), CircleShape),
+            contentAlignment = Alignment.Center) {
+            Txt(nameInitials(friend.name), size = (s.value * 0.4f).sp, weight = FontWeight.SemiBold, maxLines = 1)
+        }
     }
 }
 

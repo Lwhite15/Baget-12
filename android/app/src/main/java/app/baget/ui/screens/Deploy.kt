@@ -81,8 +81,8 @@ fun DeploySheet(prefill: Mission?) {
 
     fun deploy() {
         val a = draft()
-        if (a.mission is Mission.Custom && (a.mission as Mission.Custom).text.isEmpty()) { error = "Tell the agent what to hunt."; return }
-        if (Sizes.required(a) && !Sizes.has(a)) { error = "Pick your ${if (category == Category.SNEAKERS) "shoe size" else "size"}. This agent only hunts things in stock in your size."; return }
+        if (a.mission is Mission.Custom && (a.mission as Mission.Custom).text.isEmpty()) { error = "Tell the scout what to hunt."; return }
+        if (Sizes.required(a) && !Sizes.has(a)) { error = "Pick your ${if (category == Category.SNEAKERS) "shoe size" else "size"}. This scout only hunts things in stock in your size."; return }
         if (a.name.isEmpty()) a.name = previewName
         if (store.squadFull) {
             error = store.scoutLimitMessage
@@ -110,7 +110,7 @@ fun DeploySheet(prefill: Mission?) {
         Router.close()
     }
 
-    SheetFrame("Brief a new agent", leading = "Cancel", trailing = "Deploy", onTrailing = ::deploy) {
+    SheetFrame("Set up a new scout", leading = "Cancel", trailing = "Deploy", onTrailing = ::deploy) {
         Column(Modifier.verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
             FormSection("Mission") {
                 Box(Modifier.padding(vertical = 6.dp)) {
@@ -121,7 +121,7 @@ fun DeploySheet(prefill: Mission?) {
                 }
                 if (category == null) Field(customText, { customText = it }, "What should it hunt? Vinyl, vintage Levi's, Pokémon cards…", Modifier.fillMaxWidth().padding(bottom = 6.dp))
             }
-            FormSection("Agent") {
+            FormSection("Scout") {
                 Field(name, { name = it }, "Name (optional), e.g. Grail Hunter", Modifier.fillMaxWidth().padding(vertical = 6.dp))
                 Choice("How it texts you", Voice.entries.map { it.label }, Voice.entries.indexOf(voice)) { voice = Voice.entries[it] }
                 Txt(voice.blurb, size = T.caption, color = T.muted)
@@ -139,13 +139,13 @@ fun DeploySheet(prefill: Mission?) {
                 IconPicker(icon, { icon = it }, iconPhoto, { iconPhoto = it })
             }
             when (category) {
-                Category.SNEAKERS -> FormSection("Shoe size (required)", "Your agent only flags pairs in stock in this size.") {
+                Category.SNEAKERS -> FormSection("Shoe size (required)", "Your scout only flags pairs in stock in this size.") {
                     Segmented(listOf("US M", "US W", "UK", "EU"), shoeSystem) { shoeSystem = it; shoeSize = null }
                     Choice("Size", listOf("Pick a size") + shoeOptions.map { Sizes.display(it) }, shoeSize?.let { shoeOptions.indexOf(it) + 1 } ?: 0) {
                         shoeSize = if (it == 0) null else shoeOptions[it - 1]
                     }
                 }
-                Category.APPAREL -> FormSection("Clothing size (required)", "Your agent only flags pieces in stock in this size.") {
+                Category.APPAREL -> FormSection("Clothing size (required)", "Your scout only flags pieces in stock in this size.") {
                     Choice("Top size", listOf("Pick a size") + Sizes.tops, if (topSize.isEmpty()) 0 else Sizes.tops.indexOf(topSize) + 1) {
                         topSize = if (it == 0) "" else Sizes.tops[it - 1]
                     }
@@ -165,9 +165,9 @@ fun DeploySheet(prefill: Mission?) {
             Column(Modifier.fillMaxWidth().glass().padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 val a = draft()
                 when {
-                    Sizes.required(a) && !Sizes.has(a) -> Txt("Pick your ${if (category == Category.SNEAKERS) "shoe size" else "size"} first. Your agent only hunts what's in stock in it.",
+                    Sizes.required(a) && !Sizes.has(a) -> Txt("Pick your ${if (category == Category.SNEAKERS) "shoe size" else "size"} first. Your scout only hunts what's in stock in it.",
                         size = T.footnote, color = T.warn)
-                    category == null && customText.isBlank() -> Txt("Tell this agent what to hunt. Anything works.", size = T.footnote, color = T.muted)
+                    category == null && customText.isBlank() -> Txt("Tell this scout what to hunt. Anything works.", size = T.footnote, color = T.muted)
                     else -> {
                         val k = Matcher.intel(a)
                         val reach = Catalog.all.count { (Matcher.match(a, it)?.score ?: 0) >= 45 }
@@ -236,11 +236,11 @@ fun IconPicker(icon: Avatar, setIcon: (Avatar) -> Unit, photo: Bitmap?, setPhoto
             if (b != null) setPhoto(b)
         }
     }
-    Segmented(listOf("Auto", "Emoji", "Photo"), when (icon.style) { Avatar.Style.INITIALS -> "Auto"; Avatar.Style.EMOJI -> "Emoji"; Avatar.Style.PHOTO -> "Photo" }) {
+    Segmented(listOf("Auto", "Emoji", "Photo"), when (icon.style) { Avatar.Style.INITIALS, Avatar.Style.BAGET -> "Auto"; Avatar.Style.EMOJI -> "Emoji"; Avatar.Style.PHOTO -> "Photo" }) {
         setIcon(icon.copy(style = when (it) { "Emoji" -> Avatar.Style.EMOJI; "Photo" -> Avatar.Style.PHOTO; else -> Avatar.Style.INITIALS }))
     }
     when (icon.style) {
-        Avatar.Style.INITIALS -> ColorRow(icon.color) { setIcon(icon.copy(color = it)) }
+        Avatar.Style.INITIALS, Avatar.Style.BAGET -> ColorRow(icon.color) { setIcon(icon.copy(color = it)) }
         Avatar.Style.EMOJI -> {
             EmojiGrid(icon.emoji) { setIcon(icon.copy(emoji = it)) }
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -254,7 +254,7 @@ fun IconPicker(icon: Avatar, setIcon: (Avatar) -> Unit, photo: Bitmap?, setPhoto
                 picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             }
             if (failed) Txt("Couldn't open that photo. Try another.", size = T.footnote, color = T.hot)
-            if (photo == null && !hasSavedPhoto) Txt("Pick a photo, or this agent keeps its auto emoji.", size = T.caption, color = T.muted)
+            if (photo == null && !hasSavedPhoto) Txt("Pick a photo, or this scout keeps its auto emoji.", size = T.caption, color = T.muted)
         }
     }
 }
@@ -291,7 +291,7 @@ fun AgentIconSheet(agentID: String) {
     val agent = store.agent(agentID)
     var icon by remember { mutableStateOf(agent?.icon ?: Avatar()) }
     var photo by remember { mutableStateOf<Bitmap?>(null) }
-    SheetFrame("Agent icon", leading = "Cancel", trailing = "Save", onTrailing = {
+    SheetFrame("Scout icon", leading = "Cancel", trailing = "Save", onTrailing = {
         // Photo style with no photo at all falls back to auto.
         var chosen = icon
         if (chosen.style == Avatar.Style.PHOTO && photo == null && agent?.icon?.photoID == null) chosen = chosen.copy(style = Avatar.Style.INITIALS)
@@ -300,7 +300,7 @@ fun AgentIconSheet(agentID: String) {
     }) {
         Column(Modifier.verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { AgentAvatar(agent, 96.dp, preview = icon, previewPhoto = photo) }
-            FormSection("${agent?.name ?: "Agent"}'s icon", "Shows on its card and on every text it sends you.") {
+            FormSection("${agent?.name ?: "Scout"}'s icon", "Shows on its card and on every text it sends you.") {
                 IconPicker(icon, { icon = it }, photo, { photo = it }, hasSavedPhoto = agent?.icon?.photoID != null)
             }
             if (agent?.icon != null) FormSection {

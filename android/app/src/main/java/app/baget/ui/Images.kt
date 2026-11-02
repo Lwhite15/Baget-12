@@ -19,6 +19,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Newspaper
+import androidx.compose.material.icons.automirrored.filled.ListAlt
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.material3.Text
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -130,15 +138,10 @@ fun Plate(item: Item, label: String, height: Dp = 120.dp, live: Boolean = false,
         })) {
         AnimatedContent(photo, transitionSpec = { fadeIn() togetherWith fadeOut() }, label = "plate") { p ->
             if (p != null) Image(p, item.title, contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize().padding(start = 10.dp, end = 10.dp, top = 30.dp, bottom = 24.dp))
+                modifier = Modifier.fillMaxSize().padding(start = 10.dp, end = 10.dp, top = 50.dp, bottom = 24.dp))
         }
         Column(Modifier.fillMaxSize().padding(12.dp)) {
-            Box(Modifier.clip(RoundedCornerShape(50)).background(
-                if (live) T.hot else if (photo != null) T.bg.copy(alpha = 0.85f) else if (lead) Color.White.copy(alpha = 0.25f) else T.bg.copy(alpha = 0.6f))
-                .padding(horizontal = 8.dp, vertical = 4.dp)) {
-                Txt(label, size = 10.sp, weight = FontWeight.SemiBold, mono = true, maxLines = 1,
-                    color = if (live) Color.White else if (photo != null) T.ink else if (lead) T.accentInk else T.ink)
-            }
+            BrandTag(label, live = live, onWhite = photo != null)
             Spacer(Modifier.weight(1f))
             if (photo == null) Txt(brandInitials(item.brand, 3), size = if (lead) 84.sp else 40.sp, weight = FontWeight.Black,
                 color = if (lead) T.accentInk else T.ink, tracking = (-2).sp, maxLines = 1)
@@ -146,6 +149,19 @@ fun Plate(item: Item, label: String, height: Dp = 120.dp, live: Boolean = false,
                 color = if (photo != null) Color.Black.copy(alpha = 0.5f) else if (lead) T.accentInk.copy(alpha = 0.7f) else T.muted)
         }
     }
+}
+
+/**
+ * The brand on a product card: the name in the system font, semibold (same as product titles). The whole name always
+ * shows (up to two lines). White with a soft shadow; dark on a white photo backdrop. Live drops get a solid hot badge.
+ */
+@Composable
+fun BrandTag(text: String, live: Boolean = false, onWhite: Boolean = false) {
+    val style = TextStyle(fontSize = 17.sp, fontWeight = FontWeight.SemiBold,
+        shadow = if (live || onWhite) null else Shadow(Color.Black.copy(alpha = 0.55f), Offset(0f, 2f), 12f))
+    if (live) Box(Modifier.clip(RoundedCornerShape(50)).background(T.hot).padding(horizontal = 9.dp, vertical = 4.dp)) {
+        Text(text, style = style, color = Color.White, maxLines = 2, overflow = TextOverflow.Ellipsis)
+    } else Text(text, style = style, color = if (onWhite) Color.Black.copy(alpha = 0.85f) else Color.White, maxLines = 2, overflow = TextOverflow.Ellipsis)
 }
 
 /** A product photo (or brand letters) in a small rounded square. */
@@ -157,7 +173,9 @@ fun ProductThumb(item: Item, size: Dp = 76.dp) {
         if (photo != null) Image(photo, null, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize().padding(4.dp))
         else {
             Box(Modifier.fillMaxSize().background(Brush.radialGradient(listOf(T.blue.copy(alpha = 0.35f), Color.Transparent))))
-            Txt(brandInitials(item.brand, 2), size = (size.value * 0.3f).sp, weight = FontWeight.Black)
+            if (item.isProduct) Txt(brandInitials(item.brand, 2), size = (size.value * 0.3f).sp, weight = FontWeight.Black)
+            else androidx.compose.material3.Icon(if (item.isIntel) Icons.Filled.Newspaper
+                else Icons.AutoMirrored.Filled.ListAlt, null, tint = T.cyan, modifier = Modifier.size(size * 0.36f))
         }
     }
 }

@@ -33,13 +33,25 @@ fun SquadScreen() {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)) {
         SectionTitle("Your squad")
-        HuntBox()
+        NewScoutCard(compact = true)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             GhostButton("What Baget knows", Modifier.weight(1f), icon = Icons.Filled.Psychology) { Router.open(Sheet.Taste) }
-            GhostButton("Detailed setup", Modifier.weight(1f), icon = Icons.Filled.Tune) { Router.deployPrefill = null; Router.open(Sheet.Deploy) }
+            GhostButton("Detailed hunt setup", Modifier.weight(1f), icon = Icons.Filled.Tune) { Router.deployPrefill = null; Router.open(Sheet.Deploy) }
         }
-        if (s.agents.isEmpty()) EmptyCard("No agents yet. Tell Baget what you're hunting above.")
-        s.agents.toList().forEach { a -> key(a.id) { AgentCard(a) } }
+        if (s.agents.isEmpty()) EmptyCard("No scouts yet. Tap New scout above and tell it what to hunt.")
+        HuntDoneCard()
+        val specific = s.agents.filter { it.isSpecific }
+        if (specific.isEmpty()) {
+            s.agents.toList().forEach { a -> key(a.id) { AgentCard(a) } }
+        } else {
+            val interests = s.agents.filter { !it.isSpecific }
+            if (interests.isNotEmpty()) {
+                Kick("Interests", modifier = Modifier.padding(top = 4.dp))
+                interests.forEach { a -> key(a.id) { AgentCard(a) } }
+            }
+            Kick("Specific hunts", modifier = Modifier.padding(top = 4.dp))
+            specific.forEach { a -> key(a.id) { AgentCard(a) } }
+        }
         Column(Modifier.fillMaxWidth().glassCard(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Kick("Squad activity")
             if (s.log.isEmpty()) Txt("No activity yet.", size = T.footnote, color = T.muted)
@@ -73,8 +85,12 @@ private fun AgentCard(agent: Agent) {
             Box(Modifier.clickable { Router.open(Sheet.AgentIcon(agent.id)) }) { AgentAvatar(agent, 46.dp) }
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
-                Txt(agent.name, size = T.title3, weight = FontWeight.Black)
-                Txt("${agent.mission.label} · $finds find${if (finds == 1) "" else "s"}", size = T.caption, color = T.muted, mono = true)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Txt(agent.name, size = T.title3, weight = FontWeight.Black, maxLines = 1, modifier = Modifier.weight(1f, fill = false))
+                    Spacer(Modifier.width(6.dp))
+                    FocusTag(agent.isSpecific)
+                }
+                Txt("${agent.mission.label} · $finds ${if (finds == 1) "find" else "finds"}", size = T.caption, color = T.muted, mono = true)
             }
             Column(horizontalAlignment = Alignment.End) {
                 Switch(checked = !agent.isOff, onCheckedChange = { on ->
@@ -104,7 +120,7 @@ private fun AgentCard(agent: Agent) {
         if (styleTags.isNotEmpty()) Flow { styleTags.forEach { Tag(it, T.green) } }
         TasteBoardRow(agent)
         PrimaryButton("Talk to ${agent.name}", Modifier.fillMaxWidth(), icon = Icons.Filled.Forum) {
-            if (store.isCloud) Router.open(Sheet.Chat(agent.id)) else Router.say("Sign in to talk to your agents. They need the internet to search.")
+            if (store.isCloud) Router.open(Sheet.Chat(agent.id)) else Router.say("Sign in to talk to your scouts. They need the internet to search.")
         }
         if (Sizes.required(agent) && !Sizes.has(agent)) Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(T.warn.copy(alpha = 0.1f)).padding(10.dp)) {
             Txt("Needs your size. ", size = T.footnote, weight = FontWeight.Bold, color = T.warn)

@@ -112,6 +112,9 @@ class MainActivity : ComponentActivity() {
                     "pro" -> app.baget.ui.Sheet.Pro
                     "customize" -> app.baget.ui.Sheet.CustomizeBar
                     "feedback" -> app.baget.ui.Sheet.Feedback
+                    "newscout" -> app.baget.ui.Sheet.NewScout
+                    "foryou" -> app.baget.ui.Sheet.ForYou
+                    "howto" -> app.baget.ui.Sheet.HowTo
                     "chat" -> store.state.agents.firstOrNull()?.let { app.baget.ui.Sheet.Chat(it.id) }
                     "checkout" -> store.state.finds.firstOrNull()?.let { app.baget.ui.Sheet.Checkout(it.id) }
                     else -> null

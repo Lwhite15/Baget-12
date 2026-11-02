@@ -32,7 +32,7 @@ enum class AnalyticsEvent(val raw: String) {
     FIND_PASSED("find_passed"), FIND_LIKED("find_liked"), REMINDER_SET("reminder_set"), FIND_UNLIKED("find_unliked"),
     NOTIFICATION_SENT("notification_sent"), NOTIFICATION_OPENED("notification_opened"),
     FRIEND_INVITED("friend_invited"), ITEM_SHARED("item_shared"), SUGGESTION_SENT("suggestion_sent"),
-    SUGGESTION_ACCEPTED("suggestion_accepted"), SUGGESTION_PASSED("suggestion_passed"),
+    SUGGESTION_ACCEPTED("suggestion_accepted"), SUGGESTION_PASSED("suggestion_passed"), HOW_TO_DONE("how_to_done"),
 }
 
 /**
@@ -95,7 +95,7 @@ object Analytics {
             val batch = synchronized(lock) { buffer.take(100) }
             if (batch.isEmpty()) return@withContext
             val req = Request.Builder().url("$base/rest/v1/events")
-                .header("apikey", Backend.apiKey).header("Authorization", "Bearer ${Backend.apiKey}")
+                .header("apikey", Backend.apiKey)   // apikey only: as a Bearer token it isn't a JWT and every batch came back 401
                 .header("Prefer", "return=minimal,resolution=ignore-duplicates")
                 .post(JsonArray(batch).toString().toRequestBody("application/json".toMediaType())).build()
             val code = runCatching { http.newCall(req).execute().use { it.code } }.getOrNull() ?: return@withContext   // offline: keep the queue

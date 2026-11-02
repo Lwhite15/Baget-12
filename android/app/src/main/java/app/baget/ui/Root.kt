@@ -34,7 +34,10 @@ fun RootScreen() {
     val router = Router
     val scope = rememberCoroutineScope()
     val prefs = remember { store.context.getSharedPreferences("baget.ui", 0) }
-    var onboarded by remember { mutableStateOf(prefs.getBoolean("onboarded", false)) }
+    // Re-read per account: a new account on this phone always gets setup (didSignIn/resetToWelcome clear the flag).
+    var onboarded by remember(s.accountID, s.lastSynced == null) { mutableStateOf(prefs.getBoolean("onboarded", false)) }
+    /** Setup is on screen (kept open until it's finished). */
+    var setupOpen by remember { mutableStateOf(false) }
 
     // A tapped system notification: open what it's about.
     LaunchedEffect(store.openNoteFromSystem) {
@@ -52,8 +55,21 @@ fun RootScreen() {
     Box(Modifier.fillMaxSize().litBackground()) {
         when {
             store.needsWelcome -> WelcomeScreen()
-            store.isCloud && s.agents.isEmpty() && !onboarded && s.lastSynced != null ->
-                OnboardingScreen(onDone = { onboarded = true; prefs.edit().putBoolean("onboarded", true).apply() })
+            // Once open, setup stays open until they finish: the new scouts arriving mid-setup mustn't close it before "Your squad is hunting".
+            !onboarded && ((setupOpen && store.isCloud) || (store.isCloud && s.agents.isEmpty() && s.lastSynced != null)) -> {
+                LaunchedEffect(Unit) { setupOpen = true }
+                OnboardingScreen(onDone = {
+                    setupOpen = false
+                    onboarded = true
+                    prefs.edit().putBoolean("onboarded", true).apply()
+                    // Right after setup, before Today: a short "How Baget works", once.
+                    if (!prefs.getBoolean("howToSeen", false) && store.isCloud) scope.launch {
+                        kotlinx.coroutines.delay(700)
+                        prefs.edit().putBoolean("howToSeen", true).apply()
+                        router.open(Sheet.HowTo)
+                    }
+                })
+            }
             else -> MainTabs()
         }
         // Sheets, newest on top. Back closes the top one.
@@ -71,7 +87,7 @@ fun RootScreen() {
         AlertDialog(onDismissRequest = { router.askBought = null },
             containerColor = T.panel,
             title = { Txt(item?.let { "Did you buy the ${it.title}?" } ?: "Did you buy it?", size = T.body, weight = FontWeight.Bold) },
-            text = { Txt("Your agent learns the most from what you actually buy.", color = T.muted) },
+            text = { Txt("Your scout learns the most from what you actually buy.", color = T.muted) },
             confirmButton = {
                 TextButton(onClick = {
                     if (f != null && item != null) {
@@ -113,7 +129,7 @@ private fun MainTabs() {
         bottomBar = {
             NavigationBar(containerColor = T.panel.copy(alpha = 0.96f), tonalElevation = 0.dp) {
                 tabItem(AppTab.LIVE, "Today", Icons.Filled.WbSunny, 0)
-                tabItem(AppTab.FINDS, "Finds", Icons.Filled.AutoAwesome, s.finds.count { it.status == FindStatus.OPEN && Catalog.item(it.itemID)?.showable == true })
+                tabItem(AppTab.FINDS, "Finds", Icons.Filled.AutoAwesome, s.finds.count { it.status == FindStatus.OPEN && Catalog.item(it.itemID)?.showsInFinds == true })
                 tabItem(AppTab.SQUAD, "Squad", Icons.Filled.Groups, 0)
                 tabItem(AppTab.FRIENDS, "Friends", Icons.Filled.Favorite, s.suggestions.count { it.status == SuggestionStatus.NEW })
             }
@@ -219,13 +235,21 @@ private fun SheetDialog(sheet: Sheet) {
                 is Sheet.ShareItem -> ShareSheet(sheet.itemID, sheet.friendID, sheet.suggestion)
                 is Sheet.SuggestFor -> SuggestForSheet(sheet.friendID)
                 is Sheet.TastePhoto -> TastePhotoSheet(sheet.agentID)
-                is Sheet.Chat -> ChatSheet(sheet.agentID, sheet.aboutFindID)
+                is Sheet.Chat -> {
+                    // "Ask about this": the scout that found it may have been deleted, so ask whichever current scout fits best.
+                    val f = sheet.aboutFindID?.let { id -> AppStore.state.finds.firstOrNull { it.id == id } }
+                    if (f == null || AppStore.agent(sheet.agentID) != null) ChatSheet(sheet.agentID, sheet.aboutFindID)
+                    else AppStore.scoutFor(f)?.let { ChatSheet(it.id, sheet.aboutFindID) } ?: NoScoutSheet()
+                }
                 is Sheet.AgentIcon -> AgentIconSheet(sheet.agentID)
                 Sheet.Swipe -> SwipeSheet()
                 Sheet.Taste -> TasteSheet()
                 Sheet.Pro -> PaywallSheet()
                 Sheet.Feedback -> FeedbackSheet()
+                Sheet.HowTo -> HowToSheet()
                 is Sheet.Reminder -> ReminderSheet(sheet.itemID, sheet.findID)
+                Sheet.NewScout -> NewScoutSheet()
+                Sheet.ForYou -> ForYouFullSheet()
             }
             Toast(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 24.dp))
         }

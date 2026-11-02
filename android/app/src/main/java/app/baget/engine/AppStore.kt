@@ -175,6 +175,14 @@ object AppStore {
         return best
     }
 
+    /** The scout to talk to about a find: the one that found it, or (if that one was deleted) the best fit you have now. */
+    fun scoutFor(f: Find): Agent? {
+        agent(f.agentID)?.let { return it }
+        val item = Catalog.item(f.itemID) ?: return state.agents.firstOrNull()
+        return best(item)?.first ?: state.agents.firstOrNull { Matcher.covers(it, item) }
+            ?: state.agents.firstOrNull { it.mission.category == item.category } ?: state.agents.firstOrNull()
+    }
+
     fun owned(a: Agent): List<Item> =
         state.finds.filter { it.agentID == a.id && it.status == FindStatus.ACQUIRED }.mapNotNull { Catalog.item(it.itemID) }
 
@@ -736,13 +744,16 @@ object AppStore {
         push { it.update("suggestions", "id=eq.$id", jobj("status" to "sent")) }
         val item = Catalog.item(s.itemID); val f = friend(s.friendID)
         if (item == null || f == null) { save(); return }
+        // Saved to Finds as a like, under the scout that fits best (or any scout, so it's never lost).
         val target = best(item)?.first ?: state.agents.firstOrNull { Matcher.covers(it, item) }
-        val credit = "${f.name} suggested it: “${s.note}”"
+            ?: state.agents.firstOrNull { it.mission.category == item.category } ?: state.agents.firstOrNull()
+        val note = s.note.trim()
+        val credit = if (note.isEmpty()) "${f.name} suggested it" else "${f.name} suggested it: “$note”"
         if (target != null) {
             val find = ensureFind(target.id, item.id, credit)
             if (find != null) {
                 find.why = listOf(credit) + find.why.filter { !it.contains("suggested it") }
-                if (find.status != FindStatus.ACQUIRED) find.status = FindStatus.OPEN
+                if (find.status != FindStatus.ACQUIRED && find.status != FindStatus.LIKED) like(find.id)
                 learn(target.id, item, 1, "your friend ${f.name} thinks you'd like ${item.title}")
             }
         }

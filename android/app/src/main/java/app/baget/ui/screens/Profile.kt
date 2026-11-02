@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -21,7 +22,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -36,7 +39,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.*
 
-private enum class ProfilePage { MAIN, ALERTS, PRIVACY, STATS }
+private enum class ProfilePage { MAIN, ALERTS, PRIVACY, STATS, RINGS, BLOCKED }
 
 /** Opened from your icon at the top left: your icon, name, handle, settings and account. */
 @Composable
@@ -54,6 +57,8 @@ fun ProfileSheet() {
             }
         }
         ProfilePage.STATS -> SheetFrame("Stats", leading = "‹ You", onLeading = { page = ProfilePage.MAIN }) { StatsPage() }
+        ProfilePage.RINGS -> SheetFrame("Your rings", leading = "‹ You", onLeading = { page = ProfilePage.MAIN }) { RingsPage() }
+        ProfilePage.BLOCKED -> SheetFrame("Blocked people", leading = "‹ You", onLeading = { page = ProfilePage.MAIN }) { BlockedPeoplePage() }
         ProfilePage.MAIN -> SheetFrame("You") {
             Column(Modifier.verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -64,7 +69,12 @@ fun ProfileSheet() {
                     if (h.isNotEmpty() && store.isCloud) Txt("@$h", color = T.muted) else if (!store.isCloud) Txt("Sample tour", color = T.muted)
                 }
                 IconSection()
+                if (store.isCloud) RingSection { page = ProfilePage.RINGS }
                 if (store.isCloud) NameSection()
+                if (store.isCloud) UsernameSection()
+                if (store.isCloud) FormSection("Birthday", "Month and day only. Friends get a heads-up a week before, with gift ideas for your taste when you both share taste.") {
+                    BirthdayRow(showsCaption = false)
+                }
                 AccountSection()
                 FormSection("Settings") {
                     RowButton("Send feedback", Icons.Filled.Feedback) { Router.open(Sheet.Feedback) }
@@ -72,9 +82,10 @@ fun ProfileSheet() {
                     RowButton("Contact support", Icons.Filled.Email) { open(context, "mailto:bagetsupport@gmail.com?subject=Baget%20support") }
                     PlanRows()
                     RowButton("What Baget knows about you", Icons.Filled.Psychology) { Router.open(Sheet.Taste) }
+                    if (store.isCloud) RowButton("Blocked people", Icons.Filled.Block) { page = ProfilePage.BLOCKED }
+                    RowButton("How Baget works", Icons.Filled.Info) { Router.open(Sheet.HowTo) }
                     RowButton("Notifications and background", Icons.Filled.NotificationsActive) { page = ProfilePage.ALERTS }
                     RowButton("Friends and privacy", Icons.Filled.PanTool) { page = ProfilePage.PRIVACY }
-                    RowButton("Customize the Live bar", Icons.Filled.Tune) { Router.open(Sheet.CustomizeBar) }
                     if (store.isAdmin) RowButton("Stats", Icons.Filled.BarChart) { page = ProfilePage.STATS }
                 }
                 Txt("Baget ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) for Android", size = T.caption, color = T.muted,
@@ -102,8 +113,14 @@ private fun IconSection() {
     }
     FormSection("Your icon", if (editing == Avatar.Style.PHOTO) "Cropped to a circle. It's kept private in your account, so it follows you to a new phone."
         else "Shows at the top left of every screen.") {
-        Segmented(listOf("Initials", "Emoji", "Photo"), when (editing) { Avatar.Style.INITIALS -> "Initials"; Avatar.Style.EMOJI -> "Emoji"; else -> "Photo" }) {
-            editing = when (it) { "Emoji" -> Avatar.Style.EMOJI; "Photo" -> Avatar.Style.PHOTO; else -> Avatar.Style.INITIALS }
+        Segmented(listOf("Initials", "Emoji", "Baget", "Photo"),
+            when (editing) { Avatar.Style.INITIALS -> "Initials"; Avatar.Style.EMOJI -> "Emoji"; Avatar.Style.BAGET -> "Baget"; else -> "Photo" }) {
+            editing = when (it) { "Emoji" -> Avatar.Style.EMOJI; "Baget" -> Avatar.Style.BAGET; "Photo" -> Avatar.Style.PHOTO; else -> Avatar.Style.INITIALS }
+            if (editing == Avatar.Style.BAGET) {
+                store.setAvatarGlyph(s.avatar.glyph ?: BagetGlyph.available.firstOrNull() ?: "sparkles")
+                Analytics.track(AnalyticsEvent.AVATAR_CHANGED, mapOf("style" to "baget"))
+                return@Segmented
+            }
             // Photo only takes effect once there's a photo.
             if (editing != Avatar.Style.PHOTO || s.avatar.photoID != null) {
                 store.setAvatarStyle(editing)
@@ -111,14 +128,28 @@ private fun IconSection() {
             }
         }
         when (editing) {
-            Avatar.Style.INITIALS -> ColorRow(s.avatar.color) { store.setAvatarColor(it) }
+            Avatar.Style.INITIALS -> IconColorRow(s.avatar.color, editing)
             Avatar.Style.EMOJI -> {
                 EmojiGrid(if (s.avatar.style == Avatar.Style.EMOJI) s.avatar.emoji else null) { store.setAvatarEmoji(it) }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Field(custom, { custom = it }, "Or type any emoji", Modifier.weight(1f))
                     AvatarPalette.firstEmoji(custom)?.let { e -> TextButton(onClick = { store.setAvatarEmoji(e); custom = "" }) { Txt("Use", color = T.accent, weight = FontWeight.Bold) } }
                 }
-                ColorRow(s.avatar.color) { store.setAvatarColor(it); store.setAvatarStyle(Avatar.Style.EMOJI) }
+                IconColorRow(s.avatar.color, editing)
+            }
+            Avatar.Style.BAGET -> {
+                Grid5(BagetGlyph.available) { g ->
+                    val on = s.avatar.style == Avatar.Style.BAGET && s.avatar.glyph == g
+                    Box(Modifier.fillMaxWidth().height(52.dp).clip(RoundedCornerShape(14.dp)).background(Color.White.copy(alpha = 0.06f))
+                        .then(if (on) Modifier.border(2.5.dp, T.ink, RoundedCornerShape(14.dp)) else Modifier)
+                        .clickable {
+                            store.setAvatarGlyph(g)
+                            Analytics.track(AnalyticsEvent.AVATAR_CHANGED, mapOf("style" to "baget", "glyph" to g))
+                        }, contentAlignment = Alignment.Center) {
+                        Icon(BagetGlyph.icon(g), g.removeSuffix(".fill").replace('.', ' '), tint = T.cyan, modifier = Modifier.size(24.dp))
+                    }
+                }
+                IconColorRow(s.avatar.color, editing)
             }
             Avatar.Style.PHOTO -> {
                 RowButton(if (s.avatar.photoID == null) "Choose a photo" else "Change photo", Icons.Filled.PhotoLibrary) {
@@ -165,7 +196,7 @@ private fun AccountSection() {
     var confirmDelete by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf(false) }
     if (store.isCloud) {
-        FormSection("Account", "Friends add you by your handle. Deleting your account permanently removes your agents, finds, purchases, photos and friends.") {
+        FormSection("Account", "Friends add you by your handle. Deleting your account permanently removes your scouts, finds, purchases, photos and friends.") {
             Row(Modifier.padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                 Txt("@", color = T.muted); Spacer(Modifier.width(6.dp))
                 // Handles are lowercase letters, numbers, dots and underscores: show exactly what will be saved.
@@ -197,7 +228,7 @@ private fun AccountSection() {
             }) { Txt("Delete everything", color = T.hot, weight = FontWeight.Bold) } },
             dismissButton = { TextButton(onClick = { confirmDelete = false }) { Txt("Cancel", color = T.muted) } })
     } else if (Backend.isConfigured) {
-        FormSection("Account", "You're looking at sample data. Signing in lets your agents search the real web, sync across your devices and connect with friends.") {
+        FormSection("Account", "You're looking at sample data. Signing in lets your scouts search the real web, sync across your devices and connect with friends.") {
             RowButton("Sign in to start hunting for real") { Router.closeAll(); store.resetToWelcome() }
         }
     }
@@ -404,7 +435,7 @@ private fun StatsPage() {
                         }
                         LinearProgressIndicator(progress = { (r.i("users").toFloat() / maxOf(1, r.i("goal"))).coerceAtMost(1f) }, color = T.cyan, trackColor = T.glass,
                             modifier = Modifier.fillMaxWidth())
-                        Cells(listOf("Still here after 4 weeks" to pct(r.i("week4"), r.i("week4_base")), "Paying for Pro" to pct(r.i("pro"), r.i("paid_base")),
+                        Cells(listOf("Paying for Pro" to pct(r.i("pro"), r.i("paid_base")),
                             "Connected to a friend" to pct(r.i("with_friends"), r.i("users")), "Feedback notes" to "${r.i("feedback")}"))
                     }
                 }
@@ -447,6 +478,203 @@ private fun Cells(cells: List<Pair<String, String>>) {
         Column {
             Txt(cells[i].first.uppercase(), size = 9.sp, weight = FontWeight.SemiBold, tracking = 1.sp, color = T.muted, maxLines = 1)
             Txt(cells[i].second, size = T.title2, weight = FontWeight.Black)
+        }
+    }
+}
+
+/** Five to a row. */
+@Composable
+private fun Grid5(items: List<String>, cell: @Composable (String) -> Unit) {
+    Column(Modifier.padding(vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        items.chunked(5).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                row.forEach { Box(Modifier.weight(1f)) { cell(it) } }
+                repeat(5 - row.size) { Spacer(Modifier.weight(1f)) }
+            }
+        }
+    }
+}
+
+/** The color row under your icon: your Taste Card's palette first (once you have a card), then the palette colors. */
+@Composable
+private fun IconColorRow(selected: Int, editing: Avatar.Style) {
+    val store = AppStore
+    val palette = store.myPalette
+    fun pick(i: Int) {
+        store.setAvatarColor(i)
+        if (editing == Avatar.Style.EMOJI) store.setAvatarStyle(Avatar.Style.EMOJI)
+        if (editing == Avatar.Style.BAGET) store.setAvatarStyle(Avatar.Style.BAGET)
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(Modifier.horizontalScroll(rememberScrollState()).padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            if (palette.size >= 2) {
+                Box(Modifier.size(38.dp).then(if (selected == AvatarFill.TASTE) Modifier.border(2.5.dp, T.ink, CircleShape) else Modifier).padding(4.dp)
+                    .clip(CircleShape).background(AvatarFill.brush(AvatarFill.TASTE, palette)).clickable {
+                        pick(AvatarFill.TASTE)
+                        Analytics.track(AnalyticsEvent.AVATAR_CHANGED, mapOf("style" to editing.raw, "color" to "taste"))
+                    }, contentAlignment = Alignment.Center) {
+                    Icon(Icons.Filled.AutoAwesome, "Your taste palette", tint = Color.White, modifier = Modifier.size(12.dp))
+                }
+            }
+            AvatarPalette.all.indices.forEach { i ->
+                Box(Modifier.size(38.dp).then(if (selected == i) Modifier.border(2.5.dp, T.ink, CircleShape) else Modifier).padding(4.dp)
+                    .clip(CircleShape).background(AvatarPalette.gradient(i)).clickable { pick(i) })
+            }
+        }
+        if (palette.size >= 2) Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Filled.AutoAwesome, null, tint = T.green, modifier = Modifier.size(12.dp)); Spacer(Modifier.width(5.dp))
+            Txt("The first color is your taste palette, from your Taste Card", size = T.caption, color = T.green)
+        }
+    }
+}
+
+// MARK: Ring
+
+@Composable
+private fun RingSection(openRings: () -> Unit) {
+    val store = AppStore
+    val state = store.rings
+    LaunchedEffect(Unit) { store.refreshRings() }
+    val owned = Ring.listed.filter { state?.owns(it.raw) == true }
+    FormSection("Ring", "A ring around your icon that friends see. Earn more by using Baget.") {
+        Row(Modifier.horizontalScroll(rememberScrollState()).padding(vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.Top) {
+            RingChoice(null, "None", state?.wearing == null)
+            owned.forEach { r -> RingChoice(r, r.short, state?.wearing == r.raw) }
+            Ring.earnable.filter { state?.owns(it.raw) != true }.forEach { r ->
+                Column(Modifier.width(64.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Box(Modifier.alpha(0.35f)) {
+                            RingFrame(r, 52.dp) { inner -> Box(Modifier.size(inner).clip(CircleShape).background(Color.White.copy(alpha = 0.06f))) }
+                        }
+                        Icon(Icons.Filled.Lock, null, tint = T.muted, modifier = Modifier.size(14.dp))
+                    }
+                    Txt(r.short, size = T.caption2, color = T.muted, maxLines = 2, align = TextAlign.Center)
+                }
+            }
+        }
+        RowButton("Your rings", Icons.Filled.Adjust, trailing = "${owned.count { it != Ring.PRO_GLOW }} earned") { openRings() }
+    }
+}
+
+@Composable
+private fun RingChoice(r: Ring?, label: String, on: Boolean) {
+    val store = AppStore
+    Column(Modifier.width(64.dp).clickable { store.scope.launch { store.wearRing(r?.raw) } }, horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Box(Modifier.then(if (on) Modifier.border(2.dp, T.ink, CircleShape) else Modifier).padding(3.dp)) {
+            RingFrame(r, 52.dp) { inner ->
+                Box(Modifier.size(inner).clip(CircleShape).background(Color.White.copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
+                    if (r == null) Icon(Icons.Filled.Block, "No ring", tint = T.muted)
+                }
+            }
+        }
+        Txt(label, size = T.caption2, weight = if (on) FontWeight.Bold else FontWeight.Normal, color = if (on) T.ink else T.muted, maxLines = 2, align = TextAlign.Center)
+    }
+}
+
+/** Every ring: what it is, how to earn it, and Wear for the ones you own. */
+@Composable
+private fun RingsPage() {
+    val store = AppStore
+    val state = store.rings
+    var working by remember { mutableStateOf<Ring?>(null) }
+    LaunchedEffect(Unit) { store.refreshRings() }
+    val shown = Ring.listed.filter { r -> if (r == Ring.CREATOR || r == Ring.FOUNDING) state?.owns(r.raw) == true else true }
+    Column(Modifier.verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        FormSection(null, "Wear one around your icon. Friends see it in Your circle and on your profile.") {
+            shown.forEach { r ->
+                val owned = state?.owns(r.raw) == true
+                val wearing = state?.wearing == r.raw
+                Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.alpha(if (owned) 1f else 0.4f)) {
+                        RingFrame(r, 50.dp) { inner -> Box(Modifier.size(inner).clip(CircleShape).background(T.panel)) }
+                    }
+                    Spacer(Modifier.width(13.dp))
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Txt(r.title, weight = FontWeight.Bold)
+                        Txt(r.detail, size = T.caption, color = T.muted)
+                        if (r == Ring.STREAK_7 && !owned && state != null) {
+                            LinearProgressIndicator(progress = { minOf(state.streak, 7) / 7f }, color = T.cyan, trackColor = T.glass, modifier = Modifier.fillMaxWidth())
+                            Txt("${minOf(state.streak, 7)} of 7 days", size = T.caption2, color = T.muted)
+                        } else if (r == Ring.CREW_3 && !owned && state != null) {
+                            Txt("${minOf(state.friends, 3)} of 3 friends", size = T.caption2, color = T.muted)
+                        }
+                    }
+                    Spacer(Modifier.width(6.dp))
+                    when {
+                        wearing -> Box(Modifier.clip(CircleShape).background(Color.White).clickable {
+                            store.scope.launch { working = r; store.wearRing(null); working = null }
+                        }.padding(horizontal = 10.dp, vertical = 6.dp)) { Txt("Wearing", size = T.caption, weight = FontWeight.Black, color = T.bg) }
+                        owned -> Box(Modifier.clip(CircleShape).background(T.green.copy(alpha = 0.15f)).clickable {
+                            store.scope.launch { working = r; if (store.wearRing(r.raw)) Router.say("Wearing ${r.short}"); working = null }
+                        }.padding(horizontal = 10.dp, vertical = 6.dp)) { Txt(if (working == r) "…" else "Wear", size = T.caption, weight = FontWeight.Black, color = T.green) }
+                        else -> Box(Modifier.clip(CircleShape).background(Color.White.copy(alpha = 0.07f)).padding(horizontal = 10.dp, vertical = 6.dp)) {
+                            Txt(if (r == Ring.PRO_GLOW) "Pro" else "Locked", size = T.caption, weight = FontWeight.Black, color = T.muted)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: Username
+
+/** Your @username: how friends add you. Usernames are unique, so this checks as you type and only saves a free one. */
+@Composable
+private fun UsernameSection() {
+    val store = AppStore
+    val s = store.observe()
+    val current = s.profile?.handle ?: ""
+    var text by remember { mutableStateOf(current) }
+    var status by remember { mutableStateOf<String?>(null) }   // invalid, yours, taken, available
+    var error by remember { mutableStateOf<String?>(null) }
+    var saving by remember { mutableStateOf(false) }
+    var saved by remember { mutableStateOf(false) }
+    val cleaned = text.trim('@', ' ').lowercase()
+    LaunchedEffect(cleaned) {
+        error = null
+        if (cleaned == current) { status = if (cleaned.isEmpty()) null else "yours"; return@LaunchedEffect }
+        if (!Regex("^[a-z0-9._]{3,24}$").matches(cleaned)) { status = if (cleaned.isEmpty()) null else "invalid"; return@LaunchedEffect }
+        status = null
+        delay(350)
+        status = store.handleAvailability(cleaned)
+    }
+    fun commit() {
+        if (cleaned == current || status != "available") return
+        saving = true
+        store.scope.launch {
+            error = store.updateHandle(cleaned)
+            saving = false
+            if (error == null) {
+                text = store.state.profile?.handle ?: cleaned; status = "yours"
+                saved = true; delay(2500); saved = false
+            }
+        }
+    }
+    FormSection("Username", "Friends add you by your username. No two people can have the same one.") {
+        Row(Modifier.padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+            Txt("@", color = T.muted); Spacer(Modifier.width(4.dp))
+            Field(text, { text = it; saved = false }, "username", Modifier.weight(1f))
+            when {
+                saving -> Spinner(16.dp)
+                saved -> Txt("✓ Saved", size = T.footnote, weight = FontWeight.SemiBold, color = T.green)
+                cleaned != current && status == "available" -> TextButton(onClick = { commit() }) { Txt("Save", color = T.accent, weight = FontWeight.Bold) }
+            }
+        }
+        val line: Triple<String, ImageVector, Color>? = when {
+            error != null -> Triple(error!!, Icons.Filled.Error, T.hot)
+            status == "invalid" -> Triple("Use 3 to 24 lowercase letters, numbers, dots or underscores.", Icons.Filled.Info, T.muted)
+            status == "taken" -> Triple("@$cleaned is taken. Try another.", Icons.Filled.Cancel, T.hot)
+            status == "available" -> Triple("@$cleaned is available", Icons.Filled.CheckCircle, T.green)
+            else -> null
+        }
+        line?.let { (t, icon, c) ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(icon, null, tint = c, modifier = Modifier.size(15.dp)); Spacer(Modifier.width(6.dp))
+                Txt(t, size = T.footnote, color = c)
+            }
         }
     }
 }

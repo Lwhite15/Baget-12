@@ -54,9 +54,9 @@ fun AppStore.seed() {
     fun itemID(prefix: String) = Catalog.items.firstOrNull { it.title.startsWith(prefix) }?.id
     val hour = 3_600_000L
     state.suggestions = listOfNotNull(
-        itemID("Travis Scott")?.let { Suggestion("s1", "u1", it, "Your size is still showing on SNKRS. Don't sleep on these.", now() - (1.5 * hour).toLong()) },
-        itemID("Armani Privé Rose")?.let { Suggestion("s2", "u2", it, "Rose and oud together. Literally your whole thing.", now() - 5 * hour) },
-        itemID("1995 Porsche 911")?.let { Suggestion("s3", "u3", it, "Air-cooled, manual, coupe. You know you want it.", now() - 20 * hour) },
+        itemID("Air Jordan 1 Mid")?.let { Suggestion("s1", "u1", it, "Black and gum on a Jordan 1. Your size is still showing on SNKRS.", now() - (1.5 * hour).toLong()) },
+        itemID("Ormonde Jayne")?.let { Suggestion("s2", "u2", it, "Rose and oud together. Literally your whole thing.", now() - 5 * hour) },
+        itemID("2011 BMW 1M")?.let { Suggestion("s3", "u3", it, "Manual, coupe, inline-six. You know you want it.", now() - 20 * hour) },
     ).toMutableList()
     state.liveTabs = LiveTab.presets.toMutableList()
     state.lastSeen = now()

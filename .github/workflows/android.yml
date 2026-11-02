@@ -143,6 +143,9 @@ jobs:
           go sheet:inbox inbox
           go sheet:profile profile
           go sheet:deploy deploy
+          go sheet:newscout newscout
+          go sheet:foryou foryou
+          go sheet:howto howto
           go sheet:taste taste
           go sheet:checkout checkout
           go sheet:customize customize

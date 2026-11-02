@@ -36,9 +36,9 @@ fun TasteSheet() {
     val s = store.observe()
     SheetFrame("What Baget knows") {
         Column(Modifier.verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Txt("Tap ✕ on anything that isn't you. Agents stop using it on their next search. Like, pass and chat to teach them more.",
+            Txt("Tap ✕ on anything that isn't you. Scouts stop using it on their next search. Like, pass and chat to teach them more.",
                 size = T.footnote, color = T.muted)
-            if (s.agents.isEmpty()) EmptyCard("No agents yet. Tell Baget what you're hunting on Today.")
+            if (s.agents.isEmpty()) EmptyCard("No scouts yet. Tell Baget what you're hunting on Today.")
             s.agents.toList().forEach { a ->
                 val seen = mutableSetOf<String>()
                 val likes = (a.style.makers + a.style.creators + a.keywords + a.style.traits +

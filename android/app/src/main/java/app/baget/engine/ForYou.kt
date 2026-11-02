@@ -135,13 +135,20 @@ data class DealVerdict(val level: Level, val title: String, val detail: String) 
     companion object {
         fun of(item: Item): DealVerdict? {
             val p = if (item.priceKnown) item.price else 0.0
-            val low = item.lowPrice ?: 0.0
-            val store = item.lowStore ?: "another store"
-            val others = (item.offers ?: emptyList()).size
+            val offers = item.offers ?: emptyList()
+            // Other stores (not the one it's listed at), cheapest first.
+            val elsewhere = offers.filter { !sameStore(it.store, item.source) && it.price > 0 }.sortedBy { it.price }
+            val low = elsewhere.firstOrNull()?.price ?: (if (sameStore(item.lowStore ?: "", item.source)) 0.0 else (item.lowPrice ?: 0.0))
+            val store = elsewhere.firstOrNull()?.store ?: item.lowStore ?: "another store"
+            val others = elsewhere.size
             val hasMarket = item.market > 0 && item.market != item.price
             if (p <= 0) return if (low > 0) DealVerdict(Level.INFO, "From ${Fmt.money(low)}", "at $store") else null
-            if (low > 0 && low < p * 0.95 && !sameStore(store, item.source))
+            if (low > 0 && low < p * 0.95)
                 return DealVerdict(Level.WAIT, "Cheaper elsewhere", "${Fmt.money(low)} at $store, ${safeRound((1 - low / p) * 100)}% less")
+            // The same store also shows it for much less: this price may be for another version, or out of date.
+            val same = offers.filter { sameStore(it.store, item.source) && it.price > 0 }.minByOrNull { it.price }
+            if (same != null && same.price < p * 0.9)
+                return DealVerdict(Level.WAIT, "Check the price", "${item.source} also lists it for ${Fmt.money(same.price)}")
             if (hasMarket && item.market > p * 1.15)
                 return DealVerdict(Level.GREAT, "Great deal", "${safeRound((item.market / p - 1) * 100)}% under resale (${Fmt.money(item.market)})")
             if (others >= 2 && (low == 0.0 || low >= p * 0.98)) return DealVerdict(Level.GREAT, "Best price", "Lowest of ${others + 1} stores")
@@ -188,19 +195,25 @@ object BuyLink {
 
 data class HuntResult(val agentID: String, val intro: String, val needsSize: Boolean)
 
-/** "What are you hunting?" One sentence in, a ready agent out. */
-suspend fun AppStore.hunt(text: String): HuntResult? {
+/** "What are you hunting?" One sentence in, a ready agent out.
+ *  `specific`: one thing (a grail, a size, a price). Otherwise it's something you're into, and the scout hunts wide. */
+suspend fun AppStore.hunt(text: String, specific: Boolean = false): HuntResult? {
     val t = text.trim()
     if (t.length < 2) return null
     Analytics.track(AnalyticsEvent.HUNT_STARTED, mapOf("words" to t.split(" ").size))
+    val focus = if (specific) "specific" else "interest"
     if (!isCloud) {
-        val a = Agent(uuid(), "${t.capitalizedFirst()} Hunter".take(40), Mission.Custom(t.take(80)))
+        val a = Agent(uuid(), "${t.capitalizedFirst()} Hunter".take(40), Mission.Custom(t.take(80)), focus = focus)
         deploy(a)
-        return HuntResult(a.id, "I'm on it. I'll text you when I find something.", false)
+        // Tour scouts only look through the app's sample products: say so, so an empty result doesn't look broken.
+        val n = state.finds.count { it.agentID == a.id }
+        val intro = if (n == 0) "In the tour, scouts only search sample products, so nothing matched this one. Sign in to send a real scout after it."
+                    else "Found $n in the tour's sample products. Sign in and a real scout hunts the whole web for this."
+        return HuntResult(a.id, intro, false)
     }
     if (squadFull) { syncProblem = scoutLimitMessage; return null }
     return try {
-        val r = Backend.function("hunt", jobj("text" to t)).jsonObject
+        val r = Backend.function("hunt", jobj("text" to t, "lang" to "en", "focus" to focus)).jsonObject
         pull()
         val id = r["agent_id"]?.jsonPrimitive?.contentOrNull ?: return null
         scope.launch { cloudSweep(id) }
@@ -211,14 +224,32 @@ suspend fun AppStore.hunt(text: String): HuntResult? {
     }
 }
 
+/** A specific hunt that's done: the scout keeps going on the interest behind it (Explorer -> tool watches). Returns its name. */
+suspend fun AppStore.broaden(agentID: String): String? {
+    if (!isCloud) {
+        agent(agentID)?.let { it.focus = "interest"; save() }
+        return agent(agentID)?.name
+    }
+    return try {
+        val r = Backend.function("hunt", jobj("broaden" to agentID, "lang" to "en")).jsonObject
+        pull()
+        scope.launch { cloudSweep(agentID) }
+        r["name"]?.jsonPrimitive?.contentOrNull ?: agent(agentID)?.name
+    } catch (e: Exception) {
+        syncProblem = (e as? BackendError)?.message ?: "Couldn't change that scout. Try again."
+        null
+    }
+}
+
 /** First-run setup: interests, an optional sentence and up to three photos -> a squad, already searching. */
 suspend fun AppStore.onboard(categories: List<Category>, text: String, photos: List<Bitmap>, liked: List<String> = emptyList(),
                              passed: List<String> = emptyList(), vibes: Map<Category, List<String>> = emptyMap(), budget: Int? = null,
-                             brands: Map<Category, List<String>> = emptyMap(), interests: List<String> = emptyList()): List<String> {
+                             brands: Map<Category, List<String>> = emptyMap(), interests: List<String> = emptyList(),
+                             sizes: Map<Category, String> = emptyMap(), department: String? = null): List<String> {
     Analytics.track(AnalyticsEvent.ONBOARDING_DONE, mapOf("categories" to categories.size, "photos" to photos.size, "text" to text.isNotEmpty(),
         "rated" to liked.size + passed.size))
     if (!isCloud) {
-        for (c in categories) deploy(Agent(uuid(), "${c.info.label} Scout", Mission.Cat(c)))
+        for (c in categories) deploy(Agent(uuid(), "${c.info.label} Scout", Mission.Cat(c), size = sizes[c] ?: ""))
         for (i in interests) deploy(Agent(uuid(), "${i.split(" ").first()} Scout", Mission.Custom(i.lowercase())))
         return state.agents.map { it.id }
     }
@@ -228,6 +259,9 @@ suspend fun AppStore.onboard(categories: List<Category>, text: String, photos: L
             "liked" to liked, "passed" to passed, "vibes" to vibes.filter { it.value.isNotEmpty() }.mapKeys { it.key.raw })
         if (budget != null) body["budget"] = budget
         if (interests.isNotEmpty()) body["interests"] = interests
+        if (department != null) body["department"] = department
+        body["lang"] = AppLanguage.code
+        if (sizes.isNotEmpty()) body["sizes"] = sizes.mapKeys { it.key.raw }
         val picks = brands.filter { it.value.isNotEmpty() }
         if (picks.isNotEmpty()) body["brands"] = picks.mapKeys { it.key.raw }
         val r = Backend.function("hunt", toJson(body)).jsonObject
@@ -240,14 +274,18 @@ suspend fun AppStore.onboard(categories: List<Category>, text: String, photos: L
     }
 }
 
-/** Setup's quick taste check: real products in the picked categories, one per brand, photos only. */
-suspend fun AppStore.tasteQuiz(categories: List<Category>): List<Item> {
+/** Setup's quick taste check: real products in the picked categories, photos only, leading with the brands picked. */
+suspend fun AppStore.tasteQuiz(categories: List<Category>, brands: List<String> = emptyList(), department: String? = null): List<Item> {
     if (!isCloud) {
         val cats = categories.toSet()
-        val brands = mutableSetOf<String>()
-        return Catalog.items.filter { (cats.isEmpty() || it.category in cats) && brands.add(it.brand) }.take(10)
+        val seen = mutableSetOf<String>()
+        val picked = brands.map { it.lowercase() }.toSet()
+        val pool = Catalog.items.filter { (cats.isEmpty() || it.category in cats) && seen.add(it.brand) }
+        return (pool.filter { it.brand.lowercase() in picked } + pool.filter { it.brand.lowercase() !in picked }).take(10)
     }
-    val rows = runCatching { Backend.rpc("taste_quiz", jobj("p_categories" to categories.map { it.raw }, "p_limit" to 10), ListSerializer(ListingRow.serializer())) }
+    val args = mutableMapOf<String, Any?>("p_categories" to categories.map { it.raw }, "p_limit" to 10, "p_brands" to brands)
+    if (department != null) args["p_department"] = department
+    val rows = runCatching { Backend.rpc("taste_quiz", toJson(args).jsonObject, ListSerializer(ListingRow.serializer())) }
         .getOrDefault(emptyList())
     for (r in rows) Catalog.cloud[r.id] = r.item
     return rows.map { it.item }.take(10)
@@ -298,13 +336,13 @@ fun AppStore.removeTaste(agentID: String, value: String) {
 /** Today's best: open finds from the last few days, strongest first. */
 fun AppStore.todaysPicks(n: Int = 5): List<Find> {
     val since = now() - 4 * 86_400_000L
-    val fresh = state.finds.filter { it.status == FindStatus.OPEN && it.foundAt > since && Catalog.item(it.itemID)?.showable == true }
-    val pool = fresh.ifEmpty { state.finds.filter { it.status == FindStatus.OPEN && Catalog.item(it.itemID)?.showable == true } }
+    val fresh = state.finds.filter { it.status == FindStatus.OPEN && it.foundAt > since && Catalog.item(it.itemID)?.showsInDeals == true }
+    val pool = fresh.ifEmpty { state.finds.filter { it.status == FindStatus.OPEN && Catalog.item(it.itemID)?.showsInDeals == true } }
     return pool.sortedWith(compareByDescending<Find> { it.score }.thenByDescending { it.foundAt }).take(n)
 }
 
 /** Open finds to swipe through, best first, 10 at a time. */
 const val SWIPE_ROUND = 10
 val AppStore.swipeQueue: List<Find>
-    get() = state.finds.filter { it.status == FindStatus.OPEN && Catalog.item(it.itemID)?.showable == true }
+    get() = state.finds.filter { it.status == FindStatus.OPEN && Catalog.item(it.itemID)?.showsInDeals == true }
         .sortedWith(compareByDescending<Find> { it.score }.thenByDescending { it.foundAt }).take(SWIPE_ROUND)

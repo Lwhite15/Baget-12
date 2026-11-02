@@ -109,9 +109,38 @@ data class Item(
     val lowStore: String? = null,
     val about: String? = null,
     val brandAbout: String? = null,
+    /** Stores outside the US: the price in the store's own currency (`price` is converted to US dollars). */
+    val origPrice: Double? = null,
+    val origCurrency: String? = null,
 ) {
     /** Shown in Finds, Swipe and Today's Drop only once Baget has its real photo (sample listings always show). */
     val showable: Boolean get() = isSample || (imageURL?.startsWith("https://") == true)
+    /** Not one product: "intel" (a droplist, release calendar, news or reference page) or "search" (a results page). */
+    val isIntel: Boolean get() = "intel" in tags
+    val isSearchLink: Boolean get() = "search" in tags
+    val isProduct: Boolean get() = !isIntel && !isSearchLink
+    /** Sold by a store outside the US (priced in another currency, ships from abroad). */
+    val isIntl: Boolean get() = origCurrency != null && origCurrency != "USD"
+    /** "$212", or "≈ $212" when converted from another currency. */
+    val priceLabel: String get() = (if (isIntl) "≈ " else "") + app.baget.engine.Fmt.money(price)
+    /** "€195 at the store" for stores outside the US. */
+    val localPriceLabel: String? get() {
+        val p = origPrice ?: return null
+        val c = origCurrency ?: return null
+        if (!isIntl) return null
+        val text = runCatching {
+            java.text.NumberFormat.getCurrencyInstance(java.util.Locale.US).apply {
+                currency = java.util.Currency.getInstance(c)
+                maximumFractionDigits = if (Math.rint(p) == p) 0 else 2
+                if (Math.rint(p) == p) minimumFractionDigits = 0
+            }.format(p)
+        }.getOrDefault("$c $p")
+        return "$text at the store"
+    }
+    /** Today's Drop and the swipe deck: products with a photo. */
+    val showsInDeals: Boolean get() = showable && isProduct
+    /** Finds: products with a photo, and intel and searches (which may not have one). */
+    val showsInFinds: Boolean get() = showable || (!isProduct && url != null)
 }
 
 // MARK: Agents
@@ -191,7 +220,10 @@ data class Agent(
     var icon: Avatar? = null,
     var paused: Boolean = false,
     var alerts: AgentAlerts = AgentAlerts.NORMAL,
+    /** "specific": hunting one thing. Null (older saves) or anything else means an interest, which hunts wide. */
+    var focus: String? = null,
 ) {
+    val isSpecific: Boolean get() = focus == "specific"
     val isOff: Boolean get() = paused
     fun deepCopy(): Agent = copy(
         keywords = keywords.toMutableList(),
@@ -386,9 +418,11 @@ data class Avatar(
     var color: Int = 0,
     /** The photo's id: its file on this phone, and avatars/<id>.jpg in your account's photo folder. */
     var photoID: String? = null,
+    /** A Baget icon (style BAGET): one of BagetGlyph's symbol names (the iPhone's SF Symbol names, shared). */
+    var glyph: String? = null,
 ) {
     @Serializable
-    enum class Style { @SerialName("initials") INITIALS, @SerialName("emoji") EMOJI, @SerialName("photo") PHOTO;
+    enum class Style { @SerialName("initials") INITIALS, @SerialName("emoji") EMOJI, @SerialName("photo") PHOTO, @SerialName("baget") BAGET;
         val raw get() = name.lowercase()
         companion object { fun of(raw: String?) = entries.firstOrNull { it.raw == raw } }
     }

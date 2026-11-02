@@ -13,6 +13,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -38,7 +39,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-/** The home screen: say what you want, see today's best picks, swipe the rest, then browse the feed. */
+/** The home screen. One job: what's worth your attention today. (The full For You has its own screen.) */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodayScreen() {
@@ -56,16 +57,14 @@ fun TodayScreen() {
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)) {
             Greeting()
-            PlanStatusPill()
+            if (store.plan?.pro != true) PlanStatusPill()
+            NewScoutCard()
             if (store.isCloud && s.agents.isNotEmpty() && s.finds.isEmpty()) FirstHuntCard()
-            if (queue > 0) SwipeCard(queue)
             if (picks.isNotEmpty()) TodaysDrop(picks)
-            ForYouSection()
-            HuntBox()
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Kick("Live from your squad")
-                LiveFeed()
-            }
+            if (queue > 0) SwipeCard(queue, picks.isNotEmpty())
+            ForYouSection(ForYouMode.TODAY, exclude = picks.map { it.itemID }.toSet())
+            Txt("That's today. Pull down any time to check for more.", size = T.caption, color = T.muted,
+                align = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
         }
     }
 }
@@ -76,7 +75,7 @@ suspend fun refreshNow() {
     if (store.isCloud) store.pull() else {
         val res = store.sweep()
         Analytics.track(AnalyticsEvent.SWEEP_RUN, mapOf("found" to res.found, "manual" to true))
-        Router.say(if (res.found > 0) "${res.found} new find${if (res.found == 1) "" else "s"}" else "Nothing new fits you right now")
+        Router.say(if (res.found > 0) "${res.found} new ${if (res.found == 1) "find" else "finds"}" else "Nothing new fits you right now")
     }
     store.loadForYou()
 }
@@ -90,15 +89,32 @@ private fun Greeting() {
     val name = s.profile?.displayName?.split(" ")?.firstOrNull()?.takeIf { it.isNotEmpty() }
     Column(Modifier.padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
         Txt(if (name != null) "$hello, $name" else hello, size = 28.sp, weight = FontWeight.Black, tracking = (-0.6).sp)
-        Txt("${s.agents.size} agent${if (s.agents.size == 1) "" else "s"} hunting for you · ${SimpleDateFormat("EEEE, MMMM d", Locale.US).format(Date())}",
+        Txt("${s.agents.size} ${if (s.agents.size == 1) "scout" else "scouts"} hunting for you · ${SimpleDateFormat("EEEE, MMMM d", Locale.US).format(Date())}",
             size = T.footnote, color = T.muted)
     }
 }
 
-/** Until the first finds land: who's out hunting, so a new account never looks idle. */
+/** Until the first finds land: who's out hunting, so a new account never looks idle. After an hour with nothing, say why. */
 @Composable
 private fun FirstHuntCard() {
-    val s = AppStore.observe()
+    val store = AppStore
+    val s = store.observe()
+    // When the first hunt started (kept on this phone), so a scout that's still empty after an hour says why.
+    val prefs = remember { store.context.getSharedPreferences("baget.ui", 0) }
+    val started = remember { prefs.getLong("firstHuntStarted", 0L) }
+    val waited = if (started > 0) now() - started else 0L
+    val first = s.agents.firstOrNull { !it.isOff }
+    if (waited > 3_600_000L && first != null) { EmptyHuntCard(first); return }
+    LaunchedEffect(Unit) {
+        if (prefs.getLong("firstHuntStarted", 0L) == 0L) prefs.edit().putLong("firstHuntStarted", now()).apply()
+        // Check for the first finds on its own (every 10 seconds, up to 5 minutes), so the card goes away
+        // the moment they land instead of waiting for a pull-down.
+        repeat(30) {
+            kotlinx.coroutines.delay(10_000)
+            if (store.state.finds.isNotEmpty()) return@LaunchedEffect
+            store.pull()
+        }
+    }
     Row(Modifier.fillMaxWidth().glass(RoundedCornerShape(16.dp), T.green.copy(alpha = 0.08f), T.green.copy(alpha = 0.3f)).padding(12.dp),
         verticalAlignment = Alignment.CenterVertically) {
         Row(horizontalArrangement = Arrangement.spacedBy((-8).dp)) { s.agents.take(4).forEach { AgentAvatar(it, 30.dp) } }
@@ -111,23 +127,43 @@ private fun FirstHuntCard() {
     }
 }
 
+/** Nothing yet after an hour: say why, with a one-tap fix, instead of an endless spinner. */
 @Composable
-private fun SwipeCard(n: Int) {
-    Row(Modifier.fillMaxWidth().glass(RoundedCornerShape(18.dp), T.accent.copy(alpha = 0.10f), T.accent.copy(alpha = 0.4f))
-        .clickable { Router.open(Sheet.Swipe) }.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.width(50.dp).height(48.dp), contentAlignment = Alignment.Center) {
-            for (i in (minOf(3, n) - 1) downTo 0) {
-                Box(Modifier.offset(x = (-4 * i).dp).rotate(-8f * i).size(34.dp, 44.dp).clip(RoundedCornerShape(8.dp))
-                    .background(if (i == 0) T.gradient else Brush.linearGradient(listOf(T.panel, T.panel))).background(if (i == 0) Color.Transparent else T.glass)
-                    .border(1.dp, T.line, RoundedCornerShape(8.dp)))
+private fun EmptyHuntCard(first: Agent) {
+    val store = AppStore
+    val s = store.observe()
+    val noSize = s.agents.firstOrNull { !it.isOff && Sizes.required(it) && !Sizes.has(it) }
+    val a = noSize ?: first
+    Column(Modifier.fillMaxWidth().glass(RoundedCornerShape(16.dp), T.warn.copy(alpha = 0.08f), T.warn.copy(alpha = 0.3f)).padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            AgentAvatar(a, 30.dp)
+            Spacer(Modifier.width(10.dp))
+            Txt("Nothing worth showing you yet", weight = FontWeight.Bold)
+        }
+        Txt(if (noSize != null) "${a.name} only flags ${if (a.mission.category == Category.SNEAKERS) "pairs" else "pieces"} in stock in your size, and it doesn't know yours yet."
+            else "${a.name} is being picky so you only see good matches. A brand, model or budget gives it much more to go on.",
+            size = T.caption, color = T.muted)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Box(Modifier.clip(CircleShape).background(T.gradient).clickable { Router.open(Sheet.Chat(a.id)) }.padding(horizontal = 14.dp, vertical = 8.dp)) {
+                Txt(if (noSize != null) "Add your size" else "Tell ${a.name} more", size = T.footnote, weight = FontWeight.SemiBold, color = T.accentInk)
             }
+            Txt("Hunt again now", size = T.footnote, weight = FontWeight.SemiBold, color = T.accent,
+                modifier = Modifier.clickable { store.scope.launch { refreshNow() } }.padding(4.dp))
         }
-        Spacer(Modifier.width(14.dp))
-        Column(Modifier.weight(1f)) {
-            Txt("Swipe through $n new find${if (n == 1) "" else "s"}", size = T.body, weight = FontWeight.SemiBold)
-            Txt("Right to like, left to pass, up to buy. Every swipe teaches your squad.", size = T.caption, color = T.muted)
-        }
-        Icon(Icons.Filled.ChevronRight, null, tint = T.muted)
+    }
+}
+
+/** One line under Today's Drop: the rest of the new finds, to swipe through. */
+@Composable
+private fun SwipeCard(n: Int, picksShown: Boolean) {
+    Row(Modifier.fillMaxWidth().glass(RoundedCornerShape(14.dp), T.accent.copy(alpha = 0.10f), T.accent.copy(alpha = 0.3f))
+        .clickable { Router.open(Sheet.Swipe) }.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(22.dp).clip(RoundedCornerShape(7.dp)).background(T.gradient))
+        Spacer(Modifier.width(10.dp))
+        Txt(if (n == 1) "Swipe 1 more find" else if (picksShown) "Swipe $n more finds" else "Swipe through $n new finds",
+            weight = FontWeight.Bold, modifier = Modifier.weight(1f), maxLines = 1)
+        Icon(Icons.AutoMirrored.Filled.ArrowForward, "Right to like, left to pass, up to buy", tint = T.cyan, modifier = Modifier.size(18.dp))
     }
 }
 
@@ -150,7 +186,7 @@ private fun TodaysDrop(picks: List<Find>) {
                     Txt(item.title, weight = FontWeight.SemiBold, maxLines = 2)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         DealVerdict.of(item)?.let { VerdictChip(it); Spacer(Modifier.width(6.dp)) }
-                        Txt(listOfNotNull(item.source, if (item.priceKnown && item.price > 0) Fmt.money(item.price) else null).joinToString(" · "),
+                        Txt(listOfNotNull(item.source, if (item.priceKnown && item.price > 0) item.priceLabel else null).joinToString(" · "),
                             size = T.caption, color = T.muted, maxLines = 1)
                     }
                     f.why.firstOrNull()?.let { Txt(it, size = T.caption, color = T.green.copy(alpha = 0.9f), maxLines = 1) }
@@ -171,31 +207,51 @@ fun VerdictChip(v: DealVerdict, showDetail: Boolean = false) {
     }
 }
 
-/** "For You": always-on personal picks, ranked by what you like. Every heart and X sharpens it. */
+enum class ForYouMode { TODAY, FULL }
+
+/** "For You": always-on personal picks, ranked by what you like. Every heart and X sharpens it.
+ *  Today: a short preview (6, nothing already in Today's Drop) with "See all". Full: everything, with filters. */
 @Composable
-private fun ForYouSection() {
+fun ForYouSection(mode: ForYouMode = ForYouMode.FULL, exclude: Set<String> = emptySet()) {
     val store = AppStore
     val s = store.observe()
     val context = LocalContext.current
     var limit by remember { mutableIntStateOf(24) }
-    val picks = store.forYou.filter { Catalog.item(it.id) != null }
+    var category by remember { mutableStateOf<Category?>(null) }
+    val all = store.forYou.filter { Catalog.item(it.id) != null && it.id !in exclude }
+    val cats = all.mapNotNull { Catalog.item(it.id)?.category }.distinct().sortedBy { it.info.label }
+    val filtered = all.filter { p -> category?.let { Catalog.item(p.id)?.category == it } ?: true }
+    val picks = if (mode == ForYouMode.TODAY) filtered.take(6) else filtered
     LaunchedEffect(s.accountID) {
         val at = store.forYouLoadedAt
         if (at == null || at < now() - 180_000 || store.forYou.isEmpty()) store.loadForYou(limit)
     }
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Txt("For You", size = T.title3, weight = FontWeight.Black)
-        Txt("Picked from everything Baget's agents have found, ranked by your taste. Every ♥ and ✕ sharpens it.", size = T.caption, color = T.muted)
-        if (store.tasteTop.isNotEmpty()) {
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                store.tasteTop.forEach { t ->
-                    val tint = if (t.likes) T.green else T.hot
-                    Row(Modifier.clip(CircleShape).background(tint.copy(alpha = 0.13f)).clickable { Router.open(Sheet.Taste) }
-                        .padding(horizontal = 9.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(if (t.likes) Icons.Filled.Favorite else Icons.Filled.Close, null, tint = tint, modifier = Modifier.size(10.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Txt(t.label, size = T.caption, weight = FontWeight.Medium, color = tint, maxLines = 1)
+        if (mode == ForYouMode.TODAY) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Txt("For You", size = T.title3, weight = FontWeight.Black, modifier = Modifier.weight(1f))
+                if (all.size > 6) Txt("See all", weight = FontWeight.SemiBold, color = T.cyan, modifier = Modifier.clickable { Router.open(Sheet.ForYou) })
+            }
+            Txt("Ranked by your taste. Every ♥ and ✕ sharpens it.", size = T.caption, color = T.muted)
+        } else {
+            Txt("Picked from everything Baget's scouts have found, ranked by your taste. Every ♥ and ✕ sharpens it.", size = T.caption, color = T.muted)
+            if (store.tasteTop.isNotEmpty()) {
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    store.tasteTop.forEach { t ->
+                        val tint = if (t.likes) T.green else T.hot
+                        Row(Modifier.clip(CircleShape).background(tint.copy(alpha = 0.13f)).clickable { Router.open(Sheet.Taste) }
+                            .padding(horizontal = 9.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(if (t.likes) Icons.Filled.Favorite else Icons.Filled.Close, null, tint = tint, modifier = Modifier.size(10.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Txt(t.label, size = T.caption, weight = FontWeight.Medium, color = tint, maxLines = 1)
+                        }
                     }
+                }
+            }
+            if (cats.size > 1) {
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                    ForYouChip(category == null, "All") { category = null }
+                    cats.forEach { c -> ForYouChip(category == c, c.info.label) { category = c } }
                 }
             }
         }
@@ -217,13 +273,24 @@ private fun ForYouSection() {
                 val p = picks[i]
                 Catalog.item(p.id)?.let { ForYouCard(p, it, context) }
             }
-            if (picks.size >= limit - 2 && limit < 60) {
+            if (mode == ForYouMode.TODAY) {
+                if (all.size > 6) GhostButton("See all For You", Modifier.fillMaxWidth()) { Router.open(Sheet.ForYou) }
+            } else if (store.forYou.size >= limit - 2 && limit < 120) {
                 GhostButton("Show more", Modifier.fillMaxWidth()) {
-                    limit = minOf(60, limit + 24)
+                    limit = minOf(120, limit + 24)
                     store.scope.launch { store.loadForYou(limit) }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ForYouChip(on: Boolean, label: String, onClick: () -> Unit) {
+    Box(Modifier.clip(CircleShape).background(if (on) T.gradient else Brush.linearGradient(listOf(T.glass, T.glass)))
+        .border(1.dp, if (on) Color.Transparent else T.line, CircleShape).clickable(onClick = onClick)
+        .padding(horizontal = 11.dp, vertical = 7.dp)) {
+        Txt(label, size = T.footnote, weight = FontWeight.SemiBold, color = if (on) T.accentInk else T.ink, maxLines = 1)
     }
 }
 
@@ -253,7 +320,7 @@ private fun ForYouCard(p: ForYouItem, item: Item, context: android.content.Conte
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Box(Modifier.clickable { openIt() }) { Plate(item, item.brand.ifEmpty { item.category.info.label }, height = 150.dp) }
         Txt(item.title, size = T.footnote, weight = FontWeight.SemiBold, maxLines = 2, modifier = Modifier.heightIn(min = 34.dp))
-        Txt(listOfNotNull(if (known) Fmt.money(item.price) else null, item.source).joinToString(" · "), size = T.caption2, color = T.muted, maxLines = 1)
+        Txt(listOfNotNull(if (known) item.priceLabel else null, item.source).joinToString(" · "), size = T.caption2, color = T.muted, maxLines = 1)
         Txt(item.about ?: " ", size = T.caption2, color = T.ink.copy(alpha = 0.8f), maxLines = 2, modifier = Modifier.heightIn(min = 26.dp))
         val tint = if (p.kind == "explore") T.cyan else T.green
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -263,13 +330,13 @@ private fun ForYouCard(p: ForYouItem, item: Item, context: android.content.Conte
             Txt(p.reason, size = T.caption2, weight = FontWeight.Medium, color = tint, maxLines = 1)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Box(Modifier.weight(1f).height(34.dp).glass(CircleShape).clickable {
-                store.reactForYou(p, ForYouAction.DISMISS); Router.say("Got it, fewer like this")
-            }, contentAlignment = Alignment.Center) { Icon(Icons.Filled.Close, "Not for me", tint = T.muted, modifier = Modifier.size(16.dp)) }
             Box(Modifier.weight(1f).height(34.dp).clip(CircleShape).background(T.gradient).clickable {
                 store.reactForYou(p, ForYouAction.LIKE)
                 Router.say(if (store.state.agents.isEmpty()) "Liked. Baget will show more like this" else "Saved to Finds. More like this coming")
             }, contentAlignment = Alignment.Center) { Icon(Icons.Filled.Favorite, "Like", tint = T.accentInk, modifier = Modifier.size(16.dp)) }
+            Box(Modifier.weight(1f).height(34.dp).glass(CircleShape).clickable {
+                store.reactForYou(p, ForYouAction.DISMISS); Router.say("Got it, fewer like this")
+            }, contentAlignment = Alignment.Center) { Icon(Icons.Filled.Close, "Not for me", tint = T.muted, modifier = Modifier.size(16.dp)) }
         }
     }
 }
@@ -278,66 +345,6 @@ fun openUrl(context: android.content.Context, url: String) {
     runCatching {
         androidx.browser.customtabs.CustomTabsIntent.Builder().setShowTitle(true).build().launchUrl(context, android.net.Uri.parse(url))
     }.onFailure { open(context, url) }
-}
-
-/** "What are you hunting?" Type one sentence; an agent is created and starts searching. */
-@Composable
-fun HuntBox() {
-    val store = AppStore
-    store.observe()
-    val focus = LocalFocusManager.current
-    val examples = remember { listOf("oud fragrances like Frederic Malle", "a 992 GT3 under \$200k", "Supreme box logo in size L",
-        "mid-century walnut credenza", "Jordan 1s in mocha, size 10.5", "vintage Rolex Explorer") }
-    var example by remember { mutableStateOf(examples.random()) }
-    var text by remember { mutableStateOf("") }
-    var working by remember { mutableStateOf(false) }
-    var result by remember { mutableStateOf<HuntResult?>(null) }
-
-    fun go() {
-        val t = text.trim()
-        if (t.length < 2 || working) return
-        focus.clearFocus()
-        working = true
-        store.scope.launch {
-            val r = store.hunt(t)
-            working = false
-            if (r == null) return@launch
-            text = ""
-            example = examples.random()
-            result = r
-            if (r.needsSize) Router.open(Sheet.Chat(r.agentID))   // its first question will be your size
-        }
-    }
-
-    Column(Modifier.fillMaxWidth().glassCard(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Txt("What are you hunting?", size = T.body, weight = FontWeight.SemiBold)
-        Field(text, { v -> if (v.contains("\n")) { text = v.replace("\n", " ").trim(); go() } else text = v }, "e.g. $example",
-            Modifier.fillMaxWidth(), singleLine = false, maxLines = 3, enabled = !working,
-            keyboard = KeyboardOptions(imeAction = ImeAction.Go), actions = KeyboardActions(onGo = { go() }),
-            leading = { Icon(Icons.Filled.TravelExplore, null, tint = T.cyan) },
-            trailing = {
-                if (working) Spinner(18.dp)
-                else if (text.isNotBlank()) Box(Modifier.size(32.dp).clip(CircleShape).background(T.gradient).clickable { go() }, contentAlignment = Alignment.Center) {
-                    Icon(Icons.Filled.ArrowUpward, "Start hunting", tint = T.accentInk, modifier = Modifier.size(18.dp))
-                }
-            })
-        val r = result
-        val a = r?.let { store.agent(it.agentID) }
-        if (r != null && a != null) {
-            Row(Modifier.fillMaxWidth().glass(RoundedCornerShape(14.dp), T.green.copy(alpha = 0.10f), Color.Transparent).padding(10.dp)) {
-                AgentAvatar(a, 34.dp)
-                Spacer(Modifier.width(10.dp))
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Txt("${a.name} is on it", weight = FontWeight.Bold)
-                    Txt(r.intro, size = T.caption, color = T.muted)
-                    Txt("Tell it more", size = T.caption, weight = FontWeight.SemiBold, color = T.accent, modifier = Modifier.clickable { Router.open(Sheet.Chat(a.id)) })
-                }
-                Icon(Icons.Filled.Close, "Dismiss", tint = T.muted, modifier = Modifier.size(16.dp).clickable { result = null })
-            }
-        } else {
-            Txt("Type it in your own words. Baget builds the right agent and it starts searching right away.", size = T.caption, color = T.muted)
-        }
-    }
 }
 
 /** Under the greeting on Today: Pro, or (Free) whether the scouts are hunting and when that changes. */

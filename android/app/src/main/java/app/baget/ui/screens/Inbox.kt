@@ -83,7 +83,7 @@ fun AlertSettings(onSimulate: () -> Unit = {}) {
         FormSection(footer = if (store.isCloud) "Your squad searches on our servers even when your phone is off. Each search costs a little, so less often is cheaper. You can always pull down on Today to check now."
             else "In the sample tour, sweeps are simulated each time you come back to the app.") {
             val opts = listOf(60 to "Every hour", 180 to "Every 3 hours", 360 to "Every 6 hours", 720 to "Twice a day", 1440 to "Once a day")
-            Choice("Each agent searches the web", opts.map { it.second }, opts.indexOfFirst { it.first == s.settings.sweepMinutes }.coerceAtLeast(0)) {
+            Choice("Each scout searches the web", opts.map { it.second }, opts.indexOfFirst { it.first == s.settings.sweepMinutes }.coerceAtLeast(0)) {
                 s.settings.sweepMinutes = opts[it].first; store.save()
             }
         }
@@ -111,7 +111,7 @@ fun AlertSettings(onSimulate: () -> Unit = {}) {
             SwitchRow("Share anonymous usage metrics", if (Analytics.configured) "Sent with a random install ID, never your name or email."
                 else "No backend set up yet, so metrics stay on this phone.", metricsOn) { metricsOn = it; Analytics.enabled = it }
         }
-        if (!store.isCloud) FormSection("Try it", "Fast-forwards three hours of background sweeps so you can see what your squad does while you're gone.") {
+        if (!store.isCloud) FormSection("Try it", "Fast-forwards three hours of background hunts so you can see what your squad does while you're gone.") {
             RowButton("Simulate 3 hours away") {
                 store.catchUp(180.0)
                 Analytics.track(AnalyticsEvent.BACKGROUND_SIMULATED)
