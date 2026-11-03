@@ -612,6 +612,13 @@ select public.record_finds((select id from public.agents where name = 'Twin Scou
   jsonb_build_array(jsonb_build_object('listing_id', (select id from public.listings where fingerprint = 'twin|c'), 'score', 80, 'why', '[]'::jsonb)));
 select t.ok(not exists (select 1 from public.finds where listing_id = (select id from public.listings where fingerprint = 'twin|c')), 'and it never comes back from a third store');
 
+-- Full taste lists roll over instead of failing
+reset role;
+update public.agents set traits = (select array_agg('t' || g) from generate_series(1, 40) g) where name = 'Twin Scout';
+update public.agents set traits = traits || '{saffron}'::text[] where name = 'Twin Scout';
+select t.ok((select cardinality(traits) = 40 and traits[40] = 'saffron' and traits[1] = 't2' from public.agents where name = 'Twin Scout'),
+            'a full trait list drops its oldest to learn a new one');
+
 -- Report and block
 reset role;
 select handle as carol_handle from public.profiles where id = 'cccccccc-0000-0000-0000-000000000003' \gset
