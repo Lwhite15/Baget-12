@@ -43,7 +43,7 @@ extension ProductMatch {
         return value
     }
 
-    private static func makeGroups(_ finds: [Find]) -> [ProductGroup] {
+    @MainActor private static func makeGroups(_ finds: [Find]) -> [ProductGroup] {
         var byBrand: [String: [(Find, Item, Set<String>)]] = [:]
         var order: [String] = []
         for f in finds {
@@ -106,7 +106,7 @@ extension AppStore {
 
 extension ProductMatch {
     /// For You picks with the same product from other stores folded in: the first (best ranked) stays, with a count.
-    static func dedupe(_ picks: [ForYouItem]) -> (picks: [ForYouItem], alsoAt: [String: Int]) {
+    @MainActor static func dedupe(_ picks: [ForYouItem]) -> (picks: [ForYouItem], alsoAt: [String: Int]) {
         var kept: [ForYouItem] = []
         var keptWords: [String: [(String, Set<String>)]] = [:]   // brand -> (kept id, words)
         var alsoAt: [String: Int] = [:]
