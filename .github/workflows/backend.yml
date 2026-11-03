@@ -123,7 +123,7 @@ jobs:
             value="${!name}"
             if [ -n "$value" ]; then printf '%s=%s\n' "$name" "$value" >> .secrets.env; fi
           done
-          if [ -s .secrets.env ]; then supabase secrets set --project-ref "$PROJECT_REF" --env-file .secrets.env; fi
+          if [ -s .secrets.env ]; then supabase secrets set --project-ref "$PROJECT_REF" --env-file .secrets.env --yes || supabase secrets set --project-ref "$PROJECT_REF" --env-file .secrets.env; fi
           rm -f .secrets.env
       - name: Turn on Sign in with Apple and email sign-in
         if: steps.ready.outputs.go == 'true'
