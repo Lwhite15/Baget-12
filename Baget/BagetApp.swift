@@ -142,6 +142,8 @@ final class Router {
     var askBought: String?
     /// A find to scroll to and highlight on the Finds tab (from tapping an item on Live).
     var focusFind: String?
+    /// Bumped when you tap Today while already on it: Today scrolls back to the top.
+    var todayTop = 0
     /// The scout you just sent from "Send a new scout" (its confirmation card shows on Today).
     var scoutSent: (agentID: String, intro: String)?
 

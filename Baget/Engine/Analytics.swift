@@ -4,6 +4,7 @@ import Foundation
 enum AnalyticsEvent: String {
     // engagement
     case appOpened = "app_opened"
+    case todayLayout = "today_layout"
     case liveSectionViewed = "live_section_viewed"
     case customSectionAdded = "custom_section_added"
     case spendingViewed = "spending_viewed"

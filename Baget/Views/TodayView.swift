@@ -1,33 +1,114 @@
 import SwiftUI
 
-/// The home screen: say what you want, see today's best picks, swipe the rest, then browse the feed.
+/// The home screen: today's finds as a swipe deck (or a grid, for people who'd rather tap), then an endless For You.
 struct TodayView: View {
     @Environment(AppStore.self) private var store
     @Environment(Router.self) private var router
+    /// "cards" (the swipe deck) or "grid". Remembered on this phone.
+    @AppStorage("baget.todayLayout") private var layout = "cards"
+    /// Today's finds, fixed while you go through them so cards don't jump as likes and passes land.
+    @State private var deckIDs: [String] = []
+    @State private var deckIndex = 0
+    @State private var showTop = false
+
+    private func freshDeck() -> [String] {
+        var seen = Set<String>()
+        return (store.todaysPicks(TodayDeck.size) + store.swipeQueue).map(\.id).filter { seen.insert($0).inserted }.prefix(TodayDeck.size).map { $0 }
+    }
 
     var body: some View {
-        let picks = store.todaysPicks()
-        let queue = store.swipeQueue.count
-        ScrollView {
-            // One job: what's worth your attention today. (The live feed lives on Squad, the full For You on its own screen.)
-            VStack(alignment: .leading, spacing: 20) {
-                greeting
-                if store.plan?.pro != true { PlanStatusPill() }
-                NewScoutCard()
-                if store.isCloud && !store.state.agents.isEmpty && store.state.finds.isEmpty { firstHuntCard }
-                if !picks.isEmpty { todaysDrop(picks) }
-                if queue > 0 { swipeCard(queue) }
-                ForYouSection(mode: .today, exclude: Set(picks.map(\.itemID)))
-                Text("That's today. Pull down any time to check for more.")
-                    .font(.caption).foregroundStyle(Theme.muted).frame(maxWidth: .infinity).padding(.top, 4)
+        ScrollViewReader { proxy in
+            ScrollView {
+                // Lazy, so the greeting's onDisappear tells us when to offer "back to top".
+                LazyVStack(alignment: .leading, spacing: 20) {
+                    header
+                        .id("today-top")
+                        .onAppear { withAnimation { showTop = false } }
+                        .onDisappear { withAnimation { showTop = true } }
+                    if store.plan?.pro != true { PlanStatusPill() }
+                    if router.scoutSent != nil { NewScoutCard() }
+                    if store.isCloud && !store.state.agents.isEmpty && store.state.finds.isEmpty { firstHuntCard }
+                    if !deckIDs.isEmpty {
+                        if layout == "grid" { todayGrid } else { TodayDeck(ids: deckIDs, index: $deckIndex) }
+                    }
+                    if router.scoutSent == nil { NewScoutCard(compact: true) }
+                    ForYouSection(mode: .today, exclude: Set(deckIDs.compactMap { id in store.state.finds.first { $0.id == id }?.itemID }))
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 24)
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 24)
+            .scrollIndicators(.hidden)
+            .dismissKeyboardOnTap()
+            .refreshable { await store.refreshNow(router: router); deckIDs = freshDeck(); deckIndex = 0 }
+            .overlay(alignment: .bottomTrailing) {
+                if showTop {
+                    Button { withAnimation(.snappy) { proxy.scrollTo("today-top", anchor: .top) } } label: {
+                        Image(systemName: "arrow.up").font(.body.weight(.heavy)).foregroundStyle(Theme.accentInk)
+                            .frame(width: 46, height: 46).background(Theme.gradient, in: Circle())
+                            .shadow(color: .black.opacity(0.4), radius: 10, y: 4)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.trailing, 18).padding(.bottom, 14)
+                    .accessibilityLabel("Back to top")
+                    .transition(.scale.combined(with: .opacity))
+                }
+            }
+            .onChange(of: router.todayTop) { withAnimation(.snappy) { proxy.scrollTo("today-top", anchor: .top) } }
         }
-        .scrollIndicators(.hidden)
-        .dismissKeyboardOnTap()
-        .refreshable { await store.refreshNow(router: router) }
-        .onAppear { Analytics.track(.todayViewed, ["picks": picks.count, "toSwipe": queue]) }
+        .onAppear {
+            if deckIDs.isEmpty || deckIndex >= deckIDs.count { deckIDs = freshDeck(); deckIndex = 0 }
+            Analytics.track(.todayViewed, ["toSwipe": deckIDs.count, "layout": layout])
+        }
+        .onChange(of: store.state.finds.count) { if deckIDs.isEmpty { deckIDs = freshDeck(); deckIndex = 0 } }
+    }
+
+    /// The greeting, with the cards / grid switch beside it.
+    private var header: some View {
+        HStack(alignment: .bottom) {
+            greeting
+            Spacer(minLength: 8)
+            if !deckIDs.isEmpty {
+                HStack(spacing: 0) {
+                    layoutButton("rectangle.portrait", "cards", String(localized: "Swipe cards"))
+                    layoutButton("square.grid.2x2", "grid", String(localized: "Grid"))
+                }
+                .background(Theme.glass, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.line))
+                .padding(.bottom, 2)
+            }
+        }
+    }
+
+    private func layoutButton(_ icon: String, _ value: String, _ label: String) -> some View {
+        let on = layout == value
+        return Button {
+            guard !on else { return }
+            withAnimation(.snappy) { layout = value }
+            Analytics.track(.todayLayout, ["layout": value])
+        } label: {
+            Image(systemName: icon).font(.footnote.weight(.semibold))
+                .foregroundStyle(on ? Theme.cyan : Theme.muted)
+                .frame(width: 36, height: 30)
+                .background(on ? Theme.cyan.opacity(0.18) : Color.clear)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
+        .accessibilityAddTraits(on ? .isSelected : [])
+    }
+
+    /// Grid mode: today's finds as tiles, with ♥ and ✕ on each. No swiping.
+    private var todayGrid: some View {
+        let finds = deckIDs.compactMap { id in store.state.finds.first { $0.id == id && ($0.status == .open || $0.status == .liked) } }
+        return VStack(alignment: .leading, spacing: 10) {
+            Text("Today's finds").font(.title3.weight(.heavy)).foregroundStyle(Theme.ink)
+            if finds.isEmpty {
+                Text("You've been through today's finds. More for you below.").font(.footnote).foregroundStyle(Theme.muted)
+            } else {
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
+                    ForEach(finds) { f in FindTile(find: f) { router.focusFind = f.id; router.tab = .finds } }
+                }
+            }
+        }
     }
 
     private var greeting: some View {
@@ -111,63 +192,6 @@ struct TodayView: View {
         .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.green.opacity(0.3)))
     }
 
-    private func swipeCard(_ n: Int) -> some View {
-        Button { router.sheet = .swipe } label: {
-            HStack(spacing: 10) {
-                RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Theme.gradient).frame(width: 22, height: 22)
-                Text(n == 1 ? String(localized: "Swipe 1 more find") : picksShown ? String(localized: "Swipe \(n) more finds") : String(localized: "Swipe through \(n) new finds"))
-                    .font(.subheadline.weight(.bold)).foregroundStyle(Theme.ink)
-                Spacer(minLength: 0)
-                Image(systemName: "arrow.right").font(.subheadline.weight(.bold)).foregroundStyle(Theme.cyan)
-            }
-            .padding(.horizontal, 14).padding(.vertical, 12)
-            .background(Theme.accent.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.accent.opacity(0.3)))
-        }
-        .buttonStyle(.plain)
-        .accessibilityHint("Right to like, left to pass, up to buy")
-    }
-
-    private var picksShown: Bool { !store.todaysPicks().isEmpty }
-
-    private func todaysDrop(_ picks: [Find]) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Today's Drop").font(.title3.weight(.heavy)).foregroundStyle(Theme.ink)
-                Spacer()
-                Button("See all") { router.tab = .finds }.font(.footnote.weight(.semibold)).foregroundStyle(Theme.accent)
-            }
-            Text("Your squad's best \(picks.count) right now.").font(.caption).foregroundStyle(Theme.muted)
-            VStack(spacing: 8) {
-                ForEach(Array(picks.enumerated()), id: \.element.id) { i, f in
-                    if let item = Catalog.item(f.itemID) { pickRow(i + 1, f, item) }
-                }
-            }
-        }
-    }
-
-    private func pickRow(_ rank: Int, _ f: Find, _ item: Item) -> some View {
-        Button { router.focusFind = f.id; router.tab = .finds } label: {
-            HStack(alignment: .top, spacing: 12) {
-                Text("\(rank)").font(.system(size: 20, weight: .heavy)).gradientText().frame(width: 18)
-                ProductThumb(item: item, size: 60)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(item.title).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink).lineLimit(2).multilineTextAlignment(.leading)
-                    HStack(spacing: 6) {
-                        if let v = DealVerdict.of(item) { VerdictChip(verdict: v) }
-                        Text([item.source, item.priceKnown && item.price > 0 ? item.priceLabel : nil].compactMap { $0 }.joined(separator: " · "))
-                            .font(.caption).foregroundStyle(Theme.muted).lineLimit(1)
-                    }
-                    if let why = f.why.first { Text(why).font(.caption).foregroundStyle(Theme.green.opacity(0.9)).lineLimit(1) }
-                }
-                Spacer(minLength: 0)
-            }
-            .padding(10)
-            .background(Theme.glass, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.line))
-        }
-        .buttonStyle(.plain)
-    }
 }
 
 /// "For You": always-on personal picks. Ranked by what you like, refreshed daily, sharpened by every heart and X.
@@ -187,15 +211,20 @@ struct ForYouSection: View {
         let all = store.forYou.filter { Catalog.item($0.id) != nil && !exclude.contains($0.id) }
         let cats = Array(Set(all.compactMap { Catalog.item($0.id)?.category })).sorted { $0.info.label < $1.info.label }
         let filtered = all.filter { p in category.map { Catalog.item(p.id)?.category == $0 } ?? true }
-        let picks = mode == .today ? Array(filtered.prefix(6)) : filtered
+        let picks = filtered
         VStack(alignment: .leading, spacing: 12) {
             if mode == .today {
-                HStack(alignment: .firstTextBaseline) {
-                    Text("For You").font(.title3.weight(.heavy)).foregroundStyle(Theme.ink)
-                    Spacer()
-                    if all.count > 6 { Button("See all") { router.sheet = .forYou }.font(.subheadline.weight(.semibold)).foregroundStyle(Theme.cyan) }
-                }
+                // Today: one endless feed, filters at the top, more loading as you reach the bottom.
+                Text("More for you").font(.title3.weight(.heavy)).foregroundStyle(Theme.ink)
                 Text("Ranked by your taste. Every ♥ and ✕ sharpens it.").font(.caption).foregroundStyle(Theme.muted)
+                if cats.count > 1 {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 7) {
+                            filterChip(nil, String(localized: "All"))
+                            ForEach(cats, id: \.self) { c in filterChip(c, c.info.label) }
+                        }
+                    }
+                }
             } else {
                 Text("Picked from everything Baget's scouts have found, ranked by your taste. Every ♥ and ✕ sharpens it.")
                     .font(.caption).foregroundStyle(Theme.muted)
@@ -227,9 +256,18 @@ struct ForYouSection: View {
                     }
                 }
                 if mode == .today {
-                    if all.count > 6 {
-                        Button { router.sheet = .forYou } label: { Text("See all For You").frame(maxWidth: .infinity) }
-                            .buttonStyle(GhostButton())
+                    // Reaching the bottom loads the next batch, until there's nothing more for now.
+                    if store.forYou.count >= limit - 4 && limit < Self.maxToday {
+                        HStack(spacing: 8) { ProgressView().tint(Theme.cyan); Text("Loading more picks…").font(.caption).foregroundStyle(Theme.muted) }
+                            .frame(maxWidth: .infinity).padding(.vertical, 8)
+                            .onAppear {
+                                guard !store.forYouLoading else { return }
+                                limit = min(Self.maxToday, limit + 24)
+                                Task { await store.loadForYou(limit: limit) }
+                            }
+                    } else {
+                        Text("That's everything for now. Pull down any time to check for more.")
+                            .font(.caption).foregroundStyle(Theme.muted).frame(maxWidth: .infinity).padding(.top, 4)
                     }
                 } else if store.forYou.count >= limit - 2 && limit < 120 {
                     Button {
@@ -249,6 +287,8 @@ struct ForYouSection: View {
     }
 
     private var columns: [GridItem] { [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)] }
+    /// How far Today's endless feed goes (the server's cap).
+    static let maxToday = 200
 
     private func filterChip(_ c: Category?, _ label: String) -> some View {
         let on = category == c

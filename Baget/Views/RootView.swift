@@ -15,7 +15,11 @@ struct RootView: View {
 
     var body: some View {
         @Bindable var router = router
-        TabView(selection: $router.tab) {
+        // Tapping Today again while on it scrolls Today back to the top.
+        TabView(selection: Binding(get: { router.tab }, set: { t in
+            if t == .live && router.tab == .live { router.todayTop += 1 }
+            router.tab = t
+        })) {
             screen(TodayView()).tabItem { Label("Today", systemImage: "sun.max.fill") }.tag(AppTab.live)
             screen(FindsView()).tabItem { Label("Finds", systemImage: "sparkles") }.tag(AppTab.finds)
                 .badge(store.state.finds.filter { $0.status == .open }.count)
