@@ -26,12 +26,12 @@ struct TodayView: View {
                         .onAppear { withAnimation { showTop = false } }
                         .onDisappear { withAnimation { showTop = true } }
                     if store.plan?.pro != true { PlanStatusPill() }
-                    if router.scoutSent != nil { NewScoutCard() }
+                    // New scout sits above today's finds (the full confirmation right after sending one).
+                    if router.scoutSent != nil { NewScoutCard() } else { NewScoutCard(compact: true) }
                     if store.isCloud && !store.state.agents.isEmpty && store.state.finds.isEmpty { firstHuntCard }
                     if !deckIDs.isEmpty {
                         if layout == "grid" { todayGrid } else { TodayDeck(ids: deckIDs, index: $deckIndex) }
                     }
-                    if router.scoutSent == nil { NewScoutCard(compact: true) }
                     ForYouSection(mode: .today, exclude: Set(deckIDs.compactMap { id in store.state.finds.first { $0.id == id }?.itemID }))
                 }
                 .padding(.horizontal, 16)
