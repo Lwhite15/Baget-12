@@ -512,6 +512,10 @@ final class AppStore {
         if state.finds[fi].status == .liked { learn(state.finds[fi].agentID, from: item, delta: -2) }
         state.finds[fi].status = .passed
         state.finds[fi].passReason = reason.rawValue.lowercased()
+        // The same product from other stores goes too (the server does the same), so it doesn't come straight back.
+        for j in state.finds.indices where j != fi && state.finds[j].status == .open {
+            if let other = Catalog.item(state.finds[j].itemID), ProductMatch.same(item, other) { state.finds[j].status = .passed }
+        }
         let reasonText = reason.rawValue.lowercased()
         push { api in try await api.update("finds", "id=eq.\(findID)", ["status": "passed", "pass_reason": reasonText]) }
         let aid = state.finds[fi].agentID

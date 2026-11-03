@@ -592,6 +592,26 @@ insert into public.finds (user_id, agent_id, listing_id, score, why)
 delete from public.agents where name = 'Temp Ring';
 select t.ok((select f.agent_id is null from public.finds f join public.listings l on l.id = f.listing_id where l.fingerprint = 'orphan|2'), 'but never to a scout that hunts something else');
 
+-- Passing a product passes it at every store
+reset role;
+select t.ok(public.same_product('Air Jordan 1 Low ''Mocha''', 'Jordan 1 Low Mocha'), 'same sneaker, two stores');
+select t.ok(not public.same_product('Jordan 1 Low Mocha', 'Jordan 1 Low Bred'), 'another colorway is another product');
+select t.ok(not public.same_product('Nike Air Max 90', 'Nike Air Max 95'), 'another model number is another product');
+select t.ok(public.same_product('Le Labo Santal 33 Eau de Parfum 100ml', 'Le Labo Santal 33 EDP 100ml'), 'same fragrance');
+select t.ok(not public.same_product('Le Labo Santal 33', 'Le Labo Another 13'), 'another fragrance from the same house');
+insert into public.listings (fingerprint, title, brand, category, url) values
+  ('twin|a', 'Air Jordan 1 Low Mocha', 'Jordan', 'sneakers', 'https://a.example/1'),
+  ('twin|b', 'Jordan 1 Low ''Mocha''', 'Jordan', 'sneakers', 'https://b.example/1'),
+  ('twin|c', 'Jordan 1 Low Mocha Sneakers', 'Jordan', 'sneakers', 'https://c.example/1');
+insert into public.agents (user_id, name, mission_category) values ('cccccccc-0000-0000-0000-000000000003', 'Twin Scout', 'sneakers');
+insert into public.finds (user_id, agent_id, listing_id, score, why)
+  select 'cccccccc-0000-0000-0000-000000000003', (select id from public.agents where name = 'Twin Scout'), id, 70, '{}' from public.listings where fingerprint in ('twin|a', 'twin|b');
+update public.finds set status = 'passed' where listing_id = (select id from public.listings where fingerprint = 'twin|a');
+select t.ok((select status = 'passed' from public.finds where listing_id = (select id from public.listings where fingerprint = 'twin|b')), 'passing one store''s listing passes the same product at another');
+select public.record_finds((select id from public.agents where name = 'Twin Scout'),
+  jsonb_build_array(jsonb_build_object('listing_id', (select id from public.listings where fingerprint = 'twin|c'), 'score', 80, 'why', '[]'::jsonb)));
+select t.ok(not exists (select 1 from public.finds where listing_id = (select id from public.listings where fingerprint = 'twin|c')), 'and it never comes back from a third store');
+
 -- Report and block
 reset role;
 select handle as carol_handle from public.profiles where id = 'cccccccc-0000-0000-0000-000000000003' \gset

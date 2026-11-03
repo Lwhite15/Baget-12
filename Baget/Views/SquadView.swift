@@ -96,6 +96,18 @@ struct AgentCard: View {
                     Text("\(agent.mission.label) · \(finds) \(finds == 1 ? String(localized: "find") : String(localized: "finds"))").font(.caption.monospacedDigit()).foregroundStyle(Theme.muted)
                 }
                 Spacer()
+                // Change or delete it, right from the top of its card.
+                Menu {
+                    Button { if store.isCloud { router.sheet = .chat(agent.id) } } label: { Label("Change what it hunts", systemImage: "pencil") }
+                    Button { store.setOff(agent.id, !agent.isOff) } label: {
+                        Label(agent.isOff ? String(localized: "Turn on") : String(localized: "Turn off"), systemImage: agent.isOff ? "play.fill" : "pause.fill")
+                    }
+                    Button(role: .destructive) { confirmRetire = true } label: { Label("Delete scout…", systemImage: "trash") }
+                } label: {
+                    Image(systemName: "ellipsis").font(.body.weight(.bold)).foregroundStyle(Theme.muted)
+                        .frame(width: 34, height: 34).background(Theme.glass, in: Circle()).contentShape(Circle())
+                }
+                .accessibilityLabel("Change or delete \(agent.name)")
                 VStack(alignment: .trailing, spacing: 2) {
                     Toggle("", isOn: Binding(get: { !agent.isOff }, set: { on in
                         store.setOff(agent.id, !on)
@@ -200,7 +212,16 @@ struct AgentCard: View {
         .glassCard()
         .opacity(agent.isOff ? 0.75 : 1)
         .confirmationDialog("Delete \(agent.name)?", isPresented: $confirmRetire, titleVisibility: .visible) {
-            Button("Delete", role: .destructive) {
+            let mine = store.state.finds.filter { $0.agentID == agent.id && ($0.status == .open || $0.status == .liked) }.map(\.id)
+            if !mine.isEmpty {
+                Button("Delete it and clear its \(mine.count) finds", role: .destructive) {
+                    store.removeFinds(mine)
+                    store.retire(agent.id)
+                    Analytics.track(.agentRetired, ["mission": agent.mission.label, "cleared": mine.count])
+                    router.say(String(localized: "\(agent.name) and its finds are gone"))
+                }
+            }
+            Button(mine.isEmpty ? String(localized: "Delete") : String(localized: "Delete it, keep its finds"), role: .destructive) {
                 store.retire(agent.id)
                 Analytics.track(.agentRetired, ["mission": agent.mission.label])
                 router.say("\(agent.name) deleted")
@@ -208,7 +229,7 @@ struct AgentCard: View {
             if !agent.isOff {
                 Button("Just turn it off") { store.setOff(agent.id, true); router.say(String(localized: "\(agent.name) is off")) }
             }
-        } message: { Text("It stops hunting for good and what it learned is lost. Its finds stay in your Finds.") }
+        } message: { Text("It stops hunting for good and what it learned is lost. You can clear its finds too, or keep them in Finds.") }
     }
 
     private func binding<T>(_ kp: WritableKeyPath<Agent, T>, name: String) -> Binding<T> {
