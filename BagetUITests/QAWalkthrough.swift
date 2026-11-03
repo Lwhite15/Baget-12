@@ -168,7 +168,32 @@ final class QAWalkthrough: XCTestCase {
         app.swipeUp(); snap("today-scroll-1", wait: 2)
         app.swipeUp(); snap("today-scroll-2", wait: 2)
         app.swipeUp(); snap("today-scroll-3", wait: 2)
-        app.swipeDown(); app.swipeDown(); app.swipeDown()
+        // The bottom of Today: the Load more / Check for new picks button must work without going back to the top.
+        let bottomStart = Date()
+        let footer = NSPredicate(format: "label IN %@", ["Load more picks", "Check for new picks"])
+        var swipes = 0
+        while swipes < 60, !(app.buttons.matching(footer).firstMatch.exists && app.buttons.matching(footer).firstMatch.isHittable) {
+            app.swipeUp(velocity: .fast); swipes += 1
+        }
+        timed("scroll to bottom of Today (\(swipes) swipes)", bottomStart)
+        let btn = app.buttons.matching(footer).firstMatch
+        if btn.exists && btn.isHittable {
+            let before = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "% match")).count
+            note("bottom button: \(btn.label), \(before) cards loaded")
+            snap("today-bottom", wait: 1)
+            let tapped = Date(); btn.tap(); note("tap \(btn.label)")
+            snap("today-bottom-loading", wait: 0.5)
+            Thread.sleep(forTimeInterval: 6)
+            timed("after bottom button", tapped)
+            let after = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "% match")).count
+            let topVisible = app.buttons["Grid"].isHittable || app.buttons["Cards"].isHittable
+            note("after button: \(after) cards loaded, jumped to top: \(topVisible)")
+            snap("today-bottom-after", wait: 0)
+            // Keep going down: the new picks should be there.
+            app.swipeUp(); snap("today-bottom-more", wait: 1.5)
+        } else { note("MISSING Load more / Check for new picks button at the bottom of Today") }
+        // Re-tapping the Today tab goes back to the top.
+        tap("Today", timeout: 2); snap("today-back-top", wait: 1.5)
         // Send a new scout: the button opens its sheet.
         if tap("Send a new scout", timeout: 3) {
             snap("new-scout-sheet", wait: 2)
