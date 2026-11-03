@@ -178,19 +178,24 @@ final class QAWalkthrough: XCTestCase {
         timed("scroll to bottom of Today (\(swipes) swipes)", bottomStart)
         let btn = app.buttons.matching(footer).firstMatch
         if btn.exists && btn.isHittable {
-            let before = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "% match")).count
-            note("bottom button: \(btn.label), \(before) cards loaded")
+            let label = btn.label
+            note("bottom button: \(label)")
             snap("today-bottom", wait: 1)
-            let tapped = Date(); btn.tap(); note("tap \(btn.label)")
+            let tapped = Date(); btn.tap(); note("tap \(label)")
             snap("today-bottom-loading", wait: 0.5)
-            Thread.sleep(forTimeInterval: 6)
-            timed("after bottom button", tapped)
-            let after = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "% match")).count
-            let topVisible = app.buttons["Grid"].isHittable || app.buttons["Cards"].isHittable
-            note("after button: \(after) cards loaded, jumped to top: \(topVisible)")
-            snap("today-bottom-after", wait: 0)
-            // Keep going down: the new picks should be there.
+            // Wait for it to finish (the button comes back), then make sure we're still down here, not at the top.
+            _ = app.buttons.matching(footer).firstMatch.waitForExistence(timeout: 40)
+            timed("bottom button finished", tapped)
+            let stayed = app.buttons["Back to top"].exists
+            note(stayed ? "stayed at the bottom after the button" : "PROBLEM: jumped back to the top after the button")
+            snap("today-bottom-after", wait: 0.5)
             app.swipeUp(); snap("today-bottom-more", wait: 1.5)
+            // Pulling up past the end does the same.
+            let pull = Date(); app.swipeUp(velocity: .fast); app.swipeUp(velocity: .fast)
+            snap("today-pull-up", wait: 0.5)
+            _ = app.buttons.matching(footer).firstMatch.waitForExistence(timeout: 40)
+            timed("pull-up finished", pull)
+            note(app.buttons["Back to top"].exists ? "still at the bottom after pull-up" : "PROBLEM: jumped to the top after pull-up")
         } else { note("MISSING Load more / Check for new picks button at the bottom of Today") }
         // Re-tapping the Today tab goes back to the top.
         tap("Today", timeout: 2); snap("today-back-top", wait: 1.5)
