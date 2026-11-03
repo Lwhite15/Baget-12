@@ -621,7 +621,9 @@ select t.ok((select cardinality(traits) = 40 and traits[40] = 'saffron' and trai
 
 -- Scouts slow down when someone stops opening Baget, and pick back up when they return
 reset role;
-update public.profiles set created_at = now() - interval '30 days', last_active_at = now() - interval '5 days' where id = 'cccccccc-0000-0000-0000-000000000003';
+-- (Pro for these checks, so Free's daily hunting window doesn't make them depend on the time of day.)
+update public.profiles set created_at = now() - interval '30 days', last_active_at = now() - interval '5 days',
+       plan = 'pro', pro_until = now() + interval '1 day' where id = 'cccccccc-0000-0000-0000-000000000003';
 select t.ok(public.hunt_pace('cccccccc-0000-0000-0000-000000000003') = 'slow', '5 days away: once a day');
 update public.agents set last_swept_at = now() - interval '8 hours' where name = 'Twin Scout';
 select t.ok(not exists (select 1 from public.sweep_candidates(100, 30, null, null) c where c ->> 'name' = 'Twin Scout'), 'so no hunt 8 hours after the last');
