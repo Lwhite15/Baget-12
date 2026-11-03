@@ -11,6 +11,13 @@ create table auth.users (
   email text,
   raw_user_meta_data jsonb not null default '{}'
 );
+create table auth.sessions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  refreshed_at timestamp
+);
 create function auth.uid() returns uuid language sql stable as $$
   select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
 $$;

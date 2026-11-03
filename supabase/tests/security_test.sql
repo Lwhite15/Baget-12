@@ -619,6 +619,29 @@ update public.agents set traits = traits || '{saffron}'::text[] where name = 'Tw
 select t.ok((select cardinality(traits) = 40 and traits[40] = 'saffron' and traits[1] = 't2' from public.agents where name = 'Twin Scout'),
             'a full trait list drops its oldest to learn a new one');
 
+-- Scouts slow down when someone stops opening Baget, and pick back up when they return
+reset role;
+update public.profiles set created_at = now() - interval '30 days', last_active_at = now() - interval '5 days' where id = 'cccccccc-0000-0000-0000-000000000003';
+select t.ok(public.hunt_pace('cccccccc-0000-0000-0000-000000000003') = 'slow', '5 days away: once a day');
+update public.agents set last_swept_at = now() - interval '8 hours' where name = 'Twin Scout';
+select t.ok(not exists (select 1 from public.sweep_candidates(100, 30, null, null) c where c ->> 'name' = 'Twin Scout'), 'so no hunt 8 hours after the last');
+update public.agents set last_swept_at = now() - interval '21 hours' where name = 'Twin Scout';
+select t.ok(exists (select 1 from public.sweep_candidates(100, 30, null, null) c where c ->> 'name' = 'Twin Scout'), 'but one a day still runs');
+update public.profiles set last_active_at = now() - interval '12 days' where id = 'cccccccc-0000-0000-0000-000000000003';
+select t.ok(public.hunt_pace('cccccccc-0000-0000-0000-000000000003') = 'resting', '12 days away: resting');
+select t.ok(not exists (select 1 from public.sweep_candidates(100, 30, null, null) c where c ->> 'name' = 'Twin Scout'), 'resting scouts don''t hunt on schedule');
+select t.ok(public.resting_nudges() >= 1, 'one text before resting');
+select t.ok(exists (select 1 from public.notes where user_id = 'cccccccc-0000-0000-0000-000000000003' and kind = 'digest' and body like '%start hunting again%'), 'telling them how to wake their scouts');
+select t.ok(public.resting_nudges() = 0, 'and only one');
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'cccccccc-0000-0000-0000-000000000003', false);
+select t.ok(public.touch_active(), 'opening Baget says they were away');
+reset role;
+select t.ok(public.hunt_pace('cccccccc-0000-0000-0000-000000000003') = 'active'
+            and exists (select 1 from public.sweep_candidates(100, 30, null, null) c where c ->> 'name' = 'Twin Scout'), 'and their scouts are straight back on schedule');
+insert into auth.sessions (user_id, created_at, updated_at) values ('aaaaaaaa-0000-0000-0000-000000000001', now(), now());
+select t.ok(public.last_active('aaaaaaaa-0000-0000-0000-000000000001') > now() - interval '1 minute', 'a sign-in refresh counts as opening the app');
+
 -- Report and block
 reset role;
 select handle as carol_handle from public.profiles where id = 'cccccccc-0000-0000-0000-000000000003' \gset

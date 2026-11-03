@@ -787,6 +787,8 @@ export async function maintain() {
   out.pageFinds = await scrubPageFinds().catch((e) => { console.error("page finds", e); return null; });
   out.scrubbed = await scrubOffers(400).catch((e) => { console.error("scrub", e); return null; });
   out.birthdays = await db.rpc<number>("birthday_nudges", {}).catch((e) => { console.error("birthdays", e); return null; });
+  // Scouts about to rest (9+ days since the person opened Baget) send one "while you were away" text.
+  out.resting = await db.rpc<number>("resting_nudges", {}).catch((e) => { console.error("resting", e); return null; });
   out.prices = await repriceOld(num("PRICE_BACKFILL", 10)).catch((e) => { console.error("prices", e); return null; });
   out.stores = await db.rpc<number>("learn_stores", {}).catch((e) => { console.error("stores", e); return null; });
   // Taste Cards for people who share their taste with friends, written fresh every few days.

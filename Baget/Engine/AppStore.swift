@@ -296,7 +296,10 @@ final class AppStore {
     func cameBack(afterMinutes gone: Double) async {
         if isCloud {
             let since = state.lastSeen
+            // Check in: scouts slow down while you're away. If they had, they hunt right now instead of at the next slot.
+            let wasAway = (try? await api.rpc("touch_active", as: Bool.self)) ?? false
             await pull()
+            if wasAway { Task { @MainActor in _ = await self.cloudSweep() } }
             Task { @MainActor in await self.loadForYou(); await self.prefetchPhotos(limit: 12) }
             let found = state.finds.filter { $0.foundAt > since }.count
             let notes = state.notes.filter { $0.date > since }.count
