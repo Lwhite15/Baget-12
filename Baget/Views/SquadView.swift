@@ -84,7 +84,7 @@ struct AgentCard: View {
         // Show "season:aw26" as "aw26": the part before the colon is for the scout, not for people.
         let styleTags = (agent.style.traits + agent.style.makers + agent.style.creators).map { t in
             t.split(separator: ":", maxSplits: 1).count == 2 ? String(t.split(separator: ":", maxSplits: 1)[1]) : t
-        }
+        }.reduce(into: [String]()) { out, t in if !out.contains(t) { out.append(t) } }
 
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top, spacing: 12) {
