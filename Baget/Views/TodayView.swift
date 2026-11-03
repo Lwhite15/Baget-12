@@ -260,10 +260,12 @@ struct ForYouSection: View {
                     if store.forYou.count >= limit - 4 && limit < Self.maxToday {
                         HStack(spacing: 8) { ProgressView().tint(Theme.cyan); Text("Loading more picks…").font(.caption).foregroundStyle(Theme.muted) }
                             .frame(maxWidth: .infinity).padding(.vertical, 8)
-                            .onAppear {
-                                guard !store.forYouLoading else { return }
+                            // A task (not onAppear) so it waits out a load already running, then loads the next batch.
+                            .task(id: limit) {
+                                while store.forYouLoading { try? await Task.sleep(for: .milliseconds(300)) }
+                                guard !Task.isCancelled, store.forYou.count >= limit - 4, limit < Self.maxToday else { return }
                                 limit = min(Self.maxToday, limit + 24)
-                                Task { await store.loadForYou(limit: limit) }
+                                await store.loadForYou(limit: limit)
                             }
                     } else {
                         Text("That's everything for now. Pull down any time to check for more.")
