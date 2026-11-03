@@ -106,7 +106,20 @@ extension AppStore {
 
 extension ProductMatch {
     /// For You picks with the same product from other stores folded in: the first (best ranked) stays, with a count.
+    @MainActor private static var dedupeMemo: (key: Int, value: (picks: [ForYouItem], alsoAt: [String: Int]))?
+
+    /// Same as below, remembered while the picks haven't changed (Today redraws often while you scroll).
     @MainActor static func dedupe(_ picks: [ForYouItem]) -> (picks: [ForYouItem], alsoAt: [String: Int]) {
+        var h = Hasher()
+        for p in picks { h.combine(p.id) }
+        let key = h.finalize()
+        if let m = dedupeMemo, m.key == key { return m.value }
+        let v = makeDedupe(picks)
+        dedupeMemo = (key, v)
+        return v
+    }
+
+    @MainActor private static func makeDedupe(_ picks: [ForYouItem]) -> (picks: [ForYouItem], alsoAt: [String: Int]) {
         var kept: [ForYouItem] = []
         var keptWords: [String: [(String, Set<String>)]] = [:]   // brand -> (kept id, words)
         var alsoAt: [String: Int] = [:]

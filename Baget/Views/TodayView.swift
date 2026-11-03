@@ -8,6 +8,8 @@ struct TodayView: View {
     @AppStorage("baget.todayLayout") private var layout = "cards"
     /// Today's finds, fixed while you go through them so cards don't jump as likes and passes land.
     @State private var deckIDs: [String] = []
+    /// The deck's products, so For You below can skip them without searching every find on each redraw.
+    @State private var deckItemIDs: Set<String> = []
     @State private var deckIndex = 0
     @State private var showTop = false
     /// Bumped each time you pull up past the bottom of Today: loads more picks, or checks for new ones at the end.
@@ -36,7 +38,7 @@ struct TodayView: View {
                     if !deckIDs.isEmpty {
                         if layout == "grid" { todayGrid } else { TodayDeck(ids: deckIDs, index: $deckIndex) }
                     }
-                    ForYouSection(mode: .today, exclude: Set(deckIDs.compactMap { id in store.state.finds.first { $0.id == id }?.itemID }), pullUp: pullUp)
+                    ForYouSection(mode: .today, exclude: deckItemIDs, pullUp: pullUp)
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 24)
@@ -62,9 +64,11 @@ struct TodayView: View {
         }
         .onAppear {
             if deckIDs.isEmpty || deckIndex >= deckIDs.count { deckIDs = freshDeck(); deckIndex = 0 }
+            deckItemIDs = Set(deckIDs.compactMap { id in store.state.finds.first { $0.id == id }?.itemID })
             Analytics.track(.todayViewed, ["toSwipe": deckIDs.count, "layout": layout])
         }
         .onChange(of: store.state.finds.count) { if deckIDs.isEmpty { deckIDs = freshDeck(); deckIndex = 0 } }
+        .onChange(of: deckIDs) { deckItemIDs = Set(deckIDs.compactMap { id in store.state.finds.first { $0.id == id }?.itemID }) }
     }
 
     /// The greeting, with the cards / grid switch beside it.
@@ -268,23 +272,28 @@ struct ForYouSection: View {
                 if mode == .today {
                     // Reaching the bottom loads the next batch, until there's nothing more for now.
                     let more = store.forYou.count >= limit - 4 && limit < Self.maxToday
-                    HStack(spacing: 8) {
-                        if store.forYouLoading || checking { ProgressView().tint(Theme.cyan) }
-                        else { Image(systemName: "arrow.up").font(.caption.weight(.bold)).foregroundStyle(Theme.cyan) }
-                        Text(store.forYouLoading || checking ? String(localized: "Loading more picks…")
-                             : more ? String(localized: "Pull up for more picks") : String(localized: "That's everything for now. Pull up to check for new picks."))
-                            .font(.caption).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
+                    let busy = store.forYouLoading || checking
+                    // A button that always works (pulling up past the end does the same).
+                    Button { Task { await loadMoreOrCheck() } } label: {
+                        HStack(spacing: 8) {
+                            if busy { ProgressView().tint(Theme.accentInk) }
+                            else { Image(systemName: more ? "arrow.down" : "arrow.clockwise").font(.footnote.weight(.bold)) }
+                            Text(busy ? String(localized: "Loading…") : more ? String(localized: "Load more picks") : String(localized: "Check for new picks"))
+                                .font(.subheadline.weight(.bold))
+                        }
+                        .foregroundStyle(Theme.accentInk)
+                        .frame(maxWidth: .infinity).frame(height: 46)
+                        .background(Theme.gradient, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
-                    .frame(maxWidth: .infinity).padding(.vertical, 12)
+                    .buttonStyle(.plain)
+                    .disabled(busy)
+                    .padding(.top, 6)
+                    // Reaching the bottom loads the next batch once (not batch after batch while you sit there).
                     if more {
-                        Color.clear.frame(height: 1)
-                            // A task (not onAppear) so it waits out a load already running, then loads the next batch.
-                            .task(id: limit) {
-                                while store.forYouLoading { try? await Task.sleep(for: .milliseconds(300)) }
-                                guard !Task.isCancelled, store.forYou.count >= limit - 4, limit < Self.maxToday else { return }
-                                limit = min(Self.maxToday, limit + 24)
-                                await store.loadForYou(limit: limit)
-                            }
+                        Color.clear.frame(height: 1).onAppear { if !busy { Task { await loadMoreOrCheck() } } }
+                    }
+                    if !more {
+                        Text("That's everything for now.").font(.caption).foregroundStyle(Theme.muted).frame(maxWidth: .infinity)
                     }
                 } else if store.forYou.count >= limit - 2 && limit < 120 {
                     Button {
@@ -302,24 +311,27 @@ struct ForYouSection: View {
         }
         .onChange(of: store.state.accountID) { Task { await store.loadForYou(limit: limit) } }
         .onChange(of: pullUp) {
-            guard mode == .today, !store.forYouLoading, !checking else { return }
+            guard mode == .today else { return }
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-            Task { @MainActor in
-                if store.forYou.count >= limit - 4 && limit < Self.maxToday {
-                    limit = min(Self.maxToday, limit + 24)
-                    await store.loadForYou(limit: limit)
-                } else {
-                    // At the end: check for new picks right here, no trip back to the top.
-                    checking = true
-                    await store.refreshNow(router: router)
-                    await store.loadForYou(limit: limit)
-                    checking = false
-                }
-            }
+            Task { await loadMoreOrCheck() }
         }
     }
 
     private var columns: [GridItem] { [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)] }
+
+    /// The next batch of picks; at the end, a check for new ones right here (no trip back to the top).
+    @MainActor private func loadMoreOrCheck() async {
+        guard !store.forYouLoading, !checking else { return }
+        if store.forYou.count >= limit - 4 && limit < Self.maxToday {
+            limit = min(Self.maxToday, limit + 24)
+            await store.loadForYou(limit: limit)
+        } else {
+            checking = true
+            defer { checking = false }
+            await store.refreshNow(router: router)
+            await store.loadForYou(limit: limit)
+        }
+    }
     /// How far Today's endless feed goes (the server's cap).
     static let maxToday = 200
 
