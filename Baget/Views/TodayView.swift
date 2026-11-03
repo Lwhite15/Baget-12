@@ -10,6 +10,8 @@ struct TodayView: View {
     @State private var deckIDs: [String] = []
     @State private var deckIndex = 0
     @State private var showTop = false
+    /// Bumped each time you pull up past the bottom of Today: loads more picks, or checks for new ones at the end.
+    @State private var pullUp = 0
 
     private func freshDeck() -> [String] {
         var seen = Set<String>()
@@ -34,7 +36,7 @@ struct TodayView: View {
                     if !deckIDs.isEmpty {
                         if layout == "grid" { todayGrid } else { TodayDeck(ids: deckIDs, index: $deckIndex) }
                     }
-                    ForYouSection(mode: .today, exclude: Set(deckIDs.compactMap { id in store.state.finds.first { $0.id == id }?.itemID }))
+                    ForYouSection(mode: .today, exclude: Set(deckIDs.compactMap { id in store.state.finds.first { $0.id == id }?.itemID }), pullUp: pullUp)
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 24)
@@ -42,6 +44,7 @@ struct TodayView: View {
             .scrollIndicators(.hidden)
             .dismissKeyboardOnTap()
             .refreshable { await store.refreshNow(router: router); deckIDs = freshDeck(); deckIndex = 0 }
+            .modifier(PullUpAtBottom { pullUp += 1 })
             .overlay(alignment: .bottomTrailing) {
                 if showTop {
                     Button { withAnimation(.snappy) { proxy.scrollTo("today-top", anchor: .top) } } label: {
@@ -208,6 +211,9 @@ struct ForYouSection: View {
     /// Today: a short preview (6, nothing already in Today's Drop) with "See all". Full: everything, with filters.
     var mode: ForYouMode = .full
     var exclude: Set<String> = []
+    /// Today's "pull up at the bottom" count (see PullUpAtBottom).
+    var pullUp = 0
+    @State private var checking = false
 
     var body: some View {
         // The same product from several stores shows once, with "Also at N more stores".
@@ -261,9 +267,17 @@ struct ForYouSection: View {
                 }
                 if mode == .today {
                     // Reaching the bottom loads the next batch, until there's nothing more for now.
-                    if store.forYou.count >= limit - 4 && limit < Self.maxToday {
-                        HStack(spacing: 8) { ProgressView().tint(Theme.cyan); Text("Loading more picks…").font(.caption).foregroundStyle(Theme.muted) }
-                            .frame(maxWidth: .infinity).padding(.vertical, 8)
+                    let more = store.forYou.count >= limit - 4 && limit < Self.maxToday
+                    HStack(spacing: 8) {
+                        if store.forYouLoading || checking { ProgressView().tint(Theme.cyan) }
+                        else { Image(systemName: "arrow.up").font(.caption.weight(.bold)).foregroundStyle(Theme.cyan) }
+                        Text(store.forYouLoading || checking ? String(localized: "Loading more picks…")
+                             : more ? String(localized: "Pull up for more picks") : String(localized: "That's everything for now. Pull up to check for new picks."))
+                            .font(.caption).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity).padding(.vertical, 12)
+                    if more {
+                        Color.clear.frame(height: 1)
                             // A task (not onAppear) so it waits out a load already running, then loads the next batch.
                             .task(id: limit) {
                                 while store.forYouLoading { try? await Task.sleep(for: .milliseconds(300)) }
@@ -271,9 +285,6 @@ struct ForYouSection: View {
                                 limit = min(Self.maxToday, limit + 24)
                                 await store.loadForYou(limit: limit)
                             }
-                    } else {
-                        Text("That's everything for now. Pull down any time to check for more.")
-                            .font(.caption).foregroundStyle(Theme.muted).frame(maxWidth: .infinity).padding(.top, 4)
                     }
                 } else if store.forYou.count >= limit - 2 && limit < 120 {
                     Button {
@@ -290,6 +301,22 @@ struct ForYouSection: View {
             }
         }
         .onChange(of: store.state.accountID) { Task { await store.loadForYou(limit: limit) } }
+        .onChange(of: pullUp) {
+            guard mode == .today, !store.forYouLoading, !checking else { return }
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            Task { @MainActor in
+                if store.forYou.count >= limit - 4 && limit < Self.maxToday {
+                    limit = min(Self.maxToday, limit + 24)
+                    await store.loadForYou(limit: limit)
+                } else {
+                    // At the end: check for new picks right here, no trip back to the top.
+                    checking = true
+                    await store.refreshNow(router: router)
+                    await store.loadForYou(limit: limit)
+                    checking = false
+                }
+            }
+        }
     }
 
     private var columns: [GridItem] { [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)] }
@@ -423,5 +450,24 @@ extension View {
             .simultaneousGesture(TapGesture().onEnded {
                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             })
+    }
+}
+
+/// Pulling up past the bottom of a scroll view (like pull-to-refresh, at the other end). Fires once per pull.
+struct PullUpAtBottom: ViewModifier {
+    let action: () -> Void
+    @State private var fired = false
+
+    func body(content: Content) -> some View {
+        if #available(iOS 18.0, *) {
+            content.onScrollGeometryChange(for: CGFloat.self) { g in
+                g.contentOffset.y + g.containerSize.height - g.contentInsets.bottom - g.contentSize.height
+            } action: { _, over in
+                if over > 70 && !fired { fired = true; action() }
+                else if over < 10 { fired = false }
+            }
+        } else {
+            content   // iOS 17: more picks still load on their own as you reach the bottom
+        }
     }
 }
