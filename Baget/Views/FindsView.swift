@@ -554,11 +554,12 @@ struct FindTile: View {
                     if find.status == .liked {
                         pill("heart.fill", filled: false, tint: Theme.hot) { store.unlike(find.id) }.accessibilityLabel("Liked. Tap to unlike")
                     } else {
+                        // ✕ left, ♥ right: the same way you swipe.
+                        pill("xmark", filled: false, tint: Theme.muted) { askingWhy = true }.accessibilityLabel("Pass")
                         pill("heart.fill", filled: true, tint: Theme.accentInk) {
                             withAnimation(.snappy) { store.like(find.id) }
                             router.say(String(localized: "\(agent?.name ?? "Your scout") will find more like this"))
                         }.accessibilityLabel("Like")
-                        pill("xmark", filled: false, tint: Theme.muted) { askingWhy = true }.accessibilityLabel("Pass")
                     }
                 }
             }
