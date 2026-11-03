@@ -116,6 +116,16 @@ export async function usdRate(cur: string, fetchFn: FetchFn = fetch): Promise<nu
 }
 export function resetRates() { rates.clear(); }
 
+/** A sample, vial, decant or travel size (fragrance up to 15ml / 0.5oz). */
+export function smallSize(label: string): boolean {
+  const t = label.toLowerCase();
+  if (/\b(sample|vial|decant|tester|mini|miniature|travel|discovery|carded)\b/.test(t)) return true;
+  const ml = t.match(/(\d+(?:\.\d+)?)\s*ml\b/);
+  if (ml && Number(ml[1]) <= 15) return true;
+  const oz = t.match(/(\d*\.?\d+)\s*(?:fl\.?\s*)?oz\b/);
+  return !!oz && Number(oz[1]) <= 0.5;
+}
+
 /** A Shopify product as a listing in one of the store's categories, or null if it isn't for sale or doesn't fit. */
 export function shopifyListing(p: ShopifyProduct, domain: string, storeName: string, categories: string[], currency = "USD", rate = 1) {
   const title = (p.title ?? "").trim();
@@ -123,8 +133,13 @@ export function shopifyListing(p: ShopifyProduct, domain: string, storeName: str
   const avail = variants.filter((v) => v.available);
   const image = p.images?.[0]?.src;
   if (!title || !p.handle || !avail.length || !image) return null;
-  const prices = avail.map((v) => Number(v.price)).filter((x) => x > 0);
-  if (!prices.length) return null;
+  // The product's own price, not a sample's: a $7 vial sold next to a $395 bottle isn't the price of the bottle.
+  const full = avail.filter((v) => !smallSize(`${v.title ?? ""} ${v.option1 ?? ""} ${v.option2 ?? ""}`));
+  const prices = full.map((v) => Number(v.price)).filter((x) => x > 0);
+  if (!prices.length) return null;   // only samples for sale
+  // Add-ons priced far under the rest (a refill vial, a gift box) don't set the price either.
+  const top = Math.max(...prices);
+  const real = prices.filter((x) => prices.length === 1 || x >= top * 0.15);
   const tags = (Array.isArray(p.tags) ? p.tags : String(p.tags ?? "").split(",")).map((t) => t.trim().toLowerCase()).filter((t) => t && t.length < 30);
   const kind = `${p.product_type ?? ""} ${tags.join(" ")} ${title}`;
   let category: string | null = null;
@@ -135,7 +150,7 @@ export function shopifyListing(p: ShopifyProduct, domain: string, storeName: str
   if (/\b(gift card|e-gift|sample|tester|decant|sticker|shipping protection|insurance)\b/i.test(title)) return null;
   const sizes = [...new Set(avail.map((v) => (v.option1 ?? v.title ?? "").trim()).filter((s) => SIZE.test(s)))].slice(0, 40);
   const host = domain.replace(/^www\./, "");
-  const local = Math.min(...prices);
+  const local = Math.min(...real);
   const intl = currency !== "USD";
   return {
     fingerprint: `${host}|${norm(title).replace(/[^a-z0-9]+/g, " ").trim()}`.slice(0, 300),

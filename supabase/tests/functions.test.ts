@@ -1569,6 +1569,16 @@ await test("store map: a Shopify product becomes a listing in the right category
   assert.equal(St.shopifyListing(hoodie, "kith.com", "Kith", ["sneakers"]), null, "not in the store's categories");
   assert.equal(St.shopifyListing({ ...shoe, variants: [{ option1: "9", price: "199.99", available: false }] }, "kith.com", "Kith", ["sneakers"]), null, "sold out");
   assert.equal(St.shopifyListing({ ...shoe, title: "Gift Card" }, "kith.com", "Kith", ["sneakers"]), null);
+  // A fragrance sold as a sample and a full bottle: the price is the bottle's.
+  const scent = { title: "Jubilation XXV Man - EdP", handle: "jubilation-xxv-man-edp-3-4oz", vendor: "Amouage", product_type: "Eau de Parfum", tags: [],
+    images: [{ src: "https://cdn.shopify.com/j.jpg" }],
+    variants: [{ title: "2ml Sample", price: "7.00", available: true }, { title: "3.4 oz", price: "395.00", available: true }] };
+  assert.equal(St.shopifyListing(scent, "aedes.com", "Aedes", ["fragrance"])!.price, 395);
+  assert.equal(St.shopifyListing({ ...scent, variants: [{ title: "Default Title", price: "7.00", available: true }, { title: "Refill", price: "395.00", available: true }] },
+    "aedes.com", "Aedes", ["fragrance"])!.price, 395, "a much cheaper add-on doesn't set the price");
+  assert.equal(St.shopifyListing({ ...scent, variants: [{ title: "1.5ml vial", price: "7.00", available: true }] }, "aedes.com", "Aedes", ["fragrance"]), null, "samples only: not a find");
+  assert.equal(St.shopifyListing({ ...scent, variants: [{ title: "50ml", price: "250", available: true }, { title: "100ml", price: "395", available: true }] },
+    "aedes.com", "Aedes", ["fragrance"])!.price, 250, "real sizes: from the smaller bottle");
 });
 
 await test("store map: catalogs feed matching scouts' For You; non-Shopify stores are marked and skipped", async () => {
