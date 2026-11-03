@@ -57,7 +57,7 @@ export async function reactionsFor(agentId: string): Promise<Reactions> {
   return {
     liked: rows.filter((r) => r.status === "liked").map(name).filter(Boolean).slice(0, 12),
     bought: rows.filter((r) => r.status === "acquired").map(name).filter(Boolean).slice(0, 8),
-    passed: rows.filter((r) => r.status === "passed" && (r.pass_reason ?? "").includes("style")).map(name).filter(Boolean).slice(0, 12),
+    passed: rows.filter((r) => r.status === "passed" && /style|product|brand/.test(r.pass_reason ?? "")).map(name).filter(Boolean).slice(0, 12),
     seen: recent.map((r) => r.listing?.title ?? "").filter(Boolean),
   };
 }

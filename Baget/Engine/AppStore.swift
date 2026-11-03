@@ -493,16 +493,17 @@ final class AppStore {
         save()
     }
 
+    /// Why you passed on a find. Each teaches the scout something different. (The raw value is what the server stores.)
     enum PassReason: String, CaseIterable, Identifiable {
-        case style = "Not my style", price = "Too pricey", own = "Have one like it", later = "Just not now"
+        case brand = "Not into the brand", product = "Not this product", price = "Too pricey", later = "Just not now"
         var id: String { rawValue }
-        /// What the button says, in the app's language (the raw value is what the server stores).
-        var label: String {
+        /// What the button says, in the app's language, naming the brand when there is one.
+        func label(for item: Item) -> String {
             switch self {
-            case .style: return String(localized: "Not my style")
-            case .price: return String(localized: "Too pricey")
-            case .own: return String(localized: "Have one like it")
-            case .later: return String(localized: "Just not now")
+            case .brand: return item.brand.isEmpty ? String(localized: "Not into this brand") : String(localized: "Not into \(item.brand)")
+            case .product: return String(localized: "Not this product")
+            case .price: return String(localized: "Too expensive")
+            case .later: return String(localized: "Just not right now")
             }
         }
     }
@@ -520,7 +521,15 @@ final class AppStore {
         push { api in try await api.update("finds", "id=eq.\(findID)", ["status": "passed", "pass_reason": reasonText]) }
         let aid = state.finds[fi].agentID
         switch reason {
-        case .style: learn(aid, from: item, delta: -2, note: "you're not into \(item.traits.prefix(2).joined(separator: ", "))")
+        case .brand:
+            // Steer clear of the brand itself: the strongest "not into", and off the scout's brand list.
+            if !item.brand.isEmpty, let i = agentIndex(aid) {
+                state.agents[i].learned[TextMatch.norm(item.brand)] = -3
+                state.agents[i].style.makers.removeAll { TextMatch.norm($0) == TextMatch.norm(item.brand) }
+                log("\(state.agents[i].name) will steer clear of \(item.brand)")
+                pushAgent(aid)
+            }
+        case .product: learn(aid, from: item, delta: -1, note: "you passed on \(item.title)")
         case .price:
             // Only a real price can set a price preference ("under $0" is nonsense).
             if item.priceKnown, item.price > 0, let i = agentIndex(aid) {
@@ -529,7 +538,6 @@ final class AppStore {
                 log("\(state.agents[i].name) noted you prefer things under \(Fmt.money(state.agents[i].priceNote))")
                 pushAgent(aid)
             }
-        case .own: log("\(agent(aid)?.name ?? "Agent") will skip near-duplicates of \(item.title)")
         case .later: break
         }
         save()

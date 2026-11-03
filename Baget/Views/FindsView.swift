@@ -483,7 +483,7 @@ struct FindListRow: View {
                             withAnimation(.easeIn(duration: 0.2)) { dx = -500 }
                             Task { @MainActor in
                                 try? await Task.sleep(for: .milliseconds(200))
-                                store.pass(find.id, reason: .style)
+                                store.pass(find.id, reason: .product)
                                 Analytics.track(.findPassed, ["reason": "swipe", "category": item.category.rawValue])
                                 router.say(String(localized: "Passed. \(agent?.name ?? "Your scout") is learning from that"))
                                 dx = 0
@@ -498,7 +498,7 @@ struct FindListRow: View {
             .accessibilityAction(named: "Pass") { askingWhy = true }
             .confirmationDialog("What was off? \(agent?.name ?? "Your scout") will learn from it.", isPresented: $askingWhy, titleVisibility: .visible) {
                 ForEach(AppStore.PassReason.allCases) { r in
-                    Button(r.label) {
+                    Button(r.label(for: item)) {
                         withAnimation(.snappy) { store.pass(find.id, reason: r) }
                         Analytics.track(.findPassed, ["reason": r.rawValue, "category": item.category.rawValue])
                         router.say(r == .later ? String(localized: "Passed") : String(localized: "Passed. \(agent?.name ?? "Your scout") is learning from that"))
@@ -564,7 +564,7 @@ struct FindTile: View {
             }
             .confirmationDialog("What was off? \(agent?.name ?? "Your scout") will learn from it.", isPresented: $askingWhy, titleVisibility: .visible) {
                 ForEach(AppStore.PassReason.allCases) { r in
-                    Button(r.label) {
+                    Button(r.label(for: item)) {
                         withAnimation(.snappy) { store.pass(find.id, reason: r) }
                         Analytics.track(.findPassed, ["reason": r.rawValue, "category": item.category.rawValue])
                     }
@@ -678,7 +678,7 @@ struct FindDetailView: View {
             }
             .confirmationDialog("What was off? \(agent?.name ?? "Your scout") will learn from it.", isPresented: $askingWhy, titleVisibility: .visible) {
                 ForEach(AppStore.PassReason.allCases) { r in
-                    Button(r.label) {
+                    Button(r.label(for: item)) {
                         store.pass(findID, reason: r)
                         Analytics.track(.findPassed, ["reason": r.rawValue, "category": item.category.rawValue])
                         router.say(r == .later ? String(localized: "Passed") : String(localized: "Passed. \(agent?.name ?? "Your scout") is learning from that"))

@@ -151,7 +151,7 @@ struct SwipeDeckView: View {
         case .like:
             store.like(f.id); liked += 1; out = CGSize(width: 600, height: drag.height)
         case .pass:
-            store.pass(f.id, reason: .style); passed += 1; out = CGSize(width: -600, height: drag.height)
+            store.pass(f.id, reason: .product); passed += 1; out = CGSize(width: -600, height: drag.height)
         case .buy:
             out = CGSize(width: 0, height: -900)
             if let link = BuyLink.url(item) {

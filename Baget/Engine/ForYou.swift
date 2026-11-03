@@ -86,7 +86,7 @@ extension AppStore {
             let agent = best(for: item)?.agent ?? state.agents.first { Matcher.covers($0, item) } ?? state.agents.first { $0.mission.category == item.category }
             if let a = agent, let f = ensureFind(agentID: a.id, itemID: item.id, why: pick.reason) { like(f.id) }
         case .dismiss:
-            if let fid = pick.findID { pass(fid, reason: .style) }
+            if let fid = pick.findID { pass(fid, reason: .product) }
         case .open, .buy:
             break
         }

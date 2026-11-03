@@ -33,7 +33,7 @@ enum SmokeTest {
             store.removeFinds([one.id]); store.restoreFind(one.id)
         }
         store.removeFinds(Array(store.state.finds.filter { $0.id != "smoke-find" && $0.status == .open }.suffix(2).map(\.id)))
-        if let other = store.state.finds.first(where: { $0.id != "smoke-find" && $0.status == .open }) { store.pass(other.id, reason: .style) }
+        if let other = store.state.finds.first(where: { $0.id != "smoke-find" && $0.status == .open }) { store.pass(other.id, reason: .product) }
         // New screens and actions: watch, remove a taste, a deal verdict on an item with other stores' prices.
         store.toggleWatch("smoke-find")
         if let a = store.state.agents.first, let t = a.style.traits.first { store.removeTaste(a.id, t) }

@@ -145,7 +145,7 @@ struct TodayDeck: View {
             liked += 1
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
         } else {
-            store.pass(f.id, reason: .style)
+            store.pass(f.id, reason: .product)
         }
         Analytics.track(.swipe, ["action": a == .like ? "like" : "pass", "category": item.category.rawValue, "score": f.score, "from": "today"])
         withAnimation(.easeIn(duration: 0.2)) { dx = a == .like ? 520 : -520 }
