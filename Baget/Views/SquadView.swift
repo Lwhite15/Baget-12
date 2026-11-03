@@ -81,7 +81,10 @@ struct AgentCard: View {
         let finds = store.state.finds.filter { $0.agentID == agent.id }.count
         let learned = agent.learned.filter { $0.value != 0 }.sorted { abs($0.value) > abs($1.value) }.prefix(8)
             .map { Learned(key: $0.key, weight: $0.value) }
-        let styleTags = agent.style.traits + agent.style.makers + agent.style.creators
+        // Show "season:aw26" as "aw26": the part before the colon is for the scout, not for people.
+        let styleTags = (agent.style.traits + agent.style.makers + agent.style.creators).map { t in
+            t.split(separator: ":", maxSplits: 1).count == 2 ? String(t.split(separator: ":", maxSplits: 1)[1]) : t
+        }
 
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top, spacing: 12) {
@@ -89,11 +92,14 @@ struct AgentCard: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel("Change \(agent.name)'s icon")
                 VStack(alignment: .leading, spacing: 2) {
+                    // The full name, on up to two lines; the Interest / Specific tag moves under it.
+                    Text(agent.name).font(.title3.weight(.heavy)).foregroundStyle(Theme.ink)
+                        .lineLimit(2).minimumScaleFactor(0.85).fixedSize(horizontal: false, vertical: true)
                     HStack(spacing: 6) {
-                        Text(agent.name).font(.title3.weight(.heavy)).foregroundStyle(Theme.ink).lineLimit(1)
                         FocusTag(specific: agent.isSpecific)
+                        Text("\(agent.mission.label) · \(finds) \(finds == 1 ? String(localized: "find") : String(localized: "finds"))")
+                            .font(.caption.monospacedDigit()).foregroundStyle(Theme.muted).lineLimit(1)
                     }
-                    Text("\(agent.mission.label) · \(finds) \(finds == 1 ? String(localized: "find") : String(localized: "finds"))").font(.caption.monospacedDigit()).foregroundStyle(Theme.muted)
                 }
                 Spacer()
                 // Change or delete it, right from the top of its card.
