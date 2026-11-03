@@ -141,7 +141,7 @@ struct NewScoutSheet: View {
                      : String(localized: "Describe your taste, not one item. Your scout keeps hunting for weeks and brings you things you didn't know to look for."))
                     .font(.subheadline).foregroundStyle(Theme.muted).fixedSize(horizontal: false, vertical: true)
                 TextField(specific ? String(localized: "e.g. black Dior men's sunglasses, under $500")
-                                   : String(localized: "e.g. indie perfume houses, citrus and green scents, nothing too sweet"),
+                                   : String(localized: "Describe your taste: brands, sizes, budget, what you don't like…"),
                           text: $text, axis: .vertical)
                     .lineLimit(3...5)
                     .focused($focused)
@@ -152,6 +152,7 @@ struct NewScoutSheet: View {
                     .onChange(of: text) { _, t in
                         if t.contains("\n") { text = t.replacingOccurrences(of: "\n", with: " ").trimmingCharacters(in: .whitespaces); send() }
                     }
+                DetailsMatterCard(compact: true)
                 if specific { examplesList } else { startersGrid }
                 Button(action: send) {
                     HStack {
@@ -166,6 +167,7 @@ struct NewScoutSheet: View {
                 if let p = store.syncProblem, !working, p != "" {
                     Text(p).font(.footnote).foregroundStyle(Theme.hot)
                 }
+                ChangeAnyTimeNote()
                 if !specific {
                     Button { withAnimation(.snappy) { specific = true; text = ""; focused = true } } label: {
                         HStack(spacing: 10) {
@@ -398,4 +400,63 @@ struct ForYouScreen: View {
 extension String {
     /// Brand names saved in lowercase ("seiko", "audio-technica") shown as names ("Seiko", "Audio-Technica"); mixed case is kept.
     var brandCased: String { self == lowercased() ? capitalized : self }
+}
+
+/// Setup and new scouts: why details matter, with a vague vs. specific example and what to mention.
+struct DetailsMatterCard: View {
+    var compact = false
+    private static let tips = [String(localized: "Brands you love"), String(localized: "Brands to skip"), String(localized: "Sizes"),
+                               String(localized: "Budget"), String(localized: "Colors & styles"), String(localized: "What it's for")]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("The more you tell your scouts, the better they hunt", systemImage: "sparkles")
+                .font(.subheadline.weight(.bold)).foregroundStyle(Theme.ink)
+            Text("Scouts only know what you share. A few details turn generic results into things you'd actually buy.")
+                .font(.caption).foregroundStyle(Theme.ink.opacity(0.8)).fixedSize(horizontal: false, vertical: true)
+            if !compact {
+                HStack(alignment: .top, spacing: 6) {
+                    example(String(localized: "TOO VAGUE"), Theme.hot, String(localized: "“Fragrance”"))
+                    example(String(localized: "SPOT ON"), Theme.green, String(localized: "“Fresh citrus scents like Le Labo, under $200, nothing sweet”"))
+                }
+            }
+            FlowRow {
+                ForEach(Self.tips, id: \.self) { t in
+                    Text(t).font(.caption2).foregroundStyle(Theme.ink.opacity(0.9))
+                        .padding(.horizontal, 8).padding(.vertical, 4)
+                        .background(Color.black.opacity(0.25), in: Capsule())
+                }
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(LinearGradient(colors: [Theme.blue.opacity(0.20), Theme.green.opacity(0.12)], startPoint: .topLeading, endPoint: .bottomTrailing),
+                    in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.cyan.opacity(0.4)))
+    }
+
+    private func example(_ title: String, _ tint: Color, _ text: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title).font(.system(size: 9.5, weight: .heavy)).tracking(0.7).foregroundStyle(tint)
+            Text(text).font(.caption).foregroundStyle(Theme.ink.opacity(0.9)).fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .padding(8)
+        .background(Color.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+}
+
+/// "Nothing's locked in": scouts can be changed any time.
+struct ChangeAnyTimeNote: View {
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Image(systemName: "pencil").font(.caption).foregroundStyle(Theme.cyan)
+            Text("Nothing's locked in. Change what any scout hunts any time: Squad, then ••• on the scout, or just text it.")
+                .font(.caption).foregroundStyle(Theme.ink.opacity(0.8)).fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.glass, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Theme.line))
+    }
 }

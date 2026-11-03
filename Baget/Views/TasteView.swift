@@ -206,18 +206,8 @@ struct OnboardingView: View {
                         Text("Free includes 2 scouts. You can go Pro any time for up to 5, hunting around the clock.")
                             .font(.caption).foregroundStyle(Theme.muted)
                     }
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Tell your scouts what you're into")
-                            .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
-                        Text("Your taste, not one item: styles, brands, what you use it for, what you don't like. Anything not listed above, just describe it and your scouts will hunt it.")
-                            .font(.caption).foregroundStyle(Theme.muted)
-                            .fixedSize(horizontal: false, vertical: true)
-                        HStack(alignment: .firstTextBaseline, spacing: 6) {
-                            Image(systemName: "sparkles").font(.caption2).foregroundStyle(Theme.cyan)
-                            Text("“Indie citrus perfumes, nothing too sweet” · “Fly fishing gear for trout”")
-                                .font(.caption.italic()).foregroundStyle(Theme.ink.opacity(0.8))
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
+                    VStack(alignment: .leading, spacing: 10) {
+                        DetailsMatterCard()
                         // Opens a full-height editor, so what you write stays readable while you type.
                         Button { editingWords = true } label: {
                             HStack(alignment: .top, spacing: 10) {
@@ -233,6 +223,7 @@ struct OnboardingView: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel(text.isEmpty ? String(localized: "Describe your taste in your own words") : String(localized: "Your description: \(text)"))
+                        ChangeAnyTimeNote()
                     }
                     .padding(.top, 4)
                 }
@@ -600,6 +591,7 @@ struct OnboardingView: View {
             nextRow("clock", String(localized: "First finds land in a few minutes, right in Finds"))
             nextRow("arrow.triangle.2.circlepath", store.isPro ? String(localized: "Then they hunt every 6 hours, around the clock") : String(localized: "Then they hunt every day and keep your finds fresh"))
             nextRow("heart", String(localized: "Like or pass what they bring, and they learn your taste fast"))
+            nextRow("pencil", String(localized: "Change any scout any time: tell it more, add a brand or size, or start over. Squad, then ••• on any scout"))
             nextRow("scope", String(localized: "Hunting one specific thing? Send a specific scout from Today any time"))
         }
         .padding(12)
