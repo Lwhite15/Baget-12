@@ -125,7 +125,10 @@ struct FindsView: View {
     var body: some View {
         // One pass for the counts, one filter, one sort: the body runs whenever anything in the store changes.
         let (newTotal, savedTotal, upcomingTotal) = Self.counts(store.state.finds)
-        let visible = self.visible
+        // The same product from several stores shows once (cheapest), with the others counted on its card.
+        let productGroups = ProductMatch.group(self.visible)
+        let visible = productGroups.map(\.lead)
+        let alsoAt = Dictionary(uniqueKeysWithValues: productGroups.filter { !$0.others.isEmpty }.map { ($0.lead.id, $0.others.count) })
         // Grouped by scout for "Best match" and "By scout" in the list; one flat list otherwise, and always in the grid.
         let grouped = !grid && (sort == .best || sort == .scout)
         let flat = grouped ? [] : sorted(visible)
@@ -147,21 +150,21 @@ struct FindsView: View {
 
                     if grid {
                         LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
-                            ForEach(flat) { f in FindTile(find: f) { opened = f.id }.id(f.id) }
+                            ForEach(flat) { f in FindTile(find: f, alsoAt: alsoAt[f.id] ?? 0) { opened = f.id }.id(f.id) }
                         }
                     } else if grouped {
                         ForEach(groups) { g in
                             sectionHeader(g)
                             if !collapsed.contains(g.id) {
                                 ForEach(g.finds) { f in
-                                    FindListRow(find: f, agent: g.agent, highlighted: highlighted == f.id) { opened = f.id }
+                                    FindListRow(find: f, agent: g.agent, highlighted: highlighted == f.id, alsoAt: alsoAt[f.id] ?? 0) { opened = f.id }
                                         .id(f.id).padding(.top, -6)
                                 }
                             }
                         }
                     } else {
                         ForEach(flat) { f in
-                            FindListRow(find: f, highlighted: highlighted == f.id) { opened = f.id }.id(f.id).padding(.top, -6)
+                            FindListRow(find: f, highlighted: highlighted == f.id, alsoAt: alsoAt[f.id] ?? 0) { opened = f.id }.id(f.id).padding(.top, -6)
                         }
                     }
 
@@ -416,6 +419,8 @@ struct FindListRow: View {
     /// Passed in when the list already knows it, so a row doesn't search the store while scrolling.
     var agent: Agent? = nil
     var highlighted = false
+    /// How many other stores have this same product (shown as "+N stores").
+    var alsoAt = 0
     let open: () -> Void
     @State private var dx: CGFloat = 0
     @State private var askingWhy = false
@@ -434,6 +439,7 @@ struct FindListRow: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(item.title).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink).lineLimit(2).multilineTextAlignment(.leading)
                     findMeta(store, find, item).font(.caption).lineLimit(1)
+                    if alsoAt > 0 { StoresBadge(count: alsoAt) }
                     if let reason = find.why.first(where: { !$0.hasPrefix("Discovery") && !$0.isEmpty }) ?? find.why.first {
                         Text(reason).font(.caption).foregroundStyle(Theme.green.opacity(0.9)).lineLimit(1)
                     }
@@ -531,6 +537,8 @@ struct FindTile: View {
     @Environment(AppStore.self) private var store
     @Environment(Router.self) private var router
     let find: Find
+    /// How many other stores have this same product.
+    var alsoAt = 0
     let open: () -> Void
     @State private var askingWhy = false
 
@@ -550,6 +558,7 @@ struct FindTile: View {
                     .lineLimit(2).multilineTextAlignment(.leading).frame(maxWidth: .infinity, minHeight: 34, alignment: .topLeading)
                 Text([item.source, item.priceKnown && item.price > 0 ? item.priceLabel : nil].compactMap { $0 }.joined(separator: " · "))
                     .font(.caption2).foregroundStyle(Theme.muted).lineLimit(1)
+                if alsoAt > 0 { StoresBadge(count: alsoAt) }
                 HStack(spacing: 6) {
                     if find.status == .liked {
                         pill("heart.fill", filled: false, tint: Theme.hot) { store.unlike(find.id) }.accessibilityLabel("Liked. Tap to unlike")
@@ -700,6 +709,38 @@ struct FindDetailView: View {
 
     // MARK: Expanded details
 
+    /// Every store your scouts found this same product at, cheapest first, each one tap to its page.
+    private func compareStores(_ find: Find, _ item: Item, _ twins: [Find]) -> some View {
+        let rows = ([find] + twins).compactMap { f in Catalog.item(f.itemID).map { (f, $0) } }
+            .sorted { a, b in (a.1.priceKnown && a.1.price > 0 ? a.1.price : .infinity) < (b.1.priceKnown && b.1.price > 0 ? b.1.price : .infinity) }
+        return VStack(alignment: .leading, spacing: 6) {
+            Text("AT \(rows.count) STORES").font(.system(size: 9, weight: .semibold)).tracking(1).foregroundStyle(Theme.muted)
+            ForEach(Array(rows.enumerated()), id: \.element.0.id) { i, row in
+                let (f, it) = row
+                Button {
+                    if let url = BuyLink.tracked(it, from: "compare") ?? BuyLink.url(it) { openURL(url) }
+                } label: {
+                    HStack(spacing: 8) {
+                        Text(it.source).font(.footnote.weight(f.id == find.id ? .bold : .regular)).foregroundStyle(Theme.ink).lineLimit(1)
+                        if i == 0 && rows.count > 1 && it.priceKnown && it.price > 0 {
+                            Text("LOWEST").font(.system(size: 9, weight: .heavy)).foregroundStyle(Theme.green)
+                                .padding(.horizontal, 5).padding(.vertical, 2).background(Theme.green.opacity(0.15), in: Capsule())
+                        }
+                        Spacer()
+                        Text(it.priceKnown && it.price > 0 ? it.priceLabel : String(localized: "See store"))
+                            .font(.footnote.monospacedDigit().weight(.semibold)).foregroundStyle(i == 0 ? Theme.green : Theme.ink)
+                        Image(systemName: "arrow.up.right").font(.caption2.weight(.bold)).foregroundStyle(Theme.cyan)
+                    }
+                    .padding(.vertical, 8).padding(.horizontal, 10)
+                    .background(Theme.glass, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("\(it.source), \(it.priceKnown && it.price > 0 ? it.priceLabel : String(localized: "price at store"))")
+            }
+        }
+    }
+
     @ViewBuilder private func details(_ find: Find, _ item: Item, agent: Agent?) -> some View {
         let known = item.priceKnown && item.price > 0
         let diff = known && item.market > 0 ? item.market - item.price : 0
@@ -707,6 +748,8 @@ struct FindDetailView: View {
         VStack(alignment: .leading, spacing: 10) {
             if ReminderSheet.upcoming(item) { releaseRow(item) }
             if !item.isProduct { infoRow(item) }
+            let twins = store.sameProductFinds(find)
+            if !twins.isEmpty { compareStores(find, item, twins) }
             if item.isProduct, let v = DealVerdict.of(item) {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text(v.emoji)
@@ -1117,5 +1160,14 @@ struct FindsTipCard: View {
         .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Theme.accent.opacity(0.35)))
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Tip \(i + 1) of \(FindsTip.all.count): \(tip.title)")
+    }
+}
+
+/// "+3 stores": the same product is also at other stores (compare them on its page).
+struct StoresBadge: View {
+    let count: Int
+    var body: some View {
+        Label(count == 1 ? String(localized: "Also at 1 more store") : String(localized: "Also at \(count) more stores"), systemImage: "storefront")
+            .font(.caption2.weight(.semibold)).foregroundStyle(Theme.cyan).lineLimit(1)
     }
 }

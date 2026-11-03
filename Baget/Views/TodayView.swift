@@ -13,7 +13,9 @@ struct TodayView: View {
 
     private func freshDeck() -> [String] {
         var seen = Set<String>()
-        return (store.todaysPicks(TodayDeck.size) + store.swipeQueue).map(\.id).filter { seen.insert($0).inserted }.prefix(TodayDeck.size).map { $0 }
+        let cands = (store.todaysPicks(TodayDeck.size * 2) + store.swipeQueue).filter { seen.insert($0.id).inserted }
+        // One card per product: the same thing from three stores is one card (its cheapest), not three.
+        return ProductMatch.group(cands).prefix(TodayDeck.size).map(\.lead.id)
     }
 
     var body: some View {
@@ -208,7 +210,9 @@ struct ForYouSection: View {
     var exclude: Set<String> = []
 
     var body: some View {
-        let all = store.forYou.filter { Catalog.item($0.id) != nil && !exclude.contains($0.id) }
+        // The same product from several stores shows once, with "Also at N more stores".
+        let folded = ProductMatch.dedupe(store.forYou.filter { Catalog.item($0.id) != nil && !exclude.contains($0.id) })
+        let all = folded.picks
         let cats = Array(Set(all.compactMap { Catalog.item($0.id)?.category })).sorted { $0.info.label < $1.info.label }
         let filtered = all.filter { p in category.map { Catalog.item(p.id)?.category == $0 } ?? true }
         let picks = filtered
