@@ -781,11 +781,10 @@ await test("old page finds are archived once; Google redirect links are followed
     [/PATCH .*rest\/v1\/finds/, (u: string, _i: unknown, b: unknown) => { removed = { u, b }; return ok([]); }],
     [/PATCH .*rest\/v1\/notes/, (u: string) => { read = u; return ok([]); }],
   ]);
+  // The one-time cleanup ran before Nov 4 2026; after that it does nothing.
   const r = await sweep.scrubPageFinds();
-  assert.equal(r.removed, 2);
-  assert.match(decodeURIComponent(removed.u), /id=in\.\(f1,f3\)/);
-  assert.deepEqual(removed.b, { status: "removed" });
-  assert.match(decodeURIComponent(read), /find_id=in\.\(f1,f3\)/);
+  assert.deepEqual(r, { checked: 0, removed: 0 });
+  assert.equal(removed, undefined); assert.equal(read, undefined);
   const fake = async () => new Response(null, { status: 302, headers: { location: "https://kith.com/products/kith-hoodie?utm_source=x" } });
   assert.equal(await sweep.redirectTarget("https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc", fake as never), "https://kith.com/products/kith-hoodie");
 });
