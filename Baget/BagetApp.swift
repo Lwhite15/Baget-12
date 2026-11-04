@@ -146,6 +146,19 @@ final class Router {
     var todayTop = 0
     /// The scout you just sent from "Send a new scout" (its confirmation card shows on Today).
     var scoutSent: (agentID: String, intro: String)?
+    /// "Not my size" on a scout that doesn't know your size yet: Baget asks once (the alert lives in RootView).
+    var askSize: String?
+
+    /// The note after passing on a find (or the size question, for "Not my size" on a scout without a size).
+    @MainActor func passed(_ r: AppStore.PassReason, agent: Agent?) {
+        let name = agent?.name ?? String(localized: "Your scout")
+        if r == .size, let a = agent {
+            if a.size.trimmingCharacters(in: .whitespaces).isEmpty { askSize = a.id }
+            else { say(String(localized: "Passed. \(name) will stick to size \(a.size)")) }
+            return
+        }
+        say(r == .later ? String(localized: "Passed") : String(localized: "Passed. \(name) is learning from that"))
+    }
 
     /// Opens an item in Finds. If it isn't there yet, its agent adds it first.
     @MainActor func openInFinds(_ story: Story, store: AppStore) {

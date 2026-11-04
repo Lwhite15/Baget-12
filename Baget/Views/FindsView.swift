@@ -503,11 +503,11 @@ struct FindListRow: View {
             .accessibilityAction(named: "Like") { like(agent) }
             .accessibilityAction(named: "Pass") { askingWhy = true }
             .confirmationDialog("What was off? \(agent?.name ?? "Your scout") will learn from it.", isPresented: $askingWhy, titleVisibility: .visible) {
-                ForEach(AppStore.PassReason.allCases) { r in
+                ForEach(AppStore.PassReason.options(for: item)) { r in
                     Button(r.label(for: item)) {
                         withAnimation(.snappy) { store.pass(find.id, reason: r) }
                         Analytics.track(.findPassed, ["reason": r.rawValue, "category": item.category.rawValue])
-                        router.say(r == .later ? String(localized: "Passed") : String(localized: "Passed. \(agent?.name ?? "Your scout") is learning from that"))
+                        router.passed(r, agent: agent)
                     }
                 }
             }
@@ -573,10 +573,11 @@ struct FindTile: View {
                 }
             }
             .confirmationDialog("What was off? \(agent?.name ?? "Your scout") will learn from it.", isPresented: $askingWhy, titleVisibility: .visible) {
-                ForEach(AppStore.PassReason.allCases) { r in
+                ForEach(AppStore.PassReason.options(for: item)) { r in
                     Button(r.label(for: item)) {
                         withAnimation(.snappy) { store.pass(find.id, reason: r) }
                         Analytics.track(.findPassed, ["reason": r.rawValue, "category": item.category.rawValue])
+                        if r == .size { router.passed(r, agent: agent) }
                     }
                 }
             }
@@ -687,11 +688,11 @@ struct FindDetailView: View {
                     .preferredColorScheme(.dark)
             }
             .confirmationDialog("What was off? \(agent?.name ?? "Your scout") will learn from it.", isPresented: $askingWhy, titleVisibility: .visible) {
-                ForEach(AppStore.PassReason.allCases) { r in
+                ForEach(AppStore.PassReason.options(for: item)) { r in
                     Button(r.label(for: item)) {
                         store.pass(findID, reason: r)
                         Analytics.track(.findPassed, ["reason": r.rawValue, "category": item.category.rawValue])
-                        router.say(r == .later ? String(localized: "Passed") : String(localized: "Passed. \(agent?.name ?? "Your scout") is learning from that"))
+                        router.passed(r, agent: agent)
                         dismiss()
                     }
                 }

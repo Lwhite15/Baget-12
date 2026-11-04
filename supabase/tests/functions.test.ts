@@ -468,7 +468,11 @@ await test("likes, buys and style passes steer the next web search", async () =>
   }]]);
   const r = await sweep.reactionsFor("agent-1");
   assert.deepEqual(r, { liked: ["Air Jordan 1 Low OG Mocha"], bought: ["Jordan 4 Bred"], passed: ["Nike Dunk Low Panda"],
-                        seen: ["Air Jordan 1 Low OG Mocha", "Dunk Low Panda"] });
+                        seen: ["Air Jordan 1 Low OG Mocha", "Dunk Low Panda"], wrongSize: 0 });
+  // "Not my size" passes keep the scout to their size, without counting as a style signal.
+  const sized = sweep.sweepPrompt({ ...jumpman, size: "10.5" } as never, "2026-10-08", { ...r, wrongSize: 2 });
+  assert.match(sized, /only return items available in size 10\.5/);
+  assert.doesNotMatch(sweep.sweepPrompt(jumpman as never, "2026-10-08", r), /their size:? .*only return|aren't in their size/);
   const prompt = sweep.sweepPrompt({ ...jumpman, learned: { suede: 3, "patent leather": -2 } } as never, "2026-10-08", r);
   assert.match(prompt, /They liked: Air Jordan 1 Low OG Mocha/);
   assert.match(prompt, /They passed on as not their style: Nike Dunk Low Panda/);

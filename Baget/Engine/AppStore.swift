@@ -498,12 +498,17 @@ final class AppStore {
 
     /// Why you passed on a find. Each teaches the scout something different. (The raw value is what the server stores.)
     enum PassReason: String, CaseIterable, Identifiable {
-        case brand = "Not into the brand", product = "Not this product", price = "Too pricey", later = "Just not now"
+        case brand = "Not into the brand", size = "Wrong size", product = "Not this product", price = "Too pricey", later = "Just not now"
         var id: String { rawValue }
+        /// The reasons that make sense for this item ("Not my size" only for things that come in sizes).
+        static func options(for item: Item) -> [PassReason] {
+            [.sneakers, .apparel].contains(item.category) ? allCases : allCases.filter { $0 != .size }
+        }
         /// What the button says, in the app's language, naming the brand when there is one.
         func label(for item: Item) -> String {
             switch self {
             case .brand: return item.brand.isEmpty ? String(localized: "Not into this brand") : String(localized: "Not into \(item.brand)")
+            case .size: return String(localized: "Not my size")
             case .product: return String(localized: "Not this product")
             case .price: return String(localized: "Too expensive")
             case .later: return String(localized: "Just not right now")
@@ -541,8 +546,18 @@ final class AppStore {
                 log("\(state.agents[i].name) noted you prefer things under \(Fmt.money(state.agents[i].priceNote))")
                 pushAgent(aid)
             }
-        case .later: break
+        case .size, .later: break   // a size miss says nothing about their taste
         }
+        save()
+    }
+
+    /// The size a scout hunts in (from "Not my size" when it didn't know yet).
+    func setSize(_ agentID: String, _ size: String) {
+        let s = size.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !s.isEmpty, let i = agentIndex(agentID) else { return }
+        state.agents[i].size = String(s.prefix(40))
+        log("\(state.agents[i].name) will stick to size \(state.agents[i].size)")
+        pushAgent(agentID)
         save()
     }
 

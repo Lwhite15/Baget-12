@@ -44,7 +44,7 @@ export function cleanText(v: unknown): string {
 }
 
 /** What the person did with earlier finds: the clearest signal of taste there is. */
-export interface Reactions { liked: string[]; bought: string[]; passed: string[]; seen?: string[] }
+export interface Reactions { liked: string[]; bought: string[]; passed: string[]; seen?: string[]; wrongSize?: number }
 
 export async function reactionsFor(agentId: string): Promise<Reactions> {
   const [rows, recent] = await Promise.all([
@@ -59,6 +59,7 @@ export async function reactionsFor(agentId: string): Promise<Reactions> {
     bought: rows.filter((r) => r.status === "acquired").map(name).filter(Boolean).slice(0, 8),
     passed: rows.filter((r) => r.status === "passed" && /style|product|brand/.test(r.pass_reason ?? "")).map(name).filter(Boolean).slice(0, 12),
     seen: recent.map((r) => r.listing?.title ?? "").filter(Boolean),
+    wrongSize: rows.filter((r) => r.status === "passed" && /size/.test(r.pass_reason ?? "")).length,
   };
 }
 
@@ -151,6 +152,9 @@ export function sweepPrompt(a: Agent, today: string, r: Reactions = { liked: [],
     a.makers.length ? `Brands and makers they like: ${a.makers.join(", ")}` : "",
     a.creators.length ? `Creators they follow: ${a.creators.join(", ")}` : "",
     a.size ? `Their size: ${a.size}` : "",
+    r.wrongSize ? (a.size
+      ? `They pass on things that don't come in their size: only return items available in size ${a.size}, and check the page's size list when it shows one.`
+      : "They pass on things that aren't in their size: favor items with a full range of sizes in stock, and skip one-size or single-size listings.") : "",
     deptLine(a),
     langLine(a),
     "Never search for or include porn, sex toys or any other adult or sexual content.",

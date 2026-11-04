@@ -222,6 +222,19 @@ final class QAWalkthrough: XCTestCase {
         if card.waitForExistence(timeout: 4) && card.isHittable { card.tap(); snap("find-detail", wait: 3); app.swipeUp(); snap("find-detail-scroll", wait: 1.5); closeSheet() }
         else { note("MISSING product card image") }
         snap("finds-after-detail", wait: 1)
+        // Pass with "Not my size": a scout without a size asks for one.
+        if tap("Pass", timeout: 3) {
+            snap("pass-reasons", wait: 1)
+            if tap("Not my size", timeout: 3) {
+                let field = app.alerts.textFields.firstMatch
+                if field.waitForExistence(timeout: 4) {
+                    snap("size-ask", wait: 0.5)
+                    field.tap(); field.typeText("M")
+                    tap("Save", timeout: 2)
+                    snap("size-saved", wait: 1)
+                } else { note("no size question (the scout already has a size)"); snap("size-pass", wait: 1) }
+            } else { note("MISSING Not my size (this find may not be clothing or shoes)"); closeSheet() }
+        }
 
         // Squad.
         tap("Squad"); snap("squad", wait: 3)

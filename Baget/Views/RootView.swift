@@ -7,6 +7,7 @@ struct RootView: View {
     @AppStorage("baget.onboarded") private var onboarded = false
     @AppStorage("baget.howToSeen") private var howToSeen = false
     @State private var showHowTo = false
+    @State private var sizeText = ""
     /// Setup is on screen (kept open until it's finished, see the cover below).
     @State private var setupOpen = false
     #if DEBUG
@@ -97,6 +98,20 @@ struct RootView: View {
             Button("Not yet", role: .cancel) { router.askBought = nil }
         } message: {
             Text("Your scout learns the most from what you actually buy.")
+        }
+        .alert(String(localized: "What size should \(store.agent(router.askSize ?? "")?.name ?? "your scout") look for?"),
+               isPresented: Binding(get: { router.askSize != nil }, set: { if !$0 { router.askSize = nil } })) {
+            TextField(String(localized: "e.g. M, 32x30, 10.5"), text: $sizeText)
+            Button("Save") {
+                if let id = router.askSize, !sizeText.trimmingCharacters(in: .whitespaces).isEmpty {
+                    store.setSize(id, sizeText)
+                    router.say(String(localized: "Got it. \(store.agent(id)?.name ?? "Your scout") will stick to size \(store.agent(id)?.size ?? sizeText)"))
+                }
+                router.askSize = nil; sizeText = ""
+            }
+            Button("Skip", role: .cancel) { router.askSize = nil; sizeText = "" }
+        } message: {
+            Text("It'll only bring you things that come in your size. You can change it any time.")
         }
         // First run after signing in with no agents yet: the 30-second setup.
         // Once open, it stays open until they finish: the new scouts arriving mid-setup mustn't close it before "Your squad is hunting".
