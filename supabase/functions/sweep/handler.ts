@@ -5,7 +5,7 @@
 import { notFindable } from "../_shared/findable.ts";
 import { isAdultText } from "../_shared/adult.ts";
 import { type Agent, CATEGORIES, GROUP_OF, type Listing, firstName, friendLine, localHour, heldForMorning, kindFor, match, minBudgetOf, deptOf, langOf, missionLabel, norm } from "../_shared/match.ts";
-import { type Block, type ClaudeMessage, HttpError, MODEL, batchResults, batchStatus, claude, db, env, handle, isScheduler, json, logBatchUsage, parseJSON, requireUser, submitBatch, textOf } from "../_shared/platform.ts";
+import { type Block, type ClaudeMessage, HttpError, MODEL, batchResults, batchStatus, claude, db, enc, env, handle, isScheduler, json, logBatchUsage, parseJSON, requireUser, submitBatch, textOf } from "../_shared/platform.ts";
 import { addImages, linkIsDead, pageProduct, smaller, traceImage } from "../_shared/images.ts";
 import { setupDemo, setupShots } from "./demo.ts";
 import { restockCheck } from "../_shared/daily.ts";
@@ -225,7 +225,8 @@ Rules:
 - drop_at is the release date and time in ISO 8601 if it's upcoming, else null.
 - sizes_in_stock only if the page lists them, else null.
 - traits are short lowercase descriptors of the product (materials, colors, notes, specs, era).
-- Up to 20 products and releases. Every one should be a strong fit; never pad with weak ones.
+- Up to 12 products and releases. Every one should be a strong fit; never pad with weak ones.
+- Between searches, don't write notes or commentary: just search. Your only writing is the final JSON.
 
 End your reply with only this JSON in a \`\`\`json block:
 {"listings":[{"title":"","brand":"","category":"${a.mission_category ?? "other"}","price":null,"market":null,"source":"store name","url":"https://...","image_url":null,"drop_at":null,"sold_out":false,"creator":null,"traits":[],"sizes_in_stock":null,"sku":"","kind":"product","discovery":false,"limited":false,"about":"","pitch":"","text":""}]}`;
@@ -431,7 +432,7 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
       : [{ type: "web_search_20250305", name: "web_search", max_uses: trigger === "scheduled" ? Math.min(depth.searches, num("FALLBACK_SEARCHES", 3)) : depth.searches,
            user_location: { type: "approximate", country: "US" } }];
     // Deep hunts (Pro) open product pages to check price, stock and sizes. Capped so one page can't flood the context.
-    if (depth.fetches > 0) tools.push({ type: "web_fetch_20250910", name: "web_fetch", max_uses: depth.fetches, max_content_tokens: 6000 });
+    if (depth.fetches > 0) tools.push({ type: "web_fetch_20250910", name: "web_fetch", max_uses: depth.fetches, max_content_tokens: num("FETCH_TOKENS", 3500) });
     const model = opts.model ?? SWEEP_MODEL();
     let final: Block[] = [];
     const started = Date.now();
@@ -510,7 +511,14 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
     // Made-up links (404) go; then each real one gets a verified product photo.
     const dead = await Promise.all(listings.map((l) => linkIsDead(l.url)));
     listings = listings.filter((_, i) => !dead[i]);
-    if (listings.length) await addImages(listings);
+    // A product found before already has a checked photo: reuse it instead of checking photos again.
+    const known = await Promise.all(listings.map((l) => db.select<{ fingerprint: string; image_url: string | null }>("listings",
+      `select=fingerprint,image_url&fingerprint=eq.${enc(l.fingerprint)}&image_url=like.*product-photos*&limit=1`)
+      .then((r) => r.find((x) => x.fingerprint === l.fingerprint && x.image_url?.includes("/product-photos/"))?.image_url ?? null)
+      .catch(() => null)));
+    listings.forEach((l, i) => { if (known[i]) l.image_url = known[i]; });
+    const needPhotos = listings.filter((_, i) => !known[i]);
+    if (needPhotos.length) await addImages(needPhotos);
     // eBay listings come straight from eBay with their own item page and photo, so they skip both checks.
     const ebay = cleanListings({ listings: ebayRaw }, a.mission_category ?? "other");
     const seen = new Set(listings.map((l) => l.fingerprint));
@@ -579,11 +587,14 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
   }
 }
 
-/** Listings saved before photos were looked up (or whose page didn't answer): try each once. */
+const ago = (days: number) => new Date(Date.now() - days * 86400_000).toISOString();
+
+/** Listings saved before photos were looked up (or whose page didn't answer): tried again, less often over time. */
 export async function backfillImages(limit: number) {
   const rows = await db.select<{ id: string; url: string; title: string; brand: string; category: string }>("listings",
     `select=id,url,title,brand,category&image_url=is.null&url=not.is.null` +
-    `&or=(image_checked_at.is.null,image_checked_at.lt.${new Date(Date.now() - 24 * 3600_000).toISOString()})` +
+    // Retries back off: daily for a product's first 3 days, then weekly, and never after a month (most never get one).
+    `&or=(image_checked_at.is.null,and(first_seen_at.gt.${ago(3)},image_checked_at.lt.${ago(1)}),and(first_seen_at.gt.${ago(30)},image_checked_at.lt.${ago(7)}))` +
     `&order=image_checked_at.asc.nullsfirst,last_seen_at.desc&limit=${limit}`);
   let found = 0;
   for (let i = 0; i < rows.length; i += 6) {
