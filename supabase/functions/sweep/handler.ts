@@ -426,7 +426,10 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
     // Searching: through Serper (Google, ~10x cheaper) when it's working, else Claude's built-in web search.
     const useSerper = opts.provider ? opts.provider === "serper" : await serperUsable();
     const tools: Record<string, unknown>[] = useSerper ? [SEARCH_TOOL]
-      : [{ type: "web_search_20250305", name: "web_search", max_uses: depth.searches, user_location: { type: "approximate", country: "US" } }];
+      // Claude's own search costs ~10x Serper: when Serper is down, background hunts get only a few searches
+      // (a hunt the person started keeps its full depth).
+      : [{ type: "web_search_20250305", name: "web_search", max_uses: trigger === "scheduled" ? Math.min(depth.searches, num("FALLBACK_SEARCHES", 3)) : depth.searches,
+           user_location: { type: "approximate", country: "US" } }];
     // Deep hunts (Pro) open product pages to check price, stock and sizes. Capped so one page can't flood the context.
     if (depth.fetches > 0) tools.push({ type: "web_fetch_20250910", name: "web_fetch", max_uses: depth.fetches, max_content_tokens: 6000 });
     const model = opts.model ?? SWEEP_MODEL();

@@ -158,7 +158,7 @@ await test("scheduled hunt (one scout, own worker): web search, continue a pause
   const claudeReq = calls.filter((c) => c.url.includes("anthropic"));
   assert.equal(claudeReq[0].headers["x-api-key"], "sk-test");
   assert.equal(claudeReq[0].body.tools[0].type, "web_search_20250305");
-  assert.equal(claudeReq[0].body.tools[0].max_uses, 12, "deep search budget (no plan given counts as Pro)");
+  assert.equal(claudeReq[0].body.tools[0].max_uses, 3, "background hunts on Claude's own search (Serper down) get only a few searches");
   assert.equal(claudeReq[0].body.tools[1].name, "web_fetch", "opens product pages to check them");
   assert.equal(claudeReq[1].body.messages.length, 2, "paused turn continued");
   assert.deepEqual(claudeReq[0].body.cache_control, { type: "ephemeral" }, "sweeps use prompt caching");
