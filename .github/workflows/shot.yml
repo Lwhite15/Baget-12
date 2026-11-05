@@ -1,4 +1,4 @@
-# Copies the latest paywall screenshot onto the "shots" branch so it can be reviewed without downloading artifacts.
+# Copies the latest paywall and iPhone Duo screenshots onto the "shots" branch so it can be reviewed without downloading artifacts.
 name: Shot
 on: workflow_dispatch
 permissions:
@@ -14,6 +14,11 @@ jobs:
           for id in $(gh run list -R "$GITHUB_REPOSITORY" -w iOS -L 15 --json databaseId,conclusion -q '.[] | select(.conclusion=="success") | .databaseId'); do
             gh run download "$id" -R "$GITHUB_REPOSITORY" -n paywall-shot -D shot 2>/dev/null && break
           done
-          git init -q out && cd out && cp ../shot/paywall.png . && git add paywall.png
-          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "paywall screenshot"
+          for id in $(gh run list -R "$GITHUB_REPOSITORY" -w iOS -L 15 --json databaseId,conclusion -q '.[] | select(.conclusion=="success") | .databaseId'); do
+            gh run download "$id" -R "$GITHUB_REPOSITORY" -n duo-shots -D duo 2>/dev/null && break
+          done
+          git init -q out && cd out && cp ../shot/paywall.png . 2>/dev/null || true
+          [ -d ../duo ] && for f in ../duo/*.png; do cp "$f" "duo-$(basename "$f")"; done
+          git add -A
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "screenshots"
           git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:shots
