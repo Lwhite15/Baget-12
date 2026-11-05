@@ -13,6 +13,8 @@ struct TodayDeck: View {
     @State private var swiping: Bool?
     @State private var liked = 0
     @State private var busy = false
+    /// The Duo's inner display turned on its side: card and buttons side by side, so both fit above the tab bar.
+    @Environment(\.duoWide) private var wide
 
     private func find(_ i: Int) -> (Find, Item)? {
         guard i < ids.count, let f = store.state.finds.first(where: { $0.id == ids[i] }), let item = Catalog.item(f.itemID) else { return nil }
@@ -21,7 +23,9 @@ struct TodayDeck: View {
 
     var body: some View {
         if let (f, item) = find(index) {
+            let layout = wide ? AnyLayout(HStackLayout(alignment: .center, spacing: 28)) : AnyLayout(VStackLayout(spacing: 12))
             VStack(spacing: 12) {
+              layout {
                 ZStack {
                     if let (nf, ni) = find(index + 1) {
                         card(nf, ni).scaleEffect(0.95).offset(y: 12).opacity(0.55).allowsHitTesting(false).accessibilityHidden(true)
@@ -52,20 +56,18 @@ struct TodayDeck: View {
                         .accessibilityAction(named: "Pass") { act(.pass, f, item) }
                         .accessibilityAction(named: "Buy") { act(.buy, f, item) }
                 }
-                .duoCardWidth()
-                FoldRow(spacing: 16) {
-                    round("xmark", Theme.ink, String(localized: "Pass"), filled: false) { act(.pass, f, item) }
-                } trailing: {
-                    round("heart.fill", Theme.accentInk, String(localized: "Like"), filled: true, big: true) { act(.like, f, item) }
-                    if BuyLink.url(item) != nil {
-                        Button { act(.buy, f, item) } label: {
-                            Label("Buy", systemImage: "arrow.up.right").font(.subheadline.weight(.bold)).foregroundStyle(Theme.cyan)
-                                .padding(.horizontal, 16).frame(height: 52)
-                                .background(Theme.glass, in: Capsule()).overlay(Capsule().strokeBorder(Theme.line))
-                        }
-                        .buttonStyle(.plain)
+                .duoCardWidth(wide ? 460 : 520)
+                if wide {
+                    VStack(spacing: 16) { passButton(f, item); likeButton(f, item); buyButton(f, item) }
+                } else {
+                    FoldRow(spacing: 16) {
+                        passButton(f, item)
+                    } trailing: {
+                        likeButton(f, item)
+                        buyButton(f, item)
                     }
                 }
+              }
                 Text("Swipe right to like, left to pass. Tap for details.").font(.caption).foregroundStyle(Theme.muted)
             }
         } else {
@@ -92,7 +94,7 @@ struct TodayDeck: View {
     private func card(_ f: Find, _ item: Item) -> some View {
         let agent = store.agent(f.agentID)
         return VStack(alignment: .leading, spacing: 0) {
-            Plate(item: item, label: item.brand.isEmpty ? item.category.info.label : item.brand, height: 300, lead: true)
+            Plate(item: item, label: item.brand.isEmpty ? item.category.info.label : item.brand, height: wide ? 190 : 300, lead: true)
                 .overlay(alignment: .topTrailing) {
                     Text("\(f.score)% match").font(.caption.weight(.heavy).monospacedDigit())
                         .foregroundStyle(f.score >= 80 ? Theme.green : Theme.accent)
@@ -118,6 +120,25 @@ struct TodayDeck: View {
         .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(Theme.line))
         .shadow(color: .black.opacity(0.35), radius: 16, y: 8)
         .contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+    }
+
+    private func passButton(_ f: Find, _ item: Item) -> some View {
+        round("xmark", Theme.ink, String(localized: "Pass"), filled: false) { act(.pass, f, item) }
+    }
+
+    private func likeButton(_ f: Find, _ item: Item) -> some View {
+        round("heart.fill", Theme.accentInk, String(localized: "Like"), filled: true, big: true) { act(.like, f, item) }
+    }
+
+    @ViewBuilder private func buyButton(_ f: Find, _ item: Item) -> some View {
+        if BuyLink.url(item) != nil {
+            Button { act(.buy, f, item) } label: {
+                Label("Buy", systemImage: "arrow.up.right").font(.subheadline.weight(.bold)).foregroundStyle(Theme.cyan)
+                    .padding(.horizontal, 16).frame(height: 52)
+                    .background(Theme.glass, in: Capsule()).overlay(Capsule().strokeBorder(Theme.line))
+            }
+            .buttonStyle(.plain)
+        }
     }
 
     private func round(_ icon: String, _ tint: Color, _ name: String, filled: Bool, big: Bool = false, action: @escaping () -> Void) -> some View {

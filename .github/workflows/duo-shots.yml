@@ -62,10 +62,22 @@ jobs:
           xcrun simctl privacy "$UDID" grant all "$BUNDLE" || true
           mkdir -p shots
           # One pass per display: outer (closed), then inner (opened flat).
-          for pass in outer inner; do
+          # One pass per pose: closed (outer), opened flat (inner), then the inner display turned upright.
+          for pass in outer inner upright; do
             if [ "$pass" = inner ]; then
               hinge open 2>&1 || hinge 180 2>&1 || echo "::warning::Couldn't open the Duo"
               sleep 6
+              DISPLAY_ARG=primary-1
+            elif [ "$pass" = upright ]; then
+              # Turn the device a quarter (Simulator's Rotate Left, Cmd-Left), then check the inner display is tall.
+              for app in DeviceHub Simulator; do
+                osascript -e "tell application \"$app\" to activate" -e 'delay 1' \
+                  -e 'tell application "System Events" to key code 123 using command down' >/dev/null 2>&1 && break
+              done
+              sleep 4
+              xcrun simctl io "$UDID" screenshot --type=png --display=primary-1 probe.png >/dev/null 2>&1 || true
+              W=$(sips -g pixelWidth probe.png 2>/dev/null | awk '/pixel/{print $2}'); H=$(sips -g pixelHeight probe.png 2>/dev/null | awk '/pixel/{print $2}')
+              if [ -z "$W" ] || [ "${W:-0}" -gt "${H:-0}" ]; then echo "::warning::Couldn't turn the Duo upright (inner display ${W}x${H}); skipped that pose"; break; fi
               DISPLAY_ARG=primary-1
             else
               hinge close >/dev/null 2>&1 || true

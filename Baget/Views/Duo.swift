@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // iPhone Duo (the foldable). Closed, Baget runs on the outer display like any iPhone. Open, the inner display
 // reports a regular-width size class and has a fold down the middle. Baget is iPhone-only and portrait-locked,
@@ -12,6 +13,22 @@ import SwiftUI
 // the DUO_SDK flag only when it builds with that SDK; without it, Baget assumes a centered fold of the standard width.
 
 enum Duo {
+    /// This phone is an iPhone Duo. Its two displays have their own native sizes (outer 1398×2034, inner 2007×2853
+    /// pixels), unlike any other iPhone. Used for the few things that are about the device rather than the space
+    /// (the brand bar, bar buttons); layout itself goes by size class and the fold. Set by detect() at launch.
+    nonisolated(unsafe) private(set) static var isDuo = false
+
+    @MainActor @discardableResult static func detect() -> Bool {
+        let screens = UIApplication.shared.connectedScenes.compactMap { ($0 as? UIWindowScene)?.screen }
+        let sizes: [(CGFloat, CGFloat)] = [(1398, 2034), (2007, 2853)]
+        isDuo = screens.contains { s in
+            let n = s.nativeBounds.size
+            let (a, b) = (min(n.width, n.height), max(n.width, n.height))
+            return sizes.contains { $0.0 == a && $0.1 == b }
+        }
+        return isDuo
+    }
+
     /// The fold's frame is 40 pt wide (margins included). A little extra keeps tile edges off it.
     static let foldGap: CGFloat = 44
 
@@ -106,16 +123,6 @@ struct FoldRow<Leading: View, Trailing: View>: View {
 }
 
 extension View {
-    /// Keeps this screen's bars horizontal on the Duo. Baget's sheets use short text buttons (Done, Cancel, Close),
-    /// which stay horizontal anyway and would otherwise leave an empty strip down the side of the inner display.
-    @ViewBuilder func duoHorizontalBars() -> some View {
-        #if DUO_SDK && !targetEnvironment(macCatalyst)
-        if #available(iOS 27.1, *) { self.toolbarVerticalBehavior(.disabled) } else { self }
-        #else
-        self
-        #endif
-    }
-
     /// Keeps a full-width card at a sensible size on the Duo's inner display (unchanged on a regular phone).
     func duoCardWidth(_ max: CGFloat = 520) -> some View { modifier(DuoCardWidth(max: max)) }
 }
@@ -125,5 +132,24 @@ private struct DuoCardWidth: ViewModifier {
     @Environment(\.horizontalSizeClass) private var hSize
     func body(content: Content) -> some View {
         content.frame(maxWidth: hSize == .regular ? max : .infinity)
+    }
+}
+
+/// Bar buttons (Done, Cancel, Close). Text on a regular iPhone, as always. On the Duo, title and symbol, so the bar
+/// can move to the side of the inner display and show the symbol there (a text-only item can't).
+struct DuoBarLabel: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        if Duo.isDuo { Label { configuration.title } icon: { configuration.icon } }
+        else { configuration.title }
+    }
+}
+
+/// The app's window is wider than it is tall. Baget is portrait-locked on every other iPhone, so this only happens on
+/// the Duo's inner display turned on its side. RootView sets it from the window's size.
+private struct DuoWideKey: EnvironmentKey { static let defaultValue = false }
+extension EnvironmentValues {
+    var duoWide: Bool {
+        get { self[DuoWideKey.self] }
+        set { self[DuoWideKey.self] = newValue }
     }
 }

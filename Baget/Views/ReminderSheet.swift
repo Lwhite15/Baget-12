@@ -108,7 +108,7 @@ struct ReminderSheet: View {
             }
             .navigationTitle("Remind me")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }.duoHorizontalBars()
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close", systemImage: "xmark") { dismiss() }.labelStyle(DuoBarLabel()) } }
             .onAppear {
                 let start = current?.offsetMinutes == nil ? current?.remindAt : nil
                 custom = start ?? max(Date.now.addingTimeInterval(3600), drop.addingTimeInterval(-3600))

@@ -13,12 +13,16 @@ struct SwipeDeckView: View {
     @State private var passed = 0
     @State private var watchStamp = false
     @State private var busy = false
+    /// The Duo's inner display turned on its side: card and buttons side by side, so the buttons stay on screen.
+    @Environment(\.duoWide) private var wide
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
                 if index < ids.count, let f = store.state.finds.first(where: { $0.id == ids[index] }), let item = Catalog.item(f.itemID) {
                     Text("\(index + 1) of \(ids.count)").font(.caption.monospacedDigit()).foregroundStyle(Theme.muted)
+                    let layout = wide ? AnyLayout(HStackLayout(alignment: .center, spacing: 24)) : AnyLayout(VStackLayout(spacing: 16))
+                    layout {
                     ZStack {
                         if index + 1 < ids.count, let next = store.state.finds.first(where: { $0.id == ids[index + 1] }), let ni = Catalog.item(next.itemID) {
                             card(next, ni).scaleEffect(0.95).offset(y: 14).opacity(0.6).allowsHitTesting(false)
@@ -38,8 +42,9 @@ struct SwipeDeckView: View {
                                     }
                             )
                     }
-                    .duoCardWidth()
-                    buttons(f, item)
+                    .duoCardWidth(wide ? 440 : 520)
+                    if wide { buttonColumn(f, item) } else { buttons(f, item) }
+                    }
                 } else {
                     done
                 }
@@ -49,7 +54,7 @@ struct SwipeDeckView: View {
             .background(LitBackground())
             .navigationTitle("Swipe")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }.duoHorizontalBars()
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done", systemImage: "checkmark") { dismiss() }.labelStyle(DuoBarLabel()) } }
             .onAppear { if ids.isEmpty { ids = store.swipeQueue.map(\.id) } }
         }
     }
@@ -86,7 +91,7 @@ struct SwipeDeckView: View {
     private func card(_ f: Find, _ item: Item) -> some View {
         let agent = store.agent(f.agentID)
         return VStack(alignment: .leading, spacing: 10) {
-            Plate(item: item, label: store.whenLabel(item), live: store.isLive(item), height: 280)
+            Plate(item: item, label: store.whenLabel(item), live: store.isLive(item), height: wide ? 170 : 280)
             HStack(spacing: 6) {
                 if let a = agent { AgentAvatarView(agent: a, size: 22); Text(a.name).font(.caption.weight(.semibold)).foregroundStyle(Theme.muted) }
                 Spacer()
@@ -95,7 +100,7 @@ struct SwipeDeckView: View {
             Text(item.title).font(.title3.weight(.heavy)).foregroundStyle(Theme.ink).lineLimit(3)
             Text([item.source, item.priceKnown && item.price > 0 ? item.priceLabel : String(localized: "Price at store")].joined(separator: " · "))
                 .font(.subheadline).foregroundStyle(Theme.muted)
-            if AboutBlock.has(item) { AboutBlock(item: item, lines: 3) }
+            if AboutBlock.has(item) { AboutBlock(item: item, lines: wide ? 2 : 3) }
             if let v = DealVerdict.of(item) { VerdictChip(verdict: v, showDetail: true) }
             if let why = f.why.first { Text(why).font(.footnote).foregroundStyle(Theme.green.opacity(0.9)).lineLimit(3) }
         }
@@ -112,6 +117,15 @@ struct SwipeDeckView: View {
         } trailing: {
             round(f.watching ? "eye.fill" : "eye", Theme.warn, f.watching ? String(localized: "Watching") : String(localized: "Watch")) { act(.watch, f, item) }
             round("heart.fill", Theme.green, String(localized: "Like"), big: true) { act(.like, f, item) }
+        }
+    }
+
+    private func buttonColumn(_ f: Find, _ item: Item) -> some View {
+        VStack(spacing: 14) {
+            round("heart.fill", Theme.green, String(localized: "Like"), big: true) { act(.like, f, item) }
+            round("xmark", Theme.hot, String(localized: "Pass")) { act(.pass, f, item) }
+            if BuyLink.url(item) != nil { round("arrow.up.right", Theme.accent, String(localized: "Buy")) { act(.buy, f, item) } }
+            round(f.watching ? "eye.fill" : "eye", Theme.warn, f.watching ? String(localized: "Watching") : String(localized: "Watch")) { act(.watch, f, item) }
         }
     }
 

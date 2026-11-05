@@ -21,9 +21,8 @@ struct InboxView: View {
             .background(LitBackground())
             .navigationTitle("Notifications")
             .navigationBarTitleDisplayMode(.inline)
-            .duoHorizontalBars()
             .toolbar {
-                ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) { Button("Done", systemImage: "checkmark") { dismiss() }.labelStyle(DuoBarLabel()) }
                 if tab == 0 && store.unreadCount > 0 {
                     ToolbarItem(placement: .topBarLeading) {
                         Button("Mark all read") {
@@ -229,7 +228,7 @@ struct CustomizeBarView: View {
             .background(LitBackground())
             .navigationTitle("Customize your bar")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }.duoHorizontalBars()
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done", systemImage: "checkmark") { dismiss() }.labelStyle(DuoBarLabel()) } }
         }
     }
 

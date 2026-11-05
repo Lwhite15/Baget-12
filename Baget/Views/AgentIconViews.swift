@@ -178,9 +178,8 @@ struct AgentIconView: View {
             .background(LitBackground())
             .navigationTitle("Scout icon")
             .navigationBarTitleDisplayMode(.inline)
-            .duoHorizontalBars()
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel", systemImage: "xmark") { dismiss() }.labelStyle(DuoBarLabel()) }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         // Photo style with no photo at all falls back to initials.

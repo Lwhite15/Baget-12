@@ -392,7 +392,7 @@ struct ForYouScreen: View {
             .background(LitBackground())
             .navigationTitle("For You")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }.duoHorizontalBars()
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done", systemImage: "checkmark") { dismiss() }.labelStyle(DuoBarLabel()) } }
         }
     }
 }

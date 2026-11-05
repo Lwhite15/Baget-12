@@ -91,9 +91,8 @@ struct TastePhotoView: View {
             .background(LitBackground())
             .navigationTitle("Teach with a photo")
             .navigationBarTitleDisplayMode(.inline)
-            .duoHorizontalBars()
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel", systemImage: "xmark") { dismiss() }.labelStyle(DuoBarLabel()) }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(kept.isEmpty ? String(localized: "Teach") : "Teach \(kept.count)") { teach() }
                         .bold().disabled(kept.isEmpty || image == nil)

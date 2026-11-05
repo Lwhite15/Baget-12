@@ -143,9 +143,8 @@ struct DeployAgentView: View {
             .background(LitBackground())
             .navigationTitle("Set up a new scout")
             .navigationBarTitleDisplayMode(.inline)
-            .duoHorizontalBars()
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel", systemImage: "xmark") { dismiss() }.labelStyle(DuoBarLabel()) }
                 ToolbarItem(placement: .confirmationAction) { Button("Deploy") { deploy() }.bold() }
             }
             .onAppear(perform: applyPrefill)

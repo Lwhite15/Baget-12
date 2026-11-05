@@ -197,7 +197,7 @@ struct EmailSignInView: View {
             }
             .navigationTitle(creating ? String(localized: "Create account") : String(localized: "Sign in with email"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }.duoHorizontalBars()
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel", systemImage: "xmark") { dismiss() }.labelStyle(DuoBarLabel()) } }
             .onChange(of: creating) { error = nil }
         }
     }
@@ -323,7 +323,7 @@ struct ChatView: View {
             .background(LitBackground())
             .navigationTitle(a?.name ?? String(localized: "Scout"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }.duoHorizontalBars()
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done", systemImage: "checkmark") { dismiss() }.labelStyle(DuoBarLabel()) } }
         }
     }
 

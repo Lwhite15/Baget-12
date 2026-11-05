@@ -8,6 +8,9 @@ struct RootView: View {
     @AppStorage("baget.howToSeen") private var howToSeen = false
     @State private var showHowTo = false
     @State private var sizeText = ""
+    /// iPhone Duo, and whether its window is wider than tall (the inner display turned on its side).
+    @State private var duo = false
+    @State private var wide = false
     /// Setup is on screen (kept open until it's finished, see the cover below).
     @State private var setupOpen = false
     #if DEBUG
@@ -29,6 +32,9 @@ struct RootView: View {
                 .badge(store.state.suggestions.filter { $0.status == .new }.count)
         }
         .tint(Theme.accent)
+        .environment(\.duoWide, wide)
+        .onGeometryChange(for: Bool.self) { $0.size.width > $0.size.height } action: { wide = $0 }
+        .onAppear { duo = Duo.detect() }
         .overlay(alignment: .top) { bannerView }
         .overlay(alignment: .bottom) { toastView }
         .sheet(item: $router.sheet) { sheet in
@@ -60,6 +66,7 @@ struct RootView: View {
             }
             .environment(store)
             .environment(router)
+            .environment(\.duoWide, wide)
             .preferredColorScheme(.dark)
             .presentationBackground(Theme.panel)
         }
@@ -160,42 +167,40 @@ struct RootView: View {
             }
             // No large-title band: each screen has its own heading, so content starts right under the bar.
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button { router.sheet = .profile } label: { AvatarView(size: 30) }
-                        .accessibilityLabel("You: icon, settings and account")
-                }
-                // The name sits in the middle; on iOS 26 a leading text item gets squeezed into a glass bubble.
-                ToolbarItem(placement: .principal) {
-                    HStack(spacing: 0) {
-                        AppIcon(size: 26).padding(.trailing, 8)
-                        Text("Baget").foregroundStyle(Theme.ink)
-                        Text(".").gradientText()
-                    }
-                    .font(.system(size: 22, weight: .heavy))
-                    .tracking(-0.8)
-                    .fixedSize()
-                    .accessibilityAddTraits(.isHeader)
-                }
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button { router.sheet = .inbox } label: {
-                        Image(systemName: "bell.fill")
-                            .foregroundStyle(Theme.ink)
-                            .overlay(alignment: .topTrailing) {
-                                if store.unreadCount > 0 {
-                                    Text(store.unreadCount > 9 ? "9+" : "\(store.unreadCount)")
-                                        .font(.system(size: 9, weight: .bold)).foregroundStyle(.white)
-                                        .padding(3).background(Circle().fill(Theme.hot)).offset(x: 9, y: -8)
-                                }
-                            }
-                    }
-                    .accessibilityLabel("Notifications, \(store.unreadCount) unread")
-                }
-            }
-            .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
-            // The brand bar (avatar, name, bell) is custom views, which stay horizontal on the Duo anyway.
-            .duoHorizontalBars()
+            .modifier(BrandBar(duo: duo, avatar: avatarButton, brand: brandMark, bell: bellButton))
         }
+    }
+
+    private var avatarButton: some View {
+        Button { router.sheet = .profile } label: { AvatarView(size: 30) }
+            .accessibilityLabel("You: icon, settings and account")
+    }
+
+    private var brandMark: some View {
+        HStack(spacing: 0) {
+            AppIcon(size: 26).padding(.trailing, 8)
+            Text("Baget").foregroundStyle(Theme.ink)
+            Text(".").gradientText()
+        }
+        .font(.system(size: 22, weight: .heavy))
+        .tracking(-0.8)
+        .fixedSize()
+        .accessibilityAddTraits(.isHeader)
+    }
+
+    private var bellButton: some View {
+        Button { router.sheet = .inbox } label: {
+            Image(systemName: "bell.fill")
+                .foregroundStyle(Theme.ink)
+                .overlay(alignment: .topTrailing) {
+                    if store.unreadCount > 0 {
+                        Text(store.unreadCount > 9 ? "9+" : "\(store.unreadCount)")
+                            .font(.system(size: 9, weight: .bold)).foregroundStyle(.white)
+                            .padding(3).background(Circle().fill(Theme.hot)).offset(x: 9, y: -8)
+                    }
+                }
+        }
+        .accessibilityLabel("Notifications, \(store.unreadCount) unread")
     }
 
 
@@ -292,6 +297,44 @@ struct NoteIcon: View {
             AgentAvatarView(agent: a, size: 36)
         } else {
             AppIcon()
+        }
+    }
+}
+
+/// The bar along the top of each tab: your icon, the Baget mark and the bell. On a regular iPhone it's the navigation
+/// bar. On the iPhone Duo, iOS puts the navigation bar in the status bar's row, right up against the clock, so Baget
+/// draws the same bar itself just below the status bar instead.
+private struct BrandBar<A: View, B: View, C: View>: ViewModifier {
+    let duo: Bool
+    let avatar: A
+    let brand: B
+    let bell: C
+
+    func body(content: Content) -> some View {
+        if duo {
+            content
+                .toolbar(.hidden, for: .navigationBar)
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    HStack {
+                        avatar.buttonStyle(.plain)
+                        Spacer(minLength: 8)
+                        brand
+                        Spacer(minLength: 8)
+                        bell.buttonStyle(.plain).font(.system(size: 19)).frame(width: 44, height: 44)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 6)
+                    .background(.ultraThinMaterial)
+                }
+        } else {
+            content
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) { avatar }
+                    // The name sits in the middle; on iOS 26 a leading text item gets squeezed into a glass bubble.
+                    ToolbarItem(placement: .principal) { brand }
+                    ToolbarItemGroup(placement: .topBarTrailing) { bell }
+                }
+                .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
         }
     }
 }

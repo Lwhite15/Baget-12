@@ -885,9 +885,8 @@ struct ShareView: View {
             .background(LitBackground())
             .navigationTitle(isSuggestion ? String(localized: "Suggest") : String(localized: "Share"))
             .navigationBarTitleDisplayMode(.inline)
-            .duoHorizontalBars()
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel", systemImage: "xmark") { dismiss() }.labelStyle(DuoBarLabel()) }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Send") {
                         store.share(itemID: itemID, to: Array(picked), note: note.trimmingCharacters(in: .whitespaces), isSuggestion: isSuggestion)
@@ -936,7 +935,7 @@ struct SuggestForView: View {
             .background(LitBackground())
             .navigationTitle("Suggest something")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }.duoHorizontalBars()
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel", systemImage: "xmark") { dismiss() }.labelStyle(DuoBarLabel()) } }
         }
     }
 }

@@ -84,7 +84,7 @@ struct ProfileView: View {
             .background(LitBackground())
             .navigationTitle("You")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }.duoHorizontalBars()
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done", systemImage: "checkmark") { dismiss() }.labelStyle(DuoBarLabel()) } }
             .onAppear {
                 editing = store.state.avatar.style
                 name = store.state.profile?.displayName ?? ""
