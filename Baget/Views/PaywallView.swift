@@ -35,7 +35,7 @@ struct PaywallView: View {
                 .padding(20)
             }
             .background(LitBackground())
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }.duoHorizontalBars()
         }
         .task { await store.loadProProducts() }
         .onChange(of: store.isPro) { _, pro in if pro { router.say(String(localized: "You're Pro. Your scouts hunt around the clock now.")); dismiss() } }

@@ -21,7 +21,7 @@ struct TasteView: View {
             .background(LitBackground())
             .navigationTitle("What Baget knows")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }.duoHorizontalBars()
         }
     }
 
@@ -660,7 +660,7 @@ private struct OwnWordsEditor: View {
             .padding(16)
             .navigationTitle("In your own words")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() }.bold() } }
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() }.bold() } }.duoHorizontalBars()
             .onChange(of: text) { _, t in if t.count > 1200 { text = String(t.prefix(1200)) } }
             .onAppear { focused = true }
         }

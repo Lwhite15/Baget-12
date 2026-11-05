@@ -38,6 +38,7 @@ struct SwipeDeckView: View {
                                     }
                             )
                     }
+                    .duoCardWidth()
                     buttons(f, item)
                 } else {
                     done
@@ -48,7 +49,7 @@ struct SwipeDeckView: View {
             .background(LitBackground())
             .navigationTitle("Swipe")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }.duoHorizontalBars()
             .onAppear { if ids.isEmpty { ids = store.swipeQueue.map(\.id) } }
         }
     }
@@ -105,9 +106,10 @@ struct SwipeDeckView: View {
     }
 
     private func buttons(_ f: Find, _ item: Item) -> some View {
-        HStack(spacing: 18) {
+        FoldRow(spacing: 18) {
             round("xmark", Theme.hot, String(localized: "Pass")) { act(.pass, f, item) }
             if BuyLink.url(item) != nil { round("arrow.up.right", Theme.accent, String(localized: "Buy")) { act(.buy, f, item) } }
+        } trailing: {
             round(f.watching ? "eye.fill" : "eye", Theme.warn, f.watching ? String(localized: "Watching") : String(localized: "Watch")) { act(.watch, f, item) }
             round("heart.fill", Theme.green, String(localized: "Like"), big: true) { act(.like, f, item) }
         }

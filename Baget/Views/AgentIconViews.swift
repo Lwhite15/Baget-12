@@ -178,6 +178,7 @@ struct AgentIconView: View {
             .background(LitBackground())
             .navigationTitle("Scout icon")
             .navigationBarTitleDisplayMode(.inline)
+            .duoHorizontalBars()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {

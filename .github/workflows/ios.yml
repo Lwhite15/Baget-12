@@ -11,7 +11,7 @@ on:
   # Mac minutes cost about 10x Linux minutes, so only app changes trigger a build.
   push:
     branches: [main]
-    paths: ["Baget/**", "BagetNotify/**", "project.yml"]
+    paths: ["Baget/**", "BagetNotify/**", "project.yml", "scripts/use-xcode.sh", ".github/workflows/ios.yml"]
   workflow_dispatch:
     inputs:
       upload:
@@ -21,16 +21,11 @@ on:
 
 jobs:
   check:
-    runs-on: macos-26
+    runs-on: xcode-27
     steps:
       - uses: actions/checkout@v5
-      - name: Use Xcode 26
-        run: |
-          X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | grep -v -i beta | sort -V | tail -1)
-          [ -z "$X" ] && X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
-          if [ -z "$X" ]; then echo "::error::No Xcode 26 on this runner"; ls -d /Applications/Xcode*; exit 1; fi
-          sudo xcode-select -s "$X"
-          echo "::notice::Using $(xcodebuild -version | tr '\n' ' ')"
+      - name: Use Xcode 27 (iOS 27.1 SDK for iPhone Duo)
+        run: bash scripts/use-xcode.sh
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate project
@@ -42,7 +37,7 @@ jobs:
             -project Baget.xcodeproj -scheme Baget -configuration Debug \
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build \
-            CODE_SIGNING_ALLOWED=NO | tee build.log | grep -E "error:|warning: unre|BUILD (SUCCEEDED|FAILED)" || true
+            CODE_SIGNING_ALLOWED=NO BAGET_DUO_FLAG="$BAGET_DUO_FLAG" | tee build.log | grep -E "error:|warning: unre|BUILD (SUCCEEDED|FAILED)" || true
           # Surface compile errors as annotations, readable from the API without downloading logs.
           { grep -E "^/.*: error: " build.log || true; } | sed -E 's#^.*/Baget/##' | sort -u | head -40 | while IFS= read -r line; do echo "::error::$line"; done
           echo "::notice::$(grep -cE ': warning: ' build.log || true) compiler warnings; $(grep -c 'BUILD SUCCEEDED' build.log || true) BUILD SUCCEEDED"
@@ -94,6 +89,39 @@ jobs:
           xcrun simctl launch "$UDID" "$BUNDLE" -BagetPaywallShot
           sleep 8
           xcrun simctl io "$UDID" screenshot "$RUNNER_TEMP/paywall.png" && echo "::notice::Paywall screenshot taken"
+      - name: iPhone Duo launch test and screenshots
+        # Runs Baget's launch test on the iPhone Duo simulator (when the runner has one) and takes a screenshot of
+        # each display. Informational: it never blocks the build.
+        continue-on-error: true
+        run: |
+          mkdir -p "$RUNNER_TEMP/duo"
+          APP=$(ls -d build/Build/Products/Debug-iphonesimulator/Baget.app | head -1)
+          BUNDLE=$(/usr/libexec/PlistBuddy -c "Print CFBundleIdentifier" "$APP/Info.plist")
+          UDID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; print(next((x["udid"] for k,v in d.items() if "iOS" in k for x in v if "Duo" in x["name"]), ""))')
+          if [ -z "$UDID" ]; then
+            T=$(xcrun simctl list devicetypes -j | python3 -c 'import json,sys; print(next((t["identifier"] for t in json.load(sys.stdin)["devicetypes"] if "Duo" in t["name"]), ""))')
+            [ -n "$T" ] && UDID=$(xcrun simctl create "iPhone Duo" "$T" 2>/dev/null || true)
+          fi
+          if [ -z "$UDID" ]; then echo "::warning::No iPhone Duo simulator on this runner; skipped the Duo check"; exit 0; fi
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b >/dev/null
+          xcrun simctl install "$UDID" "$APP"
+          xcrun simctl launch "$UDID" "$BUNDLE" -BagetSmokeTest
+          DATA=$(xcrun simctl get_app_container "$UDID" "$BUNDLE" data)
+          for i in $(seq 1 60); do sleep 2; [ -f "$DATA/Documents/smoke-ok" ] && break; done
+          if [ -f "$DATA/Documents/smoke-ok" ]; then echo "::notice::iPhone Duo: launch test passed"; else echo "::warning::iPhone Duo: launch test didn't finish"; fi
+          xcrun simctl terminate "$UDID" "$BUNDLE" || true
+          xcrun simctl launch "$UDID" "$BUNDLE"
+          sleep 8
+          xcrun simctl io "$UDID" screenshot --type=png --display=primary "$RUNNER_TEMP/duo/outer.png" || true
+          xcrun simctl io "$UDID" screenshot --type=png --display=primary-1 "$RUNNER_TEMP/duo/inner.png" || true
+          echo "::notice::iPhone Duo screenshots: $(ls "$RUNNER_TEMP/duo" | tr '\n' ' ')"
+      - name: Keep the iPhone Duo screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: duo-shots
+          path: ${{ runner.temp }}/duo
+          if-no-files-found: ignore
       - name: Keep the paywall screenshot
         uses: actions/upload-artifact@v4
         with:
@@ -110,7 +138,7 @@ jobs:
   testflight:
     if: github.event_name == 'workflow_dispatch' && inputs.upload
     needs: check
-    runs-on: macos-26
+    runs-on: xcode-27
     env:
       TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       BUNDLE_ID: ${{ secrets.BUNDLE_ID }}
@@ -118,13 +146,8 @@ jobs:
       ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
     steps:
       - uses: actions/checkout@v5
-      - name: Use Xcode 26
-        run: |
-          X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | grep -v -i beta | sort -V | tail -1)
-          [ -z "$X" ] && X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
-          if [ -z "$X" ]; then echo "::error::No Xcode 26 on this runner"; ls -d /Applications/Xcode*; exit 1; fi
-          sudo xcode-select -s "$X"
-          echo "::notice::Using $(xcodebuild -version | tr '\n' ' ')"
+      - name: Use Xcode 27 (iOS 27.1 SDK for iPhone Duo)
+        run: bash scripts/use-xcode.sh
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate project
@@ -162,6 +185,7 @@ jobs:
             -archivePath "$RUNNER_TEMP/Baget.xcarchive" \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
             DEVELOPMENT_TEAM="$TEAM_ID" \
+            BAGET_DUO_FLAG="$BAGET_DUO_FLAG" \
             BAGET_BUNDLE_ID="$BUNDLE_ID" \
             CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
             BAGET_SUPABASE_URL="$SUPABASE_URL" \

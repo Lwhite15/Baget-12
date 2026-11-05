@@ -52,8 +52,10 @@ struct TodayDeck: View {
                         .accessibilityAction(named: "Pass") { act(.pass, f, item) }
                         .accessibilityAction(named: "Buy") { act(.buy, f, item) }
                 }
-                HStack(spacing: 16) {
+                .duoCardWidth()
+                FoldRow(spacing: 16) {
                     round("xmark", Theme.ink, String(localized: "Pass"), filled: false) { act(.pass, f, item) }
+                } trailing: {
                     round("heart.fill", Theme.accentInk, String(localized: "Like"), filled: true, big: true) { act(.like, f, item) }
                     if BuyLink.url(item) != nil {
                         Button { act(.buy, f, item) } label: {

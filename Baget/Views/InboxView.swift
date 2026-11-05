@@ -21,6 +21,7 @@ struct InboxView: View {
             .background(LitBackground())
             .navigationTitle("Notifications")
             .navigationBarTitleDisplayMode(.inline)
+            .duoHorizontalBars()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
                 if tab == 0 && store.unreadCount > 0 {
@@ -228,7 +229,7 @@ struct CustomizeBarView: View {
             .background(LitBackground())
             .navigationTitle("Customize your bar")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }.duoHorizontalBars()
         }
     }
 

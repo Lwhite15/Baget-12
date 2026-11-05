@@ -143,6 +143,7 @@ struct DeployAgentView: View {
             .background(LitBackground())
             .navigationTitle("Set up a new scout")
             .navigationBarTitleDisplayMode(.inline)
+            .duoHorizontalBars()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) { Button("Deploy") { deploy() }.bold() }

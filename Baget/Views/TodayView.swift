@@ -113,7 +113,7 @@ struct TodayView: View {
             if finds.isEmpty {
                 Text("You've been through today's finds. More for you below.").font(.footnote).foregroundStyle(Theme.muted)
             } else {
-                LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
+                FoldGrid(spacing: 10) {
                     ForEach(finds) { f in FindTile(find: f) { router.focusFind = f.id; router.tab = .finds } }
                 }
             }
@@ -255,7 +255,7 @@ struct ForYouSection: View {
 
             if picks.isEmpty {
                 if store.forYouLoadedAt == nil {
-                    LazyVGrid(columns: columns, spacing: 12) {
+                    FoldGrid(spacing: 12) {
                         ForEach(0..<4, id: \.self) { _ in
                             RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Theme.glass).frame(height: 230)
                         }
@@ -264,7 +264,7 @@ struct ForYouSection: View {
                     starter
                 }
             } else {
-                LazyVGrid(columns: columns, spacing: 12) {
+                FoldGrid(spacing: 12) {
                     ForEach(picks) { p in
                         if let item = Catalog.item(p.id) { card(p, item) }
                     }
@@ -317,7 +317,6 @@ struct ForYouSection: View {
         }
     }
 
-    private var columns: [GridItem] { [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)] }
 
     /// The next batch of picks; at the end, a check for new ones right here (no trip back to the top).
     @MainActor private func loadMoreOrCheck() async {

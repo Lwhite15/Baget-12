@@ -17,17 +17,14 @@ permissions:
   contents: write
 jobs:
   walk:
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 60
     env:
       PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
     steps:
       - uses: actions/checkout@v5
-      - name: Use Xcode 26
-        run: |
-          X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | grep -v -i beta | sort -V | tail -1)
-          [ -z "$X" ] && X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
-          sudo xcode-select -s "$X"
+      - name: Use Xcode 27 (iOS 27.1 SDK for iPhone Duo)
+        run: bash scripts/use-xcode.sh
       - name: Build
         env:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
@@ -36,7 +33,7 @@ jobs:
           xcodegen generate
           set -o pipefail
           xcodebuild build-for-testing -project Baget.xcodeproj -scheme BagetQA -configuration Debug \
-            -destination 'generic/platform=iOS Simulator' -derivedDataPath build CODE_SIGNING_ALLOWED=NO \
+            -destination 'generic/platform=iOS Simulator' -derivedDataPath build CODE_SIGNING_ALLOWED=NO BAGET_DUO_FLAG="$BAGET_DUO_FLAG" \
             BAGET_SUPABASE_URL="https://${PROJECT_REF}.supabase.co" BAGET_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" > build.log 2>&1 \
             || { grep -E ": error: " build.log | head -20 | while IFS= read -r l; do echo "::error::$l"; done; exit 1; }
       - name: Walk through the app

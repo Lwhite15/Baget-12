@@ -711,7 +711,7 @@ private struct FriendSheet: View {
                     if !sent.isEmpty {
                         VStack(alignment: .leading, spacing: 10) {
                             label(String(localized: "Recently sent you"))
-                            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                            FoldGrid(spacing: 12) {
                                 ForEach(Array(sent)) { item in ProductThumb(item: item, size: 150) }
                             }
                         }
@@ -885,6 +885,7 @@ struct ShareView: View {
             .background(LitBackground())
             .navigationTitle(isSuggestion ? String(localized: "Suggest") : String(localized: "Share"))
             .navigationBarTitleDisplayMode(.inline)
+            .duoHorizontalBars()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
@@ -935,7 +936,7 @@ struct SuggestForView: View {
             .background(LitBackground())
             .navigationTitle("Suggest something")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }.duoHorizontalBars()
         }
     }
 }

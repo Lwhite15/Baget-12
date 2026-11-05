@@ -55,7 +55,7 @@ struct FeedbackView: View {
             }
             .navigationTitle("Feedback")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }.duoHorizontalBars()
             .onAppear { FeedbackCapture.pending = nil; focused = true }
             .onChange(of: pick) { _, item in
                 Task { @MainActor in

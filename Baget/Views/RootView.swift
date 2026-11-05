@@ -193,6 +193,8 @@ struct RootView: View {
                 }
             }
             .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+            // The brand bar (avatar, name, bell) is custom views, which stay horizontal on the Duo anyway.
+            .duoHorizontalBars()
         }
     }
 

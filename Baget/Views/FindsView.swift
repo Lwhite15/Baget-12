@@ -149,7 +149,7 @@ struct FindsView: View {
                     }
 
                     if grid {
-                        LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
+                        FoldGrid(spacing: 10) {
                             ForEach(flat) { f in FindTile(find: f, alsoAt: alsoAt[f.id] ?? 0) { opened = f.id }.id(f.id) }
                         }
                     } else if grouped {

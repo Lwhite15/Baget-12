@@ -24,6 +24,8 @@ settings:
     # Swift strings (Text, String(localized:)) are extracted into Localizable.xcstrings for translation.
     SWIFT_EMIT_LOC_STRINGS: YES
     LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    # "DUO_SDK" when building with the iOS 27.1 SDK (iPhone Duo fold APIs). The cloud build sets it; see scripts/use-xcode.sh.
+    BAGET_DUO_FLAG: ""
 
 targets:
   Baget:
@@ -41,6 +43,7 @@ targets:
         CODE_SIGN_STYLE: Automatic
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_PREVIEWS: YES
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) $(BAGET_DUO_FLAG)
     entitlements:
       path: Baget/Baget.entitlements
       properties:

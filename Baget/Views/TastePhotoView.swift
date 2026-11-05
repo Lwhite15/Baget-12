@@ -91,6 +91,7 @@ struct TastePhotoView: View {
             .background(LitBackground())
             .navigationTitle("Teach with a photo")
             .navigationBarTitleDisplayMode(.inline)
+            .duoHorizontalBars()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
