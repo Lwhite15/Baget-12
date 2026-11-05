@@ -882,10 +882,12 @@ struct FindDetailView: View {
                         openURL(BuyLink.tracked(item, from: "find") ?? link)
                     }
                 }
+                // Beside a long first button (Notify me when it's back, Buy at <store>), Like takes only the room it needs.
+                let beside = (item.isProduct && store.isSoldOut(item) && !item.isSample) || ReminderSheet.upcoming(item) || link != nil
                 if find.status == .liked {
-                    bigButton("heart.fill", String(localized: "Liked"), primary: false, tint: Theme.hot) { store.unlike(find.id) }
+                    bigButton("heart.fill", String(localized: "Liked"), primary: false, tint: Theme.hot, compact: beside) { store.unlike(find.id) }
                 } else {
-                    bigButton("heart", String(localized: "Like"), primary: link == nil && !ReminderSheet.upcoming(item)) {
+                    bigButton("heart", String(localized: "Like"), primary: link == nil && !ReminderSheet.upcoming(item), compact: beside) {
                         store.like(find.id)
                         router.say(String(localized: "\(agent?.name ?? "Your scout") will find more like this"))
                     }
@@ -908,12 +910,15 @@ struct FindDetailView: View {
         }
     }
 
-    private func bigButton(_ icon: String, _ text: String, primary: Bool, tint: Color? = nil, _ action: @escaping () -> Void) -> some View {
+    /// `compact`: only as wide as its own words, so the button beside it ("Notify me when it's back") has room to show in full.
+    private func bigButton(_ icon: String, _ text: String, primary: Bool, tint: Color? = nil, compact: Bool = false, _ action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Label(text, systemImage: icon).labelStyle(.titleAndIcon)
-                .font(.subheadline.weight(.heavy)).lineLimit(1).minimumScaleFactor(0.8)
+                .font(.subheadline.weight(.heavy)).lineLimit(1).minimumScaleFactor(0.7)
                 .foregroundStyle(primary ? Theme.accentInk : (tint ?? Theme.ink))
-                .frame(maxWidth: .infinity).frame(height: 48)
+                .padding(.horizontal, compact ? 20 : 10)
+                .frame(maxWidth: compact ? nil : .infinity).frame(height: 48)
+                .fixedSize(horizontal: compact, vertical: false)
                 .background { if primary { RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.gradient) } else { RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.glass) } }
                 .overlay { if !primary { RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.line) } }
         }
