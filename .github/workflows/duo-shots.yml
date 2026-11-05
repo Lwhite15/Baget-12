@@ -1,0 +1,103 @@
+# iPhone Duo screenshots: the same screens as "Store screenshots" (screenshots account, real finds), on the iPhone Duo
+# simulator, first closed (outer display) and then opened flat (inner display). The PNGs land on the "duo-shots" branch.
+# Preview only: changes nothing in App Store Connect and uploads no build.
+name: Duo screenshots
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  shots:
+    runs-on: xcode-27
+    env:
+      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      BAGET_CRON_SECRET: ${{ secrets.BAGET_CRON_SECRET }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Use Xcode 27 (iOS 27.1 SDK for iPhone Duo)
+        run: bash scripts/use-xcode.sh
+      - name: Fill the screenshots account
+        run: |
+          pip3 install -q bcrypt --break-system-packages 2>/dev/null || pip3 install -q bcrypt
+          pw=$(python3 -c "import secrets,string; print('Shot-' + ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(20)))")
+          echo "::add-mask::$pw"
+          hash=$(PW="$pw" python3 -c "import bcrypt,os; print(bcrypt.hashpw(os.environ['PW'].encode(), bcrypt.gensalt(10)).decode())")
+          echo "::add-mask::$hash"
+          echo "SHOT_PW=$pw" >> "$GITHUB_ENV"
+          body=$(jq -nc --arg h "$hash" '{shots: {password_hash: $h}}')
+          r=$(curl -sS -m 120 -w ' [HTTP %{http_code}]' -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/sweep" \
+                -H "Content-Type: application/json" -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d "$body")
+          echo "::notice::account: $r"
+          echo "$r" | grep -q 'HTTP 200' || exit 1
+      - name: Build for simulator
+        env:
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          brew install xcodegen >/dev/null
+          xcodegen generate
+          set -o pipefail
+          xcodebuild build -project Baget.xcodeproj -scheme Baget -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' -derivedDataPath build CODE_SIGNING_ALLOWED=NO BAGET_DUO_FLAG="$BAGET_DUO_FLAG" \
+            BAGET_SUPABASE_URL="https://${PROJECT_REF}.supabase.co" BAGET_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" > build.log 2>&1 \
+            || { grep -E ": error: " build.log | head -20 | while IFS= read -r l; do echo "::error::$l"; done; exit 1; }
+      - name: Take the screenshots, closed and open
+        run: |
+          APP=build/Build/Products/Debug-iphonesimulator/Baget.app
+          BUNDLE=$(/usr/libexec/PlistBuddy -c "Print CFBundleIdentifier" "$APP/Info.plist")
+          UDID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; print(next((x["udid"] for k,v in d.items() if "iOS" in k for x in v if "Duo" in x["name"]), ""))')
+          if [ -z "$UDID" ]; then
+            T=$(xcrun simctl list devicetypes -j | python3 -c 'import json,sys; print(next((t["identifier"] for t in json.load(sys.stdin)["devicetypes"] if "Duo" in t["name"]), ""))')
+            [ -n "$T" ] && UDID=$(xcrun simctl create "iPhone Duo" "$T")
+          fi
+          [ -n "$UDID" ] || { echo "::error::No iPhone Duo simulator on this runner"; exit 1; }
+          echo "::notice::Device: $(xcrun simctl list devices | grep "$UDID" | sed 's/^ *//')"
+          brew install artemnovichkov/tap/hinge >/dev/null 2>&1 || echo "::warning::Couldn't install the hinge tool"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b >/dev/null
+          open -a Simulator --args -CurrentDeviceUDID "$UDID" || true
+          sleep 10
+          xcrun simctl ui "$UDID" appearance dark
+          xcrun simctl status_bar "$UDID" override --time "9:41" --dataNetwork wifi --wifiMode active --wifiBars 3 \
+            --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100 || true
+          xcrun simctl install "$UDID" "$APP"
+          xcrun simctl privacy "$UDID" grant all "$BUNDLE" || true
+          mkdir -p shots
+          # One pass per display: outer (closed), then inner (opened flat).
+          for pass in outer inner; do
+            if [ "$pass" = inner ]; then
+              hinge open 2>&1 || hinge 180 2>&1 || echo "::warning::Couldn't open the Duo"
+              sleep 6
+              DISPLAY_ARG=primary-1
+            else
+              hinge close >/dev/null 2>&1 || true
+              DISPLAY_ARG=primary
+            fi
+            xcrun simctl terminate "$UDID" "$BUNDLE" 2>/dev/null || true
+            DATA=$(xcrun simctl get_app_container "$UDID" "$BUNDLE" data)
+            rm -f "$DATA"/Documents/shot-* "$DATA"/Documents/taken-* "$DATA"/Documents/shots-done "$DATA"/Documents/shots-error
+            SIMCTL_CHILD_BAGET_SHOT_EMAIL="screenshots@example.com" SIMCTL_CHILD_BAGET_SHOT_PASSWORD="$SHOT_PW" \
+              xcrun simctl launch "$UDID" "$BUNDLE" -BagetStoreShots
+            for i in $(seq 1 300); do
+              sleep 1
+              [ -f "$DATA/Documents/shots-error" ] && { echo "::error::The app couldn't sign in: $(cut -c1-300 "$DATA/Documents/shots-error")"; exit 1; }
+              [ -f "$DATA/Documents/shots-done" ] && break
+              for f in "$DATA"/Documents/shot-*; do
+                [ -e "$f" ] || continue
+                name=${f##*/shot-}
+                [ -f "$DATA/Documents/taken-$name" ] && continue
+                xcrun simctl io "$UDID" screenshot --type=png --display=$DISPLAY_ARG "shots/$pass-$name.png" >/dev/null 2>&1 \
+                  || xcrun simctl io "$UDID" screenshot --type=png "shots/$pass-$name.png" >/dev/null 2>&1
+                echo "::notice::$pass $name ($(sips -g pixelWidth -g pixelHeight "shots/$pass-$name.png" 2>/dev/null | awk '/pixel/{printf "%s ", $2}'))"
+                touch "$DATA/Documents/taken-$name"
+              done
+            done
+          done
+          ls shots/*.png >/dev/null 2>&1 || { echo "::error::No screenshots taken"; exit 1; }
+      - name: Put them on the duo-shots branch
+        if: always()
+        run: |
+          ls shots/*.png >/dev/null 2>&1 || exit 0
+          cd shots
+          git init -q && git checkout -q -b duo-shots
+          git add -A
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "iPhone Duo screenshots"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" HEAD:duo-shots
