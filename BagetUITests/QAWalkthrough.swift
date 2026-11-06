@@ -163,47 +163,40 @@ final class QAWalkthrough: XCTestCase {
             tap("Start exploring", timeout: 3)
         } else { note("MISSING how-to after setup") }
 
-        // Today.
+        // Today: the morning drop as swipe cards.
         snap("today", wait: 4)
-        app.swipeUp(); snap("today-scroll-1", wait: 2)
-        app.swipeUp(); snap("today-scroll-2", wait: 2)
-        app.swipeUp(); snap("today-scroll-3", wait: 2)
-        // The drop as swipe cards (the default): swipe one right, then look at the list view and back.
-        let counter = app.staticTexts.matching(NSPredicate(format: "label MATCHES %@", "^1 of [0-9]+$")).firstMatch
-        if counter.waitForExistence(timeout: 3) {
-            note("deck: \(counter.label)")
-            let card = counter.frame
-            let start = app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: app.frame.midX - 60, dy: card.minY - 120))
-            start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 260, dy: 0)))
-            snap("today-swiped", wait: 1.2)
-            let next = app.staticTexts.matching(NSPredicate(format: "label MATCHES %@", "^2 of [0-9]+$")).firstMatch
-            note(next.exists ? "swiped right: now \(next.label)" : "PROBLEM: swiping the card didn't move to the next one")
-            if tap("List", timeout: 2) { snap("today-list", wait: 1.5); _ = tap("Swipe cards", timeout: 2) }
-        } else { note("no swipe deck on Today (empty drop, or list view)") }
-        // Today is the morning drop: a progress line, each scout's picks, and an end card. Nothing endless.
-        let dropLine = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Today's drop")).firstMatch
-        note(dropLine.exists ? "drop: \(dropLine.label)" : "no drop line yet (no finds in the drop)")
-        let bottomStart = Date()
-        let end = NSPredicate(format: "label == %@ OR label ENDSWITH %@ OR label == %@", "That's today's drop", "left in today's drop", "Your next drop is on its way")
-        var swipes = 0
-        while swipes < 25, !(app.staticTexts.matching(end).firstMatch.exists && app.staticTexts.matching(end).firstMatch.isHittable) {
-            app.swipeUp(velocity: .fast); swipes += 1
+        let counterOf = { (n: Int) in app.staticTexts.matching(NSPredicate(format: "label MATCHES %@", "^\(n) of [0-9]+$")).firstMatch }
+        let swipe = { (dx: CGFloat, dy: CGFloat) in
+            let mid = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45))
+            mid.press(forDuration: 0.05, thenDragTo: mid.withOffset(CGVector(dx: dx, dy: dy)))
         }
-        timed("scroll to the end of Today (\(swipes) swipes)", bottomStart)
-        if app.staticTexts.matching(end).firstMatch.exists {
-            note("end card: \(app.staticTexts.matching(end).firstMatch.label)")
-            snap("today-end", wait: 1)
-        } else { note("PROBLEM: no end card on Today") }
+        if counterOf(1).waitForExistence(timeout: 4) {
+            note("deck: \(counterOf(1).label)")
+            swipe(260, 0); snap("today-swiped-right", wait: 1.2)
+            note(counterOf(2).exists ? "swiped right: now \(counterOf(2).label)" : "PROBLEM: swiping right didn't move to the next card")
+            swipe(0, -300); snap("today-swiped-up", wait: 1.2)
+            note(counterOf(3).exists ? "swiped up: now \(counterOf(3).label)" : "PROBLEM: swiping up didn't move to the next card")
+            if tap("List", timeout: 2) { snap("today-list", wait: 1.5); app.swipeUp(); snap("today-list-scroll", wait: 1.2); _ = tap("Swipe cards", timeout: 2) }
+            // Finish the drop: pass the rest, then the finish card, then Keep swiping.
+            let finished = app.staticTexts["You finished today's drop"]
+            var passes = 0
+            while passes < 30 && !finished.exists { swipe(-260, 0); passes += 1; Thread.sleep(forTimeInterval: 0.4) }
+            if finished.waitForExistence(timeout: 3) {
+                note("finished the drop after \(passes) more swipes")
+                snap("today-finished", wait: 1)
+                if tapContaining("Keep swiping") {
+                    snap("keep-swiping", wait: 2.5)
+                    let mode = app.staticTexts["KEEP SWIPING"]
+                    note(mode.exists ? "keep swiping deck is showing" : "PROBLEM: Keep swiping didn't start")
+                    swipe(260, 0); snap("keep-swiping-liked", wait: 1.5)
+                    swipe(-260, 0); snap("keep-swiping-passed", wait: 1.2)
+                } else { note("MISSING Keep swiping button") }
+            } else { note("PROBLEM: no finish card after the drop") }
+        } else {
+            note("no swipe deck on Today (no drop yet)")
+            snap("today-no-drop", wait: 1)
+        }
         if app.staticTexts["Load more picks"].exists || app.buttons["Load more picks"].exists { note("PROBLEM: the old endless feed is still on Today") }
-        // Re-tapping the Today tab goes back to the top.
-        tap("Today", timeout: 2); snap("today-back-top", wait: 1.5)
-        // Send a new scout: the button opens its sheet.
-        if tap("Send a new scout", timeout: 3) {
-            snap("new-scout-sheet", wait: 2)
-            if tap("Hunting one specific thing?", timeout: 3) { snap("new-scout-specific", wait: 1) } else { note("MISSING specific hunt option") }
-            closeSheet()
-        } else { note("MISSING Send a new scout") }
-        if tap("See all", timeout: 2) { snap("for-you-all", wait: 3); tap("Done", timeout: 2) }
 
         // Finds.
         tap("Finds"); snap("finds", wait: 3)
@@ -234,9 +227,20 @@ final class QAWalkthrough: XCTestCase {
             } else { note("MISSING Not my size (this find may not be clothing or shoes)"); closeSheet() }
         }
 
-        // Squad.
-        tap("Squad"); snap("squad", wait: 3)
-        app.swipeUp(); snap("squad-scroll", wait: 1.5)
+        // Scouts: build a scout, live scout cards, and Tune.
+        tap("Scouts"); snap("scouts", wait: 3)
+        if tap("Build a scout", timeout: 3) {
+            snap("new-scout-sheet", wait: 2)
+            if tap("Hunting one specific thing?", timeout: 3) { snap("new-scout-specific", wait: 1) } else { note("MISSING specific hunt option") }
+            closeSheet()
+        } else { note("MISSING Build a scout") }
+        if tap("Tune", timeout: 3) {
+            snap("tune", wait: 2)
+            app.swipeUp(); snap("tune-scroll", wait: 1.2)
+            app.swipeUp(); snap("tune-scroll-2", wait: 1.2)
+            _ = tap("Done", timeout: 2)
+        } else { note("MISSING Tune on a scout") }
+        app.swipeUp(); snap("scouts-scroll", wait: 1.5)
         app.swipeDown()
 
         // Friends.
@@ -254,7 +258,7 @@ final class QAWalkthrough: XCTestCase {
         closeSheet()
 
         // Pro.
-        tap("Squad")
+        tap("Scouts")
         if tapContaining("Go Pro") || tapContaining("Pro") { snap("paywall", wait: 3); app.swipeUp(); snap("paywall-scroll", wait: 1.5); closeSheet() }
 
         // A second look at Today/Finds after a few more minutes of hunting.
