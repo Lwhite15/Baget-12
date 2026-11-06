@@ -360,7 +360,7 @@ enum NoteGroup: String, Codable, CaseIterable, Identifiable {
 extension NoteKind {
     var group: NoteGroup? {
         switch self {
-        case .release, .available, .reminder: return .finds
+        case .release, .available, .reminder, .dated: return .finds
         case .watch, .restock: return .restocks
         case .steal, .drop: return .steals
         case .digest: return .finds

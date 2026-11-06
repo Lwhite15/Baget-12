@@ -100,6 +100,8 @@ enum ActiveSheet: Identifiable, Hashable {
     case tastePhoto(String)
     case chat(String)
     case agentIcon(String)
+    /// Tune a scout: what it hunts, skips, size, budget, and its settings.
+    case tune(String)
     case swipe, taste
     case ask(String)
     case pro
@@ -118,6 +120,7 @@ enum ActiveSheet: Identifiable, Hashable {
         case .tastePhoto(let a): return "photo-\(a)"
         case .chat(let a): return "chat-\(a)"
         case .agentIcon(let a): return "icon-\(a)"
+        case .tune(let a): return "tune-\(a)"
         case .swipe: return "swipe"
         case .taste: return "taste"
         case .ask(let f): return "ask-\(f)"

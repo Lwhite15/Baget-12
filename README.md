@@ -1,6 +1,6 @@
 # Baget
 
-Your own personal squad of AI agents that learns your taste and makes recommendations for you to purchase.
+Your own personal AI scouts that learn your taste, watch prices and release dates, and bring you a daily drop of finds to swipe.
 A native iPhone app (SwiftUI, iOS 17+) with a Supabase backend where the agents search the real web with Claude.
 
 ## What's in here

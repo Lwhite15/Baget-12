@@ -482,7 +482,7 @@ struct TodayView: View {
                 ForEach(store.state.agents.prefix(4)) { a in AgentAvatarView(agent: a, size: 30).overlay(Circle().strokeBorder(Theme.bg, lineWidth: 2)) }
             }
             VStack(alignment: .leading, spacing: 2) {
-                Text("Your squad's first hunt is on").font(.subheadline.weight(.bold)).foregroundStyle(Theme.ink)
+                Text("Your scouts' first hunt is on").font(.subheadline.weight(.bold)).foregroundStyle(Theme.ink)
                 Text("Finds usually land within a few minutes. Pull down to check.").font(.caption).foregroundStyle(Theme.muted)
             }
             Spacer(minLength: 0)

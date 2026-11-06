@@ -279,10 +279,11 @@ enum FriendVoice {
         case (.learned, .straight): return String(localized: "Profile updated: added \(extra).")
 
         case (.friend, _): return extra
-        case (.digest, _): return extra.isEmpty ? String(localized: "Today's Drop is ready: your squad's best picks.") : extra
+        case (.digest, _): return extra.isEmpty ? String(localized: "Today's Drop is ready: your scouts' best picks.") : extra
         case (.drop, _): return String(localized: "Price drop: the \(t) is now \(price) at \(src).")
         case (.feedback, _): return extra
         case (.reminder, _): return String(localized: "Reminder: the \(t) releases \(when) at \(src).")
+        case (.dated, _): return String(localized: "Release date: the \(t) drops \(when).")
         }
     }
 

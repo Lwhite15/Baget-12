@@ -190,8 +190,8 @@ struct SwipeDeckView: View {
             Spacer(minLength: 40)
             Image(systemName: "checkmark.seal.fill").font(.system(size: 54)).foregroundStyle(Theme.green)
             Text(ids.isEmpty ? String(localized: "No new finds right now") : String(localized: "All caught up")).font(.title2.weight(.heavy)).foregroundStyle(Theme.ink)
-            Text(ids.isEmpty ? String(localized: "Your squad keeps hunting in the background and will text you.") :
-                    String(localized: "\(liked) liked, \(passed) passed. Your squad just got sharper; their next search uses it."))
+            Text(ids.isEmpty ? String(localized: "Your scouts keep hunting in the background and will text you.") :
+                    String(localized: "\(liked) liked, \(passed) passed. Your scouts just got sharper; their next search uses it."))
                 .font(.subheadline).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
             Button("Back to Today") { dismiss() }.buttonStyle(PrimaryButton()).frame(maxWidth: 240)
         }

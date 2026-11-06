@@ -27,7 +27,7 @@ struct RootView: View {
             screen(TodayView()).tabItem { Label("Today", systemImage: "sun.max.fill") }.tag(AppTab.live)
             screen(FindsView()).tabItem { Label("Finds", systemImage: "sparkles") }.tag(AppTab.finds)
                 .badge(store.state.finds.filter { $0.status == .open }.count)
-            screen(SquadView()).tabItem { Label("Squad", systemImage: "person.3.fill") }.tag(AppTab.squad)
+            screen(SquadView()).tabItem { Label("Scouts", systemImage: "binoculars.fill") }.tag(AppTab.squad)
             screen(FriendsView()).tabItem { Label("Friends", systemImage: "heart.circle.fill") }.tag(AppTab.friends)
                 .badge(store.state.suggestions.filter { $0.status == .new }.count)
         }
@@ -50,6 +50,7 @@ struct RootView: View {
                 case .tastePhoto(let aid): TastePhotoView(agentID: aid)
                 case .chat(let aid): ChatView(agentID: aid)
                 case .agentIcon(let aid): AgentIconView(agentID: aid)
+                case .tune(let aid): TuneScoutView(agentID: aid)
                 case .swipe: SwipeDeckView()
                 case .taste: TasteView()
                 case .pro: PaywallView()
@@ -121,7 +122,7 @@ struct RootView: View {
             Text("It'll only bring you things that come in your size. You can change it any time.")
         }
         // First run after signing in with no agents yet: the 30-second setup.
-        // Once open, it stays open until they finish: the new scouts arriving mid-setup mustn't close it before "Your squad is hunting".
+        // Once open, it stays open until they finish: the new scouts arriving mid-setup mustn't close it before "Your scouts are hunting".
         .fullScreenCover(isPresented: Binding(get: { !onboarded && ((setupOpen && store.isCloud) || (!store.needsWelcome && store.isCloud && store.state.agents.isEmpty && store.state.lastSynced != nil)) },
                                               set: { if !$0 { setupOpen = false; onboarded = true } })) {
             OnboardingView().environment(store).onAppear { setupOpen = true }

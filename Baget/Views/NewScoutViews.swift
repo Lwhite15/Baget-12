@@ -451,7 +451,7 @@ struct ChangeAnyTimeNote: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Image(systemName: "pencil").font(.caption).foregroundStyle(Theme.cyan)
-            Text("Nothing's locked in. Change what any scout hunts any time: Squad, then ••• on the scout, or just text it.")
+            Text("Nothing's locked in. Change what any scout hunts any time: Scouts, then Tune on the scout, or just text it.")
                 .font(.caption).foregroundStyle(Theme.ink.opacity(0.8)).fixedSize(horizontal: false, vertical: true)
         }
         .padding(10)

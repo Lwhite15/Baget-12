@@ -480,9 +480,9 @@ extension AppStore {
             if let m = r.message { return m }
             let n = r.found ?? 0
             if n == 0 && quietIfNone { return nil }
-            return n > 0 ? String(localized: "\(n) new \(n == 1 ? String(localized: "find") : String(localized: "finds"))") : String(localized: "Your squad looked. Nothing new fits you right now.")
+            return n > 0 ? String(localized: "\(n) new \(n == 1 ? String(localized: "find") : String(localized: "finds"))") : String(localized: "Your scouts looked. Nothing new fits you right now.")
         } catch {
-            return (error as? LocalizedError)?.errorDescription ?? String(localized: "Your squad couldn't reach the web just now.")
+            return (error as? LocalizedError)?.errorDescription ?? String(localized: "Your scouts couldn't reach the web just now.")
         }
     }
 

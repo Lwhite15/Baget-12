@@ -171,7 +171,7 @@ extension AppStore {
             Task { @MainActor in _ = await self.cloudSweep() }
             return r.agents.map(\.agentId)
         } catch {
-            syncProblem = (error as? LocalizedError)?.errorDescription ?? String(localized: "Couldn't set up your squad. Try again.")
+            syncProblem = (error as? LocalizedError)?.errorDescription ?? String(localized: "Couldn't set up your scouts. Try again.")
             return []
         }
     }

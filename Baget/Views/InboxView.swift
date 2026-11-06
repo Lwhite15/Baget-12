@@ -39,7 +39,7 @@ struct InboxView: View {
         ScrollView {
             LazyVStack(spacing: 10) {
                 if store.state.notes.isEmpty {
-                    EmptyCard(text: String(localized: "Nothing yet. When your squad finds something, it'll text you here."))
+                    EmptyCard(text: String(localized: "Nothing yet. When your scouts find something, it'll text you here."))
                 }
                 ForEach(store.state.notes) { n in
                     Button { open(n) } label: {
@@ -96,7 +96,7 @@ struct AlertSettingsForm: View {
         return Form {
             if permission == .denied {
                 Section {
-                    Text("Notifications are off for Baget. Turn them on in iPhone Settings so your squad can text you.").font(.footnote)
+                    Text("Notifications are off for Baget. Turn them on in iPhone Settings so your scouts can text you.").font(.footnote)
                     Button("Open Settings") {
                         if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
                     }
@@ -112,7 +112,7 @@ struct AlertSettingsForm: View {
                 }
             } footer: {
                 Text(store.isCloud
-                     ? String(localized: "Your squad searches on our servers even when your phone is off. Each search costs a little, so less often is cheaper. You can always pull down on Live to check now.")
+                     ? String(localized: "Your scouts search on our servers even when your phone is off. Each search costs a little, so less often is cheaper. You can always pull down on Live to check now.")
                      : String(localized: "In the sample tour, sweeps are simulated each time you come back to the app."))
             }
             Section {
@@ -172,7 +172,7 @@ struct AlertSettingsForm: View {
                         onSimulate()
                     }
                 } header: { Text("Try it") } footer: {
-                    Text("Fast-forwards three hours of background hunts so you can see what your squad does while you're gone. Each scout's texting style is set on its card in Squad.")
+                    Text("Fast-forwards three hours of background hunts so you can see what your scouts do while you're gone. Each scout's texting style is set in Scouts, under Tune.")
                 }
             }
         }
@@ -245,7 +245,7 @@ struct CustomizeBarView: View {
 
     private func describe(_ t: LiveTab) -> String {
         switch t.kind {
-        case .forYou: return String(localized: "Ranked by what your squad knows you like")
+        case .forYou: return String(localized: "Ranked by what your scouts know you like")
         case .latest: return String(localized: "Everything, newest first")
         case .category: return String(localized: "Category")
         case .custom(let q): return String(localized: "Your section · matches “\(q)”")

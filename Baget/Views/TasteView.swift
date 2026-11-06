@@ -447,9 +447,9 @@ struct OnboardingView: View {
                           matching: .images, photoLibrary: .shared())
             Spacer()
             if working {
-                HStack { Spacer(); ProgressView().tint(Theme.cyan); Text("Building your squad…").foregroundStyle(Theme.muted); Spacer() }
+                HStack { Spacer(); ProgressView().tint(Theme.cyan); Text("Building your scouts…").foregroundStyle(Theme.muted); Spacer() }
             } else {
-                Button(photos.isEmpty ? String(localized: "Skip and build my squad") : String(localized: "Build my squad with these")) { build() }.buttonStyle(PrimaryButton())
+                Button(photos.isEmpty ? String(localized: "Skip and build my scouts") : String(localized: "Build my scouts with these")) { build() }.buttonStyle(PrimaryButton())
                 if !photos.isEmpty {
                     Button("Build without photos") { photos = []; pickerItems = []; build() }
                         .font(.footnote.weight(.semibold)).foregroundStyle(Theme.accent).frame(maxWidth: .infinity)
@@ -490,7 +490,7 @@ struct OnboardingView: View {
     private var firstHunt: some View {
         let newest = store.state.finds.filter { $0.status == .open }.sorted { $0.foundAt > $1.foundAt }.prefix(3)
         return VStack(alignment: .leading, spacing: 14) {
-            Text(newest.isEmpty ? String(localized: "Your squad is hunting") : String(localized: "First finds are in")).font(.system(size: 30, weight: .heavy)).foregroundStyle(Theme.ink)
+            Text(newest.isEmpty ? String(localized: "Your scouts are hunting") : String(localized: "First finds are in")).font(.system(size: 30, weight: .heavy)).foregroundStyle(Theme.ink)
             Text(made > 0 ? String(localized: "They're searching stores, resale sites and small shops for you right now.")
                           : String(localized: "Tell Baget what you're hunting on Today and a scout starts right away."))
                 .font(.subheadline).foregroundStyle(Theme.muted)
@@ -591,7 +591,7 @@ struct OnboardingView: View {
             nextRow("clock", String(localized: "First finds land in a few minutes, right in Finds"))
             nextRow("arrow.triangle.2.circlepath", store.isPro ? String(localized: "Then they hunt every 6 hours, around the clock") : String(localized: "Then they hunt every day and keep your finds fresh"))
             nextRow("heart", String(localized: "Like or pass what they bring, and they learn your taste fast"))
-            nextRow("pencil", String(localized: "Change any scout any time: tell it more, add a brand or size, or start over. Squad, then ••• on any scout"))
+            nextRow("pencil", String(localized: "Change any scout any time: tell it more, add a brand or size, or start over. Scouts, then Tune on any scout"))
             nextRow("scope", String(localized: "Hunting one specific thing? Send a specific scout from Today any time"))
         }
         .padding(12)

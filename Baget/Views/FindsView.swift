@@ -304,7 +304,7 @@ struct FindsView: View {
     private var emptyText: String {
         if store.state.agents.isEmpty { return String(localized: "Set up a scout first, then tap Hunt now.") }
         switch show {
-        case .new: return String(localized: "You're all caught up. Your squad keeps hunting in the background.")
+        case .new: return String(localized: "You're all caught up. Your scouts keep hunting in the background.")
         case .saved: return String(localized: "Nothing saved yet. Tap ♥ on a find you love, or watch one for price drops, and it shows up here.")
         case .all: return String(localized: "Nothing here yet. Tap Hunt now, or pull down on Today.")
         case .upcoming: return String(localized: "No drops coming up yet. When your scouts spot a release with a date, it lands here, and you can set a reminder for it.")
