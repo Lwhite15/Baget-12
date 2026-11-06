@@ -753,3 +753,21 @@ select t.ok(t.n($$select * from public.friend_signals(array['dddddddd-1111-0000-
 select set_config('request.jwt.claim.sub', 'cccccccc-0000-0000-0000-000000000003', false);
 select t.ok(t.n($$select * from public.friend_signals(array['dddddddd-1111-0000-0000-000000000003'::uuid])$$) = 0, 'strangers see nothing');
 reset role;
+
+-- Like = watch; release dates announced or moved reach watchers
+update public.finds set status = 'liked' where listing_id = 'dddddddd-1111-0000-0000-000000000003' and user_id = 'dddddddd-0000-0000-0000-000000000004';
+select t.ok((select watching from public.finds where listing_id = 'dddddddd-1111-0000-0000-000000000003' and user_id = 'dddddddd-0000-0000-0000-000000000004'), 'liking a find watches it');
+update public.listings set drop_at = now() + interval '3 days' where id = 'dddddddd-1111-0000-0000-000000000003';
+select t.ok((select count(*) = 1 from public.notes where kind = 'dated' and body like 'Release date is out: the Shoe 3 drops %' and user_id = 'dddddddd-0000-0000-0000-000000000004'), 'a new release date texts the watcher');
+update public.listings set drop_at = drop_at + interval '20 minutes' where id = 'dddddddd-1111-0000-0000-000000000003';
+select t.ok((select count(*) = 1 from public.notes where kind = 'dated' and user_id = 'dddddddd-0000-0000-0000-000000000004'), 'a few minutes'' change is not news');
+update public.listings set drop_at = drop_at + interval '2 days' where id = 'dddddddd-1111-0000-0000-000000000003';
+select t.ok((select count(*) = 1 from public.notes where kind = 'dated' and body like 'Heads up: the Shoe 3 moved to %'), 'a moved date is news');
+update public.profiles set tz = 'Not/AZone' where id = 'dddddddd-0000-0000-0000-000000000004';
+update public.listings set drop_at = drop_at + interval '3 days' where id = 'dddddddd-1111-0000-0000-000000000003';
+select t.ok((select count(*) = 3 from public.notes where kind = 'dated' and user_id = 'dddddddd-0000-0000-0000-000000000004'), 'a broken timezone doesn''t break saving listings');
+set role service_role;
+select t.ok((select count(*) = 1 from public.upsert_listings('dddddddd-0000-0000-0000-000000000004',
+  '[{"fingerprint":"drop-4","title":"Shoe 4","drop_at":"2027-01-10T15:00:00Z","tags":["release","confirmed"]}]'::jsonb)), 'a re-found listing');
+reset role;
+select t.ok((select 'confirmed' = any(tags) from public.listings where fingerprint = 'drop-4'), 'a newly seen date keeps its confirmed label');

@@ -989,6 +989,14 @@ await test("personal texts: the agent writes them, with your name and taste; tem
   const [l] = sweep.cleanListings(raw, "sneakers");
   assert.equal(l.text, "Larry, Nike just put the Mocha 1 Lows back up for $140. Same suede you loved on the Travis pair.", "quotes trimmed");
   assert.equal(sweep.cleanText("ok"), "", "too short to be a real text");
+  // Release dates carry whether they're official or rumored; no date, no label.
+  const dated = sweep.cleanListings({ listings: [
+    { title: "NB 990v6 Pumpernickel", url: "https://www.newbalance.com/pd/990v6/U990PP6.html", kind: "release", drop_at: "2026-11-08T15:00:00Z", drop_confirmed: true },
+    { title: "Jordan 4 Leak", url: "https://www.nike.com/launch/t/air-jordan-4-leak", kind: "release", drop_at: "2026-12-20T15:00:00Z", drop_confirmed: false },
+    { title: "Plain Tee", url: "https://kith.com/products/plain-tee", drop_at: null, drop_confirmed: true }] }, "sneakers");
+  assert.ok(dated[0].tags.includes("confirmed") && dated[0].tags.includes("release"));
+  assert.ok(dated[1].tags.includes("rumored"));
+  assert.ok(!dated[2].tags.includes("confirmed"), "no date, no label");
   assert.equal(sweep.cleanText(42), "");
   assert.equal(daily.digestText("Larry", 9, 3), "Morning Larry! Your drop is in: 9 picks from 3 scouts.");
   assert.equal(daily.digestText("", 1, 1, { kind: "restock", title: "Seiko SPB143" }), "Morning! Your drop is in: 1 pick for you. Plus the Seiko SPB143 you're watching is back in stock.");

@@ -75,8 +75,8 @@ export const ANGLES = [
   "what's trending right now in their lane that fits their taste",
 ];
 
-/** Sneakers, clothing and fragrance live on release dates: these hunts always look ahead for upcoming and limited drops. */
-export const DROP_CATEGORIES = new Set(["sneakers", "apparel", "fragrance"]);
+/** Lanes that live on release dates: these hunts always spend a search looking ahead for upcoming and limited drops. */
+export const DROP_CATEGORIES = new Set(["sneakers", "apparel", "fragrance", "watches", "collectibles", "accessories"]);
 export const UPCOMING_ANGLE = "upcoming releases in the next 60 days and limited releases (release calendars, launch pages, " +
   "brand and retailer raffles, collabs, numbered or limited-quantity runs)";
 
@@ -187,12 +187,17 @@ How to hunt${depth.deep ? " (leave no stone unturned)" : ""}:
   Spread them across many makers and stores rather than several from one place.
 - Full-size products only (no samples, decants or minis) unless that's what they asked for.
 - Things available now, releasing soon, or restocking.${DROP_CATEGORIES.has(a.mission_category ?? "") ? `
-- Upcoming and limited releases matter most here. Check release calendars and launch pages (Nike SNKRS upcoming, adidas
-  Confirmed, New Balance and Jordan launch pages, retailer raffles like END. Launches and Kith, streetwear droplists, fragrance
-  houses' new launches) for products releasing in the next 60 days, and for limited, numbered or collab releases.
+- Release dates are a big part of your job here. Spend at least one search on what's releasing in the next 60 days that fits
+  them: release calendars and launch pages (Nike SNKRS upcoming, adidas Confirmed, New Balance and Jordan launch pages,
+  retailer raffles like END. Launches and Kith, streetwear droplists, fragrance houses' new launches, watch brands' new
+  references, toy, figure, card and vinyl pre-orders), and limited, numbered or collab releases.
   Include upcoming ones even with no price yet: set drop_at to the release date and time (with the timezone if the page gives
   one) and use the brand's or a retailer's launch or product page for that release as the url (not a news article).
 - Set "limited": true for limited, numbered, collab or raffle-only releases.` : ""}
+- Release dates: only use a date you actually saw on a page. Set "drop_confirmed": true when the brand or a store announced it
+  (a launch page, a product page with a date, an official post), false when it's a leak or rumor (a blog or forum saying
+  "expected" or "rumored"). If a product page says coming soon, pre-order or notify me and shows a date, set drop_at too.
+  Never guess a date.
 - Every result is one of three kinds. Label each with "kind":
   "product": one specific item someone can buy now (its own product page).
   "release": one specific upcoming item with a drop date (set drop_at; use the brand's or a store's launch or product page for it).
@@ -233,7 +238,7 @@ Rules:
 - Between searches, don't write notes or commentary: just search. Your only writing is the final JSON.
 
 End your reply with only this JSON in a \`\`\`json block:
-{"listings":[{"title":"","brand":"","category":"${a.mission_category ?? "other"}","price":null,"market":null,"source":"store name","url":"https://...","image_url":null,"drop_at":null,"sold_out":false,"creator":null,"traits":[],"sizes_in_stock":null,"sku":"","kind":"product","discovery":false,"limited":false,"about":"","pitch":"","text":""}]}`;
+{"listings":[{"title":"","brand":"","category":"${a.mission_category ?? "other"}","price":null,"market":null,"source":"store name","url":"https://...","image_url":null,"drop_at":null,"drop_confirmed":null,"sold_out":false,"creator":null,"traits":[],"sizes_in_stock":null,"sku":"","kind":"product","discovery":false,"limited":false,"about":"","pitch":"","text":""}]}`;
 }
 
 /** Cleans what Claude returned. Anything without a real web address is dropped. */
@@ -290,7 +295,8 @@ export function cleanListings(raw: unknown, fallbackCategory: string): (Listing 
       sold_out: r.sold_out === true,
       creator: typeof r.creator === "string" && r.creator.trim() ? r.creator.trim().slice(0, 80) : null,
       traits: strs(r.traits, 10).map((t) => t.toLowerCase()),
-      tags: [...(r.limited === true ? ["limited"] : []), ...(r.intel === true || r.kind === "reference" ? ["intel"] : []), ...(r.kind === "release" ? ["release"] : [])],
+      tags: [...(r.limited === true ? ["limited"] : []), ...(r.intel === true || r.kind === "reference" ? ["intel"] : []), ...(r.kind === "release" ? ["release"] : []),
+             ...(drop ? [r.drop_confirmed === false ? "rumored" : r.drop_confirmed === true ? "confirmed" : ""].filter(Boolean) : [])],
       sizes_in_stock: sizes && sizes.length ? sizes : null,
       sku: typeof r.sku === "string" ? r.sku.trim().slice(0, 60) : "",
       discovery: r.discovery === true,

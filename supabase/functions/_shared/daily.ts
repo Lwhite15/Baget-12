@@ -14,10 +14,10 @@ interface Watched {
 }
 
 /** Re-prices up to `limit` watched finds (each at most every 12 hours) and texts on a drop of 5% or more. */
-export async function watchCheck(limit = 6, now = new Date(), fetchFn: FetchFn = fetch): Promise<{ checked: number; drops: number }> {
+export async function watchCheck(limit = 20, now = new Date(), fetchFn: FetchFn = fetch): Promise<{ checked: number; drops: number }> {
   const rows = await db.select<Watched>("finds",
     "select=id,user_id,agent_id,watch_price,listing:listings(id,title,brand,price,low_price,offers_checked_at),agent:agents(name)" +
-    "&watching=eq.true&status=in.(open,liked)&order=created_at.desc&limit=60");
+    "&watching=eq.true&status=in.(open,liked)&order=created_at.desc&limit=400");
   const names = new Map<string, string>();
   const due = rows.filter((r) => r.listing && (!r.listing.offers_checked_at || now.getTime() - Date.parse(r.listing.offers_checked_at) > 12 * 3600_000)).slice(0, limit);
   let drops = 0;
