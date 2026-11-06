@@ -133,6 +133,8 @@ struct Item: Identifiable, Hashable, Codable {
     var about: String? = nil
     /// Who the brand is, in a sentence or two. Shared by every product from that brand.
     var brandAbout: String? = nil
+    /// When a scout last checked this product's price around the web (for things you watch).
+    var checkedAt: Date? = nil
     /// Stores outside the US: the price in the store's own currency (`price` is converted to US dollars).
     var origPrice: Double? = nil
     var origCurrency: String? = nil
@@ -331,6 +333,8 @@ enum NoteKind: String, Codable {
     case feedback
     /// A release reminder the person set on an upcoming find.
     case reminder
+    /// A release date was announced or moved for something you watch.
+    case dated
 }
 
 /// "Remind me" on an upcoming release: some minutes before the drop (follows the date if it moves), or an exact time.

@@ -34,13 +34,18 @@ struct Payoff: Identifiable {
     let item: Item
     var tag: String {
         if note.kind == .restock { return String(localized: "Back") }
+        if note.kind == .dated { return note.body.hasPrefix("Heads up") ? String(localized: "Moved") : String(localized: "Dated") }
         if let r = note.body.range(of: #"\$[0-9,]+(\.[0-9]+)? off"#, options: .regularExpression) {
             return "−" + note.body[r].replacingOccurrences(of: " off", with: "")
         }
         return String(localized: "Price drop")
     }
     var line: String {
-        note.kind == .restock ? String(localized: "Back in stock at \(item.source)") : String(localized: "You're watching it · now \(item.priceLabel)")
+        switch note.kind {
+        case .restock: return String(localized: "Back in stock at \(item.source)")
+        case .dated: return item.dropAt.map { String(localized: "Releasing \(ReminderSheet.fmt($0))") } ?? String(localized: "New release date")
+        default: return String(localized: "You're watching it · now \(Fmt.money(item.lowPrice ?? item.price))")
+        }
     }
 }
 
@@ -76,7 +81,7 @@ extension AppStore {
     func payoffs(now: Date = .now) -> [Payoff] {
         var seen = Set<String>()
         return state.notes
-            .filter { ($0.kind == .drop || $0.kind == .restock) && $0.date > now.addingTimeInterval(-36 * 3600) }
+            .filter { ($0.kind == .drop || $0.kind == .restock || $0.kind == .dated) && $0.date > now.addingTimeInterval(-36 * 3600) }
             .sorted { $0.date > $1.date }
             .compactMap { n -> Payoff? in
                 guard let fid = n.findID, seen.insert(fid).inserted,
@@ -103,4 +108,70 @@ extension AppStore {
 
 extension String {
     var nilIfEmpty: String? { isEmpty ? nil : self }
+}
+
+/// One card in Today's swipe deck.
+enum DeckCard: Identifiable {
+    /// What a scout caught on something you watch (price drop, restock, release date).
+    case payoff(Payoff)
+    /// Something you found that releases soon, with a countdown.
+    case release(find: Find, item: Item, at: Date)
+    /// One of today's drop picks.
+    case pick(Find)
+    /// After the drop: more picks ranked by your taste ("Keep swiping").
+    case more(ForYouItem)
+
+    var id: String {
+        switch self {
+        case .payoff(let p): return "pay-\(p.id)"
+        case .release(let f, _, _): return "rel-\(f.id)"
+        case .pick(let f): return "pick-\(f.id)"
+        case .more(let m): return "more-\(m.id)"
+        }
+    }
+}
+
+/// "Your scouts are watching 23 items · checked 1h ago · 3 changes this week", and what's releasing next.
+struct WatchSummary {
+    var count: Int
+    var checked: Date?
+    var changes: Int
+    var upcoming: [(item: Item, at: Date)]
+}
+
+extension AppStore {
+    /// The morning deck, in order: payoffs, releases coming up, then each scout's picks (scouts taking turns).
+    func dropDeck(now: Date = .now) -> [DeckCard] {
+        let groups = dropGroups()
+        let longest = groups.map(\.finds.count).max() ?? 0
+        let picks = (0..<longest).flatMap { i in groups.compactMap { i < $0.finds.count ? $0.finds[i] : nil } }
+        let pickIDs = Set(picks.map(\.id))
+        let pays = payoffs(now: now).map(DeckCard.payoff)
+        let paidFinds = Set(payoffs(now: now).map(\.find.id))
+        let releases = state.finds
+            .filter { ($0.status == .open || $0.status == .liked || $0.watching) && !pickIDs.contains($0.id) && !paidFinds.contains($0.id) }
+            .compactMap { f -> (Find, Item, Date)? in
+                guard let item = Catalog.item(f.itemID), !item.isSample, let d = item.dropAt,
+                      d > now, d < now.addingTimeInterval(7 * 86400) else { return nil }
+                return (f, item, d)
+            }
+            .sorted { $0.2 < $1.2 }
+            .prefix(4)
+            .map { DeckCard.release(find: $0.0, item: $0.1, at: $0.2) }
+        return pays + releases + picks.map(DeckCard.pick)
+    }
+
+    /// "Keep swiping": picks from everything Baget's scouts find, ranked by taste. Only real matches (no filler),
+    /// and nothing already in today's drop or already yours.
+    func keepSwipingPool(excluding: Set<String>) -> [ForYouItem] {
+        forYou.filter { $0.kind != "yours" && !excluding.contains($0.id) && Catalog.item($0.id) != nil }
+    }
+
+    func watchSummary(now: Date = .now) -> WatchSummary {
+        let watched = state.finds.filter { $0.watching && ($0.status == .open || $0.status == .liked) }
+        let items = watched.compactMap { Catalog.item($0.itemID) }
+        let changes = state.notes.filter { [.drop, .restock, .dated].contains($0.kind) && $0.date > now.addingTimeInterval(-7 * 86400) }.count
+        let upcoming = items.compactMap { i in i.dropAt.flatMap { $0 > now ? (item: i, at: $0) : nil } }.sorted { $0.at < $1.at }
+        return WatchSummary(count: watched.count, checked: items.compactMap(\.checkedAt).max(), changes: changes, upcoming: Array(upcoming.prefix(3)))
+    }
 }

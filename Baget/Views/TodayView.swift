@@ -8,41 +8,215 @@ struct TodayView: View {
     @State private var showTop = false
     /// "cards" (swipe through the drop) or "list" (each scout's picks in rows). Remembered on this phone.
     @AppStorage("baget.todayLayout") private var layout = "cards"
-    /// The drop's order for the swipe deck, fixed while you go through it (new picks join at the end).
-    @State private var deckIDs: [String] = []
+    /// The deck, fixed while you go through it (new picks join at the end).
+    @State private var deck: [DeckCard] = []
     @State private var deckIndex = 0
+    /// After the drop: "Keep swiping" through more picks.
+    @State private var endless = false
+    @State private var more: [DeckCard] = []
+    @State private var moreIndex = 0
+    @AppStorage("baget.likedToday") private var likedToday = ""
 
-    /// Scouts take turns in the deck, so it isn't three of the same thing in a row.
-    private func deckOrder(_ groups: [(agent: Agent, finds: [Find])]) -> [String] {
-        let longest = groups.map(\.finds.count).max() ?? 0
-        return (0..<longest).flatMap { i in groups.compactMap { i < $0.finds.count ? $0.finds[i].id : nil } }
+    private var cardsMode: Bool {
+        layout == "cards" && router.scoutSent == nil && !(store.isCloud && !store.state.agents.isEmpty && store.state.finds.isEmpty)
     }
 
     var body: some View {
+        Group {
+            if cardsMode { cardsBody } else { listBody }
+        }
+        .task { await store.loadDrop() }
+        .onAppear { syncDeck() }
+        .onChange(of: store.drop) { syncDeck() }
+        .onChange(of: store.state.finds.count) { if deck.isEmpty { syncDeck() } }
+        // Coming back to the app after the drop time: today's drop appears without a pull-down.
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            Task { await store.loadDrop() }
+        }
+        .onAppear {
+            Analytics.track(.todayViewed, ["toSwipe": deck.count, "layout": layout])
+        }
+    }
+
+    /// Swipe cards: open the app and you're swiping. Payoffs, releases, the day's picks, then Keep swiping.
+    private var cardsBody: some View {
+        let dropFinds = deck.compactMap { c -> Find? in
+            switch c { case .pick(let f), .release(let f, _, _): return store.state.finds.first { $0.id == f.id }; default: return nil }
+        }
+        let reminders = deck.compactMap { c -> Item? in if case .release(_, let i, _) = c { return i }; return nil }.filter { store.reminder(for: $0) != nil }.count
+        return VStack(alignment: .leading, spacing: 10) {
+            greeting
+            HStack(spacing: 8) {
+                modeChip
+                Spacer(minLength: 6)
+                Text(endless ? String(localized: "♥ \(likedCount) today")
+                     : deckIndex < deck.count ? String(localized: "\(deckIndex + 1) of \(deck.count)") : "")
+                    .font(.footnote.weight(.bold).monospacedDigit()).foregroundStyle(Theme.muted)
+                layoutSwitch
+            }
+            if !endless && !deck.isEmpty { progressBar(Double(min(deckIndex, deck.count)) / Double(max(1, deck.count))) }
+            if endless {
+                if moreIndex < more.count {
+                    DropDeckView(cards: more, index: $moreIndex)
+                        .onChange(of: moreIndex) { _, i in
+                            countLike()
+                            if more.count - i < 6 { Task { await store.loadForYou(limit: min(200, store.forYou.count + 40)); topUpMore() } }
+                        }
+                } else {
+                    outOfPicks
+                }
+            } else if deckIndex < deck.count {
+                DropDeckView(cards: deck, index: $deckIndex)
+            } else if deck.isEmpty {
+                waitingCard
+                Spacer(minLength: 0)
+            } else {
+                DropFinishedCard(liked: dropFinds.filter { $0.status == .liked }.count,
+                                 passed: dropFinds.filter { $0.status == .passed }.count,
+                                 reminders: reminders,
+                                 morePicks: store.keepSwipingPool(excluding: Set(dropFinds.map(\.itemID))).count) { startEndless() }
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.bottom, 12)
+        .task { if store.forYou.isEmpty { await store.loadForYou(limit: 60) } }
+    }
+
+    private var modeChip: some View {
+        Label(endless ? String(localized: "KEEP SWIPING") : String(localized: "TODAY'S DROP"), systemImage: endless ? "infinity" : "sun.max.fill")
+            .font(.caption.weight(.heavy))
+            .foregroundStyle(endless ? Theme.accent : Theme.warn)
+            .padding(.horizontal, 10).padding(.vertical, 5)
+            .background((endless ? Theme.accent : Theme.warn).opacity(0.14), in: Capsule())
+            .onTapGesture { if endless { withAnimation(.snappy) { endless = false } } }
+    }
+
+    private var layoutSwitch: some View {
+        HStack(spacing: 0) {
+            layoutButton("rectangle.portrait", "cards", String(localized: "Swipe cards"))
+            layoutButton("list.bullet", "list", String(localized: "List"))
+        }
+        .background(Theme.glass, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.line))
+    }
+
+    private func progressBar(_ f: Double) -> some View {
+        GeometryReader { g in
+            ZStack(alignment: .leading) {
+                Capsule().fill(Theme.glass)
+                Capsule().fill(Theme.gradient).frame(width: max(6, g.size.width * f))
+            }
+        }
+        .frame(height: 5)
+        .accessibilityHidden(true)
+    }
+
+    /// No drop yet (no finds, or before the first one is made).
+    private var waitingCard: some View {
+        let h = store.drop?.hour ?? store.state.settings.dropHour ?? 9
+        let time = Calendar.current.date(bySettingHour: h, minute: 0, second: 0, of: .now)?.formatted(date: .omitted, time: .shortened) ?? "9 AM"
+        return VStack(spacing: 10) {
+            Image(systemName: "sun.horizon.fill").font(.system(size: 36)).foregroundStyle(Theme.green)
+            Text("Your next drop is on its way").font(.title3.weight(.heavy)).foregroundStyle(Theme.ink)
+            Text("Every morning at \(time) your scouts bring their best finds here. They're hunting and watching prices now.")
+                .font(.footnote).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
+            Button { startEndless() } label: {
+                Text("Swipe picks while you wait").font(.subheadline.weight(.bold)).foregroundStyle(Theme.accentInk)
+                    .padding(.horizontal, 18).padding(.vertical, 11).background(Theme.gradient, in: Capsule())
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(22).frame(maxWidth: .infinity)
+        .background(Theme.glass, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Theme.line))
+    }
+
+    /// The end of Keep swiping: no filler, just an honest "that's the good stuff for now".
+    private var outOfPicks: some View {
+        VStack(spacing: 10) {
+            Spacer(minLength: 0)
+            Image(systemName: "binoculars.fill").font(.system(size: 34)).foregroundStyle(Theme.accent)
+            Text("You've seen the good stuff").font(.title3.weight(.heavy)).foregroundStyle(Theme.ink)
+            Text("Your scouts are hunting for more. New picks show up here as they find them.")
+                .font(.footnote).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
+            Button { Task { await store.refreshNow(router: router); topUpMore() } } label: {
+                Text("Check for new picks").font(.subheadline.weight(.bold)).foregroundStyle(Theme.accentInk)
+                    .padding(.horizontal, 18).padding(.vertical, 11).background(Theme.gradient, in: Capsule())
+            }
+            .buttonStyle(.plain)
+            Button("Back to today's drop") { withAnimation(.snappy) { endless = false } }
+                .font(.footnote.weight(.semibold)).foregroundStyle(Theme.accent)
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var likedCount: Int {
+        let parts = likedToday.split(separator: ":")
+        let today = Date.now.formatted(.iso8601.year().month().day())
+        return parts.count == 2 && String(parts[0]) == today ? Int(parts[1]) ?? 0 : 0
+    }
+
+    /// Counts likes in Keep swiping ("♥ 8 today"), from the card that just left.
+    private func countLike() {
+        guard moreIndex > 0, moreIndex - 1 < more.count, case .more(let m) = more[moreIndex - 1] else { return }
+        let liked = store.state.finds.contains { $0.itemID == m.id && $0.status == .liked }
+        guard liked else { return }
+        let today = Date.now.formatted(.iso8601.year().month().day())
+        likedToday = "\(today):\(likedCount + 1)"
+    }
+
+    private func startEndless() {
+        let inDrop = Set(deck.compactMap { c -> String? in
+            switch c { case .pick(let f), .release(let f, _, _): return f.itemID; default: return nil }
+        })
+        more = store.keepSwipingPool(excluding: inDrop).map(DeckCard.more)
+        moreIndex = 0
+        withAnimation(.snappy) { endless = true }
+        if more.count < 10 { Task { await store.loadForYou(limit: 80); topUpMore() } }
+    }
+
+    /// New picks join the end of Keep swiping.
+    private func topUpMore() {
+        let have = Set(more.map(\.id))
+        let inDrop = Set(deck.compactMap { c -> String? in
+            switch c { case .pick(let f), .release(let f, _, _): return f.itemID; default: return nil }
+        })
+        more += store.keepSwipingPool(excluding: inDrop).map(DeckCard.more).filter { !have.contains($0.id) }
+    }
+
+    /// A new drop starts the deck over; picks added to today's drop join the end.
+    private func syncDeck() {
+        let fresh = store.dropDeck()
+        if deck.isEmpty || Set(fresh.map(\.id)).isDisjoint(with: deck.map(\.id)) {
+            deck = fresh; deckIndex = 0; endless = false; return
+        }
+        let have = Set(deck.map(\.id))
+        deck += fresh.filter { !have.contains($0.id) }
+    }
+
+    /// List view: payoffs, releases, then each scout's picks as rows.
+    private var listBody: some View {
         let groups = store.dropGroups()
         let payoffs = store.payoffs()
         let releases = store.droppingToday()
-        ScrollViewReader { proxy in
+        return ScrollViewReader { proxy in
             ScrollView {
                 // Lazy, so the greeting's onDisappear tells us when to offer "back to top".
                 LazyVStack(alignment: .leading, spacing: 20) {
                     VStack(alignment: .leading, spacing: 10) {
                         greeting
-                        if !groups.isEmpty { dropProgress(groups) }
+                        if !groups.isEmpty { dropProgress(groups) } else { HStack { Spacer(); layoutSwitch } }
                     }
                     .id("today-top")
                     .onAppear { withAnimation { showTop = false } }
                     .onDisappear { withAnimation { showTop = true } }
                     if store.plan?.pro != true { PlanStatusPill() }
-                    if router.scoutSent != nil { NewScoutCard() } else { NewScoutCard(compact: true) }
+                    if router.scoutSent != nil { NewScoutCard() }
                     if store.isCloud && !store.state.agents.isEmpty && store.state.finds.isEmpty { firstHuntCard }
                     if !payoffs.isEmpty { sinceYesterday(payoffs) }
                     if !releases.isEmpty { droppingToday(releases) }
-                    if layout == "cards" && !deckIDs.isEmpty {
-                        TodayDeck(ids: deckIDs, index: $deckIndex, showDone: false)
-                    } else {
-                        ForEach(groups, id: \.agent.id) { g in scoutDrop(g.agent, g.finds) }
-                    }
+                    ForEach(groups, id: \.agent.id) { g in scoutDrop(g.agent, g.finds) }
                     if !store.state.finds.isEmpty { endCard(groups) }
                 }
                 .padding(.horizontal, 16)
@@ -67,24 +241,6 @@ struct TodayView: View {
             }
             .onChange(of: router.todayTop) { withAnimation(.snappy) { proxy.scrollTo("today-top", anchor: .top) } }
         }
-        .task { await store.loadDrop() }
-        .onAppear { syncDeck(groups) }
-        .onChange(of: store.drop) { syncDeck(store.dropGroups()) }
-        // Coming back to the app after the drop time: today's drop appears without a pull-down.
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-            Task { await store.loadDrop() }
-        }
-        .onAppear {
-            Analytics.track(.todayViewed, ["toSwipe": groups.reduce(0) { $0 + $1.finds.count }, "layout": "drop"])
-        }
-    }
-
-    /// A new drop starts the deck over; picks added to today's drop join the end.
-    private func syncDeck(_ groups: [(agent: Agent, finds: [Find])]) {
-        let order = deckOrder(groups)
-        if deckIDs.isEmpty || Set(order).isDisjoint(with: deckIDs) { deckIDs = order; deckIndex = 0; return }
-        let new = order.filter { !deckIDs.contains($0) }
-        if !new.isEmpty { deckIDs += new }
     }
 
     private func layoutButton(_ icon: String, _ value: String, _ label: String) -> some View {

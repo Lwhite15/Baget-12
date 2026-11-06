@@ -478,7 +478,8 @@ final class AppStore {
         guard state.finds[fi].status != .liked else { return }
         state.finds[fi].status = .liked
         state.finds[fi].passReason = nil
-        let watchIt = isSoldOut(item) || !isLive(item)
+        // A like hands it to the scout to watch: price drops, restocks and release dates.
+        let watchIt = true
         if watchIt { state.finds[fi].watching = true }
         var patch: [String: Any] = ["status": "liked", "pass_reason": NSNull()]
         if watchIt { patch["watching"] = true }
