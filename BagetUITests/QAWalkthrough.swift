@@ -165,9 +165,9 @@ final class QAWalkthrough: XCTestCase {
 
         // Today: the morning drop as swipe cards.
         snap("today", wait: 4)
-        let counterOf = { (n: Int) in app.staticTexts.matching(NSPredicate(format: "label MATCHES %@", "^\(n) of [0-9]+$")).firstMatch }
+        let counterOf = { (n: Int) in self.app.staticTexts.matching(NSPredicate(format: "label MATCHES %@", "^\(n) of [0-9]+$")).firstMatch }
         let swipe = { (dx: CGFloat, dy: CGFloat) in
-            let mid = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45))
+            let mid = self.app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45))
             mid.press(forDuration: 0.05, thenDragTo: mid.withOffset(CGVector(dx: dx, dy: dy)))
         }
         if counterOf(1).waitForExistence(timeout: 4) {
