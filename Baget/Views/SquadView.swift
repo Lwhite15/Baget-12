@@ -188,9 +188,9 @@ struct TuneScoutView: View {
                             }
                         }
                         section(budget > 0 ? String(localized: "BUDGET · UP TO \(Fmt.money(budget))") : String(localized: "BUDGET · ANY PRICE")) {
-                            Slider(value: $budget, in: 0...2000, step: 25) { _ in } onEditingChanged: { editing in
+                            Slider(value: $budget, in: 0...2000, step: 25, onEditingChanged: { editing in
                                 if !editing { var a = agent; a.priceNote = budget; store.update(a) }
-                            }
+                            })
                             .tint(Theme.cyan)
                             Text("Slide to 0 for any price.").font(.caption2).foregroundStyle(Theme.muted)
                         }
