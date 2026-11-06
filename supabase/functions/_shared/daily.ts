@@ -1,4 +1,4 @@
-// Hourly jobs: price drops on watched finds, and the morning "Today's Drop" digest.
+// Hourly jobs: price drops on watched finds, and the morning drop (and its one text).
 import { db } from "./platform.ts";
 import { firstName } from "./match.ts";
 import { shoppingOffers } from "./sources.ts";
@@ -101,36 +101,44 @@ export function localNow(tz: string, now = new Date()): { date: string; hour: nu
 }
 
 interface Pick { id: string; score: number; listing: { title: string } | null; agent: { name: string } | null }
+interface Payoff { kind: string; find: { listing: { title: string } | null } | null }
 
 const short = (t: string) => t.length > 38 ? t.slice(0, 37).trimEnd() + "…" : t;
 
-/** "Morning Larry! Your squad found 3 things for you: the Jordan 1 Low Mocha, Le Labo Santal 33 and one more. Swipe through them." */
-export function digestText(name: string, titles: string[], topAgent?: string): string {
-  const n = titles.length;
-  const named = titles.slice(0, 2).map(short);
-  const rest = n - named.length;
-  const list = rest > 0 ? `${named.join(", ")} and ${rest} more` : named.length === 2 ? `${named[0]} and ${named[1]}` : named[0];
+/** "Morning Larry! Your drop is in: 9 picks from 3 scouts. Plus the Goldwin Terry Zip Hoodie you're watching dropped in price." */
+export function digestText(name: string, picks: number, scouts: number, payoff?: { kind: string; title: string }): string {
   const hi = name ? `Morning ${name}!` : "Morning!";
-  const lead = n === 1 ? `${topAgent ?? "Your squad"} found something for you: ${list}.` : `Your squad found ${n} things for you: ${list}.`;
-  return `${hi} ${lead} Take a look when you have a sec.`.slice(0, 480);
+  const lead = picks === 1 ? "Your drop is in: 1 pick for you." :
+    `Your drop is in: ${picks} picks from ${scouts === 1 ? "your scout" : `${scouts} scouts`}.`;
+  const extra = !payoff ? "" : payoff.kind === "restock"
+    ? ` Plus the ${short(payoff.title)} you're watching is back in stock.`
+    : ` Plus the ${short(payoff.title)} you're watching dropped in price.`;
+  return `${hi} ${lead}${extra}`.slice(0, 480);
 }
 
-/** At 8am local time, one text with the day's best picks. */
+/** At each person's drop time (9 AM local unless they changed it): make today's drop and send one text about it,
+ *  leading with a payoff from yesterday when there is one. */
 export async function morningDigest(now = new Date()): Promise<number> {
-  const people = await db.select<{ id: string; tz: string; last_digest_on: string | null; display_name?: string }>("profiles", "select=id,tz,last_digest_on,display_name&limit=500");
+  const people = await db.select<{ id: string; tz: string; last_digest_on: string | null; display_name?: string; settings?: { dropHour?: number } | null }>(
+    "profiles", "select=id,tz,last_digest_on,display_name,settings&limit=1000");
   let sent = 0;
   for (const p of people) {
     const { date, hour } = localNow(p.tz || "America/New_York", now);
-    if (hour !== 8 || p.last_digest_on === date) continue;
-    const since = new Date(now.getTime() - 4 * 86400_000).toISOString();
-    const picks = await db.select<Pick>("finds",
-      `select=id,score,listing:listings(title),agent:agents(name)&user_id=eq.${p.id}&status=eq.open&created_at=gt.${since}&order=score.desc,created_at.desc&limit=5`);
+    const dropHour = typeof p.settings?.dropHour === "number" ? p.settings.dropHour : 9;
+    if (hour !== dropHour || p.last_digest_on === date) continue;
     await db.update("profiles", `id=eq.${p.id}`, { last_digest_on: date }).catch(() => {});
+    await db.rpc("make_drop", { p_user: p.id, p_date: date }).catch((e) => console.error("make_drop", e));
+    const picks = await db.select<Pick>("finds",
+      `select=id,score,listing:listings(title),agent:agents(name)&user_id=eq.${p.id}&drop_on=eq.${date}&order=score.desc`);
     if (!picks.length || !picks[0].listing) continue;
-    const top = picks[0];
+    const since = new Date(now.getTime() - 24 * 3600_000).toISOString();
+    const [pay] = await db.select<Payoff>("notes",
+      `select=kind,find:finds(listing:listings(title))&user_id=eq.${p.id}&kind=in.(drop,restock)&created_at=gt.${since}&order=created_at.desc&limit=1`).catch(() => []);
+    const payoff = pay?.find?.listing?.title ? { kind: pay.kind, title: pay.find.listing.title } : undefined;
+    const scouts = new Set(picks.map((x) => x.agent?.name ?? "")).size;
     await db.insert("notes", {
-      user_id: p.id, agent_id: null, sender_name: "Today's Drop", kind: "digest", find_id: top.id,
-      body: digestText(firstName(p.display_name), picks.map((x) => x.listing?.title ?? "").filter(Boolean), top.agent?.name),
+      user_id: p.id, agent_id: null, sender_name: "Today's Drop", kind: "digest", find_id: picks[0].id,
+      body: digestText(firstName(p.display_name), picks.length, scouts, payoff),
     }, false);
     sent++;
   }

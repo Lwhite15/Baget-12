@@ -694,3 +694,56 @@ select t.err($$select * from public.stores$$, 'the store map is private');
 select t.err($$select public.claim_stores('sneakers', 3)$$, 'people cannot claim stores');
 reset role;
 
+
+-- Daily drop: each scout's 3 best, one per product; friends' likes show if they share their taste
+insert into auth.users (id, email, raw_user_meta_data) values
+  ('dddddddd-0000-0000-0000-000000000004', 'dee@example.com', '{"full_name":"Dee Drop"}'),
+  ('eeeeeeee-0000-0000-0000-000000000005', 'eve@example.com', '{"full_name":"Eve Friend"}');
+insert into public.agents (id, user_id, name, mission_category) values
+  ('dddddddd-aaaa-0000-0000-000000000001', 'dddddddd-0000-0000-0000-000000000004', 'Kicks', 'sneakers'),
+  ('dddddddd-aaaa-0000-0000-000000000002', 'dddddddd-0000-0000-0000-000000000004', 'Scents', 'fragrance');
+insert into public.listings (id, fingerprint, title, image_url)
+select ('dddddddd-1111-0000-0000-' || lpad(i::text, 12, '0'))::uuid, 'drop-' || i,
+       case when i = 2 then 'Shoe 1' else 'Shoe ' || i end, 'https://x/' || i || '.jpg'
+  from generate_series(1, 9) i;
+insert into public.finds (user_id, agent_id, listing_id, score, status, created_at)
+select 'dddddddd-0000-0000-0000-000000000004',
+       case when i <= 6 then 'dddddddd-aaaa-0000-0000-000000000001' else 'dddddddd-aaaa-0000-0000-000000000002' end::uuid,
+       ('dddddddd-1111-0000-0000-' || lpad(i::text, 12, '0'))::uuid, 100 - i, case when i = 5 then 'passed' else 'open' end,
+       now() - interval '1 day'
+  from generate_series(1, 9) i;
+set role service_role;
+select t.ok(public.make_drop('dddddddd-0000-0000-0000-000000000004', '2026-11-07') = 6, 'a drop: each scout''s 3 best');
+reset role;
+select t.ok((select count(*) = 3 from public.finds where drop_on = '2026-11-07' and agent_id = 'dddddddd-aaaa-0000-0000-000000000001'), 'three per scout');
+select t.ok((select count(*) = 1 from public.finds f join public.listings l on l.id = f.listing_id where f.drop_on = '2026-11-07' and l.title = 'Shoe 1'), 'one per product');
+select t.ok((select count(*) = 0 from public.finds where drop_on = '2026-11-07' and status <> 'open'), 'only open finds');
+set role service_role;
+select t.ok(public.make_drop('dddddddd-0000-0000-0000-000000000004', '2026-11-07') = 6, 'making the same day twice changes nothing');
+reset role;
+set role authenticated;
+select t.err($$select public.make_drop('dddddddd-0000-0000-0000-000000000004', '2026-11-08')$$, 'people cannot make drops directly');
+select set_config('request.jwt.claim.sub', 'dddddddd-0000-0000-0000-000000000004', false);
+select t.ok(jsonb_array_length(public.my_drop() -> 'ids') = 6, 'my_drop returns the latest drop');
+select t.ok((public.my_drop() ->> 'hour')::int = 9, 'drop time defaults to 9');
+reset role;
+insert into public.friendships (requester, addressee, status) values ('dddddddd-0000-0000-0000-000000000004', 'eeeeeeee-0000-0000-0000-000000000005', 'accepted');
+insert into public.listings (id, fingerprint, title) values ('eeeeeeee-1111-0000-0000-000000000001', 'eve-1', 'shoe 3');
+insert into public.finds (user_id, listing_id, score, status) values
+  ('eeeeeeee-0000-0000-0000-000000000005', 'eeeeeeee-1111-0000-0000-000000000001', 80, 'liked'),
+  ('eeeeeeee-0000-0000-0000-000000000005', 'dddddddd-1111-0000-0000-000000000004', 80, 'acquired');
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'dddddddd-0000-0000-0000-000000000004', false);
+select t.ok((select names = '{Eve}' and not bought from public.friend_signals(array['dddddddd-1111-0000-0000-000000000003'::uuid])), 'a friend''s like shows on the same product');
+select t.ok(t.n($$select * from public.friend_signals(array['dddddddd-1111-0000-0000-000000000004'::uuid])$$) = 0, 'buys stay hidden unless they share purchases');
+reset role;
+update public.profiles set share_purchases = true where id = 'eeeeeeee-0000-0000-0000-000000000005';
+set role authenticated;
+select t.ok((select bought from public.friend_signals(array['dddddddd-1111-0000-0000-000000000004'::uuid])), 'and show once they do');
+reset role;
+update public.profiles set share_taste = false where id = 'eeeeeeee-0000-0000-0000-000000000005';
+set role authenticated;
+select t.ok(t.n($$select * from public.friend_signals(array['dddddddd-1111-0000-0000-000000000003'::uuid, 'dddddddd-1111-0000-0000-000000000004'::uuid])$$) = 0, 'turning off sharing hides all of it');
+select set_config('request.jwt.claim.sub', 'cccccccc-0000-0000-0000-000000000003', false);
+select t.ok(t.n($$select * from public.friend_signals(array['dddddddd-1111-0000-0000-000000000003'::uuid])$$) = 0, 'strangers see nothing');
+reset role;

@@ -887,25 +887,34 @@ await test("watched finds text you when the price drops 5% or more", async () =>
     assert.equal(newWatch.watch_price, 299);
   } finally { delete process.env.SERPER_API_KEY; }
 });
-await test("Today's Drop goes out once, at 8am local time", async () => {
-  let notes: any[] = [], marked: any;
-  const route = (people: any[]) => reset([
+await test("the daily drop goes out once, at each person's drop time (9am unless changed), leading with a payoff", async () => {
+  let notes: any[] = [], marked: any, made: any[] = [];
+  const route = (people: any[], payoffs: any[] = []) => reset([
     [/GET .*rest\/v1\/profiles/, () => ok(people)],
-    [/GET .*rest\/v1\/finds/, () => ok([{ id: "f9", score: 91, listing: { title: "2023 Porsche 911 Carrera T" }, agent: { name: "Porsche Boy" } },
-                                         { id: "f8", score: 80, listing: { title: "Lumen 2BR" }, agent: { name: "HomWrecka" } }])],
+    [/POST .*rpc\/make_drop/, (_u, _i, b) => { made.push(b); return ok(3); }],
+    [/GET .*rest\/v1\/finds/, (u) => { assert.match(String(u), /drop_on=eq\.2026-10-09/); return ok([
+      { id: "f9", score: 91, listing: { title: "2023 Porsche 911 Carrera T" }, agent: { name: "Porsche Boy" } },
+      { id: "f8", score: 80, listing: { title: "Lumen 2BR" }, agent: { name: "HomWrecka" } },
+      { id: "f7", score: 78, listing: { title: "Cayman GT4" }, agent: { name: "Porsche Boy" } }]); }],
+    [/GET .*rest\/v1\/notes/, () => ok(payoffs)],
     [/PATCH .*rest\/v1\/profiles/, (_u, _i, b) => { marked = b; return ok([]); }],
     [/POST .*rest\/v1\/notes/, (_u, _i, b) => { notes.push(b); return ok([]); }],
   ]);
-  const eightNY = new Date("2026-10-09T12:15:00Z");   // 8:15am in New York
-  route([{ id: "u1", tz: "America/New_York", last_digest_on: null }, { id: "u2", tz: "America/Los_Angeles", last_digest_on: null }]);
-  assert.equal(await daily.morningDigest(eightNY), 1);
+  const nineNY = new Date("2026-10-09T13:15:00Z");   // 9:15am in New York, 6:15am in LA
+  route([{ id: "u1", tz: "America/New_York", last_digest_on: null, display_name: "Larry White" },
+         { id: "u2", tz: "America/Los_Angeles", last_digest_on: null },
+         { id: "u3", tz: "America/New_York", last_digest_on: null, settings: { dropHour: 7 } }],
+        [{ kind: "drop", find: { listing: { title: "Goldwin Terry Zip Hoodie" } } }]);
+  assert.equal(await daily.morningDigest(nineNY), 1);
+  assert.deepEqual(made, [{ p_user: "u1", p_date: "2026-10-09" }], "only u1 is at their drop time");
   assert.equal(notes[0].kind, "digest");
-  assert.equal(notes[0].user_id, "u1");
-  assert.match(notes[0].body, /Your squad found 2 things for you: 2023 Porsche 911 Carrera T and Lumen 2BR\./);
+  assert.equal(notes[0].find_id, "f9");
+  assert.equal(notes[0].body, "Morning Larry! Your drop is in: 3 picks from 2 scouts. Plus the Goldwin Terry Zip Hoodie you're watching dropped in price.");
   assert.equal(marked.last_digest_on, "2026-10-09");
-  notes = [];
+  notes = []; made = [];
   route([{ id: "u1", tz: "America/New_York", last_digest_on: "2026-10-09" }]);
-  assert.equal(await daily.morningDigest(eightNY), 0, "already sent today");
+  assert.equal(await daily.morningDigest(nineNY), 0, "already sent today");
+  assert.equal(made.length, 0);
 });
 
 await test("onboarding: picked interests plus photos become a tuned squad", async () => {
@@ -980,8 +989,8 @@ await test("personal texts: the agent writes them, with your name and taste; tem
   assert.equal(l.text, "Larry, Nike just put the Mocha 1 Lows back up for $140. Same suede you loved on the Travis pair.", "quotes trimmed");
   assert.equal(sweep.cleanText("ok"), "", "too short to be a real text");
   assert.equal(sweep.cleanText(42), "");
-  assert.equal(daily.digestText("Larry", ["A", "B", "C"]), "Morning Larry! Your squad found 3 things for you: A, B and 1 more. Take a look when you have a sec.");
-  assert.match(daily.digestText("", ["Seiko SPB143"], "Watch Desk"), /^Morning! Watch Desk found something for you: Seiko SPB143\./);
+  assert.equal(daily.digestText("Larry", 9, 3), "Morning Larry! Your drop is in: 9 picks from 3 scouts.");
+  assert.equal(daily.digestText("", 1, 1, { kind: "restock", title: "Seiko SPB143" }), "Morning! Your drop is in: 1 pick for you. Plus the Seiko SPB143 you're watching is back in stock.");
   reset([[/rest\/v1\/finds/, () => ok([{ listing: { title: "Travis Scott x Air Jordan 1 Low OG Reverse Mocha Sail Ridgerock", price: 1500, source: "StockX", image_url: "https://proj.supabase.co/storage/v1/object/public/product-photos/x.jpg" } }])]]);
   assert.equal(await push.findSubtitle("f1"), "Travis Scott x Air Jordan 1 Low OG Reverse… · $1,500 · StockX");
   assert.equal((await push.findInfo("f1")).image, "https://proj.supabase.co/storage/v1/object/public/product-photos/x.jpg", "the photo rides along for the notification extension");
