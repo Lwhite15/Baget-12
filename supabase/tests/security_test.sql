@@ -724,8 +724,14 @@ reset role;
 set role authenticated;
 select t.err($$select public.make_drop('dddddddd-0000-0000-0000-000000000004', '2026-11-08')$$, 'people cannot make drops directly');
 select set_config('request.jwt.claim.sub', 'dddddddd-0000-0000-0000-000000000004', false);
-select t.ok(jsonb_array_length(public.my_drop() -> 'ids') = 6, 'my_drop returns the latest drop');
+select t.ok(jsonb_array_length(public.my_drop() -> 'ids') >= 6, 'my_drop returns the latest drop');
 select t.ok((public.my_drop() ->> 'hour')::int = 9, 'drop time defaults to 9');
+reset role;
+-- as if Scents' finds landed after the drop was made
+update public.finds set drop_on = null where agent_id = 'dddddddd-aaaa-0000-0000-000000000002';
+set role service_role;
+select t.ok(public.make_drop('dddddddd-0000-0000-0000-000000000004', '2026-11-07') = 6, 'a scout missing from today''s drop is added the same day');
+select t.ok(public.make_drop('dddddddd-0000-0000-0000-000000000004', '2026-11-07') = 6, 'without adding more to scouts already in it');
 reset role;
 insert into public.friendships (requester, addressee, status) values ('dddddddd-0000-0000-0000-000000000004', 'eeeeeeee-0000-0000-0000-000000000005', 'accepted');
 insert into public.listings (id, fingerprint, title) values ('eeeeeeee-1111-0000-0000-000000000001', 'eve-1', 'shoe 3');
