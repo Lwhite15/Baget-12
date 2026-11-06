@@ -168,6 +168,18 @@ final class QAWalkthrough: XCTestCase {
         app.swipeUp(); snap("today-scroll-1", wait: 2)
         app.swipeUp(); snap("today-scroll-2", wait: 2)
         app.swipeUp(); snap("today-scroll-3", wait: 2)
+        // The drop as swipe cards (the default): swipe one right, then look at the list view and back.
+        let counter = app.staticTexts.matching(NSPredicate(format: "label MATCHES %@", "^1 of [0-9]+$")).firstMatch
+        if counter.waitForExistence(timeout: 3) {
+            note("deck: \(counter.label)")
+            let card = counter.frame
+            let start = app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: app.frame.midX - 60, dy: card.minY - 120))
+            start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 260, dy: 0)))
+            snap("today-swiped", wait: 1.2)
+            let next = app.staticTexts.matching(NSPredicate(format: "label MATCHES %@", "^2 of [0-9]+$")).firstMatch
+            note(next.exists ? "swiped right: now \(next.label)" : "PROBLEM: swiping the card didn't move to the next one")
+            if tap("List", timeout: 2) { snap("today-list", wait: 1.5); _ = tap("Swipe cards", timeout: 2) }
+        } else { note("no swipe deck on Today (empty drop, or list view)") }
         // Today is the morning drop: a progress line, each scout's picks, and an end card. Nothing endless.
         let dropLine = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Today's drop")).firstMatch
         note(dropLine.exists ? "drop: \(dropLine.label)" : "no drop line yet (no finds in the drop)")

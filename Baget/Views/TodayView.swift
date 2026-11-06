@@ -6,6 +6,17 @@ struct TodayView: View {
     @Environment(AppStore.self) private var store
     @Environment(Router.self) private var router
     @State private var showTop = false
+    /// "cards" (swipe through the drop) or "list" (each scout's picks in rows). Remembered on this phone.
+    @AppStorage("baget.todayLayout") private var layout = "cards"
+    /// The drop's order for the swipe deck, fixed while you go through it (new picks join at the end).
+    @State private var deckIDs: [String] = []
+    @State private var deckIndex = 0
+
+    /// Scouts take turns in the deck, so it isn't three of the same thing in a row.
+    private func deckOrder(_ groups: [(agent: Agent, finds: [Find])]) -> [String] {
+        let longest = groups.map(\.finds.count).max() ?? 0
+        return (0..<longest).flatMap { i in groups.compactMap { i < $0.finds.count ? $0.finds[i].id : nil } }
+    }
 
     var body: some View {
         let groups = store.dropGroups()
@@ -27,7 +38,11 @@ struct TodayView: View {
                     if store.isCloud && !store.state.agents.isEmpty && store.state.finds.isEmpty { firstHuntCard }
                     if !payoffs.isEmpty { sinceYesterday(payoffs) }
                     if !releases.isEmpty { droppingToday(releases) }
-                    ForEach(groups, id: \.agent.id) { g in scoutDrop(g.agent, g.finds) }
+                    if layout == "cards" && !deckIDs.isEmpty {
+                        TodayDeck(ids: deckIDs, index: $deckIndex, showDone: false)
+                    } else {
+                        ForEach(groups, id: \.agent.id) { g in scoutDrop(g.agent, g.finds) }
+                    }
                     if !store.state.finds.isEmpty { endCard(groups) }
                 }
                 .padding(.horizontal, 16)
@@ -53,6 +68,8 @@ struct TodayView: View {
             .onChange(of: router.todayTop) { withAnimation(.snappy) { proxy.scrollTo("today-top", anchor: .top) } }
         }
         .task { await store.loadDrop() }
+        .onAppear { syncDeck(groups) }
+        .onChange(of: store.drop) { syncDeck(store.dropGroups()) }
         // Coming back to the app after the drop time: today's drop appears without a pull-down.
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
             Task { await store.loadDrop() }
@@ -62,15 +79,49 @@ struct TodayView: View {
         }
     }
 
-    /// "Today's drop · 9 picks from 3 scouts", and a bar that fills as you go through them.
+    /// A new drop starts the deck over; picks added to today's drop join the end.
+    private func syncDeck(_ groups: [(agent: Agent, finds: [Find])]) {
+        let order = deckOrder(groups)
+        if deckIDs.isEmpty || Set(order).isDisjoint(with: deckIDs) { deckIDs = order; deckIndex = 0; return }
+        let new = order.filter { !deckIDs.contains($0) }
+        if !new.isEmpty { deckIDs += new }
+    }
+
+    private func layoutButton(_ icon: String, _ value: String, _ label: String) -> some View {
+        let on = layout == value
+        return Button {
+            guard !on else { return }
+            withAnimation(.snappy) { layout = value }
+            Analytics.track(.todayLayout, ["layout": value])
+        } label: {
+            Image(systemName: icon).font(.footnote.weight(.semibold))
+                .foregroundStyle(on ? Theme.cyan : Theme.muted)
+                .frame(width: 36, height: 30)
+                .background(on ? Theme.cyan.opacity(0.18) : Color.clear)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
+        .accessibilityAddTraits(on ? .isSelected : [])
+    }
+
+    /// "Today's drop · 9 picks from 3 scouts", the cards / list switch, and a bar that fills as you go through them.
     private func dropProgress(_ groups: [(agent: Agent, finds: [Find])]) -> some View {
         let all = groups.flatMap(\.finds)
         let done = all.filter { $0.status != .open }.count
         return VStack(alignment: .leading, spacing: 7) {
-            Text(groups.count == 1
-                 ? String(localized: "Today's drop · \(all.count) picks from \(groups[0].agent.name)")
-                 : String(localized: "Today's drop · \(all.count) picks from \(groups.count) scouts"))
-                .font(.footnote.weight(.semibold)).foregroundStyle(Theme.muted)
+            HStack {
+                Text(groups.count == 1
+                     ? String(localized: "Today's drop · \(all.count) picks from \(groups[0].agent.name)")
+                     : String(localized: "Today's drop · \(all.count) picks from \(groups.count) scouts"))
+                    .font(.footnote.weight(.semibold)).foregroundStyle(Theme.muted).lineLimit(1).minimumScaleFactor(0.85)
+                Spacer(minLength: 8)
+                HStack(spacing: 0) {
+                    layoutButton("rectangle.portrait", "cards", String(localized: "Swipe cards"))
+                    layoutButton("list.bullet", "list", String(localized: "List"))
+                }
+                .background(Theme.glass, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.line))
+            }
             GeometryReader { g in
                 ZStack(alignment: .leading) {
                     Capsule().fill(Theme.glass)
