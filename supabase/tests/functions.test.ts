@@ -940,15 +940,16 @@ await test("onboarding: picked interests plus photos become a tuned squad", asyn
   assert.match(content.at(-1).text, /fragrance, sneakers/);
 });
 
-await test("how often Baget texts you: best, all and daily", async () => {
+await test("how often Baget texts you: daily (default), best and all", async () => {
   const note = (kind: string, find_id: string | null = "f1") => ({ id: "n1", user_id: jumpman.user_id, body: "x", sender_name: "A", kind, find_id, held_for_morning: false, pushed_at: null });
   const setup = (level: string | null, score: number, sentToday: number) => reset([
     [/rest\/v1\/profiles/, () => ok([{ settings: level ? { pushLevel: level } : {} }])],
     [/rest\/v1\/finds/, () => ok([{ score }])],
     [/rest\/v1\/notes/, () => ok(Array.from({ length: sentToday }, (_, i) => ({ id: `p${i}` })))],
   ]);
-  setup(null, 90, 0); assert.equal(await push.shouldText(note("available") as never), true, "default is best; strong match texts");
-  setup(null, 70, 0); assert.equal(await push.shouldText(note("available") as never), false, "weak match stays in the inbox");
+  setup(null, 99, 0); assert.equal(await push.shouldText(note("available") as never), false, "default is daily: one morning drop text, finds stay in the app");
+  setup("best", 90, 0); assert.equal(await push.shouldText(note("available") as never), true, "best: strong match texts");
+  setup("best", 70, 0); assert.equal(await push.shouldText(note("available") as never), false, "weak match stays in the inbox");
   setup("best", 95, 6); assert.equal(await push.shouldText(note("available") as never), false, "best caps at 6 a day");
   setup("all", 40, 50); assert.equal(await push.shouldText(note("available") as never), true);
   setup("daily", 99, 0); assert.equal(await push.shouldText(note("release") as never), false);
