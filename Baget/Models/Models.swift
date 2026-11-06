@@ -450,14 +450,16 @@ struct Settings: Codable, Hashable {
     var groups: Set<NoteGroup> = Set(NoteGroup.allCases)
     var shareTasteWithFriends: Bool = true
     var sharePurchasesWithFriends: Bool = false
-    /// How often Baget texts you. Nil means the default, `.best`.
+    /// How often Baget texts you. Nil means the default, `.daily` (just the morning drop, plus watched-item news).
     var pushLevel: PushLevel? = nil
+    /// The local hour the morning drop lands (and its one text). Nil means 9am.
+    var dropHour: Int? = nil
     /// Free plan: the local hour the daily 4-hour hunting window starts. Nil means 9am.
     var huntStart: Int? = nil
 }
 
 enum PushLevel: String, Codable, CaseIterable, Identifiable {
-    case best, all, daily
+    case daily, best, all
     var id: String { rawValue }
     var label: String {
         switch self {
@@ -468,9 +470,9 @@ enum PushLevel: String, Codable, CaseIterable, Identifiable {
     }
     var blurb: String {
         switch self {
-        case .best: return String(localized: "Texts for strong matches (85%+) only, at most 6 a day, plus price drops, restocks, Today's Drop and friends.")
+        case .best: return String(localized: "Texts for strong matches (85%+) only, at most 6 a day, plus price drops, restocks, your morning drop and friends.")
         case .all: return String(localized: "Every find, as it happens.")
-        case .daily: return String(localized: "Just the 8am Today's Drop, plus price drops and restocks on things you're watching.")
+        case .daily: return String(localized: "Just your morning drop, plus price drops and restocks on things you're watching.")
         }
     }
 }

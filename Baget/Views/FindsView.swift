@@ -421,6 +421,8 @@ struct FindListRow: View {
     var highlighted = false
     /// How many other stores have this same product (shown as "+N stores").
     var alsoAt = 0
+    /// "Jordan and Mia like this" (Today's drop), when friends who share their taste liked or bought it.
+    var friends: String? = nil
     let open: () -> Void
     @State private var dx: CGFloat = 0
     @State private var askingWhy = false
@@ -442,6 +444,9 @@ struct FindListRow: View {
                     if alsoAt > 0 { StoresBadge(count: alsoAt) }
                     if let reason = find.why.first(where: { !$0.hasPrefix("Discovery") && !$0.isEmpty }) ?? find.why.first {
                         Text(reason).font(.caption).foregroundStyle(Theme.green.opacity(0.9)).lineLimit(1)
+                    }
+                    if let friends {
+                        Label(friends, systemImage: "person.2.fill").font(.caption2.weight(.semibold)).foregroundStyle(Theme.accent).lineLimit(1)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)

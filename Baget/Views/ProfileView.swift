@@ -460,13 +460,13 @@ struct FriendsPrivacyForm: View {
                 Toggle(isOn: $store.state.settings.shareTasteWithFriends) {
                     VStack(alignment: .leading) {
                         Text("My taste profile")
-                        Text("The styles, makers and creators your scouts hunt, so suggestions land better.").font(.caption).foregroundStyle(Theme.muted)
+                        Text("The styles, makers and creators your scouts hunt, and what you like (friends see your name on the same product in their morning drop).").font(.caption).foregroundStyle(Theme.muted)
                     }
                 }
                 Toggle(isOn: $store.state.settings.sharePurchasesWithFriends) {
                     VStack(alignment: .leading) {
                         Text("What I buy")
-                        Text("Off by default. Purchases and prices stay private unless you turn this on.").font(.caption).foregroundStyle(Theme.muted)
+                        Text("Off by default. Purchases and prices stay private unless you turn this on; then friends see that you got it.").font(.caption).foregroundStyle(Theme.muted)
                     }
                 }
             } header: { Text("What friends can see") } footer: {

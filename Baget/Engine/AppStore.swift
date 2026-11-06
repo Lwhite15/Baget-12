@@ -36,6 +36,9 @@ final class AppStore {
     var chatBusy: String?
     /// The Today screen's personal feed, best first, and the strongest taste signals behind it.
     var forYou: [ForYouItem] = []
+    /// Today's drop (each scout's 3 best, picked by the server each morning), and which friends liked those products.
+    var drop: DailyDrop?
+    var friendSignals: [String: FriendSignal] = [:]
     var tasteTop: [TasteFeature] = []
     var forYouLoading = false
     var forYouLoadedAt: Date?

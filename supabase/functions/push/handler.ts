@@ -31,7 +31,7 @@ export async function shouldText(n: Note): Promise<boolean> {
     return !!f && f.score >= QUIET_MIN_SCORE;
   }
   const [p] = await db.select<{ settings: Record<string, unknown> | null }>("profiles", `select=settings&id=eq.${n.user_id}`);
-  const level = typeof p?.settings?.pushLevel === "string" ? p.settings.pushLevel as string : "best";
+  const level = typeof p?.settings?.pushLevel === "string" ? p.settings.pushLevel as string : "daily";
   if (level === "all") return true;
   if (level === "daily") return false;
   // "best": strong matches only, and only a few a day.

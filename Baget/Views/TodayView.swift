@@ -1,52 +1,42 @@
 import SwiftUI
 
-/// The home screen: today's finds as a swipe deck (or a grid, for people who'd rather tap), then an endless For You.
+/// The home screen: the morning drop. What changed on things you watched, what's releasing today,
+/// then each scout's 3 best of the day. It ends, so it feels done; everything else lives in Finds.
 struct TodayView: View {
     @Environment(AppStore.self) private var store
     @Environment(Router.self) private var router
-    /// "cards" (the swipe deck) or "grid". Remembered on this phone.
-    @AppStorage("baget.todayLayout") private var layout = "cards"
-    /// Today's finds, fixed while you go through them so cards don't jump as likes and passes land.
-    @State private var deckIDs: [String] = []
-    /// The deck's products, so For You below can skip them without searching every find on each redraw.
-    @State private var deckItemIDs: Set<String> = []
-    @State private var deckIndex = 0
     @State private var showTop = false
-    /// Bumped each time you pull up past the bottom of Today: loads more picks, or checks for new ones at the end.
-    @State private var pullUp = 0
-
-    private func freshDeck() -> [String] {
-        var seen = Set<String>()
-        let cands = (store.todaysPicks(TodayDeck.size * 2) + store.swipeQueue).filter { seen.insert($0.id).inserted }
-        // One card per product: the same thing from three stores is one card (its cheapest), not three.
-        return ProductMatch.group(cands).prefix(TodayDeck.size).map(\.lead.id)
-    }
 
     var body: some View {
+        let groups = store.dropGroups()
+        let payoffs = store.payoffs()
+        let releases = store.droppingToday()
         ScrollViewReader { proxy in
             ScrollView {
                 // Lazy, so the greeting's onDisappear tells us when to offer "back to top".
                 LazyVStack(alignment: .leading, spacing: 20) {
-                    header
-                        .id("today-top")
-                        .onAppear { withAnimation { showTop = false } }
-                        .onDisappear { withAnimation { showTop = true } }
+                    VStack(alignment: .leading, spacing: 10) {
+                        greeting
+                        if !groups.isEmpty { dropProgress(groups) }
+                    }
+                    .id("today-top")
+                    .onAppear { withAnimation { showTop = false } }
+                    .onDisappear { withAnimation { showTop = true } }
                     if store.plan?.pro != true { PlanStatusPill() }
-                    // New scout sits above today's finds (the full confirmation right after sending one).
                     if router.scoutSent != nil { NewScoutCard() } else { NewScoutCard(compact: true) }
                     if store.isCloud && !store.state.agents.isEmpty && store.state.finds.isEmpty { firstHuntCard }
-                    if !deckIDs.isEmpty {
-                        if layout == "grid" { todayGrid } else { TodayDeck(ids: deckIDs, index: $deckIndex) }
-                    }
-                    ForYouSection(mode: .today, exclude: deckItemIDs, pullUp: pullUp)
+                    if !payoffs.isEmpty { sinceYesterday(payoffs) }
+                    if !releases.isEmpty { droppingToday(releases) }
+                    ForEach(groups, id: \.agent.id) { g in scoutDrop(g.agent, g.finds) }
+                    if !store.state.finds.isEmpty { endCard(groups) }
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 24)
+                .animation(.snappy, value: store.state.finds.map(\.status))
             }
             .scrollIndicators(.hidden)
             .dismissKeyboardOnTap()
-            .refreshable { await store.refreshNow(router: router); deckIDs = freshDeck(); deckIndex = 0 }
-            .modifier(PullUpAtBottom { pullUp += 1 })
+            .refreshable { await store.refreshNow(router: router); await store.loadDrop() }
             .overlay(alignment: .bottomTrailing) {
                 if showTop {
                     Button { withAnimation(.snappy) { proxy.scrollTo("today-top", anchor: .top) } } label: {
@@ -62,62 +52,157 @@ struct TodayView: View {
             }
             .onChange(of: router.todayTop) { withAnimation(.snappy) { proxy.scrollTo("today-top", anchor: .top) } }
         }
+        .task { await store.loadDrop() }
+        // Coming back to the app after the drop time: today's drop appears without a pull-down.
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            Task { await store.loadDrop() }
+        }
         .onAppear {
-            if deckIDs.isEmpty || deckIndex >= deckIDs.count { deckIDs = freshDeck(); deckIndex = 0 }
-            deckItemIDs = Set(deckIDs.compactMap { id in store.state.finds.first { $0.id == id }?.itemID })
-            Analytics.track(.todayViewed, ["toSwipe": deckIDs.count, "layout": layout])
+            Analytics.track(.todayViewed, ["toSwipe": groups.reduce(0) { $0 + $1.finds.count }, "layout": "drop"])
         }
-        .onChange(of: store.state.finds.count) { if deckIDs.isEmpty { deckIDs = freshDeck(); deckIndex = 0 } }
-        .onChange(of: deckIDs) { deckItemIDs = Set(deckIDs.compactMap { id in store.state.finds.first { $0.id == id }?.itemID }) }
     }
 
-    /// The greeting, with the cards / grid switch beside it.
-    private var header: some View {
-        HStack(alignment: .bottom) {
-            greeting
-            Spacer(minLength: 8)
-            if !deckIDs.isEmpty {
-                HStack(spacing: 0) {
-                    layoutButton("rectangle.portrait", "cards", String(localized: "Swipe cards"))
-                    layoutButton("square.grid.2x2", "grid", String(localized: "Grid"))
+    /// "Today's drop · 9 picks from 3 scouts", and a bar that fills as you go through them.
+    private func dropProgress(_ groups: [(agent: Agent, finds: [Find])]) -> some View {
+        let all = groups.flatMap(\.finds)
+        let done = all.filter { $0.status != .open }.count
+        return VStack(alignment: .leading, spacing: 7) {
+            Text(groups.count == 1
+                 ? String(localized: "Today's drop · \(all.count) picks from \(groups[0].agent.name)")
+                 : String(localized: "Today's drop · \(all.count) picks from \(groups.count) scouts"))
+                .font(.footnote.weight(.semibold)).foregroundStyle(Theme.muted)
+            GeometryReader { g in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Theme.glass)
+                    Capsule().fill(Theme.gradient).frame(width: max(6, g.size.width * CGFloat(done) / CGFloat(max(1, all.count))))
                 }
-                .background(Theme.glass, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.line))
-                .padding(.bottom, 2)
+            }
+            .frame(height: 5)
+            .accessibilityElement()
+            .accessibilityLabel("\(done) of \(all.count) seen")
+        }
+    }
+
+    private func sectionHead(_ title: String, _ trailing: String? = nil) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(title.uppercased()).font(.caption.weight(.heavy)).tracking(1.3).foregroundStyle(Theme.muted)
+            Spacer()
+            if let trailing { Text(trailing).font(.caption.weight(.bold)).foregroundStyle(Theme.accent) }
+        }
+    }
+
+    /// Price drops and restocks on things you watched: the payoff for coming back.
+    private func sinceYesterday(_ items: [Payoff]) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionHead(String(localized: "Since yesterday"), items.count == 1 ? String(localized: "1 update") : String(localized: "\(items.count) updates"))
+            ForEach(items) { p in
+                Button { router.focusFind = p.find.id; router.tab = .finds } label: {
+                    HStack(spacing: 11) {
+                        ProductThumb(item: p.item, size: 52)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(p.item.title).font(.subheadline.weight(.bold)).foregroundStyle(Theme.ink).lineLimit(2).multilineTextAlignment(.leading)
+                            Text(p.line).font(.caption).foregroundStyle(Theme.muted).lineLimit(1)
+                        }
+                        Spacer(minLength: 6)
+                        Text(p.tag).font(.caption.weight(.heavy))
+                            .foregroundStyle(p.note.kind == .restock ? Theme.accent : Theme.green)
+                            .padding(.horizontal, 8).padding(.vertical, 4)
+                            .background((p.note.kind == .restock ? Theme.accent : Theme.green).opacity(0.13), in: Capsule())
+                    }
+                    .padding(10)
+                    .background(Theme.glass, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.line))
+                }
+                .buttonStyle(.plain)
             }
         }
     }
 
-    private func layoutButton(_ icon: String, _ value: String, _ label: String) -> some View {
-        let on = layout == value
-        return Button {
-            guard !on else { return }
-            withAnimation(.snappy) { layout = value }
-            Analytics.track(.todayLayout, ["layout": value])
-        } label: {
-            Image(systemName: icon).font(.footnote.weight(.semibold))
-                .foregroundStyle(on ? Theme.cyan : Theme.muted)
-                .frame(width: 36, height: 30)
-                .background(on ? Theme.cyan.opacity(0.18) : Color.clear)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(label)
-        .accessibilityAddTraits(on ? .isSelected : [])
-    }
-
-    /// Grid mode: today's finds as tiles, with ♥ and ✕ on each. No swiping.
-    private var todayGrid: some View {
-        let finds = deckIDs.compactMap { id in store.state.finds.first { $0.id == id && ($0.status == .open || $0.status == .liked) } }
-        return VStack(alignment: .leading, spacing: 10) {
-            Text("Today's finds").font(.title3.weight(.heavy)).foregroundStyle(Theme.ink)
-            if finds.isEmpty {
-                Text("You've been through today's finds. More for you below.").font(.footnote).foregroundStyle(Theme.muted)
-            } else {
-                FoldGrid(spacing: 10) {
-                    ForEach(finds) { f in FindTile(find: f) { router.focusFind = f.id; router.tab = .finds } }
+    /// Releases from your finds in the next day or so, each with its time.
+    private func droppingToday(_ items: [(find: Find, item: Item, at: Date)]) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionHead(String(localized: "Dropping today"))
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(items, id: \.find.id) { r in
+                        Button { router.focusFind = r.find.id; router.tab = .finds } label: {
+                            VStack(alignment: .leading, spacing: 6) {
+                                ProductThumb(item: r.item, size: 128)
+                                    .overlay(alignment: .topLeading) {
+                                        Text(clock(r.at)).font(.caption2.weight(.heavy)).foregroundStyle(Theme.warn)
+                                            .padding(.horizontal, 7).padding(.vertical, 3)
+                                            .background(Theme.bg.opacity(0.8), in: Capsule()).padding(6)
+                                    }
+                                Text(r.item.title).font(.caption.weight(.bold)).foregroundStyle(Theme.ink)
+                                    .lineLimit(2).multilineTextAlignment(.leading).frame(width: 128, height: 32, alignment: .topLeading)
+                                Text(r.item.priceKnown && r.item.price > 0 ? String(localized: "Release · \(r.item.priceLabel)") : String(localized: "Release"))
+                                    .font(.caption2).foregroundStyle(Theme.muted)
+                            }
+                            .padding(8)
+                            .background(Theme.glass, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.line))
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
             }
         }
+    }
+
+    private func clock(_ d: Date) -> String {
+        if d < .now { return String(localized: "Live now") }
+        let t = d.formatted(date: .omitted, time: .shortened)
+        return Calendar.current.isDateInToday(d) ? t : String(localized: "Tomorrow \(t)")
+    }
+
+    /// One scout's picks for today, with friends' likes on them.
+    private func scoutDrop(_ agent: Agent, _ finds: [Find]) -> some View {
+        VStack(alignment: .leading, spacing: 9) {
+            HStack(spacing: 9) {
+                AgentAvatarView(agent: agent, size: 30)
+                Text(agent.name).font(.subheadline.weight(.heavy)).foregroundStyle(Theme.ink).lineLimit(1)
+                Spacer()
+                Text(finds.count == 1 ? String(localized: "1 pick") : String(localized: "\(finds.count) picks"))
+                    .font(.caption.weight(.bold)).foregroundStyle(Theme.muted)
+            }
+            ForEach(finds) { f in
+                if f.status == .passed {
+                    EmptyView()
+                } else {
+                    FindListRow(find: f, agent: agent, friends: store.friendSignals[f.itemID]?.line.nilIfEmpty) {
+                        router.focusFind = f.id; router.tab = .finds
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .leading)))
+                }
+            }
+        }
+    }
+
+    /// The end of the drop: it's finished, and when the next one lands.
+    private func endCard(_ groups: [(agent: Agent, finds: [Find])]) -> some View {
+        let h = store.drop?.hour ?? store.state.settings.dropHour ?? 9
+        let time = Calendar.current.date(bySettingHour: h, minute: 0, second: 0, of: .now)?.formatted(date: .omitted, time: .shortened) ?? "9 AM"
+        let left = groups.flatMap(\.finds).filter { $0.status == .open }.count
+        return VStack(spacing: 8) {
+            Image(systemName: left == 0 && !groups.isEmpty ? "checkmark.seal.fill" : "sun.horizon.fill")
+                .font(.system(size: 34)).foregroundStyle(Theme.green)
+            Text(groups.isEmpty ? String(localized: "Your next drop is on its way") : left == 0 ? String(localized: "That's today's drop") : String(localized: "\(left) left in today's drop"))
+                .font(.title3.weight(.heavy)).foregroundStyle(Theme.ink)
+            Text(String(localized: "Your scouts keep hunting. Next drop tomorrow at \(time). Anything you skip stays in Finds."))
+                .font(.footnote).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
+            Button { router.tab = .finds } label: {
+                Label("Browse all finds", systemImage: "arrow.right").labelStyle(.titleOnly)
+                    .font(.subheadline.weight(.bold)).foregroundStyle(Theme.ink)
+                    .padding(.horizontal, 18).padding(.vertical, 10)
+                    .background(Theme.glass, in: Capsule()).overlay(Capsule().strokeBorder(Theme.line))
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 4)
+        }
+        .padding(.vertical, 22).padding(.horizontal, 16)
+        .frame(maxWidth: .infinity)
+        .background(Theme.glass, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Theme.line))
     }
 
     private var greeting: some View {

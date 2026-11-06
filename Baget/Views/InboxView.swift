@@ -117,14 +117,25 @@ struct AlertSettingsForm: View {
             }
             Section {
                 Picker("How often Baget texts you", selection: Binding(
-                    get: { store.state.settings.pushLevel ?? .best },
+                    get: { store.state.settings.pushLevel ?? .daily },
                     set: { store.state.settings.pushLevel = $0 })) {
                     ForEach(PushLevel.allCases) { l in Text(l.label).tag(l) }
                 }
                 .pickerStyle(.inline)
                 .labelsHidden()
             } header: { Text("How often Baget texts you") } footer: {
-                Text((store.state.settings.pushLevel ?? .best).blurb + String(localized: " Everything else still shows up in your inbox."))
+                Text((store.state.settings.pushLevel ?? .daily).blurb + String(localized: " Everything else still shows up in your inbox."))
+            }
+            Section {
+                Picker("Morning drop", selection: Binding(
+                    get: { store.state.settings.dropHour ?? 9 },
+                    set: { store.state.settings.dropHour = $0 })) {
+                    ForEach(5...21, id: \.self) { h in
+                        Text(Calendar.current.date(bySettingHour: h, minute: 0, second: 0, of: .now)?.formatted(date: .omitted, time: .shortened) ?? "\(h):00").tag(h)
+                    }
+                }
+            } header: { Text("Morning drop") } footer: {
+                Text("Each day at this time your scouts bring their 3 best finds to Today, with one text about it.")
             }
             Section {
                 Toggle(isOn: $store.state.settings.quietHours) {

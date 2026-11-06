@@ -184,6 +184,7 @@ struct SettingsBlob: Codable {
     var avatar: Avatar?
     var pushLevel: String?
     var huntStart: Int?
+    var dropHour: Int?
     /// The app's language ("en", "es", "fr", "ko"), so scouts text and chat in it.
     var lang: String?
 }
@@ -357,6 +358,7 @@ extension AppStore {
                       replies: (s.replies ?? []).sorted { $0.createdAt < $1.createdAt }.map { ShareReply(friendID: $0.fromUser, text: $0.body, date: $0.createdAt) })
             }
             applyProfile(profileData)
+            Task { await self.loadDrop() }
             state.lastSynced = .now
             save()
         } catch {
@@ -379,6 +381,7 @@ extension AppStore {
             if let a = blob.avatar { state.avatar = a }
             state.settings.pushLevel = blob.pushLevel.flatMap { PushLevel(rawValue: $0) }
             state.settings.huntStart = blob.huntStart
+            state.settings.dropHour = blob.dropHour
         }
         lastSettingsSnapshot = settingsSnapshot()
         // The language changed since the server last heard (or it never did): tell it, so scouts write in it.
@@ -392,8 +395,8 @@ extension AppStore {
     func settingsSnapshot() -> Data? {
         let blob = SettingsBlob(sweepMinutes: state.settings.sweepMinutes, quietHours: state.settings.quietHours,
                                 groups: state.settings.groups.map(\.rawValue).sorted(), liveTabs: state.liveTabs,
-                                avatar: state.avatar, pushLevel: (state.settings.pushLevel ?? .best).rawValue,
-                                huntStart: state.settings.huntStart ?? 9, lang: AppLanguage.code)
+                                avatar: state.avatar, pushLevel: (state.settings.pushLevel ?? .daily).rawValue,
+                                huntStart: state.settings.huntStart ?? 9, dropHour: state.settings.dropHour ?? 9, lang: AppLanguage.code)
         var obj: [String: Any] = [:]
         if let d = try? JSONEncoder().encode(blob), let j = try? JSONSerialization.jsonObject(with: d) { obj["settings"] = j }
         obj["share_taste"] = state.settings.shareTasteWithFriends

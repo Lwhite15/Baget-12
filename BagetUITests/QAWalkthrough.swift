@@ -168,35 +168,21 @@ final class QAWalkthrough: XCTestCase {
         app.swipeUp(); snap("today-scroll-1", wait: 2)
         app.swipeUp(); snap("today-scroll-2", wait: 2)
         app.swipeUp(); snap("today-scroll-3", wait: 2)
-        // The bottom of Today: the Load more / Check for new picks button must work without going back to the top.
+        // Today is the morning drop: a progress line, each scout's picks, and an end card. Nothing endless.
+        let dropLine = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Today's drop")).firstMatch
+        note(dropLine.exists ? "drop: \(dropLine.label)" : "no drop line yet (no finds in the drop)")
         let bottomStart = Date()
-        let footer = NSPredicate(format: "label IN %@", ["Load more picks", "Check for new picks"])
+        let end = NSPredicate(format: "label == %@ OR label ENDSWITH %@ OR label == %@", "That's today's drop", "left in today's drop", "Your next drop is on its way")
         var swipes = 0
-        while swipes < 60, !(app.buttons.matching(footer).firstMatch.exists && app.buttons.matching(footer).firstMatch.isHittable) {
+        while swipes < 25, !(app.staticTexts.matching(end).firstMatch.exists && app.staticTexts.matching(end).firstMatch.isHittable) {
             app.swipeUp(velocity: .fast); swipes += 1
         }
-        timed("scroll to bottom of Today (\(swipes) swipes)", bottomStart)
-        let btn = app.buttons.matching(footer).firstMatch
-        if btn.exists && btn.isHittable {
-            let label = btn.label
-            note("bottom button: \(label)")
-            snap("today-bottom", wait: 1)
-            let tapped = Date(); btn.tap(); note("tap \(label)")
-            snap("today-bottom-loading", wait: 0.5)
-            // Wait for it to finish (the button comes back), then make sure we're still down here, not at the top.
-            _ = app.buttons.matching(footer).firstMatch.waitForExistence(timeout: 40)
-            timed("bottom button finished", tapped)
-            let stayed = app.buttons["Back to top"].exists
-            note(stayed ? "stayed at the bottom after the button" : "PROBLEM: jumped back to the top after the button")
-            snap("today-bottom-after", wait: 0.5)
-            app.swipeUp(); snap("today-bottom-more", wait: 1.5)
-            // Pulling up past the end does the same.
-            let pull = Date(); app.swipeUp(velocity: .fast); app.swipeUp(velocity: .fast)
-            snap("today-pull-up", wait: 0.5)
-            _ = app.buttons.matching(footer).firstMatch.waitForExistence(timeout: 40)
-            timed("pull-up finished", pull)
-            note(app.buttons["Back to top"].exists ? "still at the bottom after pull-up" : "PROBLEM: jumped to the top after pull-up")
-        } else { note("MISSING Load more / Check for new picks button at the bottom of Today") }
+        timed("scroll to the end of Today (\(swipes) swipes)", bottomStart)
+        if app.staticTexts.matching(end).firstMatch.exists {
+            note("end card: \(app.staticTexts.matching(end).firstMatch.label)")
+            snap("today-end", wait: 1)
+        } else { note("PROBLEM: no end card on Today") }
+        if app.staticTexts["Load more picks"].exists || app.buttons["Load more picks"].exists { note("PROBLEM: the old endless feed is still on Today") }
         // Re-tapping the Today tab goes back to the top.
         tap("Today", timeout: 2); snap("today-back-top", wait: 1.5)
         // Send a new scout: the button opens its sheet.
