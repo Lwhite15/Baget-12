@@ -9,8 +9,6 @@ struct TodayDeck: View {
     static let size = 12
     let ids: [String]
     @Binding var index: Int
-    /// Off on the daily drop, whose own end card follows the deck.
-    var showDone = true
     @State private var dx: CGFloat = 0
     @State private var swiping: Bool?
     @State private var liked = 0
@@ -111,9 +109,6 @@ struct TodayDeck: View {
                 Text(item.title).font(.headline).foregroundStyle(Theme.ink).lineLimit(2).multilineTextAlignment(.leading)
                 Text([item.priceKnown && item.price > 0 ? item.priceLabel : nil, item.source].compactMap { $0 }.joined(separator: " · "))
                     .font(.subheadline).foregroundStyle(Theme.muted).lineLimit(1)
-                if let friends = store.friendSignals[f.itemID]?.line.nilIfEmpty {
-                    Label(friends, systemImage: "person.2.fill").font(.caption.weight(.semibold)).foregroundStyle(Theme.accent).lineLimit(1)
-                }
                 if let why = f.why.first(where: { !$0.hasPrefix("Discovery") && !$0.isEmpty }) ?? f.why.first {
                     Label(why, systemImage: "heart.fill").font(.caption).foregroundStyle(Theme.green.opacity(0.9)).lineLimit(1)
                 }
@@ -185,11 +180,7 @@ struct TodayDeck: View {
         }
     }
 
-    @ViewBuilder private var done: some View {
-        if showDone { doneCard }
-    }
-
-    private var doneCard: some View {
+    private var done: some View {
         HStack(spacing: 12) {
             Image(systemName: "checkmark.seal.fill").font(.title2).foregroundStyle(Theme.green)
             VStack(alignment: .leading, spacing: 2) {

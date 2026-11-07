@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// "How Baget works": a short swipe-through (the drop, watching, Scouts, Finds, friends) shown once, right after setup and before Today. Also in Settings.
+/// "How Baget works": a short swipe-through shown once, right after setup and before Today. Also in Settings.
 struct HowToView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var page = 0
@@ -15,20 +15,20 @@ struct HowToView: View {
     }
 
     private let pages: [Page] = [
-        Page(id: 0, icon: "sun.max.fill", tint: Theme.warn, title: "Every morning, a drop",
-             body: "At 9 AM your scouts bring their best finds to Today as a deck of cards. You'll get one text when it lands.",
-             tips: ["Swipe right to like, left to pass", "Swipe up to watch it, or get a reminder for a release", "Change the time in Settings, under Notifications"]),
-        Page(id: 1, icon: "eye.fill", tint: Theme.green, title: "Your scouts watch what you like",
-             body: "Everything you like, your scout keeps an eye on: price drops, restocks and release dates. What changed shows up first in tomorrow's drop.",
-             tips: ["Release cards count down to the drop, marked Confirmed or Rumored", "Swipe up on a release to get a reminder 15 minutes before", "Finish the drop, then tap Keep swiping for more picks"]),
-        Page(id: 2, icon: "binoculars.fill", tint: Theme.cyan, title: "Build and tune your scouts",
-             body: "Each scout hunts one thing for you. In Scouts, tap Tune on any scout to change what it hunts and skips, its size and budget.",
-             tips: ["Tap Build a scout in Scouts to add one. It starts hunting right away", "Or just tell a scout what you want, in plain words", "Turn a scout off or delete it from Tune"]),
-        Page(id: 3, icon: "sparkles", tint: Theme.accent, title: "Finds keeps everything",
-             body: "Every find lives in Finds, with the price, the store and why your scout picked it.",
-             tips: ["Like it, or Pass and say why", "Buy takes you straight to the store's page", "Today has a List view too, if you'd rather tap than swipe"]),
-        Page(id: 4, icon: "heart.circle.fill", tint: Theme.hot, title: "Hunt with friends",
-             body: "Add friends and see how your taste compares. When a friend likes something in your drop, the card says so.",
+        Page(id: 0, icon: "sun.max.fill", tint: Theme.warn, title: "Today is your daily feed",
+             body: "Every day your scouts' best finds land at the top, with more picks for you below.",
+             tips: ["Tap ♥ on what you love, ✕ on what you don't", "Every tap teaches your scouts your taste", "Pull down any time to check for new finds"]),
+        Page(id: 1, icon: "sparkles", tint: Theme.cyan, title: "Finds is everything they found",
+             body: "Each find shows the price, the store and why your scout picked it.",
+             tips: ["Like it, or Pass and say why", "Watch it and get a text when the price drops or it restocks", "Buy takes you straight to the store's page"]),
+        Page(id: 2, icon: "person.3.fill", tint: Theme.green, title: "Your scouts do the hunting",
+             body: "Each scout hunts one thing for you, and every one is yours to shape. Change what it hunts, its brands, styles, size and budget, or how often it texts you, any time.",
+             tips: ["Talk to a scout or open Detailed hunt setup to fine-tune it", "Pause a scout, or delete it from its card in Scouts", "Send a new scout any time from Today, and it starts hunting right away", "Tap Hunt now in Finds when you can't wait"]),
+        Page(id: 3, icon: "bell.badge.fill", tint: Theme.hot, title: "They text you like a friend",
+             body: "When something great turns up, your scout texts you a photo and why it's worth a look.",
+             tips: ["Only the best ones, a few a day at most", "Change how often in Settings, under Notifications", "Your icon at the top left opens Settings"]),
+        Page(id: 4, icon: "heart.circle.fill", tint: Theme.accent, title: "Hunt with friends",
+             body: "Add friends and see how your taste compares.",
              tips: ["Tap Add in Your circle and type their @username. Set yours in Settings", "Share your taste to see your taste match and swap Taste Cards",
                     "Add your birthday in Settings, and friends get gift ideas for your taste", "Send a friend a find, and tap what they send you to see it at the store"]),
     ]

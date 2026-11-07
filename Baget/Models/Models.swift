@@ -133,8 +133,6 @@ struct Item: Identifiable, Hashable, Codable {
     var about: String? = nil
     /// Who the brand is, in a sentence or two. Shared by every product from that brand.
     var brandAbout: String? = nil
-    /// When a scout last checked this product's price around the web (for things you watch).
-    var checkedAt: Date? = nil
     /// Stores outside the US: the price in the store's own currency (`price` is converted to US dollars).
     var origPrice: Double? = nil
     var origCurrency: String? = nil
@@ -333,8 +331,6 @@ enum NoteKind: String, Codable {
     case feedback
     /// A release reminder the person set on an upcoming find.
     case reminder
-    /// A release date was announced or moved for something you watch.
-    case dated
 }
 
 /// "Remind me" on an upcoming release: some minutes before the drop (follows the date if it moves), or an exact time.
@@ -360,7 +356,7 @@ enum NoteGroup: String, Codable, CaseIterable, Identifiable {
 extension NoteKind {
     var group: NoteGroup? {
         switch self {
-        case .release, .available, .reminder, .dated: return .finds
+        case .release, .available, .reminder: return .finds
         case .watch, .restock: return .restocks
         case .steal, .drop: return .steals
         case .digest: return .finds
@@ -454,16 +450,14 @@ struct Settings: Codable, Hashable {
     var groups: Set<NoteGroup> = Set(NoteGroup.allCases)
     var shareTasteWithFriends: Bool = true
     var sharePurchasesWithFriends: Bool = false
-    /// How often Baget texts you. Nil means the default, `.daily` (just the morning drop, plus watched-item news).
+    /// How often Baget texts you. Nil means the default, `.best`.
     var pushLevel: PushLevel? = nil
-    /// The local hour the morning drop lands (and its one text). Nil means 9am.
-    var dropHour: Int? = nil
     /// Free plan: the local hour the daily 4-hour hunting window starts. Nil means 9am.
     var huntStart: Int? = nil
 }
 
 enum PushLevel: String, Codable, CaseIterable, Identifiable {
-    case daily, best, all
+    case best, all, daily
     var id: String { rawValue }
     var label: String {
         switch self {
@@ -474,9 +468,9 @@ enum PushLevel: String, Codable, CaseIterable, Identifiable {
     }
     var blurb: String {
         switch self {
-        case .best: return String(localized: "Texts for strong matches (85%+) only, at most 6 a day, plus price drops, restocks, your morning drop and friends.")
+        case .best: return String(localized: "Texts for strong matches (85%+) only, at most 6 a day, plus price drops, restocks, Today's Drop and friends.")
         case .all: return String(localized: "Every find, as it happens.")
-        case .daily: return String(localized: "Just your morning drop, plus price drops and restocks on things you're watching.")
+        case .daily: return String(localized: "Just the 8am Today's Drop, plus price drops and restocks on things you're watching.")
         }
     }
 }

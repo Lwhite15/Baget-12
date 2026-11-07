@@ -2,7 +2,7 @@ import Foundation
 
 /// Listings the app knows about.
 /// * Signed out: a sample catalog with real product names and illustrative prices and timings.
-/// * Signed in: real listings the squad found on the web, synced from the server.
+/// * Signed in: real listings your scouts found on the web, synced from the server.
 @MainActor
 enum Catalog {
     /// Real listings from the server, by id. Empty when signed out.

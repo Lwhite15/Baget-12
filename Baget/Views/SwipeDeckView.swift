@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Finds as a card stack: right to like, left to pass, up to buy. The fastest way to teach the squad.
+/// Finds as a card stack: right to like, left to pass, up to buy. The fastest way to teach your scouts.
 struct SwipeDeckView: View {
     @Environment(AppStore.self) private var store
     @Environment(Router.self) private var router

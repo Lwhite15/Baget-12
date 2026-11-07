@@ -76,7 +76,7 @@ struct TasteView: View {
     }
 }
 
-/// First run: what you're into, optionally three photos of things you love, and your squad is built and hunting.
+/// First run: what you're into, optionally three photos of things you love, and your scouts is built and hunting.
 struct OnboardingView: View {
     @Environment(AppStore.self) private var store
     @Environment(\.dismiss) private var dismiss
@@ -591,7 +591,7 @@ struct OnboardingView: View {
             nextRow("clock", String(localized: "First finds land in a few minutes, right in Finds"))
             nextRow("arrow.triangle.2.circlepath", store.isPro ? String(localized: "Then they hunt every 6 hours, around the clock") : String(localized: "Then they hunt every day and keep your finds fresh"))
             nextRow("heart", String(localized: "Like or pass what they bring, and they learn your taste fast"))
-            nextRow("pencil", String(localized: "Change any scout any time: tell it more, add a brand or size, or start over. Scouts, then Tune on any scout"))
+            nextRow("pencil", String(localized: "Change any scout any time: tell it more, add a brand or size, or start over. Scouts, then ••• on any scout"))
             nextRow("scope", String(localized: "Hunting one specific thing? Send a specific scout from Today any time"))
         }
         .padding(12)

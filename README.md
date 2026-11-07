@@ -1,6 +1,6 @@
 # Baget
 
-Your own personal AI scouts that learn your taste, watch prices and release dates, and bring you a daily drop of finds to swipe.
+Your own personal team of AI agents that learns your taste and makes recommendations for you to purchase.
 A native iPhone app (SwiftUI, iOS 17+) with a Supabase backend where the agents search the real web with Claude.
 
 ## What's in here
@@ -9,7 +9,7 @@ A native iPhone app (SwiftUI, iOS 17+) with a Supabase backend where the agents 
 |---|---|
 | `Baget/` | The iPhone app |
 | `Baget/Engine/Backend.swift` | Supabase client: Sign in with Apple, database, functions, photo storage. Session kept in the Keychain. |
-| `Baget/Engine/CloudSync.swift` | Syncs your squad, finds, purchases, notifications and friends with the server |
+| `Baget/Engine/CloudSync.swift` | Syncs your scouts, finds, purchases, notifications and friends with the server |
 | `supabase/migrations/` | Database: tables, row-level security, friend flows, notification triggers, scheduler, metrics |
 | `supabase/functions/` | Server code: `sweep` (web search), `chat`, `read-photo`, `push`, `setup`, `delete-account` |
 | `supabase/tests/` | 54 database security checks and 18 server function tests |
@@ -62,7 +62,7 @@ so a busy month can't surprise you. See Costs below.
 2. **Push key:** Keys > + > tick **Apple Push Notifications service (APNs)**. Download the `.p8` (one chance)
    and note the **Key ID**.
 3. **App record:** appstoreconnect.apple.com > Apps > + > New App, with the same bundle ID.
-   App Store names are unique; if "Baget" is taken, try "Baget: Personal Squad". The name under the icon stays Baget.
+   App Store names are unique; if "Baget" is taken, try "Baget: Personal Scouts". The name under the icon stays Baget.
 4. **Build key:** App Store Connect > Users and Access > Integrations > App Store Connect API > Team key, **Admin** role.
    Download the `.p8`; note its **Key ID** and **Issuer ID**.
 
@@ -166,7 +166,7 @@ Search phrases come from each agent's makers, keywords, traits, creators and wha
 
 Example: 5 agents sweeping every 3 hours is 40 sweeps a day, but the daily cap of 30 holds it to about $3 to $6 a day. Change how often agents search
 in the app (your icon at the top left > Notifications and background), and cap it with `SWEEP_DAILY_CAP` and your Anthropic spend limit.
-Each squad has at most 12 agents, and each agent can be swept by hand at most once every 10 minutes.
+Each person has at most 12 agents, and each agent can be swept by hand at most once every 10 minutes.
 
 ## Data and privacy
 

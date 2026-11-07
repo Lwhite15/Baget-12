@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppStore {
-    /// First-launch state: a sample squad, sample friends and a few months of sample purchases,
+    /// First-launch state: a sample scouts, sample friends and a few months of sample purchases,
     /// all marked as samples so they're easy to tell apart from your own data.
     func seed() {
         state.catalogStart = .now

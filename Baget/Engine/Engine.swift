@@ -283,7 +283,6 @@ enum FriendVoice {
         case (.drop, _): return String(localized: "Price drop: the \(t) is now \(price) at \(src).")
         case (.feedback, _): return extra
         case (.reminder, _): return String(localized: "Reminder: the \(t) releases \(when) at \(src).")
-        case (.dated, _): return String(localized: "Release date: the \(t) drops \(when).")
         }
     }
 

@@ -27,7 +27,6 @@ struct ListingRow: Decodable {
     let lowStore: String?
     let about: String?
     let brandAbout: String?
-    var offersCheckedAt: Date? = nil
     var origPrice: Double? = nil
     var origCurrency: String? = nil
 
@@ -39,7 +38,7 @@ struct ListingRow: Decodable {
                     shoeSizes: cat == .sneakers && !sizes.isEmpty ? sizes.compactMap(Sizes.shoeUS) : nil,
                     topSizes: cat == .apparel && !sizes.isEmpty ? sizes.compactMap(Sizes.topSize) : nil,
                     url: url, imageURL: imageUrl, dropAt: dropAt, firstSeen: firstSeenAt, priceKnown: price != nil, isSample: false,
-                    offers: offers, lowPrice: lowPrice, lowStore: lowStore, about: about, brandAbout: brandAbout, checkedAt: offersCheckedAt, origPrice: origPrice, origCurrency: origCurrency)
+                    offers: offers, lowPrice: lowPrice, lowStore: lowStore, about: about, brandAbout: brandAbout, origPrice: origPrice, origCurrency: origCurrency)
     }
 }
 
@@ -185,7 +184,6 @@ struct SettingsBlob: Codable {
     var avatar: Avatar?
     var pushLevel: String?
     var huntStart: Int?
-    var dropHour: Int?
     /// The app's language ("en", "es", "fr", "ko"), so scouts text and chat in it.
     var lang: String?
 }
@@ -359,7 +357,6 @@ extension AppStore {
                       replies: (s.replies ?? []).sorted { $0.createdAt < $1.createdAt }.map { ShareReply(friendID: $0.fromUser, text: $0.body, date: $0.createdAt) })
             }
             applyProfile(profileData)
-            Task { await self.loadDrop() }
             state.lastSynced = .now
             save()
         } catch {
@@ -382,7 +379,6 @@ extension AppStore {
             if let a = blob.avatar { state.avatar = a }
             state.settings.pushLevel = blob.pushLevel.flatMap { PushLevel(rawValue: $0) }
             state.settings.huntStart = blob.huntStart
-            state.settings.dropHour = blob.dropHour
         }
         lastSettingsSnapshot = settingsSnapshot()
         // The language changed since the server last heard (or it never did): tell it, so scouts write in it.
@@ -396,8 +392,8 @@ extension AppStore {
     func settingsSnapshot() -> Data? {
         let blob = SettingsBlob(sweepMinutes: state.settings.sweepMinutes, quietHours: state.settings.quietHours,
                                 groups: state.settings.groups.map(\.rawValue).sorted(), liveTabs: state.liveTabs,
-                                avatar: state.avatar, pushLevel: (state.settings.pushLevel ?? .daily).rawValue,
-                                huntStart: state.settings.huntStart ?? 9, dropHour: state.settings.dropHour ?? 9, lang: AppLanguage.code)
+                                avatar: state.avatar, pushLevel: (state.settings.pushLevel ?? .best).rawValue,
+                                huntStart: state.settings.huntStart ?? 9, lang: AppLanguage.code)
         var obj: [String: Any] = [:]
         if let d = try? JSONEncoder().encode(blob), let j = try? JSONSerialization.jsonObject(with: d) { obj["settings"] = j }
         obj["share_taste"] = state.settings.shareTasteWithFriends
@@ -597,7 +593,7 @@ extension AppStore {
     /// At launch: register if notifications were already allowed, or for accounts set up before setup asked about them.
     func registerForPushIfAsked() async {
         let status = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
-        // Never ask cold: not before signing in (the sample squad has agents too), and not before setup is done.
+        // Never ask cold: not before signing in (the sample scouts has agents too), and not before setup is done.
         if status == .notDetermined && (Backend.shared.userID == nil || !UserDefaults.standard.bool(forKey: "baget.onboarded")) { return }
         await registerForPush()
     }

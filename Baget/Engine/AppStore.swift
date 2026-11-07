@@ -36,9 +36,6 @@ final class AppStore {
     var chatBusy: String?
     /// The Today screen's personal feed, best first, and the strongest taste signals behind it.
     var forYou: [ForYouItem] = []
-    /// Today's drop (each scout's 3 best, picked by the server each morning), and which friends liked those products.
-    var drop: DailyDrop?
-    var friendSignals: [String: FriendSignal] = [:]
     var tasteTop: [TasteFeature] = []
     var forYouLoading = false
     var forYouLoadedAt: Date?
@@ -361,8 +358,7 @@ final class AppStore {
     func learn(_ agentID: String, from item: Item, delta: Int, note: String? = nil) {
         guard let i = agentIndex(agentID) else { return }
         var gained: [String] = []
-        for raw in item.traits + [item.brand] {
-            guard let k = Self.tasteLabel(raw) else { continue }
+        for k in item.traits + [item.brand] where Self.isTaste(k) {
             let n = TextMatch.norm(k)
             let before = state.agents[i].learned[n] ?? 0
             state.agents[i].learned[n] = max(-3, min(5, before + delta))
@@ -379,40 +375,14 @@ final class AppStore {
         if !gained.isEmpty {
             log("\(a.name) learned you like \(gained.joined(separator: ", "))")
             Analytics.track(.agentLearned, ["mission": a.mission.category?.rawValue ?? "custom", "count": gained.count])
-            if let n = notify(a, .learned, nil, extra: Self.tasteList(gained)) { showBanner(n) }
+            if let n = notify(a, .learned, nil, extra: gained.joined(separator: ", ")) { showBanner(n) }
         } else if let note { log("\(a.name) noted: \(note)") }
         save()
         pushAgent(agentID)
     }
 
     /// A real taste word, not a price, sale tag, size, SKU or season code.
-    /// A store tag as a person would say it: "note:balsam" is "balsam", "house:boadicea-the-victorious" is
-    /// "boadicea the victorious", and site bookkeeping ("_related_x", "pre-order", "family:floral" style codes we don't know) is dropped.
-    nonisolated static func tasteLabel(_ s: String) -> String? {
-        var t = s.trimmingCharacters(in: .whitespacesAndNewlines)
-        if t.hasPrefix("_") { return nil }
-        if let colon = t.firstIndex(of: ":") {
-            let prefix = t[..<colon].lowercased()
-            let known: Set<String> = ["note", "notes", "family", "house", "accord", "brand", "designer", "style", "color", "colour", "material", "scent"]
-            guard known.contains(prefix) else { return nil }
-            t = String(t[t.index(after: colon)...]).replacingOccurrences(of: "-", with: " ").trimmingCharacters(in: .whitespaces)
-        }
-        let junk: Set<String> = ["pre-order", "preorder", "pre order", "new", "new arrival", "new arrivals", "sale", "in stock", "sold out", "products", "product", "all"]
-        if junk.contains(t.lowercased()) { return nil }
-        return isTaste(t) ? t : nil
-    }
-
-    /// "a", "a and b", "a, b and c": at most three, so the message reads like a sentence.
-    nonisolated static func tasteList(_ items: [String]) -> String {
-        let few = Array(items.prefix(3))
-        switch few.count {
-        case 0: return ""
-        case 1: return few[0]
-        default: return few.dropLast().joined(separator: ", ") + " and " + few.last!
-        }
-    }
-
-    nonisolated static func isTaste(_ s: String) -> Bool {
+    static func isTaste(_ s: String) -> Bool {
         let t = s.trimmingCharacters(in: .whitespaces)
         guard t.count >= 2, t.count <= 40 else { return false }
         if t.range(of: #"[$£€¥]|\b(sale|price|off|usd|gbp|eur)\b"#, options: [.regularExpression, .caseInsensitive]) != nil { return false }
@@ -505,8 +475,7 @@ final class AppStore {
         guard state.finds[fi].status != .liked else { return }
         state.finds[fi].status = .liked
         state.finds[fi].passReason = nil
-        // A like hands it to the scout to watch: price drops, restocks and release dates.
-        let watchIt = true
+        let watchIt = isSoldOut(item) || !isLive(item)
         if watchIt { state.finds[fi].watching = true }
         var patch: [String: Any] = ["status": "liked", "pass_reason": NSNull()]
         if watchIt { patch["watching"] = true }
@@ -720,7 +689,7 @@ final class AppStore {
             let old = state.agents[i].tasteBoard.removeLast()
             try? FileManager.default.removeItem(at: photoURL(old.id))
         }
-        for t in tags.compactMap({ Self.tasteLabel($0)?.lowercased() }) {
+        for t in tags.map({ $0.lowercased() }) {
             if !state.agents[i].style.traits.contains(where: { TextMatch.norm($0) == TextMatch.norm(t) }) { state.agents[i].style.traits.append(t) }
             // what you choose to show is a strong signal
             state.agents[i].learned[TextMatch.norm(t)] = max(state.agents[i].learned[TextMatch.norm(t)] ?? 0, 1)
@@ -729,7 +698,7 @@ final class AppStore {
         log("\(a.name) learned from your photo: \(photo.tags.prefix(4).joined(separator: ", "))")
         Analytics.track(.tastePhotoAdded, ["mission": a.mission.category?.rawValue ?? "custom", "tags": photo.tags.count,
                                             "boardSize": a.tasteBoard.count])
-        if let n = notify(a, .learned, nil, extra: Self.tasteList(photo.tags.compactMap { Self.tasteLabel($0) })) { showBanner(n) }
+        if let n = notify(a, .learned, nil, extra: photo.tags.prefix(3).joined(separator: ", ")) { showBanner(n) }
         if let jpeg, isCloud { uploadTastePhoto(agentID: agentID, photo: photo, jpeg: jpeg) }
         save()
     }

@@ -50,7 +50,6 @@ struct RootView: View {
                 case .tastePhoto(let aid): TastePhotoView(agentID: aid)
                 case .chat(let aid): ChatView(agentID: aid)
                 case .agentIcon(let aid): AgentIconView(agentID: aid)
-                case .tune(let aid): TuneScoutView(agentID: aid)
                 case .swipe: SwipeDeckView()
                 case .taste: TasteView()
                 case .pro: PaywallView()

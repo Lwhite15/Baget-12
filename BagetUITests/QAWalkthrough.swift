@@ -146,7 +146,7 @@ final class QAWalkthrough: XCTestCase {
         if !tap("Skip and build my scouts", timeout: 4) { tap("Build without photos") }
         snap("setup-5-building", wait: 1)
         _ = app.staticTexts["Your scouts are hunting"].waitForExistence(timeout: 60) || app.staticTexts["First finds are in"].exists
-        timed("build scouts", build)
+        timed("build squad", build)
         snap("setup-5-first-hunt", wait: 1)
         // Watch the first hunt like a customer would.
         for s in [45, 90, 150] {
@@ -163,45 +163,49 @@ final class QAWalkthrough: XCTestCase {
             tap("Start exploring", timeout: 3)
         } else { note("MISSING how-to after setup") }
 
-        // Today: the morning drop as swipe cards.
+        // Today.
         snap("today", wait: 4)
-        let counterOf = { (n: Int) in self.app.staticTexts.matching(NSPredicate(format: "label MATCHES %@", "^\(n) of [0-9]+$")).firstMatch }
-        let swipe = { (dx: CGFloat, dy: CGFloat) in
-            let mid = self.app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45))
-            mid.press(forDuration: 0.05, thenDragTo: mid.withOffset(CGVector(dx: dx, dy: dy)))
+        app.swipeUp(); snap("today-scroll-1", wait: 2)
+        app.swipeUp(); snap("today-scroll-2", wait: 2)
+        app.swipeUp(); snap("today-scroll-3", wait: 2)
+        // The bottom of Today: the Load more / Check for new picks button must work without going back to the top.
+        let bottomStart = Date()
+        let footer = NSPredicate(format: "label IN %@", ["Load more picks", "Check for new picks"])
+        var swipes = 0
+        while swipes < 60, !(app.buttons.matching(footer).firstMatch.exists && app.buttons.matching(footer).firstMatch.isHittable) {
+            app.swipeUp(velocity: .fast); swipes += 1
         }
-        if counterOf(1).waitForExistence(timeout: 4) {
-            note("deck: \(counterOf(1).label)")
-            swipe(260, 0); snap("today-swiped-right", wait: 1.2)
-            note(counterOf(2).exists ? "swiped right: now \(counterOf(2).label)" : "PROBLEM: swiping right didn't move to the next card")
-            swipe(0, -300); snap("today-swiped-up", wait: 1.2)
-            note(counterOf(3).exists ? "swiped up: now \(counterOf(3).label)" : "PROBLEM: swiping up didn't move to the next card")
-            if tap("List", timeout: 2) {
-                snap("today-list", wait: 1.5); app.swipeUp(); snap("today-list-scroll", wait: 1.2)
-                app.swipeDown(); app.swipeDown(); Thread.sleep(forTimeInterval: 0.8)
-                _ = tap("Swipe cards", timeout: 3)
-                note(counterOf(3).waitForExistence(timeout: 3) ? "back to the cards, still on 3" : "PROBLEM: switching back to cards lost your place")
-            }
-            // Finish the drop: pass the rest, then the finish card, then Keep swiping.
-            let finished = app.staticTexts["You finished today's drop"]
-            var passes = 0
-            while passes < 30 && !finished.exists { swipe(-260, 0); passes += 1; Thread.sleep(forTimeInterval: 0.4) }
-            if finished.waitForExistence(timeout: 3) {
-                note("finished the drop after \(passes) more swipes")
-                snap("today-finished", wait: 1)
-                if tapContaining("Keep swiping") {
-                    snap("keep-swiping", wait: 2.5)
-                    let mode = app.staticTexts["KEEP SWIPING"]
-                    note(mode.exists ? "keep swiping deck is showing" : "PROBLEM: Keep swiping didn't start")
-                    swipe(260, 0); snap("keep-swiping-liked", wait: 1.5)
-                    swipe(-260, 0); snap("keep-swiping-passed", wait: 1.2)
-                } else { note("MISSING Keep swiping button") }
-            } else { snap("today-after-passes", wait: 0.5); note("PROBLEM: no finish card after the drop") }
-        } else {
-            note("no swipe deck on Today (no drop yet)")
-            snap("today-no-drop", wait: 1)
-        }
-        if app.staticTexts["Load more picks"].exists || app.buttons["Load more picks"].exists { note("PROBLEM: the old endless feed is still on Today") }
+        timed("scroll to bottom of Today (\(swipes) swipes)", bottomStart)
+        let btn = app.buttons.matching(footer).firstMatch
+        if btn.exists && btn.isHittable {
+            let label = btn.label
+            note("bottom button: \(label)")
+            snap("today-bottom", wait: 1)
+            let tapped = Date(); btn.tap(); note("tap \(label)")
+            snap("today-bottom-loading", wait: 0.5)
+            // Wait for it to finish (the button comes back), then make sure we're still down here, not at the top.
+            _ = app.buttons.matching(footer).firstMatch.waitForExistence(timeout: 40)
+            timed("bottom button finished", tapped)
+            let stayed = app.buttons["Back to top"].exists
+            note(stayed ? "stayed at the bottom after the button" : "PROBLEM: jumped back to the top after the button")
+            snap("today-bottom-after", wait: 0.5)
+            app.swipeUp(); snap("today-bottom-more", wait: 1.5)
+            // Pulling up past the end does the same.
+            let pull = Date(); app.swipeUp(velocity: .fast); app.swipeUp(velocity: .fast)
+            snap("today-pull-up", wait: 0.5)
+            _ = app.buttons.matching(footer).firstMatch.waitForExistence(timeout: 40)
+            timed("pull-up finished", pull)
+            note(app.buttons["Back to top"].exists ? "still at the bottom after pull-up" : "PROBLEM: jumped to the top after pull-up")
+        } else { note("MISSING Load more / Check for new picks button at the bottom of Today") }
+        // Re-tapping the Today tab goes back to the top.
+        tap("Today", timeout: 2); snap("today-back-top", wait: 1.5)
+        // Send a new scout: the button opens its sheet.
+        if tap("Send a new scout", timeout: 3) {
+            snap("new-scout-sheet", wait: 2)
+            if tap("Hunting one specific thing?", timeout: 3) { snap("new-scout-specific", wait: 1) } else { note("MISSING specific hunt option") }
+            closeSheet()
+        } else { note("MISSING Send a new scout") }
+        if tap("See all", timeout: 2) { snap("for-you-all", wait: 3); tap("Done", timeout: 2) }
 
         // Finds.
         tap("Finds"); snap("finds", wait: 3)
@@ -232,20 +236,9 @@ final class QAWalkthrough: XCTestCase {
             } else { note("MISSING Not my size (this find may not be clothing or shoes)"); closeSheet() }
         }
 
-        // Scouts: build a scout, live scout cards, and Tune.
-        tap("Scouts"); snap("scouts", wait: 3)
-        if tap("Build a scout", timeout: 3) {
-            snap("new-scout-sheet", wait: 2)
-            if tap("Hunting one specific thing?", timeout: 3) { snap("new-scout-specific", wait: 1) } else { note("MISSING specific hunt option") }
-            closeSheet()
-        } else { note("MISSING Build a scout") }
-        if tap("Tune", timeout: 3) {
-            snap("tune", wait: 2)
-            app.swipeUp(); snap("tune-scroll", wait: 1.2)
-            app.swipeUp(); snap("tune-scroll-2", wait: 1.2)
-            _ = tap("Done", timeout: 2)
-        } else { note("MISSING Tune on a scout") }
-        app.swipeUp(); snap("scouts-scroll", wait: 1.5)
+        // Squad.
+        tap("Scouts"); snap("squad", wait: 3)
+        app.swipeUp(); snap("squad-scroll", wait: 1.5)
         app.swipeDown()
 
         // Friends.

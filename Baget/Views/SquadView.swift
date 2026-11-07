@@ -1,56 +1,46 @@
 import SwiftUI
 
-/// The Scouts tab: build scouts, see what each one is doing right now, and tune them.
 struct SquadView: View {
     @Environment(AppStore.self) private var store
     @Environment(Router.self) private var router
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Your scouts").font(.system(size: 28, weight: .heavy)).tracking(-0.6).foregroundStyle(Theme.ink)
-                    Text("They hunt, watch prices and track release dates around the clock.").font(.footnote).foregroundStyle(Theme.muted)
-                }
-                .padding(.top, 4)
-                Button { router.sheet = .newScout; Analytics.track(.huntStarted, ["from": "scouts", "step": "open"]) } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: "plus").font(.title2.weight(.heavy))
-                            .frame(width: 42, height: 42).background(Theme.accentInk.opacity(0.15), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text("Build a scout").font(.headline.weight(.heavy))
-                            Text("Tell it what you're into. Takes 30 seconds.").font(.caption.weight(.semibold)).opacity(0.8)
-                        }
-                        Spacer(minLength: 0)
-                    }
-                    .foregroundStyle(Theme.accentInk)
-                    .padding(14)
-                    .background(Theme.gradient, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                }
-                .buttonStyle(.plain)
-                HuntDoneCard()
-                ForEach(store.state.agents) { a in ScoutSummaryCard(agent: a) }
-                Button { router.sheet = .newScout } label: {
-                    VStack(spacing: 3) {
-                        Text(store.state.agents.isEmpty ? String(localized: "+ Your first scout") : String(localized: "+ Add another scout"))
-                            .font(.subheadline.weight(.bold)).foregroundStyle(Theme.ink)
-                        Text("Vintage watches? Vinyl? A grail you can't find?").font(.caption).foregroundStyle(Theme.muted)
-                    }
-                    .frame(maxWidth: .infinity).padding(16)
-                    .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Theme.line, style: StrokeStyle(lineWidth: 1.5, dash: [6, 5])))
-                }
-                .buttonStyle(.plain)
+            VStack(alignment: .leading, spacing: 14) {
+                SectionTitle(text: String(localized: "Your scouts"))
+                NewScoutCard(compact: true)
                 HStack(spacing: 8) {
                     Button { router.sheet = .taste } label: { IconText(icon: "brain.head.profile", text: String(localized: "What Baget knows")) }
                         .buttonStyle(GhostButton())
-                    Button { router.deployPrefill = nil; router.sheet = .deploy } label: {
+                    Button {
+                        router.deployPrefill = nil
+                        router.sheet = .deploy
+                    } label: {
+                        // Shrinks to fit (rather than spilling over) on smaller phones and in longer languages.
                         HStack(spacing: 5) {
                             Image(systemName: "slider.horizontal.3").imageScale(.small)
                             Text("Detailed hunt setup").lineLimit(1).minimumScaleFactor(0.7)
                         }
                     }
-                    .buttonStyle(GhostButton())
+                        .buttonStyle(GhostButton())
                 }
+                if store.state.agents.isEmpty {
+                    EmptyCard(text: String(localized: "No scouts yet. Tap New scout above and tell it what to hunt."))
+                }
+                HuntDoneCard()
+                let specific = store.state.agents.filter(\.isSpecific)
+                if specific.isEmpty {
+                    ForEach(store.state.agents) { a in AgentCard(agent: a) }
+                } else {
+                    let interests = store.state.agents.filter { !$0.isSpecific }
+                    if !interests.isEmpty {
+                        Text("INTERESTS").font(.caption.weight(.bold)).tracking(1).foregroundStyle(Theme.muted).padding(.top, 4)
+                        ForEach(interests) { a in AgentCard(agent: a) }
+                    }
+                    Text("SPECIFIC HUNTS").font(.caption.weight(.bold)).tracking(1).foregroundStyle(Theme.muted).padding(.top, 4)
+                    ForEach(specific) { a in AgentCard(agent: a) }
+                }
+
                 VStack(alignment: .leading, spacing: 8) {
                     Text("SCOUT ACTIVITY").font(.caption.weight(.bold)).tracking(1).foregroundStyle(Theme.muted)
                     if store.state.log.isEmpty { Text("No activity yet.").font(.footnote).foregroundStyle(Theme.muted) }
@@ -72,238 +62,10 @@ struct SquadView: View {
     }
 }
 
-/// One scout on the Scouts tab: what it's doing right now, what it hunts, its next release, and Tune.
-struct ScoutSummaryCard: View {
-    @Environment(AppStore.self) private var store
-    @Environment(Router.self) private var router
-    let agent: Agent
-
-    var body: some View {
-        let mine = store.state.finds.filter { $0.agentID == agent.id }
-        let watching = mine.filter { $0.watching && ($0.status == .open || $0.status == .liked) }.count
-        let today = Set(store.drop?.ids ?? [])
-        let picks = mine.filter { today.contains($0.id) }.count
-        let next = mine.filter { $0.status == .open || $0.status == .liked || $0.watching }
-            .compactMap { f in Catalog.item(f.itemID).flatMap { i in i.dropAt.flatMap { $0 > .now ? (item: i, at: $0) : nil } } }
-            .min { $0.at < $1.at }
-        let chips = ScoutChips.huntsFor(agent)
-        Button { router.sheet = .tune(agent.id) } label: {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(spacing: 11) {
-                    AgentAvatarView(agent: agent, size: 44)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(agent.name).font(.headline.weight(.heavy)).foregroundStyle(Theme.ink).lineLimit(2).multilineTextAlignment(.leading)
-                        Text(agent.mission.label).font(.caption).foregroundStyle(Theme.muted).lineLimit(1)
-                    }
-                    Spacer(minLength: 6)
-                    Text("Tune").font(.footnote.weight(.heavy)).foregroundStyle(Theme.accent)
-                        .padding(.horizontal, 12).padding(.vertical, 6)
-                        .overlay(Capsule().strokeBorder(Theme.accent.opacity(0.5)))
-                }
-                HStack(spacing: 12) {
-                    if agent.isOff {
-                        Label("Off", systemImage: "moon.zzz.fill").foregroundStyle(Theme.muted)
-                    } else {
-                        stat("\(watching)", String(localized: "watching"))
-                        stat("\(picks)", picks == 1 ? String(localized: "pick today") : String(localized: "picks today"))
-                        stat("\(mine.filter { $0.status != .removed }.count)", String(localized: "finds"))
-                    }
-                }
-                .font(.caption.weight(.semibold))
-                if !chips.isEmpty || (Sizes.required(agent) && !Sizes.has(agent)) {
-                    FlowRow {
-                        ForEach(chips.prefix(6), id: \.self) { Tag(text: $0) }
-                        if Sizes.required(agent) && !Sizes.has(agent) { Tag(text: String(localized: "+ Add your size"), tint: Theme.warn) }
-                        else if !agent.size.isEmpty { Tag(text: agent.size) }
-                    }
-                }
-                if let n = next {
-                    Label("\(n.item.title) · \(ReminderSheet.short(n.at))", systemImage: "timer")
-                        .font(.caption.weight(.bold)).foregroundStyle(Theme.warn).lineLimit(1)
-                }
-            }
-            .padding(13)
-            .background(Theme.panel, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Theme.line))
-            .opacity(agent.isOff ? 0.7 : 1)
-        }
-        .buttonStyle(.plain)
-        .accessibilityHint("Tune \(agent.name)")
-    }
-
-    private func stat(_ n: String, _ label: String) -> some View {
-        (Text(n).foregroundStyle(Theme.ink).bold() + Text(" \(label)").foregroundStyle(Theme.muted))
-    }
-}
-
-enum ScoutChips {
-    /// What a scout hunts for, as people would say it ("season:aw26" shows as "aw26"), without repeats.
-    static func shown(_ k: String) -> String {
-        k.split(separator: ":", maxSplits: 1).count == 2 ? String(k.split(separator: ":", maxSplits: 1)[1]) : k
-    }
-
-    static func huntsFor(_ a: Agent) -> [String] {
-        // What you typed shows as typed (so "990" stays); learned style tags are cleaned up or hidden.
-        (a.keywords.map(shown) + a.style.makers.map(shown) + a.style.traits.compactMap { AppStore.tasteLabel($0) } + a.style.creators.map(shown)).reduce(into: [String]()) { out, t in if !out.contains(where: { $0.lowercased() == t.lowercased() }) { out.append(t) } }
-    }
-}
-
-/// Tune a scout in one place: what it hunts for and skips, size, budget, what it watches, and its settings.
-struct TuneScoutView: View {
-    @Environment(AppStore.self) private var store
-    @Environment(Router.self) private var router
-    @Environment(\.dismiss) private var dismiss
-    let agentID: String
-    @State private var adding = ""
-    @State private var skipping = ""
-    @State private var size = ""
-    @State private var budget: Double = 0
-
-    var body: some View {
-        NavigationStack {
-            if let agent = store.agent(agentID) {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 18) {
-                        HStack(spacing: 11) {
-                            AgentAvatarView(agent: agent, size: 44)
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text(agent.name).font(.headline.weight(.heavy)).foregroundStyle(Theme.ink)
-                                Text("Changes apply on its next hunt").font(.caption).foregroundStyle(Theme.muted)
-                            }
-                        }
-                        section(String(localized: "HUNTS FOR")) {
-                            FlowRow {
-                                ForEach(ScoutChips.huntsFor(agent), id: \.self) { t in chip(t, Theme.green) { remove(t, from: agent) } }
-                            }
-                            addField(String(localized: "Add a brand, model, color, material…"), text: $adding) { add(adding, to: agent); adding = "" }
-                        }
-                        section(String(localized: "SKIPS")) {
-                            // What you clearly said no to (a skip you added, or "Not into the brand"), not every small pass signal.
-                            let skips = agent.learned.filter { $0.value <= -3 }.sorted { $0.value < $1.value }.map(\.key)
-                            if skips.isEmpty { Text("Nothing yet. Passing on cards teaches it what to skip.").font(.caption).foregroundStyle(Theme.muted) }
-                            FlowRow { ForEach(skips, id: \.self) { k in chip(k, Theme.hot) { store.unlearn(agent.id, key: k) } } }
-                            addField(String(localized: "Add something to skip"), text: $skipping) { skip(skipping, agent); skipping = "" }
-                        }
-                        if agent.mission.info.sizeRequired {
-                            section((agent.mission.info.sizeLabel ?? String(localized: "Size")).uppercased()) {
-                                addField(String(localized: "e.g. M, 32x30, 10.5"), text: $size, button: String(localized: "Save")) {
-                                    store.setSize(agent.id, size); router.say(String(localized: "\(agent.name) will stick to size \(size)"))
-                                }
-                            }
-                        }
-                        section(budget > 0 ? String(localized: "BUDGET · UP TO \(Fmt.money(budget))") : String(localized: "BUDGET · ANY PRICE")) {
-                            Slider(value: $budget, in: 0...2000, step: 25, onEditingChanged: { editing in
-                                if !editing { var a = agent; a.priceNote = budget; store.update(a) }
-                            })
-                            .tint(Theme.cyan)
-                            Text("Slide to 0 for any price.").font(.caption2).foregroundStyle(Theme.muted)
-                        }
-                        section(String(localized: "WATCHES FOR")) {
-                            FlowRow {
-                                ForEach([String(localized: "Price drops"), String(localized: "Restocks"), String(localized: "Release dates")], id: \.self) { Tag(text: $0, tint: Theme.green) }
-                            }
-                            Text("On everything you like or watch. Swipe right on a card, or up to watch without liking.")
-                                .font(.caption).foregroundStyle(Theme.muted)
-                        }
-                        Button { router.sheet = .chat(agent.id) } label: {
-                            HStack(spacing: 8) {
-                                Image(systemName: "bubble.left.and.text.bubble.right.fill")
-                                Text("Or just tell it: ").bold() + Text("\"more vintage, less new season\"").foregroundStyle(Theme.muted)
-                                Spacer(minLength: 0)
-                            }
-                            .font(.footnote).foregroundStyle(Theme.ink)
-                            .padding(12)
-                            .background(Theme.glass, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.line))
-                        }
-                        .buttonStyle(.plain)
-                        Text("MORE SETTINGS").font(.caption.weight(.heavy)).tracking(1.2).foregroundStyle(Theme.muted)
-                        AgentCard(agent: agent, inTune: true)
-                    }
-                    .padding(16)
-                }
-                .background(LitBackground())
-                .navigationTitle("Tune")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
-                .onAppear { size = agent.size; budget = agent.priceNote }
-            } else {
-                Text("This scout was deleted.").foregroundStyle(Theme.muted).onAppear { dismiss() }
-            }
-        }
-    }
-
-    private func section<C: View>(_ title: String, @ViewBuilder _ content: () -> C) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title).font(.caption.weight(.heavy)).tracking(1.2).foregroundStyle(Theme.muted)
-            content()
-        }
-    }
-
-    private func chip(_ t: String, _ tint: Color, remove: @escaping () -> Void) -> some View {
-        HStack(spacing: 5) {
-            Text(t).font(.footnote.weight(.semibold))
-            Button(action: remove) { Image(systemName: "xmark").font(.system(size: 9, weight: .bold)) }
-                .accessibilityLabel("Remove \(t)")
-        }
-        .foregroundStyle(tint)
-        .padding(.horizontal, 10).padding(.vertical, 6)
-        .background(tint.opacity(0.13), in: Capsule())
-        .overlay(Capsule().strokeBorder(tint.opacity(0.35)))
-    }
-
-    private func addField(_ prompt: String, text: Binding<String>, button: String = String(localized: "Add"), action: @escaping () -> Void) -> some View {
-        HStack(spacing: 8) {
-            TextField(prompt, text: text)
-                .textInputAutocapitalization(.never).autocorrectionDisabled()
-                .padding(.horizontal, 12).padding(.vertical, 9)
-                .background(Theme.glass, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Theme.line))
-                .onSubmit { if !text.wrappedValue.trimmingCharacters(in: .whitespaces).isEmpty { action() } }
-            Button(button) { if !text.wrappedValue.trimmingCharacters(in: .whitespaces).isEmpty { action() } }
-                .font(.footnote.weight(.bold)).foregroundStyle(Theme.accent)
-        }
-    }
-
-    private func add(_ raw: String, to agent: Agent) {
-        let t = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !t.isEmpty, !ScoutChips.huntsFor(agent).contains(where: { $0.lowercased() == t.lowercased() }) else { return }
-        var a = agent
-        a.keywords.append(String(t.prefix(40)))
-        a.learned[t.lowercased()] = nil
-        store.update(a)
-        Analytics.track(.agentSettingChanged, ["setting": "hunts_for"])
-    }
-
-    private func remove(_ t: String, from agent: Agent) {
-        var a = agent
-        let match: (String) -> Bool = { k in
-            ScoutChips.shown(k).lowercased() == t.lowercased() || AppStore.tasteLabel(k)?.lowercased() == t.lowercased()
-        }
-        a.keywords.removeAll(where: match)
-        a.style.makers.removeAll(where: match)
-        a.style.traits.removeAll(where: match)
-        a.style.creators.removeAll(where: match)
-        store.update(a)
-        Analytics.track(.agentSettingChanged, ["setting": "hunts_for_removed"])
-    }
-
-    private func skip(_ raw: String, _ agent: Agent) {
-        let t = raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        guard !t.isEmpty else { return }
-        var a = agent
-        a.learned[String(t.prefix(40))] = -3
-        store.update(a)
-        Analytics.track(.agentSettingChanged, ["setting": "skips"])
-    }
-}
-
 struct AgentCard: View {
     @Environment(AppStore.self) private var store
     @Environment(Router.self) private var router
     let agent: Agent
-    /// Inside Tune: what it hunts and skips are edited above, so they aren't repeated here.
-    var inTune = false
     @State private var confirmRetire = false
 
     /// Over the Free limit: the server only sends the first scouts (oldest first, among those switched on), the rest wait.
@@ -384,10 +146,10 @@ struct AgentCard: View {
                     .background(Theme.glass, in: RoundedRectangle(cornerRadius: 12))
             }
 
-            if !inTune && !agent.keywords.isEmpty {
+            if !agent.keywords.isEmpty {
                 FlowRow { ForEach(agent.keywords, id: \.self) { Tag(text: $0) } }
             }
-            if !inTune && !styleTags.isEmpty {
+            if !styleTags.isEmpty {
                 FlowRow { ForEach(styleTags, id: \.self) { Tag(text: $0, tint: Theme.green) } }
             }
             TasteBoardRow(agent: agent)
@@ -412,9 +174,7 @@ struct AgentCard: View {
                 Meter(value: Double(k) / 100)
             }
 
-            if inTune {
-                EmptyView()
-            } else if learned.isEmpty && agent.priceNote == 0 {
+            if learned.isEmpty && agent.priceNote == 0 {
                 Text("Nothing learned yet. Buy, watch or pass on finds and I'll pick up your taste.").font(.footnote).foregroundStyle(Theme.muted)
             } else {
                 VStack(alignment: .leading, spacing: 6) {

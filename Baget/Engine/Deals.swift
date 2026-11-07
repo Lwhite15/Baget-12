@@ -135,7 +135,7 @@ extension AppStore {
         }
     }
 
-    /// First-run setup: interests, an optional sentence and up to three photos -> a squad, already searching.
+    /// First-run setup: interests, an optional sentence and up to three photos -> your scouts, already searching.
     func onboard(categories: [Category], text: String, photos: [UIImage], liked: [String] = [], passed: [String] = [],
                  vibes: [Category: [String]] = [:], budget: Int? = nil, brands: [Category: [String]] = [:],
                  interests: [String] = [], sizes: [Category: String] = [:], department: String? = nil) async -> [String] {
