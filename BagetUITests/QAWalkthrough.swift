@@ -143,10 +143,10 @@ final class QAWalkthrough: XCTestCase {
         if !tap("Next", timeout: 3) { tap("Done", timeout: 3) }
         snap("setup-4-photos")
         let build = Date()
-        if !tap("Skip and build my squad", timeout: 4) { tap("Build without photos") }
+        if !tap("Skip and build my scouts", timeout: 4) { tap("Build without photos") }
         snap("setup-5-building", wait: 1)
-        _ = app.staticTexts["Your squad is hunting"].waitForExistence(timeout: 60) || app.staticTexts["First finds are in"].exists
-        timed("build squad", build)
+        _ = app.staticTexts["Your scouts are hunting"].waitForExistence(timeout: 60) || app.staticTexts["First finds are in"].exists
+        timed("build scouts", build)
         snap("setup-5-first-hunt", wait: 1)
         // Watch the first hunt like a customer would.
         for s in [45, 90, 150] {
