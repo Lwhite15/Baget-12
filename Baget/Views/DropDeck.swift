@@ -335,7 +335,13 @@ struct DropDeckView: View {
         let scout = findID(of: c).flatMap { id in store.state.finds.first { $0.id == id } }.flatMap { store.agent($0.agentID)?.name } ?? String(localized: "Your scout")
         switch (c, s) {
         case (.payoff, .up):
-            buy(c); return
+            // No store link: put the card back instead of leaving it stuck halfway up.
+            guard let item = item(of: c), BuyLink.url(item) != nil else {
+                withAnimation(.spring(response: 0.3)) { drag = .zero }
+                router.say(String(localized: "No store link for this one yet"))
+                return
+            }
+            buy(c)   // then the card flies off like any other swipe, so the deck never freezes
         case (.payoff(let p), .left):
             if p.find.watching { store.toggleWatch(p.find.id) }
             router.say(String(localized: "Stopped watching"))
