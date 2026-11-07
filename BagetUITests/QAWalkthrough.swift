@@ -176,7 +176,12 @@ final class QAWalkthrough: XCTestCase {
             note(counterOf(2).exists ? "swiped right: now \(counterOf(2).label)" : "PROBLEM: swiping right didn't move to the next card")
             swipe(0, -300); snap("today-swiped-up", wait: 1.2)
             note(counterOf(3).exists ? "swiped up: now \(counterOf(3).label)" : "PROBLEM: swiping up didn't move to the next card")
-            if tap("List", timeout: 2) { snap("today-list", wait: 1.5); app.swipeUp(); snap("today-list-scroll", wait: 1.2); _ = tap("Swipe cards", timeout: 2) }
+            if tap("List", timeout: 2) {
+                snap("today-list", wait: 1.5); app.swipeUp(); snap("today-list-scroll", wait: 1.2)
+                app.swipeDown(); app.swipeDown(); Thread.sleep(forTimeInterval: 0.8)
+                _ = tap("Swipe cards", timeout: 3)
+                note(counterOf(3).waitForExistence(timeout: 3) ? "back to the cards, still on 3" : "PROBLEM: switching back to cards lost your place")
+            }
             // Finish the drop: pass the rest, then the finish card, then Keep swiping.
             let finished = app.staticTexts["You finished today's drop"]
             var passes = 0
@@ -191,7 +196,7 @@ final class QAWalkthrough: XCTestCase {
                     swipe(260, 0); snap("keep-swiping-liked", wait: 1.5)
                     swipe(-260, 0); snap("keep-swiping-passed", wait: 1.2)
                 } else { note("MISSING Keep swiping button") }
-            } else { note("PROBLEM: no finish card after the drop") }
+            } else { snap("today-after-passes", wait: 0.5); note("PROBLEM: no finish card after the drop") }
         } else {
             note("no swipe deck on Today (no drop yet)")
             snap("today-no-drop", wait: 1)
