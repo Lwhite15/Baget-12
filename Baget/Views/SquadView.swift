@@ -175,7 +175,8 @@ struct TuneScoutView: View {
                             addField(String(localized: "Add a brand, model, color, material…"), text: $adding) { add(adding, to: agent); adding = "" }
                         }
                         section(String(localized: "SKIPS")) {
-                            let skips = agent.learned.filter { $0.value < 0 }.sorted { $0.value < $1.value }.map(\.key)
+                            // What you clearly said no to (a skip you added, or "Not into the brand"), not every small pass signal.
+                            let skips = agent.learned.filter { $0.value <= -3 }.sorted { $0.value < $1.value }.map(\.key)
                             if skips.isEmpty { Text("Nothing yet. Passing on cards teaches it what to skip.").font(.caption).foregroundStyle(Theme.muted) }
                             FlowRow { ForEach(skips, id: \.self) { k in chip(k, Theme.hot) { store.unlearn(agent.id, key: k) } } }
                             addField(String(localized: "Add something to skip"), text: $skipping) { skip(skipping, agent); skipping = "" }

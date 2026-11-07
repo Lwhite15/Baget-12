@@ -57,12 +57,12 @@ struct DropDeckView: View {
     // MARK: Cards
 
     @ViewBuilder private func card(_ c: DeckCard, height: CGFloat) -> some View {
-        let plate = max(120, min(300, height - 250))
+        // The photo takes whatever room the words leave, so the card never has a blank bottom half.
         switch c {
-        case .payoff(let p): payoffCard(p, plate: plate * 0.7)
-        case .release(let f, let item, let at): releaseCard(f, item, at, plate: plate * 0.75)
-        case .pick(let f): if let item = Catalog.item(f.itemID) { pickCard(f, item, plate: plate) }
-        case .more(let m): if let item = Catalog.item(m.id) { moreCard(m, item, plate: plate) }
+        case .payoff(let p): payoffCard(p, plate: max(100, height - 290))
+        case .release(let f, let item, let at): releaseCard(f, item, at, plate: max(100, height - 300))
+        case .pick(let f): if let item = Catalog.item(f.itemID) { pickCard(f, item, plate: max(120, height - 200)) }
+        case .more(let m): if let item = Catalog.item(m.id) { moreCard(m, item, plate: max(120, height - 190)) }
         }
     }
 
