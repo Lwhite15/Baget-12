@@ -173,7 +173,7 @@ await test("scheduled hunt (one scout, own worker): web search, continue a pause
   assert.equal(rec.p_finds[0].note, undefined, "no photo yet, so no text: it waits until the photo is found");
   assert.ok(rec.p_finds[0].why.includes("Like your taste photos: suede"));
   const runLog = calls.find((c) => c.url.includes("sweep_runs") && c.body)!.body;
-  assert.equal(runLog.searches, 3);
+  assert.equal(runLog.searches, 4, "rotation, the release-date search and Claude's searches");
   assert.equal(runLog.input_tokens, 2900);
 });
 await test("scheduler claims due scouts and starts each hunt in its own worker", async () => {
@@ -1282,8 +1282,8 @@ await test("hunts search through Serper when it works, and fall back to Claude's
   const toolResult = claudeBodies[1].messages.at(-1).content[0];
   assert.equal(toolResult.type, "tool_result");
   assert.match(toolResult.content, /newbalance\.com\/pd\/salehe-2002r/);
-  assert.equal(run.searches, 1);
-  assert.equal(serperCalls, 2, "one health check, one search");
+  assert.equal(run.searches, 2, "the release-date search and Claude's one search");
+  assert.equal(serperCalls, 3, "one health check, the release-date search, one search");
 
   search.resetSerperHealth();
   claudeBodies.length = 0; step = 1;
@@ -1694,6 +1694,37 @@ await test("store map: each hunt searches its rotation of stores directly", asyn
   assert.match(r.text, /newbalance\.com\/pd\/990v6/);
   assert.doesNotMatch(r.text, /sneakernews/);
   assert.match(r.text, /Kith \(kith\.com\): nothing matching/);
+  St.resetBlocks();
+  delete process.env.SERPER_API_KEY;
+});
+
+await test("release intel: sneaker and clothing hunts search Hypebeast and NikeTalk for release dates; news sites on the rotation keep their articles", async () => {
+  const St = await import("../functions/_shared/stores.ts");
+  process.env.SERPER_API_KEY = "serp";
+  St.resetBlocks(new Set(["hypebeast.com", "niketalk.com"]));
+  const qs: string[] = [];
+  reset([
+    [/rpc\/claim_stores/, () => ok([{ domain: "hypebeast.com", name: "Hypebeast" }])],
+    [/google\.serper\.dev/, (_u, _i, b) => { qs.push(b.q); return ok({ organic: [
+      { title: "New Balance 990v6 'Grey Day' Release Date", link: "https://hypebeast.com/2026/11/new-balance-990v6-grey-day", snippet: "Dropping Nov 21" },
+      { title: "990v6 2026 thread", link: "https://www.niketalk.com/threads/990v6.123/", snippet: "heard it's the 21st" },
+      { title: "elsewhere", link: "https://stockx.com/nb-990v6", snippet: "" }] }); }],
+  ]);
+  const scout = { id: "a1", user_id: "u1", name: "Jumpman", mission_category: "sneakers", mission_custom: null, keywords: ["990"], traits: [],
+    makers: ["New Balance"], creators: [], size: "10", mode: "ask", voice: "chill", learned: {}, price_note: 0 } as any;
+  const r = await St.releaseLeads(scout, new Date("2026-10-21T12:00:00Z"));
+  assert.equal(r.searches, 1);
+  assert.match(qs[0], /^\(site:hypebeast\.com OR site:niketalk\.com\) .+ release date$/);
+  assert.match(r.text, /hypebeast\.com\/2026\/11/);
+  assert.match(r.text, /niketalk\.com\/threads/);
+  assert.match(r.text, /rumored/);
+  assert.doesNotMatch(r.text, /stockx/);
+  const apparel = await St.releaseLeads({ ...scout, mission_category: "apparel" }, new Date());
+  assert.equal(apparel.searches, 1, "clothing too");
+  const frag = await St.releaseLeads({ ...scout, mission_category: "fragrance" }, new Date());
+  assert.deepEqual(frag, { text: "", searches: 0 }, "other lanes don't spend a search");
+  const rot = await St.storeLeads(scout, 1, new Date("2026-10-21T12:00:00Z"));
+  assert.match(rot.text, /Hypebeast \(hypebeast\.com, news and forum, not a store: use it for release dates\):\n  • New Balance 990v6/, "articles are kept, not thrown out as non-products");
   St.resetBlocks();
   delete process.env.SERPER_API_KEY;
 });

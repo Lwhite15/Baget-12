@@ -60,13 +60,42 @@ export async function storeLeads(a: Agent, n: number, now: Date, fetchFn: FetchF
     const q = `site:${s.domain} ${qs[i % Math.max(qs.length, 1)] ?? missionLabel(a)}`.slice(0, 200);
     searches++;
     const hits: WebHit[] = await serperSearch(q, fetchFn).catch(() => []);
-    const good = hits.filter((h) => hostOf(h.link).endsWith(s.domain.replace(/^www\./, "")) && !notAProduct(h.link, blocked)).slice(0, 4);
+    // News sites and forums on the map (Hypebeast, NikeTalk) never have product pages; their articles and threads are release intel.
+    const news = pageKind(`https://${s.domain}/`, blocked) === "intel";
+    const good = hits.filter((h) => hostOf(h.link).endsWith(s.domain.replace(/^www\./, "")) && (news ? pageKind(h.link, blocked) === "intel" : !notAProduct(h.link, blocked))).slice(0, 4);
+    const label = news ? `${s.name} (${s.domain}, news and forum, not a store: use it for release dates)` : `${s.name} (${s.domain})`;
     parts[i] = good.length
-      ? `${s.name} (${s.domain}):\n${good.map((h) => `  • ${h.title}\n    ${h.link}\n    ${h.snippet}`).join("\n")}`
-      : `${s.name} (${s.domain}): nothing matching came up this time.`;
+      ? `${label}:\n${good.map((h) => `  • ${h.title}\n    ${h.link}\n    ${h.snippet}`).join("\n")}`
+      : `${label}: nothing matching came up this time.`;
   }));
   const text = `Stores on your rotation this run (searched directly for you; open and confirm any that fit before including them):\n${parts.filter(Boolean).join("\n")}`;
   return { text, searches, stores: stores.map((s) => s.domain) };
+}
+
+// ── Release intel ──
+
+/** Where each lane's release talk lives. Every hunt in these lanes searches them for release dates. */
+export const RELEASE_SITES: Record<string, { domain: string; name: string }[]> = {
+  sneakers: [{ domain: "hypebeast.com", name: "Hypebeast" }, { domain: "niketalk.com", name: "NikeTalk" }],
+  apparel: [{ domain: "hypebeast.com", name: "Hypebeast" }, { domain: "niketalk.com", name: "NikeTalk" }],
+};
+
+/** One search of the lane's release sites for what this scout hunts plus "release date", as a prompt section. */
+export async function releaseLeads(a: Agent, now: Date, fetchFn: FetchFn = fetch): Promise<{ text: string; searches: number }> {
+  const sites = RELEASE_SITES[a.mission_category ?? ""];
+  if (!sites?.length) return { text: "", searches: 0 };
+  const term = queriesFor(a, [], now, 1)[0] ?? missionLabel(a);
+  const q = `(${sites.map((s) => `site:${s.domain}`).join(" OR ")}) ${term} release date`.slice(0, 250);
+  const hits: WebHit[] = await serperSearch(q, fetchFn).catch(() => []);
+  const good = hits.filter((h) => sites.some((s) => hostOf(h.link).endsWith(s.domain))).slice(0, 6);
+  if (!good.length) return { text: "", searches: 1 };
+  const names = sites.map((s) => s.name).join(" and ");
+  return {
+    text: `Release news from ${names} (searched for you; news and forum talk, not stores). Use it to find release dates for things that fit them. ` +
+      `For each one, put the brand's or a retailer's launch or product page as the url, with drop_at and drop_confirmed ` +
+      `(a date only from forum talk is rumored):\n${good.map((h) => `  • ${h.title}\n    ${h.link}\n    ${h.snippet}`).join("\n")}`,
+    searches: 1,
+  };
 }
 
 // ── Shopify catalogs ──

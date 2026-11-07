@@ -9,7 +9,7 @@ import { type Block, type ClaudeMessage, HttpError, MODEL, batchResults, batchSt
 import { addImages, linkIsDead, pageProduct, smaller, traceImage } from "../_shared/images.ts";
 import { setupDemo, setupShots } from "./demo.ts";
 import { restockCheck } from "../_shared/daily.ts";
-import { blockedDomains, notAProduct, pageKind, storeFeeds, storeLeads } from "../_shared/stores.ts";
+import { blockedDomains, notAProduct, pageKind, releaseLeads, storeFeeds, storeLeads } from "../_shared/stores.ts";
 import { geminiHunt, geminiOn } from "../_shared/gemini.ts";
 import { SEARCH_TOOL, hitsText, serperSearch, serperUsable } from "../_shared/search.ts";
 export { firstName };
@@ -93,9 +93,9 @@ export function anglesFor(agentId: string, now: Date): string[] {
 export const DEEP_SOURCES: Record<string, string[]> = {
   sneakers: ["Nike SNKRS and Nike.com", "adidas Confirmed", "New Balance", "END. Launches", "SNS (Sneakersnstuff)", "Kith", "Concepts", "Bodega",
     "Extra Butter", "Foot Locker / Champs", "StockX", "GOAT", "Flight Club", "Stadium Goods", "eBay (authenticated)", "Grailed",
-    "Sole Retriever and Sneaker News release calendars", "r/sneakermarket and sneaker forums", "Depop and Mercari", "Japanese and European shops that ship to the US"],
+    "Sole Retriever and Sneaker News release calendars", "Hypebeast and NikeTalk for release dates", "r/sneakermarket and sneaker forums", "Depop and Mercari", "Japanese and European shops that ship to the US"],
   apparel: ["the brands' own sites and drops", "SSENSE", "END.", "Mr Porter", "Kith", "Dover Street Market", "Grailed", "Depop", "Vinted",
-    "Poshmark", "The RealReal", "Vestiaire Collective", "eBay", "Mercari", "Highsnobiety and Hypebeast drop roundups", "independent boutiques",
+    "Poshmark", "The RealReal", "Vestiaire Collective", "eBay", "Mercari", "Highsnobiety and Hypebeast drop roundups", "NikeTalk threads for release dates", "independent boutiques",
     "archive and vintage shops", "Japanese resellers that ship to the US"],
   fragrance: ["the houses' own boutiques", "Luckyscent", "Twisted Lily", "Aedes", "Osswald NYC", "Nordstrom, Saks and Neiman Marcus",
     "FragranceNet and FragranceX", "Jomashop", "decant shops", "r/fragranceswap", "eBay (sealed bottles)", "Fragrantica news for new releases",
@@ -189,7 +189,7 @@ How to hunt${depth.deep ? " (leave no stone unturned)" : ""}:
 - Things available now, releasing soon, or restocking.${DROP_CATEGORIES.has(a.mission_category ?? "") ? `
 - Release dates are a big part of your job here. Spend at least one search on what's releasing in the next 60 days that fits
   them: release calendars and launch pages (Nike SNKRS upcoming, adidas Confirmed, New Balance and Jordan launch pages,
-  retailer raffles like END. Launches and Kith, streetwear droplists, fragrance houses' new launches, watch brands' new
+  retailer raffles like END. Launches and Kith, Hypebeast and NikeTalk release news, streetwear droplists, fragrance houses' new launches, watch brands' new
   references, toy, figure, card and vinyl pre-orders), and limited, numbered or collab releases.
   Include upcoming ones even with no price yet: set drop_at to the release date and time (with the timezone if the page gives
   one) and use the brand's or a retailer's launch or product page for that release as the url (not a news article).
@@ -430,7 +430,9 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
     const depth = depthFor(a.pro !== false);
     const rotation = await storeLeads(a, a.pro !== false ? num("STORE_SEARCHES_PRO", 4) : num("STORE_SEARCHES_FREE", 2), now).catch(() => ({ text: "", searches: 0, stores: [] as string[] }));
     run.searches += rotation.searches;
-    const messages: ClaudeMessage[] = [{ role: "user", content: (rotation.text ? rotation.text + "\n\n" : "") + sweepPrompt(a, now.toISOString().slice(0, 10), reactions, (DROP_CATEGORIES.has(a.mission_category ?? "") ? [UPCOMING_ANGLE, ...anglesFor(a.id, now)] : anglesFor(a.id, now)).slice(0, depth.angles), leads,
+    const releases = await releaseLeads(a, now).catch(() => ({ text: "", searches: 0 }));
+    run.searches += releases.searches;
+    const messages: ClaudeMessage[] = [{ role: "user", content: (rotation.text ? rotation.text + "\n\n" : "") + (releases.text ? releases.text + "\n\n" : "") + sweepPrompt(a, now.toISOString().slice(0, 10), reactions, (DROP_CATEGORIES.has(a.mission_category ?? "") ? [UPCOMING_ANGLE, ...anglesFor(a.id, now)] : anglesFor(a.id, now)).slice(0, depth.angles), leads,
       firstName(a.display_name), sourcesFor(a.mission_category, a.id, now, depth.sources), depth) }];
     // The second scout (Gemini + Google Search) hunts the same brief at the same time; its picks are merged below.
     const tandem = geminiOn() ? geminiHunt(String(messages[0].content), Math.ceil(depth.searches / 2)) : Promise.resolve(null);
