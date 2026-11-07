@@ -878,6 +878,8 @@ await test("watched finds text you when the price drops 5% or more", async () =>
       [/PATCH .*rest\/v1\/listings/, () => ok([])],
       [/PATCH .*rest\/v1\/finds/, (_u, _i, b) => { newWatch = b; return ok([]); }],
       [/POST .*rest\/v1\/notes/, (_u, _i, b) => { note = b; return ok([]); }],
+      [/GET .*rest\/v1\/profiles/, () => ok([{ display_name: "Larry", settings: { pushLevel: "best" } }])],
+      [/GET .*rest\/v1\/agents/, () => ok([{ id: "a1", alerts: "normal", paused: false }])],
     ]);
     const r = await daily.watchCheck(6, new Date(), fetch as never);
     assert.deepEqual(r, { checked: 1, drops: 1 }, "the item checked an hour ago waits");
@@ -885,6 +887,42 @@ await test("watched finds text you when the price drops 5% or more", async () =>
     assert.equal(note.find_id, "f1");
     assert.match(note.body, /just dropped to \$299 at Jomashop\. That's \$101 off/);
     assert.equal(newWatch.watch_price, 299);
+    assert.equal(note.push_skipped, undefined, "25% off buzzes on Best");
+  } finally { delete process.env.SERPER_API_KEY; }
+});
+await test("price drops: one text per run, following your setting; the rest go straight to the inbox", async () => {
+  process.env.SERPER_API_KEY = "serper-test";
+  const prices: Record<string, string> = { "Royal Mayfair": "$298", "Dirty Rice": "$150", "Oud Zarian": "$350", "Cola Addict": "$200", "Muted One": "$50" };
+  const run = async (level: string) => {
+    const notes: any[] = [];
+    reset([
+      [/GET .*rest\/v1\/finds/, () => ok([
+        ["f1", "Royal Mayfair", 590, "a1"], ["f2", "Dirty Rice", 230, "a1"], ["f3", "Oud Zarian", 470, "a1"], ["f4", "Cola Addict", 221, "a1"], ["f5", "Muted One", 100, "a2"],
+      ].map(([id, title, p, a]) => ({ id, user_id: "u1", agent_id: a, watch_price: p, agent: { name: "Mr smellgoods" },
+        listing: { id: `l${id}`, title, price: p, low_price: p, offers_checked_at: null } })))],
+      [/google\.serper\.dev\/shopping/, (_u, _i, b) => { const q = (b as any).q as string; const t = Object.keys(prices).find((k) => q.includes(k))!;
+        return ok({ shopping: [{ title: t, source: "Jomashop", price: prices[t] }] }); }],
+      [/PATCH .*rest\/v1\/(listings|finds)/, () => ok([])],
+      [/GET .*rest\/v1\/profiles/, () => ok([{ display_name: "Larry White", settings: { pushLevel: level } }])],
+      [/GET .*rest\/v1\/agents/, () => ok([{ id: "a1", alerts: "normal", paused: false }, { id: "a2", alerts: "off", paused: false }])],
+      [/POST .*rest\/v1\/notes/, (_u, _i, b) => { notes.push(b); return ok([]); }],
+    ]);
+    const r = await daily.watchCheck(10, new Date(), fetch as never);
+    assert.equal(r.drops, 5);
+    assert.equal(notes.length, 5, "every drop is in the inbox");
+    return { loud: notes.filter((n) => !n.push_skipped), notes };
+  };
+  try {
+    let { loud } = await run("daily");
+    assert.equal(loud.length, 0, "daily: drops wait for the morning text");
+    ({ loud } = await run("best"));
+    assert.equal(loud.length, 1, "best: one text");
+    assert.equal(loud[0].find_id, "f1", "biggest drop leads");
+    assert.equal(loud[0].body, "Larry, 3 things you're watching dropped in price: Royal Mayfair $298 (−$292), Oud Zarian $350 (−$120), Dirty Rice $150 (−$80).",
+      "Cola Addict (10% off) and the muted scout's find stay quiet");
+    ({ loud } = await run("all"));
+    assert.equal(loud.length, 1);
+    assert.match(loud[0].body, /^Larry, 4 things you're watching dropped in price: .* and 1 more\.$/);
   } finally { delete process.env.SERPER_API_KEY; }
 });
 await test("the daily drop goes out once, at each person's drop time (9am unless changed), leading with a payoff", async () => {
@@ -954,7 +992,12 @@ await test("how often Baget texts you: daily (default), best and all", async () 
   setup("all", 40, 50); assert.equal(await push.shouldText(note("available") as never), true);
   setup("daily", 99, 0); assert.equal(await push.shouldText(note("release") as never), false);
   setup("daily", 0, 0);
-  for (const k of ["digest", "drop", "restock", "friend", "bought"]) assert.equal(await push.shouldText(note(k, null) as never), true, k);
+  for (const k of ["digest", "friend", "bought", "reminder"]) assert.equal(await push.shouldText(note(k, null) as never), true, k);
+  for (const k of ["drop", "restock", "dated"]) assert.equal(await push.shouldText(note(k, null) as never), true, `${k} texts while under the cap`);
+  setup("daily", 0, 3);
+  for (const k of ["drop", "restock", "dated"]) assert.equal(await push.shouldText(note(k, null) as never), false, `${k}: 3 watch texts a day, then inbox only`);
+  setup("all", 0, 7); assert.equal(await push.shouldText(note("restock", null) as never), true, "all allows 8 a day");
+  setup("all", 0, 8); assert.equal(await push.shouldText(note("restock", null) as never), false);
 });
 
 await test("per-agent switches: off and paused never text, quiet only top finds", async () => {
@@ -970,7 +1013,8 @@ await test("per-agent switches: off and paused never text, quiet only top finds"
   setup("quiet", false, 88); assert.equal(await push.shouldText(note as never), false, "quiet skips good-not-great");
   setup("quiet", false, 92); assert.equal(await push.shouldText(note as never), true, "quiet texts top finds");
   setup("normal", false, 40); assert.equal(await push.shouldText(note as never), true, "normal follows the account (all)");
-  setup("off", false, 99); assert.equal(await push.shouldText({ ...note, kind: "drop" } as never), true, "price drops you watch still text");
+  setup("off", false, 99); assert.equal(await push.shouldText({ ...note, kind: "drop" } as never), false, "a scout set to off doesn't text price drops either");
+  setup("normal", false, 99); assert.equal(await push.shouldText({ ...note, kind: "drop" } as never), true, "price drops text from a normal scout");
 });
 
 await test("personal texts: the agent writes them, with your name and taste; templates are the fallback", async () => {

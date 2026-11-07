@@ -138,10 +138,13 @@ struct ScoutSummaryCard: View {
 
 enum ScoutChips {
     /// What a scout hunts for, as people would say it ("season:aw26" shows as "aw26"), without repeats.
+    static func shown(_ k: String) -> String {
+        k.split(separator: ":", maxSplits: 1).count == 2 ? String(k.split(separator: ":", maxSplits: 1)[1]) : k
+    }
+
     static func huntsFor(_ a: Agent) -> [String] {
-        (a.keywords + a.style.makers + a.style.traits + a.style.creators).map { t in
-            t.split(separator: ":", maxSplits: 1).count == 2 ? String(t.split(separator: ":", maxSplits: 1)[1]) : t
-        }.reduce(into: [String]()) { out, t in if !out.contains(where: { $0.lowercased() == t.lowercased() }) { out.append(t) } }
+        // What you typed shows as typed (so "990" stays); learned style tags are cleaned up or hidden.
+        (a.keywords.map(shown) + a.style.makers.map(shown) + a.style.traits.compactMap { AppStore.tasteLabel($0) } + a.style.creators.map(shown)).reduce(into: [String]()) { out, t in if !out.contains(where: { $0.lowercased() == t.lowercased() }) { out.append(t) } }
     }
 }
 
@@ -275,8 +278,7 @@ struct TuneScoutView: View {
     private func remove(_ t: String, from agent: Agent) {
         var a = agent
         let match: (String) -> Bool = { k in
-            let shown = k.split(separator: ":", maxSplits: 1).count == 2 ? String(k.split(separator: ":", maxSplits: 1)[1]) : k
-            return shown.lowercased() == t.lowercased()
+            ScoutChips.shown(k).lowercased() == t.lowercased() || AppStore.tasteLabel(k)?.lowercased() == t.lowercased()
         }
         a.keywords.removeAll(where: match)
         a.style.makers.removeAll(where: match)

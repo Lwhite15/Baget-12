@@ -9,7 +9,11 @@ import { morningDigest, watchCheck } from "../_shared/daily.ts";
 interface Note { id: string; user_id: string; body: string; sender_name: string; kind: string; agent_id?: string | null; find_id: string | null; held_for_morning: boolean; pushed_at: string | null }
 
 /** Kinds that always text: things you asked for or that can't wait. */
-const ALWAYS = new Set(["friend", "digest", "drop", "restock", "bought", "feedback", "reminder", "dated"]);
+const ALWAYS = new Set(["friend", "digest", "bought", "feedback", "reminder"]);
+/** News about things you're watching: price drops (already bundled and filtered by watchCheck), restocks and release dates.
+ *  They text right away, but only a few a day so a burst can't flood the phone; the rest wait in the inbox. */
+export const WATCH_KINDS = ["drop", "restock", "dated"];
+export const WATCH_DAILY_CAP: Record<string, number> = { daily: 3, best: 3, all: 8 };
 export const BEST_MIN_SCORE = 85;
 export const BEST_DAILY_CAP = 6;
 /** An agent set to "Quiet" texts only finds this strong. */
@@ -24,6 +28,15 @@ export async function shouldText(n: Note): Promise<boolean> {
     const [a] = await db.select<{ alerts: string; paused: boolean }>("agents", `select=alerts,paused&id=eq.${n.agent_id}`);
     if (a?.paused || a?.alerts === "off") return false;
     agentAlerts = a?.alerts ?? "normal";
+  }
+  if (WATCH_KINDS.includes(n.kind)) {
+    const [p] = await db.select<{ settings: Record<string, unknown> | null }>("profiles", `select=settings&id=eq.${n.user_id}`);
+    const level = typeof p?.settings?.pushLevel === "string" ? p.settings.pushLevel as string : "daily";
+    const cap = WATCH_DAILY_CAP[level] ?? 3;
+    const since = new Date(Date.now() - 24 * 3600_000).toISOString();
+    const sent = await db.select<{ id: string }>("notes",
+      `select=id&user_id=eq.${n.user_id}&pushed_at=gt.${since}&push_skipped=eq.false&kind=in.(${WATCH_KINDS.join(",")})&limit=${cap + 1}`);
+    return sent.length < cap;
   }
   if (agentAlerts === "quiet") {
     if (!n.find_id) return false;

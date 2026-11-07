@@ -13,13 +13,32 @@ interface Watched {
   agent: { name: string } | null;
 }
 
-/** Re-prices up to `limit` watched finds (each at most every 12 hours) and texts on a drop of 5% or more. */
+/** A real price drop for "Best": 20% or more off. */
+export const BIG_DROP = 0.2;
+const shortTitle = (t: string) => (t.length > 30 ? t.slice(0, 29).trimEnd() + "…" : t);
+
+interface Drop { r: Watched; title: string; price: number; store: string; off: number; pct: number }
+
+/** One text for everything that dropped in this run: the biggest drop leads, the rest are named after it. */
+export function dropsText(name: string, drops: { title: string; price: number; store: string; off: number }[]): string {
+  const [top] = drops;
+  if (drops.length === 1) {
+    return `${name ? `${name}, the` : "The"} ${top.title} you're watching just dropped to ${money(top.price)} at ${top.store}. That's ${money(top.off)} off what it was.`.slice(0, 480);
+  }
+  const listed = drops.slice(0, 3).map((d) => `${shortTitle(d.title)} ${money(d.price)} (−${money(d.off)})`);
+  const more = drops.length > 3 ? ` and ${drops.length - 3} more` : "";
+  return `${name ? `${name}, ` : ""}${drops.length} things you're watching dropped in price: ${listed.join(", ")}${more}.`.slice(0, 480);
+}
+
+/** Re-prices up to `limit` watched finds (each at most every 12 hours) and notes every drop of 5% or more.
+ *  Every drop lands in the inbox, but the phone buzzes at most once per person per run, and only as their setting allows:
+ *  "daily" waits for the morning text, "best" only for drops of 20% or more, "all" for any drop. */
 export async function watchCheck(limit = 20, now = new Date(), fetchFn: FetchFn = fetch): Promise<{ checked: number; drops: number }> {
   const rows = await db.select<Watched>("finds",
     "select=id,user_id,agent_id,watch_price,listing:listings(id,title,brand,price,low_price,offers_checked_at),agent:agents(name)" +
     "&watching=eq.true&status=in.(open,liked)&order=created_at.desc&limit=400");
-  const names = new Map<string, string>();
   const due = rows.filter((r) => r.listing && (!r.listing.offers_checked_at || now.getTime() - Date.parse(r.listing.offers_checked_at) > 12 * 3600_000)).slice(0, limit);
+  const byUser = new Map<string, Drop[]>();
   let drops = 0;
   for (const r of due) {
     const l = r.listing!;
@@ -31,19 +50,37 @@ export async function watchCheck(limit = 20, now = new Date(), fetchFn: FetchFn 
     const best = offers[0];
     if (base && best && best.price <= base * 0.95) {
       drops++;
-      if (!names.has(r.user_id)) {
-        const [p] = await db.select<{ display_name: string }>("profiles", `select=display_name&id=eq.${r.user_id}`).catch(() => []);
-        names.set(r.user_id, firstName(p?.display_name));
-      }
-      const name = names.get(r.user_id);
       const off = Math.round(base - best.price);
-      await db.insert("notes", {
-        user_id: r.user_id, agent_id: r.agent_id, sender_name: r.agent?.name ?? "Baget", kind: "drop", find_id: r.id,
-        body: `${name ? `${name}, the` : "The"} ${l.title} you're watching just dropped to ${money(best.price)} at ${best.store}. That's ${money(off)} off what it was.`.slice(0, 480),
-      }, false);
+      byUser.set(r.user_id, [...(byUser.get(r.user_id) ?? []), { r, title: l.title, price: best.price, store: best.store, off, pct: (base - best.price) / base }]);
       await db.update("finds", `id=eq.${r.id}`, { watch_price: best.price }).catch(() => {});
     } else if (!r.watch_price && base) {
       await db.update("finds", `id=eq.${r.id}`, { watch_price: base }).catch(() => {});
+    }
+  }
+  for (const [userId, list] of byUser) {
+    const [p] = await db.select<{ display_name: string; settings: Record<string, unknown> | null }>("profiles",
+      `select=display_name,settings&id=eq.${userId}`).catch(() => []);
+    const name = firstName(p?.display_name);
+    const level = typeof p?.settings?.pushLevel === "string" ? p.settings.pushLevel as string : "daily";
+    const agentIds = [...new Set(list.map((d) => d.r.agent_id).filter(Boolean))];
+    const muted = new Set<string>();
+    if (agentIds.length) {
+      const agents = await db.select<{ id: string; alerts: string; paused: boolean }>("agents",
+        `select=id,alerts,paused&id=in.(${agentIds.join(",")})`).catch(() => []);
+      for (const a of agents) if (a.paused || a.alerts === "off") muted.add(a.id);
+    }
+    const loud = list
+      .filter((d) => level !== "daily" && !(d.r.agent_id && muted.has(d.r.agent_id)) && (level === "all" || d.pct >= BIG_DROP))
+      .sort((a, b) => b.off - a.off);
+    const lead = loud[0];
+    for (const d of list) {
+      const isLead = d === lead;
+      await db.insert("notes", {
+        user_id: userId, agent_id: d.r.agent_id, sender_name: (isLead && loud.length > 1 ? "Baget" : d.r.agent?.name) ?? "Baget", kind: "drop", find_id: d.r.id,
+        body: isLead ? dropsText(name, loud) : dropsText(name, [d]),
+        // Only the lead buzzes; the rest go straight to the inbox.
+        ...(isLead ? {} : { pushed_at: now.toISOString(), push_skipped: true }),
+      }, false).catch((e) => console.error("drop note", e));
     }
   }
   return { checked: due.length, drops };
