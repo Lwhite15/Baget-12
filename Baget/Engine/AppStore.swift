@@ -388,7 +388,7 @@ final class AppStore {
     /// A real taste word, not a price, sale tag, size, SKU or season code.
     /// A store tag as a person would say it: "note:balsam" is "balsam", "house:boadicea-the-victorious" is
     /// "boadicea the victorious", and site bookkeeping ("_related_x", "pre-order", "family:floral" style codes we don't know) is dropped.
-    static func tasteLabel(_ s: String) -> String? {
+    nonisolated static func tasteLabel(_ s: String) -> String? {
         var t = s.trimmingCharacters(in: .whitespacesAndNewlines)
         if t.hasPrefix("_") { return nil }
         if let colon = t.firstIndex(of: ":") {
@@ -403,7 +403,7 @@ final class AppStore {
     }
 
     /// "a", "a and b", "a, b and c": at most three, so the message reads like a sentence.
-    static func tasteList(_ items: [String]) -> String {
+    nonisolated static func tasteList(_ items: [String]) -> String {
         let few = Array(items.prefix(3))
         switch few.count {
         case 0: return ""
@@ -412,7 +412,7 @@ final class AppStore {
         }
     }
 
-    static func isTaste(_ s: String) -> Bool {
+    nonisolated static func isTaste(_ s: String) -> Bool {
         let t = s.trimmingCharacters(in: .whitespaces)
         guard t.count >= 2, t.count <= 40 else { return false }
         if t.range(of: #"[$£€¥]|\b(sale|price|off|usd|gbp|eur)\b"#, options: [.regularExpression, .caseInsensitive]) != nil { return false }
