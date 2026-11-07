@@ -1,0 +1,123 @@
+[01] snap 01-welcome
+[02] snap 02-welcome-scrolled
+[02] tap Continue with email
+[03] snap 03-email-sheet
+[04] snap 04-email-filled
+[04] submit at y=402 enabled=true
+[05] snap 05-after-submit
+[05] TIME sign-up to setup 1.2s
+[06] snap 06-setup-1-interests
+[06] tap Sneakers
+[06] tap Vinyl & music
+[07] snap 07-setup-1-picked
+[07] tap Watches
+[08] snap 08-setup-1-third-pick
+[08] tap (forced) Describe your taste in your own words
+[09] snap 09-setup-1-editor
+[10] snap 10-setup-1-editor-typed
+[10] MISSING Done
+[11] snap 11-setup-1-typed
+[11] tap Next
+[12] snap 12-setup-2-vibe
+[12] tap New Balance
+[12] tap Salomon
+[12] tap (forced) Size 10.5
+[12] tap Running & retro
+[12] tap (forced) Up to $250
+[13] snap 13-setup-2-picked
+[13] MISSING Next
+[13] MISSING Skip
+[14] snap 14-setup-3-taste-check
+[14] TIME taste check load 5.1s
+[14] tap Love it
+[14] tap Love it
+[15] snap 15-setup-3-mid
+[15] tap Not for me
+[15] tap Love it
+[15] tap Love it
+[15] tap Not for me
+[16] snap 16-setup-3-after
+[16] MISSING Next
+[16] tap Done
+[17] snap 17-setup-4-photos
+[17] tap Skip and build my scouts
+[18] snap 18-setup-5-building
+[18] TIME build squad 26.5s
+[19] snap 19-setup-5-first-hunt
+[20] snap 20-setup-5-wait-45s
+[20] TIME first finds appeared 90.3s
+[21] snap 21-setup-5-end
+[21] tap Not now, see my finds
+[22] snap 22-howto-1
+[22] tap Next
+[23] snap 23-howto-2
+[23] tap Next
+[24] snap 24-howto-3
+[24] tap Next
+[25] snap 25-howto-4
+[25] tap Next
+[26] snap 26-howto-5
+[26] tap Start exploring
+[27] snap 27-today
+[28] snap 28-today-scroll-1
+[29] snap 29-today-scroll-2
+[30] snap 30-today-scroll-3
+[30] TIME scroll to bottom of Today (3 swipes) 12.5s
+[30] bottom button: Check for new picks
+[31] snap 31-today-bottom
+[31] tap Check for new picks
+[32] snap 32-today-bottom-loading
+[32] TIME bottom button finished 26.4s
+[32] stayed at the bottom after the button
+[33] snap 33-today-bottom-after
+[34] snap 34-today-bottom-more
+[35] snap 35-today-pull-up
+[35] TIME pull-up finished 10.5s
+[35] still at the bottom after pull-up
+[35] tap Today
+[36] snap 36-today-back-top
+[36] MISSING Send a new scout
+[36] MISSING Send a new scout
+[36] MISSING See all
+[36] tap Finds
+[37] snap 37-finds
+[38] snap 38-finds-new
+[39] snap 39-finds-♥ saved
+[40] snap 40-finds-coming soon
+[41] snap 41-finds-all
+[41] tap Grid
+[42] snap 42-finds-grid
+[42] tap List
+[42] MISSING New
+[43] snap 43-find-detail
+[44] snap 44-find-detail-scroll
+[44] close via swipe
+[45] snap 45-finds-after-detail
+[45] tap Pass
+[46] snap 46-pass-reasons
+[46] tap Not my size
+[47] snap 47-size-ask
+[47] tap Save
+[48] snap 48-size-saved
+[48] tap Scouts
+[49] snap 49-squad
+[50] snap 50-squad-scroll
+[50] tap Friends
+[51] snap 51-friends
+[51] tap ~Notifications
+[52] snap 52-inbox
+[52] close via Done
+[52] tap You: icon, settings and account
+[53] snap 53-profile
+[54] snap 54-profile-baget-icons
+[55] snap 55-profile-scroll-1
+[56] snap 56-profile-scroll-2
+[56] close via Done
+[56] tap Scouts
+[56] MISSING ~Go Pro
+[56] MISSING ~Pro
+[56] tap Today
+[57] snap 57-today-later
+[57] tap Finds
+[58] snap 58-finds-later
+[58] TIME whole session 697.4s

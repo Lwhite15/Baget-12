@@ -1,0 +1,182 @@
+Optional(Attributes: Application, 0x114854c80, pid: 18578, label: 'Baget'
+Element subtree:
+ →Application, 0x114854c80, pid: 18578, label: 'Baget'
+    Window (Main), 0x114854dc0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x114855040, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x114855180, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1148552c0, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x114855400, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x114855540, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x114855680, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x1148557c0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x114855900, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x114855a40, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x114855b80, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x114855cc0, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x1148570c0, {{0.0, 0.0}, {402.0, 874.0}}
+                            NavigationBar, 0x114856d00, {{0.0, 62.0}, {402.0, 54.0}}, identifier: '_TtGC7SwiftUI32NavigationStackHosting'
+                              Other, 0x114856f80, {{20.0, 66.0}, {42.0, 36.0}}
+                                Other, 0x114856e40, {{20.0, 66.0}, {42.0, 36.0}}
+                                  Button, 0x114856440, {{20.0, 66.0}, {42.0, 36.0}}, label: 'You: icon, settings and account'
+                                    StaticText, 0x114856580, {{20.0, 66.0}, {42.0, 36.0}}, label: 'CT'
+                              Other, 0x114856940, {{151.3, 70.7}, {99.0, 26.7}}
+                                Other, 0x114856800, {{151.3, 70.7}, {99.0, 26.7}}
+                                  StaticText, 0x1148566c0, {{151.3, 71.0}, {26.0, 26.0}}
+                                  StaticText, 0x114855f40, {{185.3, 70.8}, {59.0, 26.3}}, label: 'Baget'
+                                  StaticText, 0x114856080, {{244.3, 70.8}, {6.0, 26.3}}, label: '.'
+                              Other, 0x1148561c0, {{346.0, 66.0}, {36.0, 36.0}}
+                                Other, 0x114856300, {{346.0, 66.0}, {36.0, 36.0}}
+                                  Button, 0x114854f00, {{349.3, 66.0}, {29.3, 36.0}}, label: 'Notifications, 6 unread'
+                                    Image, 0x114856bc0, {{349.3, 66.0}, {29.3, 36.0}}, identifier: 'bell.fill', label: 'Notifications'
+                                    StaticText, 0x114857200, {{376.3, 65.7}, {6.3, 11.0}}, label: '6'
+                            Other, 0x114857340, {{0.0, 0.0}, {402.0, 874.0}}
+                              Other, 0x114857480, {{0.0, 0.0}, {402.0, 874.0}}
+                                Other, 0x1148575c0, {{0.0, 0.0}, {402.0, 874.0}}
+                                  Other, 0x114857700, {{0.0, 0.0}, {402.0, 874.0}}
+                                    ScrollView, 0x114857840, {{0.0, 0.0}, {402.0, 874.0}}
+                                      Other, 0x114857c00, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x114857d40, {{0.0, 0.0}, {402.0, 156.0}}
+                                        Other, 0x114857e80, {{0.0, 741.0}, {402.0, 133.0}}
+                                      Other, 0x114857ac0, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x114857980, {{0.0, 741.0}, {402.0, 133.0}}
+                                      Other, 0x114855e00, {{0.0, 116.0}, {402.0, 23776.0}}
+                                        Other, 0x114856a80, {{16.0, 120.0}, {370.0, 23747.3}}
+                                          StaticText, 0x11484dcc0, {{16.0, 120.0}, {215.7, 67.0}}, label: 'Good afternoon, Claude'
+                                          Button, 0x10b174000, {{314.0, 173.7}, {36.0, 30.0}}, identifier: 'rectangle.portrait', label: 'Swipe cards', Selected
+                                          StaticText, 0x10b174140, {{16.0, 190.0}, {253.0, 15.7}}, label: '2 scouts hunting for you · Saturday, Nov 7'
+                                          Button, 0x10b174280, {{362.0, 182.7}, {12.0, 12.0}}, identifier: 'square.grid.2x2', label: 'Grid'
+                                          Button, 0x10b1743c0, {{16.0, 225.7}, {370.0, 70.0}}, label: 'New scout'
+                                            Image, 0x10b174500, {{42.3, 252.0}, {17.3, 17.3}}, identifier: 'plus', label: 'Add'
+                                            StaticText, 0x10b174640, {{84.0, 250.5}, {84.3, 20.3}}, label: 'New scout'
+                                            Image, 0x10b174780, {{362.7, 253.3}, {8.3, 14.7}}, identifier: 'chevron.right', label: 'Forward'
+                                          StaticText, 0x10b1748c0, {{16.0, 315.7}, {370.0, 402.0}}, label: 'Moon Shoe OG Leather, Nike, Overkill, 81% match, 1 of 8, from Retro Runner Scout, Moon Shoe OG Leather, ≈ $112 · Overkill, From Nike, a brand you like'
+                                            StaticText, 0x10b174a00, {{28.0, 327.7}, {35.3, 20.3}}, label: 'Nike'
+                                            StaticText, 0x10b174b40, {{295.0, 330.7}, {72.0, 14.3}}, label: '81% match'
+                                            Image, 0x10b174c80, {{26.0, 391.7}, {350.0, 174.0}}, label: 'Moon Shoe OG Leather'
+                                            StaticText, 0x10b174dc0, {{28.0, 591.7}, {36.7, 12.0}}, label: 'Overkill'
+                                            StaticText, 0x10b174f00, {{30.0, 627.7}, {32.3, 13.3}}, label: '1 of 8'
+                                            StaticText, 0x10b175040, {{236.7, 627.7}, {135.3, 13.3}}, label: 'from Retro Runner Scout'
+                                            StaticText, 0x10b175180, {{30.0, 645.0}, {183.3, 20.3}}, label: 'Moon Shoe OG Leather'
+                                            StaticText, 0x10b1752c0, {{30.0, 669.3}, {108.3, 18.0}}, label: '≈ $112 · Overkill'
+                                            Image, 0x10b175400, {{31.3, 693.0}, {11.7, 11.0}}, identifier: 'heart.fill', label: 'Love'
+                                            StaticText, 0x10b175540, {{31.3, 691.3}, {174.3, 14.3}}, label: 'From Nike, a brand you like'
+                                          StaticText, 0x10b175680, {{36.6, 349.1}, {97.8, 19.3}}, label: 'New Balance'
+                                          StaticText, 0x10b1757c0, {{290.3, 352.0}, {68.4, 13.6}}, label: '76% match'
+                                          Image, 0x10b175900, {{93.6, 385.2}, {214.7, 214.7}}, label: 'Made in USA 990v6'
+                                          StaticText, 0x10b175a40, {{36.6, 599.9}, {199.2, 11.4}}, label: 'U990V6-46357 · Joe's New Balance Outlet'
+                                          StaticText, 0x10b175b80, {{38.5, 634.1}, {30.7, 12.7}}, label: '1 of 8'
+                                          StaticText, 0x10b175cc0, {{234.9, 634.1}, {128.6, 12.7}}, label: 'from Retro Runner Scout'
+                                          StaticText, 0x10b175e00, {{38.5, 650.6}, {150.1, 19.3}}, label: 'Made in USA 990v6'
+                                          StaticText, 0x10b175f40, {{38.5, 673.7}, {211.2, 17.1}}, label: '$150 · Joe's New Balance Outlet'
+                                          StaticText, 0x10b176080, {{39.8, 694.6}, {317.3, 13.6}}, label: 'You love the 990 and retro running, and this is the Made in USA 990v6 at a markdown, so it's a good way to get one for less.'
+                                          Image, 0x10b1761c0, {{39.8, 696.2}, {11.1, 10.5}}, identifier: 'heart.fill', label: 'Love'
+                                          Button, 0x10b176300, {{87.3, 733.7}, {52.0, 52.0}}, identifier: 'xmark', label: 'Pass'
+                                          Button, 0x10b176440, {{155.3, 729.7}, {60.0, 60.0}}, identifier: 'heart.fill', label: 'Like'
+                                          Button, 0x10b176580, {{231.3, 733.7}, {83.7, 52.0}}, label: 'Buy'
+                                            Image, 0x10b1766c0, {{249.0, 754.0}, {11.7, 11.7}}, identifier: 'arrow.up.right', label: 'Up-Right Diagonal Arrow'
+                                            StaticText, 0x10b176800, {{249.0, 750.7}, {49.8, 18.0}}, label: 'Buy'
+                                          StaticText, 0x10b176940, {{70.0, 801.7}, {262.0, 14.3}}, label: 'Swipe right to like, left to pass. Tap for details.'
+                                          StaticText, 0x10b176a80, {{16.0, 836.0}, {122.3, 24.0}}, label: 'More for you'
+                                          StaticText, 0x10b176bc0, {{16.0, 872.0}, {279.0, 14.3}}, label: 'Ranked by your taste. Every ♥ and ✕ sharpens it.'
+                                          ScrollView, 0x10b176d00, {{16.0, 898.3}, {370.0, 29.7}}
+                                            Other, 0x10b176e40, {{16.0, 898.3}, {378.7, 29.7}}
+                                              Button, 0x10b176f80, {{16.0, 898.3}, {38.3, 29.7}}, label: 'All'
+                                              Button, 0x10b1770c0, {{61.3, 898.3}, {98.7, 29.7}}, label: 'Accessories'
+                                              Button, 0x10b177200, {{167.0, 898.3}, {75.3, 29.7}}, label: 'Clothing'
+                                              Button, 0x10b177340, {{249.3, 898.3}, {58.0, 29.7}}, label: 'Other'
+                                              Button, 0x10b177480, {{314.3, 898.3}, {80.3, 29.7}}, label: 'Sneakers'
+                                          Other, 0x10b1775c0, {{16.0, 940.0}, {370.0, 614.0}}
+                                            Button, 0x10b177700, {{16.0, 940.0}, {179.0, 150.0}}, label: 'U992PK, New Balance, Overkill'
+                                              StaticText, 0x10b177840, {{28.0, 952.0}, {103.0, 20.3}}, label: 'New Balance'
+                                              Image, 0x10b177980, {{42.0, 990.0}, {127.0, 76.0}}, label: 'U992PK'
+                                              StaticText, 0x10b177ac0, {{28.0, 1066.0}, {36.7, 12.0}}, label: 'Overkill'
+                                            Button, 0x10b177c00, {{207.0, 940.0}, {179.0, 150.0}}, label: 'Nike Air Max 1 in Football Grey / Lilac Bloom / Thunder Blue, Nike, Oneness'
+                                              StaticText, 0x10b177d40, {{219.0, 952.0}, {35.3, 20.3}}, label: 'Nike'
+                                              Image, 0x10b177e80, {{227.0, 990.0}, {139.0, 76.0}}, label: 'Nike Air Max 1 in Football Grey / Lilac Bloom / Thunder Blue'
+                                              StaticText, 0x10aa7c000, {{219.0, 1066.0}, {42.3, 12.0}}, label: 'Oneness'
+                                            StaticText, 0x10aa7c140, {{16.0, 1096.0}, {52.7, 15.7}}, label: 'U992PK'
+                                            StaticText, 0x10aa7c280, {{207.0, 1096.0}, {176.0, 33.7}}, label: 'Nike Air Max 1 in Football Grey / Lilac Bloom / Thunder Blue'
+                                            StaticText, 0x10aa7c3c0, {{16.0, 1136.0}, {85.3, 13.3}}, label: '≈ $215 · Overkill'
+                                            StaticText, 0x10aa7c500, {{207.0, 1136.0}, {82.0, 13.3}}, label: '$140 · Oneness'
+                                            StaticText, 0x10aa7c640, {{16.0, 1155.3}, {171.0, 26.3}}, label: 'Men's low-top sneakers in pink leather, made in the USA. They have a retro running style that suits everyday wear.'
+                                            StaticText, 0x10aa7c780, {{207.0, 1155.3}, {179.0, 26.3}}, label: 'A men's Nike Air Max 1 sneaker in grey, lilac, and blue. It's a classic style with visible air cushioning in the sole.'
+                                            Image, 0x10aa7c8c0, {{16.7, 1189.7}, {9.3, 9.3}}, identifier: 'wand.and.stars', label: 'Magic Wand With Stars'
+                                            StaticText, 0x10aa7ca00, {{31.3, 1187.7}, {104.3, 13.3}}, label: 'Like your U991MA2'
+                                            Image, 0x10aa7cb40, {{207.7, 1189.7}, {9.3, 9.3}}, identifier: 'wand.and.stars', label: 'Magic Wand With Stars'
+                                            StaticText, 0x10aa7cc80, {{222.3, 1187.7}, {126.3, 13.3}}, label: 'For your sneakers taste'
+                                            Button, 0x10aa7cdc0, {{16.0, 1207.0}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10aa7cf00, {{109.7, 1207.0}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x10aa7d040, {{207.0, 1207.0}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10aa7d180, {{300.7, 1207.0}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x10aa7d2c0, {{16.0, 1253.0}, {179.0, 150.0}}, label: 'Women's Air Jordan 1 Low Lunar New Year "Method of Make" V3 in Light Chocolate, Jordan, Oneness'
+                                              StaticText, 0x10aa7d400, {{28.0, 1265.0}, {55.3, 20.3}}, label: 'Jordan'
+                                              Image, 0x10aa7d540, {{26.0, 1304.3}, {159.0, 73.3}}, label: 'Women's Air Jordan 1 Low Lunar New Year "Method of Make" V3 in Light Chocolate'
+                                              StaticText, 0x10aa7d680, {{28.0, 1379.0}, {42.3, 12.0}}, label: 'Oneness'
+                                            Button, 0x10aa7d7c0, {{207.0, 1253.0}, {179.0, 150.0}}, label: 'Wmns Air Max 90, Nike, Overkill'
+                                              StaticText, 0x10aa7d900, {{219.0, 1265.0}, {35.3, 20.3}}, label: 'Nike'
+                                              Image, 0x10aa7da40, {{231.3, 1303.0}, {130.3, 76.0}}, label: 'Wmns Air Max 90'
+                                              StaticText, 0x10aa7db80, {{219.0, 1379.0}, {36.7, 12.0}}, label: 'Overkill'
+                                            StaticText, 0x10aa7dcc0, {{16.0, 1409.0}, {169.0, 33.7}}, label: 'Women's Air Jordan 1 Low Lunar New Year "Method of Make" V3 in Light Chocolate'
+                                            StaticText, 0x10aa7de00, {{207.0, 1409.0}, {110.7, 15.7}}, label: 'Wmns Air Max 90'
+                                            StaticText, 0x10aa7df40, {{16.0, 1449.0}, {81.3, 13.3}}, label: '$155 · Oneness'
+                                            StaticText, 0x10aa7e080, {{207.0, 1449.0}, {85.7, 13.3}}, label: '≈ $140 · Overkill'
+                                            StaticText, 0x10aa7e1c0, {{16.0, 1468.3}, {179.0, 26.3}}, label: 'A low-cut women's Air Jordan 1 sneaker in light chocolate brown, from the Lunar New Year collection. It's a casual shoe for everyday wear.'
+                                            StaticText, 0x10aa7e300, {{207.0, 1468.3}, {176.7, 26.3}}, label: 'A women's low-top sneaker from Nike's classic Air Max 90 line, with a visible air cushion in the sole and a multicolored upper.'
+                                            Image, 0x10aa7e440, {{17.0, 1502.3}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x10aa7e580, {{30.7, 1500.7}, {107.0, 13.3}}, label: 'New to you · Jordan'
+                                            Image, 0x10aa7e6c0, {{207.7, 1502.7}, {9.3, 9.3}}, identifier: 'wand.and.stars', label: 'Magic Wand With Stars'
+                                            StaticText, 0x10aa7e800, {{222.3, 1500.7}, {163.3, 13.3}}, label: 'Like your Moon Shoe OG Leather'
+                                            Button, 0x10aa7e940, {{16.0, 1520.0}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10aa7ea80, {{109.7, 1520.0}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x10aa7ebc0, {{207.0, 1520.0}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10aa7ed00, {{300.7, 1520.0}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                          Button, 0x10aa7ee40, {{16.0, 23795.0}, {370.0, 46.0}}, label: 'Check for new picks'
+                                            Image, 0x10aa7ef80, {{117.7, 23811.0}, {11.7, 14.3}}, identifier: 'arrow.clockwise', label: 'Refresh'
+                                            StaticText, 0x10aa7f0c0, {{138.2, 23809.0}, {147.3, 18.0}}, label: 'Check for new picks'
+                                          StaticText, 0x10aa7f200, {{127.5, 23853.0}, {147.0, 14.3}}, label: 'That's everything for now.'
+                            Toolbar, 0x10aa7f340, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                              Other, 0x10aa7f480, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x10aa7f5c0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x10aa7f700, {{0.0, 791.0}, {402.0, 83.0}}
+                    Other, 0x10aa7f840, {{0.0, 0.0}, {402.0, 874.0}}
+                      TabBar, 0x10aa7f980, {{0.0, 791.0}, {402.0, 83.0}}, label: 'Tab Bar'
+                        Other, 0x10aa7fac0, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x10aa7fc00, {{21.0, 791.0}, {98.0, 54.0}}
+                          Other, 0x10aa7fd40, {{21.0, 791.0}, {360.0, 62.0}}
+                            Button, 0x10aa7fe80, {{25.0, 795.0}, {98.0, 54.0}}, identifier: 'sun.max.fill', label: 'Today', Selected
+                              Image, 0x10aa80000, {{59.7, 800.0}, {29.0, 29.3}}, identifier: 'sun.max.fill', label: 'brightness higher'
+                            Button, 0x10aa80140, {{109.7, 795.0}, {98.0, 54.0}}, identifier: 'sparkles', label: 'Finds', value: 13 items
+                              Image, 0x10aa80280, {{145.7, 799.0}, {26.0, 30.0}}, identifier: 'sparkles', label: 'sparkle'
+                            Button, 0x10aa803c0, {{194.3, 795.0}, {98.0, 54.0}}, identifier: 'binoculars.fill', label: 'Scouts'
+                              Image, 0x10aa80500, {{225.7, 802.3}, {35.3, 25.7}}, identifier: 'binoculars.fill', label: 'Binoculars, filled'
+                            Button, 0x10aa80640, {{279.0, 795.0}, {98.0, 54.0}}, identifier: 'heart.circle.fill', label: 'Friends'
+                              Image, 0x10aa80780, {{314.3, 801.3}, {27.3, 27.3}}, identifier: 'heart.circle.fill', label: 'love'
+                          Other, 0x10aa808c0, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x10aa80a00, {{25.0, 795.0}, {98.0, 54.0}}
+                            Other, 0x10aa80b40, {{25.0, 795.0}, {98.0, 54.0}}
+                              Other, 0x10aa80c80, {{25.0, 795.0}, {98.0, 54.0}}
+                              Other, 0x10aa80dc0, {{25.0, 795.0}, {98.0, 54.0}}
+                                Other, 0x10aa80f00, {{25.0, 795.0}, {98.0, 54.0}}
+                                  Other, 0x10aa81040, {{25.0, 795.0}, {98.0, 54.0}}
+                                    Other, 0x10aa81180, {{25.0, 795.0}, {98.0, 54.0}}
+                                  Other, 0x10aa812c0, {{25.0, 795.0}, {98.0, 54.0}}
+                                Other, 0x10aa81400, {{25.0, 795.0}, {98.0, 54.0}}
+                    Other, 0x10aa81540, {{0.0, 791.0}, {402.0, 83.0}}
+                      Other, 0x10aa81680, {{0.0, 791.0}, {402.0, 83.0}}
+                        Other, 0x10aa817c0, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x10aa81900, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x10aa81a40, {{0.0, 791.0}, {402.0, 83.0}}
+                              Other, 0x10aa81b80, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x10aa81cc0, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x10aa81e00, {{0.0, 791.0}, {402.0, 83.0}}
+    Window, 0x10aa81f40, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x10aa82080, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10aa821c0, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x114854c80, pid: 18578, label: 'Baget'
+Query chain:
+ →Find: Target Application 'app.baget.ios'
+  Output: {
+    Application, 0x10aa82300, pid: 18578, label: 'Baget'
+  }
+)

@@ -1,0 +1,162 @@
+Optional(Attributes: Application, 0x11484f980, pid: 18578, label: 'Baget'
+Element subtree:
+ →Application, 0x11484f980, pid: 18578, label: 'Baget'
+    Window (Main), 0x11484e800, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x11484f480, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x11484f840, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x11484e6c0, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x11484e440, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x11484e580, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x11484c780, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x11484c640, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x11484c500, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x11484c8c0, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x11484cb40, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x11484ca00, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x11484cc80, {{0.0, 0.0}, {402.0, 874.0}}
+                            NavigationBar, 0x11484cf00, {{0.0, 62.0}, {402.0, 54.0}}, identifier: '_TtGC7SwiftUI29PresentationHosting'
+                              Other, 0x11484cdc0, {{20.0, 66.0}, {42.0, 36.0}}
+                                Other, 0x11484d040, {{20.0, 66.0}, {42.0, 36.0}}
+                                  Button, 0x11484d180, {{20.0, 66.0}, {42.0, 36.0}}, label: 'You: icon, settings and account'
+                                    StaticText, 0x11484d400, {{20.0, 66.0}, {42.0, 36.0}}, label: 'CT'
+                              Other, 0x11484d2c0, {{151.3, 70.7}, {99.0, 26.7}}
+                                Other, 0x11484ebc0, {{151.3, 70.7}, {99.0, 26.7}}
+                                  StaticText, 0x11484ea80, {{151.3, 71.0}, {26.0, 26.0}}
+                                  StaticText, 0x11484e940, {{185.3, 70.8}, {59.0, 26.3}}, label: 'Baget'
+                                  StaticText, 0x11484f0c0, {{244.3, 70.8}, {6.0, 26.3}}, label: '.'
+                              Other, 0x11484ee40, {{346.0, 66.0}, {36.0, 36.0}}
+                                Other, 0x11484f200, {{346.0, 66.0}, {36.0, 36.0}}
+                                  Button, 0x11484f340, {{349.3, 66.0}, {29.3, 36.0}}, identifier: 'bell.fill', label: 'Notifications, 0 unread'
+                            Other, 0x11484ef80, {{0.0, 0.0}, {402.0, 874.0}}
+                              Other, 0x11484f700, {{0.0, 0.0}, {402.0, 874.0}}
+                                Other, 0x11484f5c0, {{0.0, 0.0}, {402.0, 874.0}}
+                                  Other, 0x11484fe80, {{0.0, 0.0}, {402.0, 874.0}}
+                                    ScrollView, 0x11484c140, {{0.0, 0.0}, {402.0, 874.0}}
+                                      Other, 0x11484c000, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x11484d7c0, {{0.0, 0.0}, {402.0, 156.0}}
+                                        Other, 0x11484d540, {{0.0, 741.0}, {402.0, 133.0}}
+                                      Other, 0x11484fac0, {{0.0, 0.0}, {402.0, 874.0}}
+                                      Other, 0x11484de00, {{0.0, 116.0}, {402.0, 384.0}}
+                                        Other, 0x11484dcc0, {{16.0, 120.0}, {370.0, 339.3}}
+                                          StaticText, 0x11484c280, {{16.0, 120.0}, {308.3, 33.7}}, label: 'Good afternoon, Claude'
+                                          StaticText, 0x11484e1c0, {{16.0, 156.7}, {253.3, 15.7}}, label: '0 scouts hunting for you · Saturday, Nov 7'
+                                          Button, 0x11484e300, {{16.0, 192.3}, {370.0, 70.0}}, label: 'New scout'
+                                            Image, 0x11484df40, {{42.3, 218.7}, {17.3, 17.3}}, identifier: 'plus', label: 'Add'
+                                            StaticText, 0x11484db80, {{84.0, 217.2}, {84.3, 20.3}}, label: 'New scout'
+                                            Image, 0x11484da40, {{362.7, 220.0}, {8.3, 14.7}}, identifier: 'chevron.right', label: 'Forward'
+                                          StaticText, 0x11484fd40, {{16.0, 282.3}, {122.3, 24.0}}, label: 'More for you'
+                                          StaticText, 0x11484fc00, {{16.0, 318.3}, {279.0, 14.3}}, label: 'Ranked by your taste. Every ♥ and ✕ sharpens it.'
+                                          StaticText, 0x11484c3c0, {{32.0, 360.7}, {325.0, 38.0}}, label: 'Tell Baget what you're into and this fills up with picks for you.'
+                                          Button, 0x11484e080, {{32.0, 408.7}, {71.7, 22.3}}, label: 'Sneakers'
+                                          Button, 0x11484ed00, {{109.7, 408.7}, {76.7, 22.3}}, label: 'Fragrance'
+                                          Button, 0x10b1757c0, {{192.3, 408.7}, {68.0, 22.3}}, label: 'Watches'
+                                          Button, 0x10b176bc0, {{266.3, 408.7}, {67.0, 22.3}}, label: 'Clothing'
+                                          Button, 0x10b176a80, {{32.0, 437.0}, {71.0, 22.3}}, label: 'Furniture'
+                                          Button, 0x10b176800, {{109.0, 437.0}, {44.7, 22.3}}, label: 'Cars'
+                            Toolbar, 0x10b176940, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                              Other, 0x10b1775c0, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x10b1766c0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x10b177340, {{0.0, 791.0}, {402.0, 83.0}}
+                    Other, 0x10b177d40, {{0.0, 0.0}, {402.0, 874.0}}
+                      TabBar, 0x10b177e80, {{0.0, 791.0}, {402.0, 83.0}}, label: 'Tab Bar'
+                        Other, 0x10b177ac0, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x10b177c00, {{21.0, 791.0}, {98.0, 54.0}}
+                          Other, 0x10b177840, {{21.0, 791.0}, {360.0, 62.0}}
+                            Button, 0x10b177980, {{25.0, 795.0}, {98.0, 54.0}}, identifier: 'sun.max.fill', label: 'Today', Selected
+                              Image, 0x10b177480, {{59.7, 800.0}, {29.0, 29.3}}, identifier: 'sun.max.fill', label: 'brightness higher'
+                            Button, 0x10b177700, {{109.7, 795.0}, {98.0, 54.0}}, identifier: 'sparkles', label: 'Finds'
+                              Image, 0x10b176300, {{145.7, 799.0}, {26.0, 30.0}}, identifier: 'sparkles', label: 'sparkle'
+                            Button, 0x10b175e00, {{194.3, 795.0}, {98.0, 54.0}}, identifier: 'binoculars.fill', label: 'Scouts'
+                              Image, 0x10b175f40, {{225.7, 802.3}, {35.3, 25.7}}, identifier: 'binoculars.fill', label: 'Binoculars, filled'
+                            Button, 0x10b175cc0, {{279.0, 795.0}, {98.0, 54.0}}, identifier: 'heart.circle.fill', label: 'Friends'
+                              Image, 0x10b176080, {{314.3, 801.3}, {27.3, 27.3}}, identifier: 'heart.circle.fill', label: 'love'
+                          Other, 0x10b175b80, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x10b1761c0, {{25.0, 795.0}, {98.0, 54.0}}
+                            Other, 0x10b176440, {{25.0, 795.0}, {98.0, 54.0}}
+                              Other, 0x10b176580, {{25.0, 795.0}, {98.0, 54.0}}
+                              Other, 0x10b176d00, {{25.0, 795.0}, {98.0, 54.0}}
+                                Other, 0x10b176e40, {{25.0, 795.0}, {98.0, 54.0}}
+                                  Other, 0x10b177200, {{25.0, 795.0}, {98.0, 54.0}}
+                                    Other, 0x10b175540, {{25.0, 795.0}, {98.0, 54.0}}
+                                  Other, 0x10b175680, {{25.0, 795.0}, {98.0, 54.0}}
+                                Other, 0x10b175900, {{25.0, 795.0}, {98.0, 54.0}}
+                    Other, 0x10b175a40, {{0.0, 791.0}, {402.0, 83.0}}
+                      Other, 0x10b1770c0, {{0.0, 791.0}, {402.0, 83.0}}
+                        Other, 0x10b176f80, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x10aad2080, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x10aad1cc0, {{0.0, 791.0}, {402.0, 83.0}}
+                              Other, 0x10aad2e40, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x10aad0500, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x10aad0640, {{0.0, 791.0}, {402.0, 83.0}}
+      Other, 0x10aad2bc0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10aad1e00, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x10aad30c0, {{0.0, 0.0}, {402.0, 874.0}}
+            StaticText, 0x10aad35c0, {{24.0, 108.0}, {271.3, 36.0}}, label: 'What are you into?'
+            StaticText, 0x10aad1a40, {{24.0, 158.0}, {351.7, 58.0}}, label: 'Pick up to 2. Each becomes a scout that hunts that whole world for you, for weeks, and learns your taste.'
+            ScrollView, 0x10aad3ac0, {{24.0, 230.0}, {354.0, 502.3}}
+              Other, 0x10aad3840, {{24.0, 230.0}, {354.0, 939.3}}
+                StaticText, 0x10aad2300, {{24.0, 230.0}, {46.0, 14.3}}, label: 'STYLE'
+                Button, 0x10aad1680, {{24.0, 251.3}, {94.3, 34.0}}, label: 'Sneakers', Selected
+                Button, 0x10aad17c0, {{124.3, 251.3}, {88.3, 34.0}}, label: 'Clothing'
+                Button, 0x10aad2440, {{218.7, 251.3}, {100.7, 34.0}}, label: 'Fragrance'
+                Button, 0x10aad1b80, {{24.0, 291.3}, {90.0, 34.0}}, label: 'Watches'
+                Button, 0x10aad1f40, {{120.0, 291.3}, {115.0, 34.0}}, label: 'Accessories'
+                Button, 0x10aad3480, {{241.0, 291.3}, {63.7, 34.0}}, label: 'Bags'
+                Button, 0x10aad1900, {{24.0, 331.3}, {84.0, 34.0}}, label: 'Jewelry'
+                Button, 0x10aad3980, {{114.0, 331.3}, {157.0, 34.0}}, label: 'Beauty & skincare'
+                Button, 0x10aad2d00, {{277.0, 331.3}, {83.3, 34.0}}, label: 'Vintage'
+                StaticText, 0x10aad0780, {{24.0, 379.3}, {121.7, 14.3}}, label: 'HOBBIES & GEAR'
+                Button, 0x10aad0a00, {{24.0, 400.7}, {112.3, 34.0}}, label: 'Collectibles'
+                Button, 0x10aad08c0, {{142.3, 400.7}, {79.7, 34.0}}, label: 'Fishing'
+                Button, 0x10aad1540, {{228.0, 400.7}, {94.7, 34.0}}, label: 'Bike gear'
+                Button, 0x10aad03c0, {{24.0, 440.7}, {57.7, 34.0}}, label: 'Golf'
+                Button, 0x10aad0b40, {{87.7, 440.7}, {167.0, 34.0}}, label: 'Camping & outdoor'
+                Button, 0x10aad2f80, {{260.7, 440.7}, {79.7, 34.0}}, label: 'Fitness'
+                Button, 0x10aad21c0, {{24.0, 480.7}, {91.7, 34.0}}, label: 'Cameras'
+                Button, 0x114a79040, {{121.7, 480.7}, {126.0, 34.0}}, label: 'Trading cards'
+                Button, 0x114a7bc00, {{253.7, 480.7}, {124.3, 34.0}}, label: 'Vinyl & music', Selected
+                Button, 0x114a78dc0, {{24.0, 520.7}, {127.0, 34.0}}, label: 'Toys & games'
+                StaticText, 0x114a792c0, {{24.0, 568.7}, {102.0, 14.3}}, label: 'HOME & MORE'
+                Button, 0x114a7b700, {{24.0, 590.0}, {93.7, 34.0}}, label: 'Furniture'
+                Button, 0x114a79680, {{123.7, 590.0}, {61.0, 34.0}}, label: 'Cars'
+                Button, 0x114a7b200, {{190.7, 590.0}, {115.3, 34.0}}, label: 'Home decor'
+                Button, 0x114a7b340, {{24.0, 630.0}, {146.7, 34.0}}, label: 'Kitchen & coffee'
+                Button, 0x114a78780, {{176.7, 630.0}, {139.0, 34.0}}, label: 'Tech & gadgets'
+                Button, 0x114a7bac0, {{24.0, 670.0}, {110.3, 34.0}}, label: 'Art & prints'
+                Button, 0x114a78140, {{140.3, 670.0}, {72.0, 34.0}}, label: 'Books'
+                Button, 0x114a783c0, {{218.3, 670.0}, {62.3, 34.0}}, label: 'Gifts'
+                StaticText, 0x114a78c80, {{24.0, 718.0}, {339.3, 30.3}}, label: 'Free includes 2 scouts. You can go Pro any time for up to 5, hunting around the clock.'
+                StaticText, 0x114a78280, {{37.3, 779.7}, {324.3, 38.3}}, label: 'The more you tell your scouts, the better they hunt'
+                StaticText, 0x114a78a00, {{36.0, 826.0}, {297.7, 30.3}}, label: 'Scouts only know what you share. A few details turn generic results into things you'd actually buy.'
+                StaticText, 0x114a7bd40, {{44.0, 872.3}, {65.7, 11.7}}, label: 'TOO VAGUE'
+                StaticText, 0x114a78000, {{212.0, 872.3}, {50.3, 11.7}}, label: 'SPOT ON'
+                StaticText, 0x114a78640, {{44.0, 886.0}, {68.3, 14.3}}, label: '“Fragrance”'
+                StaticText, 0x114a788c0, {{212.0, 886.0}, {139.0, 46.3}}, label: '“Fresh citrus scents like Le Labo, under $200, nothing sweet”'
+                StaticText, 0x114a7b980, {{44.0, 952.3}, {83.7, 13.3}}, label: 'Brands you love'
+                StaticText, 0x114a78f00, {{149.7, 952.3}, {75.3, 13.3}}, label: 'Brands to skip'
+                StaticText, 0x114a79540, {{247.0, 952.3}, {28.0, 13.3}}, label: 'Sizes'
+                StaticText, 0x114a797c0, {{297.0, 952.3}, {38.0, 13.3}}, label: 'Budget'
+                StaticText, 0x114a7b840, {{44.0, 979.6}, {79.0, 13.3}}, label: 'Colors & styles'
+                StaticText, 0x114a78500, {{145.0, 979.6}, {64.7, 13.3}}, label: 'What it's for'
+                Button, 0x114a79400, {{24.0, 1019.0}, {354.0, 90.0}}, label: 'Describe your taste in your own words'
+                  StaticText, 0x10b18dcc0, {{36.0, 1031.0}, {290.3, 20.3}}, label: 'Describe your taste in your own words'
+                  Image, 0x10b181e00, {{348.0, 1032.3}, {18.0, 18.0}}, identifier: 'square.and.pencil', label: 'Compose'
+                Image, 0x10b181f40, {{35.3, 1131.0}, {9.7, 9.7}}, identifier: 'pencil', label: 'Edit'
+                StaticText, 0x10b182300, {{54.3, 1129.0}, {309.7, 30.3}}, label: 'Nothing's locked in. Change what any scout hunts any time: Scouts, then ••• on the scout, or just text it.'
+              Other, 0x114851680, {{345.0, 230.0}, {30.0, 502.3}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                Other, 0x114851540, {{372.0, 233.0}, {3.0, 278.7}}
+              Other, 0x114852800, {{345.0, 230.0}, {30.0, 502.3}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                Other, 0x114852e40, {{372.0, 233.0}, {3.0, 278.7}}
+            Button, 0x114852940, {{24.0, 746.3}, {354.0, 40.0}}, label: 'Next'
+            Button, 0x114852f80, {{169.0, 800.3}, {64.0, 15.7}}, label: 'Skip setup'
+    Window, 0x1148526c0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x114851900, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1148530c0, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x11484f980, pid: 18578, label: 'Baget'
+Query chain:
+ →Find: Target Application 'app.baget.ios'
+  Output: {
+    Application, 0x114853480, pid: 18578, label: 'Baget'
+  }
+)

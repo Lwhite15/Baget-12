@@ -1,0 +1,251 @@
+Optional(Attributes: Application, 0x114850500, pid: 18578, label: 'Baget'
+Element subtree:
+ →Application, 0x114850500, pid: 18578, label: 'Baget'
+    Window (Main), 0x1148535c0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x114850c80, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x114852a80, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10b18e300, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x10b18ef80, {{-402.0, -874.0}, {1206.0, 2622.0}}
+          Other, 0x10b18cdc0, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x10b18c000, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x10b18cb40, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x10b18f700, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x114a79540, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x114a79040, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x114a7bd40, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x114a792c0, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x114a7b980, {{0.0, 0.0}, {402.0, 874.0}}, value: 13
+                            NavigationBar, 0x114a78000, {{0.0, 62.0}, {402.0, 54.0}}, identifier: '_TtGC7SwiftUI29PresentationHosting'
+                              Other, 0x114a797c0, {{20.0, 66.0}, {42.0, 36.0}}
+                                Other, 0x114a7b700, {{20.0, 66.0}, {42.0, 36.0}}
+                                  Button, 0x114a78140, {{20.0, 66.0}, {42.0, 36.0}}, label: 'You: icon, settings and account'
+                                    StaticText, 0x114a78a00, {{20.0, 66.0}, {42.0, 36.0}}, label: 'CT'
+                              Other, 0x114a78500, {{151.3, 70.7}, {99.0, 26.7}}
+                                Other, 0x114a78f00, {{151.3, 70.7}, {99.0, 26.7}}
+                                  StaticText, 0x114a7bc00, {{151.3, 71.0}, {26.0, 26.0}}
+                                  StaticText, 0x114a788c0, {{185.3, 70.8}, {59.0, 26.3}}, label: 'Baget'
+                                  StaticText, 0x114a78780, {{244.3, 70.8}, {6.0, 26.3}}, label: '.'
+                              Other, 0x10aad0780, {{346.0, 66.0}, {36.0, 36.0}}
+                                Other, 0x10aad2440, {{346.0, 66.0}, {36.0, 36.0}}
+                                  Button, 0x10aad1e00, {{349.3, 66.0}, {29.3, 36.0}}, label: 'Notifications, 6 unread'
+                                    Image, 0x10aad3ac0, {{353.7, 72.7}, {20.7, 22.7}}, identifier: 'bell.fill', label: 'Notifications'
+                                    StaticText, 0x10aad0b40, {{376.3, 65.7}, {6.3, 11.0}}, label: '6'
+                            Other, 0x10aad2080, {{0.0, 0.0}, {402.0, 874.0}}
+                              Other, 0x10aad2300, {{0.0, 0.0}, {402.0, 874.0}}
+                                Other, 0x10aad0640, {{0.0, 0.0}, {402.0, 874.0}}
+                                  Other, 0x10aad35c0, {{0.0, 0.0}, {402.0, 874.0}}
+                                    ScrollView, 0x10aad0a00, {{0.0, 0.0}, {402.0, 874.0}}
+                                      Other, 0x10aad30c0, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x10aad0500, {{0.0, 0.0}, {402.0, 156.0}}
+                                        Other, 0x10aad0280, {{0.0, 741.0}, {402.0, 133.0}}
+                                      Other, 0x10aad21c0, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x10aad2f80, {{0.0, 741.0}, {402.0, 133.0}}
+                                      Other, 0x10aad0140, {{0.0, 116.0}, {402.0, 1736.0}}
+                                        Other, 0x10aad2e40, {{16.0, 120.0}, {370.0, 1484.3}}
+                                          StaticText, 0x10aad1b80, {{16.0, 120.0}, {75.7, 36.0}}, label: 'Finds'
+                                          Button, 0x10aad2bc0, {{298.0, 127.0}, {40.0, 40.0}}, identifier: 'arrow.clockwise', label: 'Hunt now'
+                                          Button, 0x10aad1540, {{346.0, 127.0}, {40.0, 40.0}}, label: 'More'
+                                            Button, 0x10aad3480, {{346.0, 127.0}, {40.0, 40.0}}
+                                              Image, 0x10aad0000, {{358.0, 145.0}, {16.0, 3.7}}, identifier: 'ellipsis', label: 'More'
+                                          StaticText, 0x10aad3840, {{16.0, 158.0}, {154.7, 15.7}}, label: '13 new · 2 scouts hunting'
+                                          ScrollView, 0x10aad1900, {{16.0, 187.7}, {370.0, 29.7}}
+                                            Other, 0x10aad1a40, {{16.0, 187.7}, {313.3, 29.7}}
+                                              Button, 0x10aad17c0, {{16.0, 187.7}, {75.7, 29.7}}, label: 'New · 13'
+                                              Button, 0x10aad2d00, {{97.7, 187.7}, {76.7, 29.7}}, label: '♥ Saved'
+                                              Button, 0x10aad1f40, {{180.3, 187.7}, {104.7, 29.7}}, label: 'Coming soon'
+                                              Button, 0x10aad1680, {{291.0, 187.7}, {38.3, 29.7}}, label: 'All', Selected
+                                          Button, 0x10aad1cc0, {{16.0, 238.7}, {121.7, 15.3}}, label: 'Sort:, Best match'
+                                            Button, 0x10aad08c0, {{16.0, 238.7}, {121.7, 15.3}}
+                                              StaticText, 0x10aad03c0, {{16.0, 238.5}, {29.3, 15.7}}, label: 'Sort:'
+                                              StaticText, 0x10aad3980, {{49.3, 238.5}, {71.7, 15.7}}, label: 'Best match'
+                                              Image, 0x1072935c0, {{126.3, 243.3}, {10.0, 6.0}}, identifier: 'chevron.down', label: 'Go Down'
+                                          Button, 0x107293c00, {{314.0, 231.3}, {36.0, 30.0}}, identifier: 'list.bullet', label: 'List', Selected
+                                          Button, 0x107293200, {{362.0, 240.3}, {12.0, 12.0}}, identifier: 'square.grid.2x2', label: 'Grid'
+                                          StaticText, 0x107293d40, {{50.3, 284.3}, {233.0, 33.7}}, label: 'Tap the heart (or swipe right) to teach your scout'
+                                          Image, 0x107293840, {{29.3, 295.7}, {11.7, 11.0}}, identifier: 'heart.fill', label: 'Love'
+                                          Button, 0x107293980, {{362.7, 296.3}, {10.0, 10.0}}, identifier: 'xmark', label: 'Dismiss tip'
+                                          Button, 0x107291540, {{16.0, 347.0}, {370.0, 35.7}}, label: 'Retro Runner Scout, 8 finds, 8 new'
+                                            StaticText, 0x107293480, {{16.0, 350.0}, {30.0, 30.0}}, label: '👟'
+                                            StaticText, 0x107291400, {{56.0, 347.0}, {155.0, 20.3}}, label: 'Retro Runner Scout'
+                                            StaticText, 0x107293ac0, {{319.3, 358.2}, {33.7, 13.3}}, label: '8 new'
+                                            StaticText, 0x10b181f40, {{56.0, 368.3}, {52.0, 14.3}}, label: 'Sneakers'
+                                            Image, 0x10b181680, {{372.7, 361.3}, {11.7, 7.0}}, identifier: 'chevron.down', label: 'Go Down'
+                                          Other, 0x10b181cc0, {{16.0, 390.7}, {370.0, 98.0}}
+                                            Image, 0x10b181a40, {{26.0, 406.7}, {66.0, 66.0}}
+                                            Button, 0x10b180640, {{340.0, 400.7}, {36.0, 36.0}}, identifier: 'heart.fill', label: 'Like'
+                                            StaticText, 0x10b180140, {{103.0, 413.3}, {164.7, 18.0}}, label: 'Moon Shoe OG Leather'
+                                            StaticText, 0x10b180dc0, {{103.0, 434.3}, {166.0, 14.3}}, label: 'Overkill · ≈ $112 · 81% match'
+                                            Button, 0x10b182300, {{340.0, 442.7}, {36.0, 36.0}}, identifier: 'xmark', label: 'Pass'
+                                            StaticText, 0x10b1803c0, {{103.0, 451.7}, {153.3, 14.3}}, label: 'From Nike, a brand you like'
+                                          Other, 0x10b181900, {{16.0, 496.7}, {370.0, 98.0}}
+                                            Image, 0x10b1808c0, {{26.0, 512.7}, {66.0, 66.0}}
+                                            Button, 0x10b180f00, {{340.0, 506.7}, {36.0, 36.0}}, identifier: 'heart.fill', label: 'Like'
+                                            StaticText, 0x10b181180, {{103.0, 519.3}, {142.0, 18.0}}, label: 'Made in USA 990v6'
+                                            StaticText, 0x10b181e00, {{103.0, 540.3}, {219.7, 14.3}}, label: 'Joe's New Balance Outlet · $150 · 76% match'
+                                            Button, 0x10b180b40, {{340.0, 548.7}, {36.0, 36.0}}, identifier: 'xmark', label: 'Pass'
+                                            StaticText, 0x10b181b80, {{103.0, 557.7}, {219.7, 14.3}}, label: 'You love the 990 and retro running, and this is the Made in USA 990v6 at a markdown, so it's a good way to get one for less.'
+                                          Other, 0x10b180780, {{16.0, 602.7}, {370.0, 98.0}}
+                                            Image, 0x10b181040, {{26.0, 618.7}, {66.0, 66.0}}
+                                            Button, 0x10b181540, {{340.0, 612.7}, {36.0, 36.0}}, identifier: 'heart.fill', label: 'Like'
+                                            StaticText, 0x10b180a00, {{103.0, 625.3}, {125.3, 18.0}}, label: 'Gel-Transcend FJ'
+                                            StaticText, 0x10b180500, {{103.0, 646.3}, {169.7, 14.3}}, label: 'Overkill · ≈ $168 · 76% match'
+                                            Button, 0x10b1817c0, {{340.0, 654.7}, {36.0, 36.0}}, identifier: 'xmark', label: 'Pass'
+                                            StaticText, 0x10b181400, {{103.0, 663.7}, {158.7, 14.3}}, label: 'From Asics, a brand you like'
+                                          Other, 0x10b180280, {{16.0, 708.7}, {370.0, 98.0}}
+                                            Image, 0x10a03a1c0, {{26.0, 724.7}, {66.0, 66.0}}
+                                            Button, 0x10a03b5c0, {{340.0, 718.7}, {36.0, 36.0}}, identifier: 'heart.fill', label: 'Like'
+                                            StaticText, 0x10a03a940, {{103.0, 731.3}, {65.0, 18.0}}, label: 'ACG LDV'
+                                            StaticText, 0x10a03abc0, {{103.0, 752.3}, {165.0, 14.3}}, label: 'Overkill · ≈ $121 · 71% match'
+                                            Button, 0x10a0392c0, {{340.0, 760.7}, {36.0, 36.0}}, identifier: 'xmark', label: 'Pass'
+                                            StaticText, 0x10a03a300, {{103.0, 769.7}, {153.3, 14.3}}, label: 'From Nike, a brand you like'
+                                          Other, 0x10a03b980, {{16.0, 814.7}, {370.0, 98.0}}
+                                            Image, 0x10a03af80, {{26.0, 830.7}, {66.0, 66.0}}
+                                            Button, 0x10a03ae40, {{340.0, 824.7}, {36.0, 36.0}}, identifier: 'heart.fill', label: 'Like'
+                                            StaticText, 0x10a03a6c0, {{103.0, 837.3}, {70.7, 18.0}}, label: 'U991MA2'
+                                            StaticText, 0x10a039e00, {{103.0, 858.3}, {169.3, 14.3}}, label: 'Overkill · ≈ $234 · 71% match'
+                                            Button, 0x10a03bac0, {{340.0, 866.7}, {36.0, 36.0}}, identifier: 'xmark', label: 'Pass'
+                                            StaticText, 0x10a039540, {{103.0, 875.7}, {201.7, 14.3}}, label: 'From New Balance, a brand you like'
+                                          Other, 0x10a039040, {{16.0, 920.7}, {370.0, 98.0}}
+                                            Image, 0x10a03b700, {{26.0, 936.7}, {66.0, 66.0}}
+                                            Button, 0x10a03be80, {{340.0, 930.7}, {36.0, 36.0}}, identifier: 'heart.fill', label: 'Like'
+                                            StaticText, 0x10a038f00, {{103.0, 943.3}, {72.0, 18.0}}, label: 'U190671F'
+                                            StaticText, 0x10a039180, {{103.0, 964.3}, {167.7, 14.3}}, label: 'Overkill · ≈ $149 · 71% match'
+                                            Button, 0x10a039b80, {{340.0, 972.7}, {36.0, 36.0}}, identifier: 'xmark', label: 'Pass'
+                                            StaticText, 0x10a03bc00, {{103.0, 981.7}, {201.7, 14.3}}, label: 'From New Balance, a brand you like'
+                                          Other, 0x10a03b200, {{16.0, 1026.7}, {370.0, 98.0}}
+                                            Image, 0x10a039cc0, {{26.0, 1042.7}, {66.0, 66.0}}
+                                            Button, 0x10a03b480, {{340.0, 1036.7}, {36.0, 36.0}}, identifier: 'heart.fill', label: 'Like'
+                                            StaticText, 0x10a03a580, {{103.0, 1049.3}, {70.0, 18.0}}, label: 'U990GR7'
+                                            StaticText, 0x10a038500, {{103.0, 1070.3}, {169.3, 14.3}}, label: 'Overkill · ≈ $234 · 71% match'
+                                            Button, 0x10a039400, {{340.0, 1078.7}, {36.0, 36.0}}, identifier: 'xmark', label: 'Pass'
+                                            StaticText, 0x10a038a00, {{103.0, 1087.7}, {201.7, 14.3}}, label: 'From New Balance, a brand you like'
+                                          Other, 0x114855900, {{16.0, 1132.7}, {370.0, 98.0}}
+                                            Other, 0x114855a40, {{23.0, 1145.7}, {11.0, 11.0}}, label: 'New to you'
+                                            Image, 0x114855cc0, {{26.0, 1148.7}, {66.0, 66.0}}
+                                            StaticText, 0x114855e00, {{103.0, 1145.3}, {221.7, 38.0}}, label: 'Salomon XT-6 Earth Brown Walnut Men's - L49209900 - US'
+                                            Button, 0x114855f40, {{340.0, 1142.7}, {36.0, 36.0}}, identifier: 'heart.fill', label: 'Like'
+                                            StaticText, 0x114856080, {{103.0, 1186.3}, {156.7, 14.3}}, label: 'StockX · $179 · 66% match'
+                                            Button, 0x1148561c0, {{340.0, 1184.7}, {36.0, 36.0}}, identifier: 'xmark', label: 'Pass'
+                                            StaticText, 0x114856300, {{103.0, 1203.7}, {225.0, 14.3}}, label: 'Brown trail shoe with a chunky sole, which is exactly the earthy, chocolate-brown trail look you keep going for, and it's a Salomon.'
+                                          Button, 0x114856440, {{16.0, 1250.7}, {370.0, 35.7}}, label: 'Crate Digger, 5 finds, 5 new'
+                                            StaticText, 0x114856580, {{16.0, 1253.3}, {30.0, 30.0}}, label: '💿'
+                                            StaticText, 0x1148566c0, {{56.0, 1250.7}, {101.0, 20.3}}, label: 'Crate Digger'
+                                            StaticText, 0x114856800, {{319.7, 1261.8}, {33.3, 13.3}}, label: '5 new'
+                                            StaticText, 0x114856940, {{56.0, 1272.0}, {135.0, 14.3}}, label: 'Vinyl records and music'
+                                            Image, 0x114857d40, {{372.7, 1265.0}, {11.7, 7.0}}, identifier: 'chevron.down', label: 'Go Down'
+                                          Other, 0x114857e80, {{16.0, 1294.3}, {370.0, 98.0}}
+                                            Image, 0x114856a80, {{26.0, 1310.3}, {66.0, 66.0}}
+                                            StaticText, 0x114857700, {{103.0, 1307.0}, {225.3, 38.0}}, label: 'Nat King Cole - After Midnight: The Complete Sessions (Tone Poet Vinyl Series)'
+                                            Button, 0x114857840, {{340.0, 1304.3}, {36.0, 36.0}}, identifier: 'heart.fill', label: 'Like'
+                                            StaticText, 0x114857980, {{103.0, 1348.0}, {220.7, 14.3}}, label: 'Blue Note Records Store · $55 · 68% match'
+                                            Button, 0x114857c00, {{340.0, 1346.3}, {36.0, 36.0}}, identifier: 'xmark', label: 'Pass'
+                                            StaticText, 0x114857ac0, {{103.0, 1365.3}, {224.7, 14.3}}, label: 'Claude, the Tone Poet series is Blue Note's audiophile line, and this one is a warm, late-night jazz vocal record for your listening shelf.'
+                                          Other, 0x1148570c0, {{16.0, 1400.3}, {370.0, 98.0}}
+                                            Image, 0x114857200, {{26.0, 1416.3}, {66.0, 66.0}}
+                                            StaticText, 0x1148575c0, {{103.0, 1413.0}, {225.3, 38.0}}, label: 'War - The World Is a Ghetto (Numbered 180g 45RPM Vinyl 2LP)'
+                                            Button, 0x114857480, {{340.0, 1410.3}, {36.0, 36.0}}, identifier: 'heart.fill', label: 'Like'
+                                            StaticText, 0x114857340, {{103.0, 1454.0}, {216.0, 14.3}}, label: 'Mobile Fidelity Sound Lab · $60 · 66% match'
+                                            Button, 0x114856bc0, {{340.0, 1452.3}, {36.0, 36.0}}, identifier: 'xmark', label: 'Pass'
+                                            StaticText, 0x114856d00, {{103.0, 1471.3}, {221.3, 14.3}}, label: 'Claude, this is the kind of groove-heavy soul record that sits right next to your Stax and Motown shelf, pressed the way Mobile Fidelity does its best work.'
+                                          Other, 0x114856e40, {{16.0, 1506.3}, {370.0, 98.0}}
+                                            Other, 0x114856f80, {{23.0, 1519.3}, {11.0, 11.0}}, label: 'New to you'
+                                            Image, 0x114855b80, {{26.0, 1522.3}, {66.0, 66.0}}
+                                            StaticText, 0x10b174000, {{103.0, 1519.0}, {225.3, 38.0}}, label: 'Rodriguez - Cold Fact (Numbered 180g 45RPM Vinyl 2LP)'
+                                            Button, 0x10b174140, {{340.0, 1516.3}, {36.0, 36.0}}, identifier: 'heart.fill', label: 'Like'
+                                            StaticText, 0x10b174280, {{103.0, 1560.0}, {216.0, 14.3}}, label: 'Mobile Fidelity Sound Lab · $60 · 66% match'
+                                            Button, 0x10b1743c0, {{340.0, 1558.3}, {36.0, 36.0}}, identifier: 'xmark', label: 'Pass'
+                                            StaticText, 0x10b174500, {{103.0, 1577.3}, {224.3, 14.3}}, label: 'This is a discovery pick: Rodriguez was a Detroit singer-songwriter with a soulful, late-night feel that fits the Motown and Stax records you already collect.'
+                            Toolbar, 0x10b174640, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                              Other, 0x10b174780, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x10b1748c0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x10b174a00, {{0.0, 791.0}, {402.0, 83.0}}
+                    Other, 0x10b174b40, {{0.0, 0.0}, {402.0, 874.0}}
+                      TabBar, 0x10b174c80, {{0.0, 791.0}, {402.0, 83.0}}, label: 'Tab Bar'
+                        Other, 0x10b174dc0, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x10b174f00, {{21.0, 791.0}, {98.0, 54.0}}
+                          Other, 0x10b175040, {{21.0, 791.0}, {360.0, 62.0}}
+                            Button, 0x10b175180, {{25.0, 795.0}, {98.0, 54.0}}, identifier: 'sun.max.fill', label: 'Today'
+                              Image, 0x10b1752c0, {{59.7, 800.0}, {29.0, 29.3}}, identifier: 'sun.max.fill', label: 'brightness higher'
+                            Button, 0x10b175400, {{109.7, 795.0}, {98.0, 54.0}}, identifier: 'sparkles', label: 'Finds', value: 13 items, Selected
+                              Image, 0x10b175540, {{145.7, 799.0}, {26.0, 30.0}}, identifier: 'sparkles', label: 'sparkle'
+                            Button, 0x10b175680, {{194.3, 795.0}, {98.0, 54.0}}, identifier: 'binoculars.fill', label: 'Scouts'
+                              Image, 0x10b1757c0, {{225.7, 802.3}, {35.3, 25.7}}, identifier: 'binoculars.fill', label: 'Binoculars, filled'
+                            Button, 0x10b175900, {{279.0, 795.0}, {98.0, 54.0}}, identifier: 'heart.circle.fill', label: 'Friends'
+                              Image, 0x10b175a40, {{314.3, 801.3}, {27.3, 27.3}}, identifier: 'heart.circle.fill', label: 'love'
+                          Other, 0x10b175b80, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x10b175cc0, {{109.7, 795.0}, {98.0, 54.0}}
+                            Other, 0x10b175e00, {{109.7, 795.0}, {98.0, 54.0}}
+                              Other, 0x10b175f40, {{109.7, 795.0}, {98.0, 54.0}}
+                              Other, 0x10b176080, {{109.7, 795.0}, {98.0, 54.0}}
+                                Other, 0x10b1761c0, {{109.7, 795.0}, {98.0, 54.0}}
+                                  Other, 0x10b176300, {{109.7, 795.0}, {98.0, 54.0}}
+                                    Other, 0x10b176440, {{109.7, 795.0}, {98.0, 54.0}}
+                                  Other, 0x10b176580, {{109.7, 795.0}, {98.0, 54.0}}
+                                Other, 0x10b1766c0, {{109.7, 795.0}, {98.0, 54.0}}
+                    Other, 0x10b176800, {{0.0, 791.0}, {402.0, 83.0}}
+                      Other, 0x10b176940, {{0.0, 791.0}, {402.0, 83.0}}
+                        Other, 0x10b176a80, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x10b176bc0, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x10b176d00, {{0.0, 791.0}, {402.0, 83.0}}
+                              Other, 0x10b176e40, {{0.0, 791.0}, {402.0, 83.0}}
+      Other, 0x10b176f80, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10b1770c0, {{-402.0, -874.0}, {1206.0, 2622.0}}
+        Other, 0x10b177200, {{0.0, 62.0}, {402.0, 812.0}}
+          Other, 0x10b177340, {{0.0, 62.0}, {402.0, 812.0}}
+          Other, 0x10b177480, {{0.0, 62.0}, {402.0, 812.0}}
+            Other, 0x10b1775c0, {{0.0, 62.0}, {402.0, 812.0}}
+              Other, 0x10b177700, {{0.0, 62.0}, {402.0, 812.0}}
+                ScrollView, 0x10b177840, {{0.0, 62.0}, {402.0, 812.0}}
+                  Other, 0x10b177980, {{0.0, 62.0}, {402.0, 974.7}}
+                    Button, 0x10b177ac0, {{350.0, 72.0}, {34.0, 34.0}}, identifier: 'xmark', label: 'Close'
+                    StaticText, 0x10b177c00, {{30.0, 132.0}, {35.3, 20.3}}, label: 'Nike'
+                    StaticText, 0x10b177d40, {{289.0, 134.0}, {77.0, 13.3}}, label: '81% MATCH'
+                    StaticText, 0x10b177e80, {{30.0, 386.0}, {36.7, 12.0}}, label: 'Overkill'
+                    Image, 0x10aa7c000, {{28.0, 192.0}, {346.0, 172.0}}, label: 'Moon Shoe OG Leather'
+                    StaticText, 0x10aa7c140, {{18.0, 424.0}, {221.7, 24.0}}, label: 'Moon Shoe OG Leather'
+                    StaticText, 0x10aa7c280, {{18.0, 453.0}, {297.0, 20.3}}, label: '≈ $112 · Overkill · from Retro Runner Scout'
+                    StaticText, 0x10aa7c3c0, {{32.0, 499.3}, {212.0, 18.0}}, label: 'From Nike, a brand you like'
+                    StaticText, 0x10aa7c500, {{18.0, 543.7}, {363.3, 65.7}}, label: 'ABOUT NIKE, An American sportswear giant from Oregon, founded in 1964. Known for running, basketball and everyday sneakers plus athletic clothing. Most shoes cost about $60-$200.'
+                      StaticText, 0x10aa7c640, {{18.0, 543.7}, {72.3, 12.0}}, label: 'ABOUT NIKE'
+                      StaticText, 0x10aa7c780, {{18.0, 557.7}, {363.3, 51.7}}, label: 'An American sportswear giant from Oregon, founded in 1964. Known for running, basketball and everyday sneakers plus athletic clothing. Most shoes cost about $60-$200.'
+                    StaticText, 0x10aa7c8c0, {{18.0, 615.4}, {342.7, 33.7}}, label: 'A brown leather low-top sneaker from Nike's retro Moon Shoe line, with a vintage look.'
+                    Button, 0x10aa7ca00, {{18.0, 663.0}, {257.0, 48.0}}, label: 'Buy at Overkill'
+                      Image, 0x10aa7cb40, {{81.3, 681.0}, {12.0, 12.0}}, identifier: 'arrow.up.right', label: 'Up-Right Diagonal Arrow'
+                      StaticText, 0x10aa7cc80, {{81.3, 678.0}, {132.0, 18.0}}, label: 'Buy at Overkill'
+                    Button, 0x10aa7cdc0, {{285.0, 663.0}, {99.0, 48.0}}, label: 'Like'
+                      StaticText, 0x10aa7cf00, {{307.0, 678.0}, {57.0, 18.0}}, label: 'Like'
+                      Image, 0x10aa7d040, {{307.0, 680.0}, {15.7, 14.7}}, identifier: 'heart', label: 'Love'
+                    Button, 0x10aa7d180, {{32.4, 727.0}, {62.7, 31.2}}, label: 'Watch price'
+                      Image, 0x10aa7d2c0, {{53.7, 727.0}, {20.3, 12.7}}, identifier: 'eye', label: 'Show'
+                      StaticText, 0x10aa7d400, {{32.4, 744.9}, {62.7, 13.3}}, label: 'Watch price'
+                    Button, 0x10aa7d540, {{129.4, 724.7}, {51.7, 35.7}}, label: 'Ask scout'
+                      Image, 0x10aa7d680, {{144.7, 724.7}, {21.3, 17.0}}, identifier: 'bubble.left.and.text.bubble.right', label: 'Left Speech Bubble And Right Text Bubble'
+                      StaticText, 0x10aa7d7c0, {{129.4, 747.0}, {51.7, 13.3}}, label: 'Ask scout'
+                    Button, 0x10aa7d900, {{231.6, 724.3}, {30.3, 36.4}}, label: 'Share'
+                      Image, 0x10aa7da40, {{240.3, 724.3}, {13.0, 17.7}}, identifier: 'square.and.arrow.up', label: 'Share'
+                      StaticText, 0x10aa7db80, {{231.6, 747.4}, {30.3, 13.3}}, label: 'Share'
+                    Button, 0x10aa7dcc0, {{325.9, 727.3}, {24.7, 30.5}}, label: 'Pass'
+                      Image, 0x10aa7de00, {{332.3, 727.3}, {12.0, 12.0}}, identifier: 'xmark', label: 'Close'
+                      StaticText, 0x10aa7df40, {{325.9, 744.5}, {24.7, 13.3}}, label: 'Pass'
+                    StaticText, 0x10aa7e080, {{19.0, 774.8}, {349.0, 30.3}}, label: '€100 at the store. Ships from outside the US, so duties or import fees may apply.'
+                    StaticText, 0x10aa7e1c0, {{18.0, 823.1}, {33.0, 11.0}}, label: 'PRICE'
+                    StaticText, 0x10aa7e300, {{142.7, 823.1}, {45.3, 11.0}}, label: 'MARKET'
+                    StaticText, 0x10aa7e440, {{267.3, 823.1}, {43.7, 11.0}}, label: 'SPREAD'
+                    StaticText, 0x10aa7e580, {{18.0, 836.1}, {52.0, 18.0}}, label: '≈ $112'
+                    StaticText, 0x10aa7e6c0, {{142.7, 836.1}, {38.7, 18.0}}, label: '$112'
+                    StaticText, 0x10aa7e800, {{267.3, 836.1}, {24.3, 18.0}}, label: '0%'
+                    StaticText, 0x10aa7e940, {{18.0, 872.1}, {352.3, 30.3}}, label: 'low top sneakers · 118041 · brown · classics · iu3162 200 · low tops · men · nike · retro & running · running'
+                    StaticText, 0x10aa7ea80, {{18.0, 912.4}, {160.0, 11.0}}, label: 'WHY YOUR SCOUT PICKED IT'
+                    StaticText, 0x10aa7ebc0, {{30.0, 927.4}, {345.0, 33.7}}, label: 'Shares your running & retro, retro running, brown suede, chocolate brown, low top details'
+                    StaticText, 0x10aa7ed00, {{28.0, 981.1}, {299.3, 15.7}}, label: 'Retro Runner Scout: Fair price, right in your lane.'
+    Window, 0x10aa7ee40, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x10aa7ef80, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10aa7f0c0, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x114850500, pid: 18578, label: 'Baget'
+Query chain:
+ →Find: Target Application 'app.baget.ios'
+  Output: {
+    Application, 0x10aa7f200, pid: 18578, label: 'Baget'
+  }
+)

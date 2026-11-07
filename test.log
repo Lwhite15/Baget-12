@@ -1,0 +1,1262 @@
+Command line invocation:
+    /Applications/Xcode_27.2.app/Contents/Developer/usr/bin/xcodebuild test-without-building "-only-testing:BagetUITests/QAWalkthrough/testNewCustomer" -project Baget.xcodeproj -scheme BagetQA -derivedDataPath build -destination id=0A1B5EC5-2485-4F8E-B06B-1185D8E186C0 -resultBundlePath /Users/runner/work/_temp/qa.xcresult
+
+Writing result bundle at path:
+	/Users/runner/work/_temp/qa.xcresult
+
+2026-11-07 14:32:28.210216+0000 BagetUITests-Runner[17842:53749] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-11-07 14:32:39.437.
+Test Suite 'BagetUITests.xctest' started at 2026-11-07 14:32:39.442.
+Test Suite 'QAWalkthrough' started at 2026-11-07 14:32:39.442.
+Test Case '-[BagetUITests.QAWalkthrough testNewCustomer]' started.
+    t =     0.01s Start Test at 2026-11-07 14:32:39.451
+    t =     1.58s Set Up
+    t =     1.64s Open app.baget.ios
+    t =     1.65s     Launch app.baget.ios
+objc[17842]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.91MO3J/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10a5cc398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.91MO3J/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10b428310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+2026-11-07 14:32:43.898 xcodebuild[16337:49736] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-11-07 14:32:43.898 xcodebuild[16337:49736] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =    11.14s         Setting up automation session
+    t =    16.82s         Wait for app.baget.ios to idle
+    t =    26.89s Added attachment named '01-welcome'
+    t =    26.91s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =    28.79s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [01] snap 01-welcome
+    t =    31.27s Swipe up Target Application 'app.baget.ios'
+    t =    31.27s     Wait for app.baget.ios to idle
+    t =    31.28s     Find the Target Application 'app.baget.ios'
+    t =    31.57s     Check for interrupting elements affecting "Baget" Application
+    t =    32.16s     Synthesize event
+    t =    32.94s     Wait for app.baget.ios to idle
+    t =    34.97s Added attachment named '02-welcome-scrolled'
+    t =    34.97s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =    35.97s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [02] snap 02-welcome-scrolled
+    t =    36.20s Get number of matches for: Elements matching predicate 'label == "Continue with email"'
+    t =    36.69s Checking existence of `Button (Element at index 0)`
+    t =    37.14s Find the Button (Element at index 0)
+    t =    37.43s Find the "Continue with email" Button
+    t =    38.02s Tap "Continue with email" Button
+    t =    38.02s     Wait for app.baget.ios to idle
+    t =    38.03s     Find the "Continue with email" Button
+    t =    38.71s     Check for interrupting elements affecting "Continue with email" Button
+    t =    39.35s     Synthesize event
+    t =    39.81s     Wait for app.baget.ios to idle
+QA: [02] tap Continue with email
+    t =    43.33s Added attachment named '03-email-sheet'
+    t =    43.33s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =    44.85s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [03] snap 03-email-sheet
+    t =    45.22s Waiting 6.0s for "Email" TextField to exist
+    t =    46.25s     Checking `Expect predicate `existsNoRetry == 1` for object "Email" TextField`
+    t =    46.25s         Checking existence of `"Email" TextField`
+    t =    46.66s Tap "Email" TextField
+    t =    46.66s     Wait for app.baget.ios to idle
+    t =    46.66s     Find the "Email" TextField
+    t =    47.00s     Check for interrupting elements affecting "Email" TextField
+    t =    47.43s     Synthesize event
+    t =    47.82s     Wait for app.baget.ios to idle
+    t =    54.48s Type 'qa-42381407668@exa...' into "Email" TextField
+    t =    54.48s     Wait for app.baget.ios to idle
+    t =    54.56s     Find the "Email" TextField
+    t =    55.26s     Check for interrupting elements affecting "Email" TextField
+    t =    55.57s     Synthesize event
+    t =    56.33s     Wait for app.baget.ios to idle
+    t =    56.37s Waiting 6.0s for SecureTextField (First Match) to exist
+    t =    57.44s     Checking `Expect predicate `existsNoRetry == 1` for object SecureTextField (First Match)`
+    t =    57.44s         Checking existence of `SecureTextField (First Match)`
+    t =    61.61s Tap SecureTextField (First Match)
+    t =    61.61s     Wait for app.baget.ios to idle
+    t =    61.64s     Find the SecureTextField (First Match)
+    t =    84.33s     Check for interrupting elements affecting "Password" SecureTextField
+    t =    91.84s     Synthesize event
+    t =    92.35s     Wait for app.baget.ios to idle
+    t =    92.87s Type 'Qa-jkN5eshEPQvwkBb...' into "Password" SecureTextField
+    t =    92.87s     Wait for app.baget.ios to idle
+    t =    93.30s     Find the "Password" SecureTextField
+    t =    96.72s     Check for interrupting elements affecting "Password" SecureTextField
+    t =    97.11s     Synthesize event
+    t =    97.80s     Wait for app.baget.ios to idle
+    t =    97.81s Tap "Sign in with email" StaticText
+    t =    97.81s     Wait for app.baget.ios to idle
+    t =    97.82s     Find the "Sign in with email" StaticText
+    t =    99.67s     Check for interrupting elements affecting "Sign in with email" StaticText
+    t =   100.04s     Synthesize event
+    t =   100.38s     Wait for app.baget.ios to idle
+    t =   101.09s Added attachment named '04-email-filled'
+    t =   101.09s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   102.12s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [04] snap 04-email-filled
+    t =   102.34s Get all elements bound by index for: Elements matching predicate 'label == "Sign in"'
+    t =   102.61s Find the Button (Element at index 0)
+    t =   102.93s Find the Button (Element at index 1)
+    t =   103.08s Find the "Sign in" Button
+    t =   103.25s Find the "Sign in" Button
+    t =   103.42s Find the "Sign in" Button
+QA: [04] submit at y=402 enabled=true
+    t =   103.58s Tap "Sign in" Button
+    t =   103.58s     Wait for app.baget.ios to idle
+    t =   103.58s     Find the "Sign in" Button
+    t =   103.72s     Check for interrupting elements affecting "Sign in" Button
+    t =   103.86s     Synthesize event
+    t =   104.19s     Wait for app.baget.ios to idle
+    t =   105.45s Get number of matches for: Elements matching predicate 'label == "Sign in"'
+    t =   109.40s Added attachment named '05-after-submit'
+    t =   109.40s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   110.01s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [05] snap 05-after-submit
+    t =   110.20s Waiting 25.0s for "What are you into?" StaticText to exist
+    t =   111.30s     Checking `Expect predicate `existsNoRetry == 1` for object "What are you into?" StaticText`
+    t =   111.30s         Checking existence of `"What are you into?" StaticText`
+QA: [05] TIME sign-up to setup 1.2s
+    t =   113.61s Added attachment named '06-setup-1-interests'
+    t =   113.61s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   114.19s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [06] snap 06-setup-1-interests
+    t =   114.33s Get number of matches for: Elements matching predicate 'label == "Sneakers"'
+    t =   114.41s Checking existence of `Button (Element at index 0)`
+    t =   114.48s Find the Button (Element at index 0)
+    t =   114.56s Checking existence of `Button (Element at index 1)`
+    t =   114.63s Find the Button (Element at index 1)
+    t =   114.73s Find the "Sneakers" Button
+    t =   114.84s Find the "Sneakers" Button
+    t =   115.09s Tap "Sneakers" Button
+    t =   115.09s     Wait for app.baget.ios to idle
+    t =   115.09s     Find the "Sneakers" Button
+    t =   115.19s     Check for interrupting elements affecting "Sneakers" Button
+    t =   115.27s     Synthesize event
+    t =   115.60s     Wait for app.baget.ios to idle
+QA: [06] tap Sneakers
+    t =   115.61s Get number of matches for: Elements matching predicate 'label == "Vinyl & music"'
+    t =   115.71s Checking existence of `Button (Element at index 0)`
+    t =   115.81s Find the Button (Element at index 0)
+    t =   115.95s Find the "Vinyl & music" Button
+    t =   116.08s Tap "Vinyl & music" Button
+    t =   116.08s     Wait for app.baget.ios to idle
+    t =   116.08s     Find the "Vinyl & music" Button
+    t =   116.19s     Check for interrupting elements affecting "Vinyl & music" Button
+    t =   116.30s     Synthesize event
+    t =   116.64s     Wait for app.baget.ios to idle
+QA: [06] tap Vinyl & music
+    t =   117.39s Added attachment named '07-setup-1-picked'
+    t =   117.39s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   117.84s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [07] snap 07-setup-1-picked
+    t =   117.96s Get number of matches for: Elements matching predicate 'label == "Watches"'
+    t =   118.02s Checking existence of `Button (Element at index 0)`
+    t =   118.10s Find the Button (Element at index 0)
+    t =   118.18s Checking existence of `Button (Element at index 1)`
+    t =   118.27s Find the Button (Element at index 1)
+    t =   118.36s Find the "Watches" Button
+    t =   118.49s Find the "Watches" Button
+    t =   118.64s Tap "Watches" Button
+    t =   118.64s     Wait for app.baget.ios to idle
+    t =   118.64s     Find the "Watches" Button
+    t =   118.72s     Check for interrupting elements affecting "Watches" Button
+    t =   118.83s     Synthesize event
+    t =   119.15s     Wait for app.baget.ios to idle
+QA: [07] tap Watches
+    t =   119.89s Added attachment named '08-setup-1-third-pick'
+    t =   119.90s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   120.32s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [08] snap 08-setup-1-third-pick
+    t =   120.45s Get number of matches for: Elements matching predicate 'label == "Describe your taste in your own words"'
+    t =   120.53s Checking existence of `Button (Element at index 0)`
+    t =   120.61s Find the Button (Element at index 0)
+    t =   120.69s Find the "Describe your taste in your own words" Button
+    t =   120.80s Get number of matches for: Elements matching predicate 'label == "Describe your taste in your own words"'
+    t =   120.88s Checking existence of `StaticText (Element at index 0)`
+    t =   120.95s Find the StaticText (Element at index 0)
+    t =   121.06s Find the "Describe your taste in your own words" StaticText
+    t =   121.19s Get number of matches for: Elements matching predicate 'label == "Describe your taste in your own words"'
+    t =   121.27s Checking existence of `Any (Element at index 0)`
+    t =   121.37s Find the Any (Element at index 0)
+    t =   121.46s Checking existence of `Any (Element at index 1)`
+    t =   121.56s Find the Any (Element at index 1)
+    t =   121.70s Find the "Describe your taste in your own words" Button
+    t =   121.84s Find the "Describe your taste in your own words" StaticText
+    t =   122.44s Get number of matches for: Elements matching predicate 'label == "Describe your taste in your own words"'
+    t =   122.53s Checking existence of `Button (Element at index 0)`
+    t =   122.60s Find the Button (Element at index 0)
+    t =   122.69s Find the "Describe your taste in your own words" Button
+    t =   122.83s Tap "Describe your taste in your own words" Button[0.50, 0.50]
+    t =   122.83s     Wait for app.baget.ios to idle
+    t =   122.83s     Find the "Describe your taste in your own words" Button
+    t =   122.94s     Check for interrupting elements affecting "Describe your taste in your own words" Button
+    t =   123.02s     Synthesize event
+    t =   123.04s         Find the "Describe your taste in your own words" Button
+    t =   123.13s         Find the "Describe your taste in your own words" Button
+    t =   123.23s         Find the "Describe your taste in your own words" Button
+    t =   123.60s     Wait for app.baget.ios to idle
+QA: [08] tap (forced) Describe your taste in your own words
+    t =   124.86s Added attachment named '09-setup-1-editor'
+    t =   124.86s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   125.30s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [09] snap 09-setup-1-editor
+    t =   125.46s Waiting 4.0s for TextView (First Match) to exist
+    t =   126.52s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =   126.52s         Checking existence of `TextView (First Match)`
+    t =   126.85s         Capturing element debug description
+    t =   127.48s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =   127.48s         Checking existence of `TextView (First Match)`
+    t =   127.73s         Capturing element debug description
+    t =   128.46s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =   128.46s         Checking existence of `TextView (First Match)`
+    t =   128.81s         Capturing element debug description
+    t =   129.46s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =   129.46s         Checking existence of `TextView (First Match)`
+    t =   129.75s         Capturing element debug description
+    t =   129.75s     Checking existence of `TextView (First Match)`
+    t =   130.62s Collecting debug information to assist test failure triage
+    t =   130.62s     Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   131.86s Added attachment named '10-setup-1-editor-typed'
+    t =   131.86s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   132.48s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [10] snap 10-setup-1-editor-typed
+    t =   132.63s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   132.74s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   132.90s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   133.51s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   133.63s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   133.76s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   134.40s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   134.51s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   134.64s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   135.26s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   135.40s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   135.59s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   136.34s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   136.49s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   136.64s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   137.27s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   137.47s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   137.65s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   138.33s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   138.45s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   138.58s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   139.22s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   139.36s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   139.50s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   140.11s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   140.31s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   140.47s Get number of matches for: Elements matching predicate 'label == "Done"'
+QA: [10] MISSING Done
+    t =   142.33s Added attachment named '11-setup-1-typed'
+    t =   142.34s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   144.42s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [11] snap 11-setup-1-typed
+    t =   144.61s Get number of matches for: Descendants matching type Keyboard
+    t =   144.75s Get number of matches for: Elements matching predicate 'label == "Next"'
+    t =   145.24s Checking existence of `Button (Element at index 0)`
+    t =   145.49s Find the Button (Element at index 0)
+    t =   145.72s Find the "Next" Button
+    t =   145.93s Tap "Next" Button
+    t =   145.93s     Wait for app.baget.ios to idle
+    t =   145.95s     Find the "Next" Button
+    t =   146.08s     Check for interrupting elements affecting "Next" Button
+    t =   146.23s     Synthesize event
+    t =   146.59s     Wait for app.baget.ios to idle
+QA: [11] tap Next
+    t =   149.07s Added attachment named '12-setup-2-vibe'
+    t =   149.07s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   149.78s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [12] snap 12-setup-2-vibe
+    t =   150.02s Get number of matches for: Elements matching predicate 'label == "New Balance"'
+    t =   150.21s Checking existence of `Button (Element at index 0)`
+    t =   150.36s Find the Button (Element at index 0)
+    t =   150.51s Find the "New Balance" Button
+    t =   150.67s Tap "New Balance" Button
+    t =   150.67s     Wait for app.baget.ios to idle
+    t =   150.69s     Find the "New Balance" Button
+    t =   150.81s     Check for interrupting elements affecting "New Balance" Button
+    t =   150.94s     Synthesize event
+    t =   151.33s     Wait for app.baget.ios to idle
+QA: [12] tap New Balance
+    t =   151.34s Get number of matches for: Elements matching predicate 'label == "Salomon"'
+    t =   151.63s Checking existence of `Button (Element at index 0)`
+    t =   151.82s Find the Button (Element at index 0)
+    t =   152.12s Find the "Salomon" Button
+    t =   152.34s Tap "Salomon" Button
+    t =   152.34s     Wait for app.baget.ios to idle
+    t =   152.34s     Find the "Salomon" Button
+    t =   152.57s     Check for interrupting elements affecting "Salomon" Button
+    t =   152.72s     Synthesize event
+    t =   153.08s     Wait for app.baget.ios to idle
+QA: [12] tap Salomon
+    t =   153.09s Get number of matches for: Elements matching predicate 'label == "Size 10.5"'
+    t =   153.23s Checking existence of `Button (Element at index 0)`
+    t =   153.47s Find the Button (Element at index 0)
+    t =   154.49s Find the "Size 10.5" Button
+    t =   154.76s Tap "Size 10.5" Button[0.50, 0.50]
+    t =   154.76s     Wait for app.baget.ios to idle
+    t =   154.77s     Find the "Size 10.5" Button
+    t =   156.77s     Check for interrupting elements affecting "Size 10.5" Button
+    t =   156.95s     Synthesize event
+    t =   156.97s         Find the "Size 10.5" Button
+    t =   157.16s         Find the "Size 10.5" Button
+    t =   157.44s         Find the "Size 10.5" Button
+    t =   157.94s     Wait for app.baget.ios to idle
+QA: [12] tap (forced) Size 10.5
+    t =   157.96s Get number of matches for: Elements matching predicate 'label == "Running & retro"'
+    t =   158.22s Checking existence of `Button (Element at index 0)`
+    t =   158.41s Find the Button (Element at index 0)
+    t =   158.59s Find the "Running & retro" Button
+    t =   158.82s Tap "Running & retro" Button
+    t =   158.82s     Wait for app.baget.ios to idle
+    t =   158.82s     Find the "Running & retro" Button
+    t =   158.93s     Check for interrupting elements affecting "Running & retro" Button
+    t =   159.01s     Synthesize event
+    t =   159.36s     Wait for app.baget.ios to idle
+QA: [12] tap Running & retro
+    t =   159.37s Get number of matches for: Elements matching predicate 'label == "Up to $250"'
+    t =   159.55s Checking existence of `Button (Element at index 0)`
+    t =   159.70s Find the Button (Element at index 0)
+    t =   159.83s Find the "Up to $250" Button
+    t =   159.99s Tap "Up to $250" Button[0.50, 0.50]
+    t =   159.99s     Wait for app.baget.ios to idle
+    t =   159.99s     Find the "Up to $250" Button
+    t =   160.27s     Check for interrupting elements affecting "Up to $250" Button
+    t =   160.43s     Synthesize event
+    t =   160.44s         Find the "Up to $250" Button
+    t =   160.56s         Find the "Up to $250" Button
+    t =   160.71s         Find the "Up to $250" Button
+    t =   161.13s     Wait for app.baget.ios to idle
+QA: [12] tap (forced) Up to $250
+    t =   161.94s Added attachment named '13-setup-2-picked'
+    t =   161.94s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   162.44s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [13] snap 13-setup-2-picked
+    t =   162.53s Get number of matches for: Elements matching predicate 'label == "Next"'
+    t =   162.58s Get number of matches for: Elements matching predicate 'label == "Next"'
+    t =   162.64s Get number of matches for: Elements matching predicate 'label == "Next"'
+    t =   163.25s Get number of matches for: Elements matching predicate 'label == "Next"'
+    t =   163.42s Get number of matches for: Elements matching predicate 'label == "Next"'
+    t =   163.60s Get number of matches for: Elements matching predicate 'label == "Next"'
+    t =   164.23s Get number of matches for: Elements matching predicate 'label == "Next"'
+    t =   164.72s Get number of matches for: Elements matching predicate 'label == "Next"'
+    t =   164.86s Get number of matches for: Elements matching predicate 'label == "Next"'
+QA: [13] MISSING Next
+    t =   165.67s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   166.68s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   166.77s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   167.33s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   167.40s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   167.46s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   168.03s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   168.10s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   168.19s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   168.74s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   168.81s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   168.86s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   169.48s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   169.59s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   169.64s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   170.22s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   170.31s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   170.40s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   170.99s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   171.07s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   171.11s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   171.68s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   171.77s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   171.85s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   172.43s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   172.53s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   172.59s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   173.18s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   173.28s Get number of matches for: Elements matching predicate 'label == "Skip"'
+    t =   173.34s Get number of matches for: Elements matching predicate 'label == "Skip"'
+QA: [13] MISSING Skip
+    t =   178.32s Added attachment named '14-setup-3-taste-check'
+    t =   178.33s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   178.86s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [14] snap 14-setup-3-taste-check
+QA: [14] TIME taste check load 5.1s
+    t =   179.00s Get number of matches for: Elements matching predicate 'label == "Love it"'
+    t =   179.07s Checking existence of `Button (Element at index 0)`
+    t =   179.16s Find the Button (Element at index 0)
+    t =   179.25s Find the "heart.fill" Button
+    t =   179.36s Tap "heart.fill" Button
+    t =   179.36s     Wait for app.baget.ios to idle
+    t =   179.36s     Find the "heart.fill" Button
+    t =   179.44s     Check for interrupting elements affecting "heart.fill" Button
+    t =   179.53s     Synthesize event
+    t =   179.84s     Wait for app.baget.ios to idle
+QA: [14] tap Love it
+    t =   179.87s Get number of matches for: Elements matching predicate 'label == "Love it"'
+    t =   179.99s Checking existence of `Button (Element at index 0)`
+    t =   180.18s Find the Button (Element at index 0)
+    t =   180.39s Find the "heart.fill" Button
+    t =   180.80s Tap "heart.fill" Button
+    t =   180.80s     Wait for app.baget.ios to idle
+    t =   180.81s     Find the "heart.fill" Button
+    t =   181.02s     Check for interrupting elements affecting "heart.fill" Button
+    t =   181.31s     Synthesize event
+    t =   181.67s     Wait for app.baget.ios to idle
+QA: [14] tap Love it
+    t =   183.05s Added attachment named '15-setup-3-mid'
+    t =   183.05s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   183.40s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [15] snap 15-setup-3-mid
+    t =   183.49s Get number of matches for: Elements matching predicate 'label == "Not for me"'
+    t =   183.56s Checking existence of `Button (Element at index 0)`
+    t =   183.65s Find the Button (Element at index 0)
+    t =   183.74s Find the "xmark" Button
+    t =   183.87s Tap "xmark" Button
+    t =   183.87s     Wait for app.baget.ios to idle
+    t =   183.89s     Find the "xmark" Button
+    t =   184.01s     Check for interrupting elements affecting "xmark" Button
+    t =   184.09s     Synthesize event
+    t =   184.46s     Wait for app.baget.ios to idle
+QA: [15] tap Not for me
+    t =   184.70s Get number of matches for: Elements matching predicate 'label == "Love it"'
+    t =   185.18s Checking existence of `Button (Element at index 0)`
+    t =   185.33s Find the Button (Element at index 0)
+    t =   185.51s Find the "heart.fill" Button
+    t =   185.63s Tap "heart.fill" Button
+    t =   185.63s     Wait for app.baget.ios to idle
+    t =   185.64s     Find the "heart.fill" Button
+    t =   185.82s     Check for interrupting elements affecting "heart.fill" Button
+    t =   185.97s     Synthesize event
+    t =   186.29s     Wait for app.baget.ios to idle
+QA: [15] tap Love it
+    t =   186.37s Get number of matches for: Elements matching predicate 'label == "Love it"'
+    t =   187.25s Checking existence of `Button (Element at index 0)`
+    t =   187.47s Find the Button (Element at index 0)
+    t =   187.63s Find the "heart.fill" Button
+    t =   187.75s Tap "heart.fill" Button
+    t =   187.75s     Wait for app.baget.ios to idle
+    t =   187.76s     Find the "heart.fill" Button
+    t =   187.89s     Check for interrupting elements affecting "heart.fill" Button
+    t =   188.12s     Synthesize event
+    t =   188.66s     Wait for app.baget.ios to idle
+QA: [15] tap Love it
+    t =   188.86s Get number of matches for: Elements matching predicate 'label == "Not for me"'
+    t =   189.43s Checking existence of `Button (Element at index 0)`
+    t =   189.52s Find the Button (Element at index 0)
+    t =   189.67s Find the "xmark" Button
+    t =   189.82s Tap "xmark" Button
+    t =   189.82s     Wait for app.baget.ios to idle
+    t =   189.83s     Find the "xmark" Button
+    t =   189.92s     Check for interrupting elements affecting "xmark" Button
+    t =   190.01s     Synthesize event
+    t =   190.40s     Wait for app.baget.ios to idle
+QA: [15] tap Not for me
+    t =   192.91s Added attachment named '16-setup-3-after'
+    t =   192.91s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   193.28s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [16] snap 16-setup-3-after
+    t =   193.39s Get number of matches for: Elements matching predicate 'label == "Next"'
+    t =   193.52s Get number of matches for: Elements matching predicate 'label == "Next"'
+    t =   193.64s Get number of matches for: Elements matching predicate 'label == "Next"'
+    t =   194.23s Get number of matches for: Elements matching predicate 'label == "Next"'
+    t =   194.58s Get number of matches for: Elements matching predicate 'label == "Next"'
+    t =   194.81s Get number of matches for: Elements matching predicate 'label == "Next"'
+    t =   195.41s Get number of matches for: Elements matching predicate 'label == "Next"'
+    t =   195.51s Get number of matches for: Elements matching predicate 'label == "Next"'
+    t =   196.30s Get number of matches for: Elements matching predicate 'label == "Next"'
+QA: [16] MISSING Next
+    t =   196.88s Get number of matches for: Elements matching predicate 'label == "Done"'
+    t =   196.98s Checking existence of `Button (Element at index 0)`
+    t =   197.08s Find the Button (Element at index 0)
+    t =   197.19s Find the "Done" Button
+    t =   197.32s Tap "Done" Button
+    t =   197.32s     Wait for app.baget.ios to idle
+    t =   197.32s     Find the "Done" Button
+    t =   197.41s     Check for interrupting elements affecting "Done" Button
+    t =   197.48s     Synthesize event
+    t =   197.80s     Wait for app.baget.ios to idle
+QA: [16] tap Done
+    t =   200.25s Added attachment named '17-setup-4-photos'
+    t =   200.25s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   200.79s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [17] snap 17-setup-4-photos
+    t =   200.94s Get number of matches for: Elements matching predicate 'label == "Skip and build my scouts"'
+    t =   201.00s Checking existence of `Button (Element at index 0)`
+    t =   201.09s Find the Button (Element at index 0)
+    t =   201.17s Find the "Skip and build my scouts" Button
+    t =   201.28s Tap "Skip and build my scouts" Button
+    t =   201.28s     Wait for app.baget.ios to idle
+    t =   201.29s     Find the "Skip and build my scouts" Button
+    t =   201.34s     Check for interrupting elements affecting "Skip and build my scouts" Button
+    t =   201.42s     Synthesize event
+    t =   201.75s     Wait for app.baget.ios to idle
+QA: [17] tap Skip and build my scouts
+    t =   203.15s Added attachment named '18-setup-5-building'
+    t =   203.16s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   203.61s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [18] snap 18-setup-5-building
+    t =   203.80s Waiting 60.0s for "Your scouts are hunting" StaticText to exist
+    t =   204.83s     Checking `Expect predicate `existsNoRetry == 1` for object "Your scouts are hunting" StaticText`
+    t =   204.84s         Checking existence of `"Your scouts are hunting" StaticText`
+    t =   204.92s         Capturing element debug description
+    t =   205.85s     Checking `Expect predicate `existsNoRetry == 1` for object "Your scouts are hunting" StaticText`
+    t =   205.85s         Checking existence of `"Your scouts are hunting" StaticText`
+    t =   205.94s         Capturing element debug description
+    t =   206.80s     Checking `Expect predicate `existsNoRetry == 1` for object "Your scouts are hunting" StaticText`
+    t =   206.80s         Checking existence of `"Your scouts are hunting" StaticText`
+    t =   206.89s         Capturing element debug description
+    t =   207.82s     Checking `Expect predicate `existsNoRetry == 1` for object "Your scouts are hunting" StaticText`
+    t =   207.82s         Checking existence of `"Your scouts are hunting" StaticText`
+    t =   207.89s         Capturing element debug description
+    t =   208.81s     Checking `Expect predicate `existsNoRetry == 1` for object "Your scouts are hunting" StaticText`
+    t =   208.82s         Checking existence of `"Your scouts are hunting" StaticText`
+    t =   208.88s         Capturing element debug description
+    t =   209.89s     Checking `Expect predicate `existsNoRetry == 1` for object "Your scouts are hunting" StaticText`
+    t =   209.89s         Checking existence of `"Your scouts are hunting" StaticText`
+    t =   209.96s         Capturing element debug description
+    t =   210.87s     Checking `Expect predicate `existsNoRetry == 1` for object "Your scouts are hunting" StaticText`
+    t =   210.87s         Checking existence of `"Your scouts are hunting" StaticText`
+    t =   210.94s         Capturing element debug description
+    t =   211.82s     Checking `Expect predicate `existsNoRetry == 1` for object "Your scouts are hunting" StaticText`
+    t =   211.82s         Checking existence of `"Your scouts are hunting" StaticText`
+    t =   221.17s         Capturing element debug description
+    t =   221.82s     Checking `Expect predicate `existsNoRetry == 1` for object "Your scouts are hunting" StaticText`
+    t =   221.82s         Checking existence of `"Your scouts are hunting" StaticText`
+QA: [18] TIME build squad 26.5s
+    t =   228.99s Added attachment named '19-setup-5-first-hunt'
+    t =   229.01s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   232.19s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [19] snap 19-setup-5-first-hunt
+    t =   245.95s Checking existence of `"First finds are in" StaticText`
+    t =   246.64s Added attachment named '20-setup-5-wait-45s'
+    t =   246.65s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   247.80s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [20] snap 20-setup-5-wait-45s
+    t =   290.95s Checking existence of `"First finds are in" StaticText`
+QA: [20] TIME first finds appeared 90.3s
+    t =   292.72s Added attachment named '21-setup-5-end'
+    t =   292.73s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   294.06s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [21] snap 21-setup-5-end
+    t =   294.28s Get number of matches for: Elements matching predicate 'label == "Not now, see my finds"'
+    t =   294.45s Checking existence of `Button (Element at index 0)`
+    t =   294.67s Find the Button (Element at index 0)
+    t =   294.89s Find the "Not now, see my finds" Button
+    t =   295.12s Tap "Not now, see my finds" Button
+    t =   295.12s     Wait for app.baget.ios to idle
+    t =   295.13s     Find the "Not now, see my finds" Button
+    t =   295.33s     Check for interrupting elements affecting "Not now, see my finds" Button
+    t =   295.70s     Synthesize event
+    t =   296.08s     Wait for app.baget.ios to idle
+QA: [21] tap Not now, see my finds
+    t =   296.55s Waiting 6.0s for "How Baget works" StaticText to exist
+    t =   297.58s     Checking `Expect predicate `existsNoRetry == 1` for object "How Baget works" StaticText`
+    t =   297.59s         Checking existence of `"How Baget works" StaticText`
+    t =   299.53s Added attachment named '22-howto-1'
+    t =   299.53s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   300.95s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [22] snap 22-howto-1
+    t =   301.27s Get number of matches for: Elements matching predicate 'label == "Next"'
+    t =   301.49s Checking existence of `Button (Element at index 0)`
+    t =   301.65s Find the Button (Element at index 0)
+    t =   301.86s Find the "Next" Button
+    t =   302.11s Tap "Next" Button
+    t =   302.11s     Wait for app.baget.ios to idle
+    t =   302.12s     Find the "Next" Button
+    t =   302.28s     Check for interrupting elements affecting "Next" Button
+    t =   302.42s     Synthesize event
+    t =   302.82s     Wait for app.baget.ios to idle
+QA: [22] tap Next
+    t =   304.55s Added attachment named '23-howto-2'
+    t =   304.55s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   305.30s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [23] snap 23-howto-2
+    t =   305.58s Get number of matches for: Elements matching predicate 'label == "Next"'
+    t =   305.69s Checking existence of `Button (Element at index 0)`
+    t =   305.86s Find the Button (Element at index 0)
+    t =   306.20s Find the "Next" Button
+    t =   306.38s Tap "Next" Button
+    t =   306.38s     Wait for app.baget.ios to idle
+    t =   306.38s     Find the "Next" Button
+    t =   306.50s     Check for interrupting elements affecting "Next" Button
+    t =   306.62s     Synthesize event
+    t =   306.95s     Wait for app.baget.ios to idle
+QA: [23] tap Next
+    t =   308.47s Added attachment named '24-howto-3'
+    t =   308.47s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   309.31s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [24] snap 24-howto-3
+    t =   309.46s Get number of matches for: Elements matching predicate 'label == "Next"'
+    t =   309.63s Checking existence of `Button (Element at index 0)`
+    t =   309.87s Find the Button (Element at index 0)
+    t =   310.12s Find the "Next" Button
+    t =   310.42s Tap "Next" Button
+    t =   310.42s     Wait for app.baget.ios to idle
+    t =   310.42s     Find the "Next" Button
+    t =   310.65s     Check for interrupting elements affecting "Next" Button
+    t =   310.79s     Synthesize event
+    t =   311.18s     Wait for app.baget.ios to idle
+QA: [24] tap Next
+    t =   312.79s Added attachment named '25-howto-4'
+    t =   312.79s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   313.37s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [25] snap 25-howto-4
+    t =   313.55s Get number of matches for: Elements matching predicate 'label == "Next"'
+    t =   313.90s Checking existence of `Button (Element at index 0)`
+    t =   314.08s Find the Button (Element at index 0)
+    t =   314.60s Find the "Next" Button
+    t =   314.77s Tap "Next" Button
+    t =   314.77s     Wait for app.baget.ios to idle
+    t =   314.78s     Find the "Next" Button
+    t =   315.38s     Check for interrupting elements affecting "Next" Button
+    t =   315.52s     Synthesize event
+    t =   315.88s     Wait for app.baget.ios to idle
+QA: [25] tap Next
+    t =   317.94s Added attachment named '26-howto-5'
+    t =   317.95s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   319.87s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [26] snap 26-howto-5
+    t =   320.21s Get number of matches for: Elements matching predicate 'label == "Start exploring"'
+    t =   323.67s Checking existence of `Button (Element at index 0)`
+    t =   324.08s Find the Button (Element at index 0)
+    t =   324.61s Find the "Start exploring" Button
+    t =   325.94s Tap "Start exploring" Button
+    t =   325.94s     Wait for app.baget.ios to idle
+    t =   325.94s     Find the "Start exploring" Button
+    t =   326.55s     Check for interrupting elements affecting "Start exploring" Button
+    t =   326.79s     Synthesize event
+    t =   327.16s     Wait for app.baget.ios to idle
+QA: [26] tap Start exploring
+    t =   331.93s Added attachment named '27-today'
+    t =   331.94s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   335.93s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [27] snap 27-today
+    t =   336.30s Swipe up Target Application 'app.baget.ios'
+    t =   336.30s     Wait for app.baget.ios to idle
+    t =   336.30s     Find the Target Application 'app.baget.ios'
+    t =   336.78s     Check for interrupting elements affecting "Baget" Application
+    t =   337.39s     Synthesize event
+    t =   338.22s     Wait for app.baget.ios to idle
+    t =   342.75s Added attachment named '28-today-scroll-1'
+    t =   342.75s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   343.68s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [28] snap 28-today-scroll-1
+    t =   344.63s Swipe up Target Application 'app.baget.ios'
+    t =   344.63s     Wait for app.baget.ios to idle
+    t =   344.64s     Find the Target Application 'app.baget.ios'
+    t =   344.84s     Check for interrupting elements affecting "Baget" Application
+    t =   345.03s     Synthesize event
+    t =   345.48s     Wait for app.baget.ios to idle
+    t =   349.99s Added attachment named '29-today-scroll-2'
+    t =   350.00s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   351.18s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [29] snap 29-today-scroll-2
+    t =   352.01s Swipe up Target Application 'app.baget.ios'
+    t =   352.01s     Wait for app.baget.ios to idle
+    t =   352.01s     Find the Target Application 'app.baget.ios'
+    t =   352.75s     Check for interrupting elements affecting "Baget" Application
+    t =   357.72s     Synthesize event
+    t =   358.21s     Wait for app.baget.ios to idle
+    t =   362.67s Added attachment named '30-today-scroll-3'
+    t =   362.67s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   363.39s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [30] snap 30-today-scroll-3
+    t =   363.66s Checking existence of `Button (First Match)`
+    t =   364.40s Find the Button (First Match)
+    t =   365.15s Swipe up Target Application 'app.baget.ios'
+    t =   365.15s     Wait for app.baget.ios to idle
+    t =   365.29s     Find the Target Application 'app.baget.ios'
+    t =   365.51s     Check for interrupting elements affecting "Baget" Application
+    t =   365.69s     Synthesize event
+    t =   366.13s     Wait for app.baget.ios to idle
+    t =   368.46s Checking existence of `Button (First Match)`
+    t =   368.88s Find the Button (First Match)
+    t =   370.75s Swipe up Target Application 'app.baget.ios'
+    t =   370.75s     Wait for app.baget.ios to idle
+    t =   370.75s     Find the Target Application 'app.baget.ios'
+    t =   370.87s     Check for interrupting elements affecting "Baget" Application
+    t =   371.21s     Synthesize event
+    t =   371.67s     Wait for app.baget.ios to idle
+    t =   373.91s Checking existence of `Button (First Match)`
+    t =   374.30s Find the Button (First Match)
+    t =   374.52s Swipe up Target Application 'app.baget.ios'
+    t =   374.53s     Wait for app.baget.ios to idle
+    t =   374.53s     Find the Target Application 'app.baget.ios'
+    t =   374.65s     Check for interrupting elements affecting "Baget" Application
+    t =   374.81s     Synthesize event
+    t =   375.22s     Wait for app.baget.ios to idle
+    t =   375.93s Checking existence of `Button (First Match)`
+    t =   376.06s Find the Button (First Match)
+QA: [30] TIME scroll to bottom of Today (3 swipes) 12.5s
+    t =   376.21s Checking existence of `Button (First Match)`
+    t =   376.33s Find the Button (First Match)
+    t =   376.51s Find the "Check for new picks" Button
+QA: [30] bottom button: Check for new picks
+    t =   377.98s Added attachment named '31-today-bottom'
+    t =   377.99s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   378.62s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [31] snap 31-today-bottom
+    t =   378.85s Tap "Check for new picks" Button
+    t =   378.85s     Wait for app.baget.ios to idle
+    t =   378.86s     Find the "Check for new picks" Button
+    t =   379.11s     Check for interrupting elements affecting "Check for new picks" Button
+    t =   379.26s     Synthesize event
+    t =   379.60s     Wait for app.baget.ios to idle
+QA: [31] tap Check for new picks
+    t =   380.53s Added attachment named '32-today-bottom-loading'
+    t =   380.53s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   381.48s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [32] snap 32-today-bottom-loading
+    t =   381.75s Waiting 40.0s for Button (First Match) to exist
+    t =   382.79s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =   382.80s         Checking existence of `Button (First Match)`
+    t =   383.22s         Capturing element debug description
+    t =   383.84s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =   383.84s         Checking existence of `Button (First Match)`
+    t =   384.21s         Capturing element debug description
+    t =   384.75s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =   384.75s         Checking existence of `Button (First Match)`
+    t =   390.41s         Capturing element debug description
+    t =   390.78s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =   390.78s         Checking existence of `Button (First Match)`
+    t =   399.27s         Capturing element debug description
+    t =   399.78s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =   399.78s         Checking existence of `Button (First Match)`
+    t =   400.39s         Capturing element debug description
+    t =   400.79s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =   400.79s         Checking existence of `Button (First Match)`
+    t =   401.57s         Capturing element debug description
+    t =   401.75s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =   401.75s         Checking existence of `Button (First Match)`
+    t =   402.34s         Capturing element debug description
+    t =   402.76s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =   402.76s         Checking existence of `Button (First Match)`
+    t =   403.60s         Capturing element debug description
+    t =   403.81s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =   403.81s         Checking existence of `Button (First Match)`
+    t =   404.67s         Capturing element debug description
+    t =   404.77s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =   404.77s         Checking existence of `Button (First Match)`
+QA: [32] TIME bottom button finished 26.4s
+    t =   405.20s Checking existence of `"Back to top" Button`
+QA: [32] stayed at the bottom after the button
+    t =   406.28s Added attachment named '33-today-bottom-after'
+    t =   406.29s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   407.44s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [33] snap 33-today-bottom-after
+    t =   407.75s Swipe up Target Application 'app.baget.ios'
+    t =   407.75s     Wait for app.baget.ios to idle
+    t =   407.75s     Find the Target Application 'app.baget.ios'
+    t =   407.85s     Check for interrupting elements affecting "Baget" Application
+    t =   407.99s     Synthesize event
+    t =   408.45s     Wait for app.baget.ios to idle
+    t =   412.71s Added attachment named '34-today-bottom-more'
+    t =   412.71s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   413.59s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [34] snap 34-today-bottom-more
+    t =   413.78s Swipe up Target Application 'app.baget.ios'
+    t =   413.78s     Wait for app.baget.ios to idle
+    t =   413.79s     Find the Target Application 'app.baget.ios'
+    t =   413.89s     Check for interrupting elements affecting "Baget" Application
+    t =   414.18s     Synthesize event
+    t =   414.66s     Wait for app.baget.ios to idle
+    t =   416.91s Swipe up Target Application 'app.baget.ios'
+    t =   416.91s     Wait for app.baget.ios to idle
+    t =   417.18s     Find the Target Application 'app.baget.ios'
+    t =   417.44s     Check for interrupting elements affecting "Baget" Application
+    t =   417.64s     Synthesize event
+    t =   418.07s     Wait for app.baget.ios to idle
+    t =   421.27s Added attachment named '35-today-pull-up'
+    t =   421.27s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   422.30s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [35] snap 35-today-pull-up
+    t =   422.88s Waiting 40.0s for Button (First Match) to exist
+    t =   423.91s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =   423.93s         Checking existence of `Button (First Match)`
+QA: [35] TIME pull-up finished 10.5s
+    t =   424.27s Checking existence of `"Back to top" Button`
+QA: [35] still at the bottom after pull-up
+    t =   424.46s Get number of matches for: Elements matching predicate 'label == "Today"'
+    t =   424.66s Checking existence of `Button (Element at index 0)`
+    t =   424.92s Find the Button (Element at index 0)
+    t =   425.11s Find the "sun.max.fill" Button
+    t =   425.39s Tap "sun.max.fill" Button
+    t =   425.39s     Wait for app.baget.ios to idle
+    t =   425.39s     Find the "sun.max.fill" Button
+    t =   425.58s     Check for interrupting elements affecting "sun.max.fill" Button
+    t =   425.74s     Synthesize event
+    t =   426.07s     Wait for app.baget.ios to idle
+QA: [35] tap Today
+    t =   429.79s Added attachment named '36-today-back-top'
+    t =   429.80s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   430.36s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [36] snap 36-today-back-top
+    t =   430.58s Get number of matches for: Elements matching predicate 'label == "Send a new scout"'
+    t =   430.68s Get number of matches for: Elements matching predicate 'label == "Send a new scout"'
+    t =   430.81s Get number of matches for: Elements matching predicate 'label == "Send a new scout"'
+    t =   431.41s Get number of matches for: Elements matching predicate 'label == "Send a new scout"'
+    t =   431.51s Get number of matches for: Elements matching predicate 'label == "Send a new scout"'
+    t =   431.61s Get number of matches for: Elements matching predicate 'label == "Send a new scout"'
+    t =   432.22s Get number of matches for: Elements matching predicate 'label == "Send a new scout"'
+    t =   432.31s Get number of matches for: Elements matching predicate 'label == "Send a new scout"'
+    t =   432.39s Get number of matches for: Elements matching predicate 'label == "Send a new scout"'
+    t =   433.00s Get number of matches for: Elements matching predicate 'label == "Send a new scout"'
+    t =   433.07s Get number of matches for: Elements matching predicate 'label == "Send a new scout"'
+    t =   433.15s Get number of matches for: Elements matching predicate 'label == "Send a new scout"'
+QA: [36] MISSING Send a new scout
+QA: [36] MISSING Send a new scout
+    t =   433.76s Get number of matches for: Elements matching predicate 'label == "See all"'
+    t =   433.87s Get number of matches for: Elements matching predicate 'label == "See all"'
+    t =   433.95s Get number of matches for: Elements matching predicate 'label == "See all"'
+    t =   434.54s Get number of matches for: Elements matching predicate 'label == "See all"'
+    t =   434.66s Get number of matches for: Elements matching predicate 'label == "See all"'
+    t =   434.79s Get number of matches for: Elements matching predicate 'label == "See all"'
+    t =   435.43s Get number of matches for: Elements matching predicate 'label == "See all"'
+    t =   435.53s Get number of matches for: Elements matching predicate 'label == "See all"'
+    t =   435.61s Get number of matches for: Elements matching predicate 'label == "See all"'
+QA: [36] MISSING See all
+    t =   436.22s Get number of matches for: Elements matching predicate 'label == "Finds"'
+    t =   436.33s Checking existence of `Button (Element at index 0)`
+    t =   436.45s Find the Button (Element at index 0)
+    t =   436.57s Find the "sparkles" Button
+    t =   436.69s Tap "sparkles" Button
+    t =   436.69s     Wait for app.baget.ios to idle
+    t =   436.70s     Find the "sparkles" Button
+    t =   436.82s     Check for interrupting elements affecting "sparkles" Button
+    t =   436.92s     Synthesize event
+    t =   437.25s     Wait for app.baget.ios to idle
+QA: [36] tap Finds
+    t =   443.78s Added attachment named '37-finds'
+    t =   443.78s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   445.04s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [37] snap 37-finds
+    t =   445.26s Waiting 2.0s for Button (First Match) to exist
+    t =   446.30s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =   446.30s         Checking existence of `Button (First Match)`
+    t =   446.77s Find the Button (First Match)
+    t =   447.08s Tap "New · 13" Button
+    t =   447.08s     Wait for app.baget.ios to idle
+    t =   447.09s     Find the "New · 13" Button
+    t =   447.40s     Check for interrupting elements affecting "New · 13" Button
+    t =   447.59s     Synthesize event
+    t =   447.94s     Wait for app.baget.ios to idle
+    t =   449.80s Added attachment named '38-finds-new'
+    t =   449.80s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   450.75s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [38] snap 38-finds-new
+    t =   450.96s Waiting 2.0s for Button (First Match) to exist
+    t =   452.01s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =   452.01s         Checking existence of `Button (First Match)`
+    t =   452.56s Find the Button (First Match)
+    t =   453.22s Tap "♥ Saved" Button
+    t =   453.22s     Wait for app.baget.ios to idle
+    t =   453.23s     Find the "♥ Saved" Button
+    t =   454.08s     Check for interrupting elements affecting "♥ Saved" Button
+    t =   454.33s     Synthesize event
+    t =   454.72s     Wait for app.baget.ios to idle
+    t =   456.72s Added attachment named '39-finds-♥ saved'
+    t =   456.74s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   457.45s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [39] snap 39-finds-♥ saved
+    t =   457.58s Waiting 2.0s for Button (First Match) to exist
+    t =   458.63s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =   458.64s         Checking existence of `Button (First Match)`
+    t =   459.58s Find the Button (First Match)
+    t =   460.16s Tap "Coming soon" Button
+    t =   460.16s     Wait for app.baget.ios to idle
+    t =   460.17s     Find the "Coming soon" Button
+    t =   460.50s     Check for interrupting elements affecting "Coming soon" Button
+    t =   460.58s     Synthesize event
+    t =   460.94s     Wait for app.baget.ios to idle
+    t =   462.76s Added attachment named '40-finds-coming soon'
+    t =   462.77s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   463.10s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [40] snap 40-finds-coming soon
+    t =   463.17s Waiting 2.0s for Button (First Match) to exist
+    t =   464.22s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =   464.22s         Checking existence of `Button (First Match)`
+    t =   464.40s Find the Button (First Match)
+    t =   464.63s Tap "All" Button
+    t =   464.63s     Wait for app.baget.ios to idle
+    t =   464.63s     Find the "All" Button
+    t =   464.81s     Check for interrupting elements affecting "All" Button
+    t =   464.87s     Synthesize event
+    t =   465.24s     Wait for app.baget.ios to idle
+    t =   467.17s Added attachment named '41-finds-all'
+    t =   467.18s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   468.42s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [41] snap 41-finds-all
+    t =   468.57s Get number of matches for: Elements matching predicate 'label == "Grid"'
+    t =   468.71s Checking existence of `Button (Element at index 0)`
+    t =   468.91s Find the Button (Element at index 0)
+    t =   469.44s Find the "square.grid.2x2" Button
+    t =   470.06s Tap "square.grid.2x2" Button
+    t =   470.06s     Wait for app.baget.ios to idle
+    t =   470.06s     Find the "square.grid.2x2" Button
+    t =   470.23s     Check for interrupting elements affecting "square.grid.2x2" Button
+    t =   470.42s     Synthesize event
+    t =   470.80s     Wait for app.baget.ios to idle
+QA: [41] tap Grid
+    t =   473.14s Added attachment named '42-finds-grid'
+    t =   473.15s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   474.33s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [42] snap 42-finds-grid
+    t =   474.55s Get number of matches for: Elements matching predicate 'label == "List"'
+    t =   475.02s Checking existence of `Button (Element at index 0)`
+    t =   475.14s Find the Button (Element at index 0)
+    t =   475.34s Find the "list.bullet" Button
+    t =   475.60s Tap "list.bullet" Button
+    t =   475.60s     Wait for app.baget.ios to idle
+    t =   475.60s     Find the "list.bullet" Button
+    t =   475.81s     Check for interrupting elements affecting "list.bullet" Button
+    t =   475.98s     Synthesize event
+    t =   476.33s     Wait for app.baget.ios to idle
+QA: [42] tap List
+    t =   476.36s Get number of matches for: Elements matching predicate 'label == "New"'
+    t =   476.66s Get number of matches for: Elements matching predicate 'label == "New"'
+    t =   477.01s Get number of matches for: Elements matching predicate 'label == "New"'
+    t =   477.69s Get number of matches for: Elements matching predicate 'label == "New"'
+    t =   477.84s Get number of matches for: Elements matching predicate 'label == "New"'
+    t =   478.04s Get number of matches for: Elements matching predicate 'label == "New"'
+QA: [42] MISSING New
+    t =   478.69s Waiting 4.0s for StaticText (First Match) to exist
+    t =   479.71s     Checking `Expect predicate `existsNoRetry == 1` for object StaticText (First Match)`
+    t =   479.71s         Checking existence of `StaticText (First Match)`
+    t =   480.53s Find the StaticText (First Match)
+    t =   481.12s Tap "Overkill · ≈ $112 · 81% match" StaticText
+    t =   481.12s     Wait for app.baget.ios to idle
+    t =   481.12s     Find the "Overkill · ≈ $112 · 81% match" StaticText
+    t =   481.40s     Check for interrupting elements affecting "Overkill · ≈ $112 · 81% match" StaticText
+    t =   481.52s     Synthesize event
+    t =   481.85s     Wait for app.baget.ios to idle
+    t =   485.52s Added attachment named '43-find-detail'
+    t =   485.53s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   487.38s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [43] snap 43-find-detail
+    t =   488.56s Swipe up Target Application 'app.baget.ios'
+    t =   488.56s     Wait for app.baget.ios to idle
+    t =   488.57s     Find the Target Application 'app.baget.ios'
+    t =   489.31s     Check for interrupting elements affecting "Baget" Application
+    t =   489.60s     Synthesize event
+    t =   490.13s     Wait for app.baget.ios to idle
+    t =   492.51s Added attachment named '44-find-detail-scroll'
+    t =   492.51s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   493.85s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [44] snap 44-find-detail-scroll
+    t =   494.21s Checking existence of `"Done" Button`
+    t =   494.88s Checking existence of `"Close" Button`
+    t =   495.21s Find the "Close" Button
+    t =   495.61s Checking existence of `"Cancel" Button`
+    t =   496.11s Swipe down Target Application 'app.baget.ios'
+    t =   496.11s     Wait for app.baget.ios to idle
+    t =   496.19s     Find the Target Application 'app.baget.ios'
+    t =   496.78s     Check for interrupting elements affecting "Baget" Application
+    t =   497.73s     Synthesize event
+    t =   498.24s     Wait for app.baget.ios to idle
+QA: [44] close via swipe
+    t =   500.09s Added attachment named '45-finds-after-detail'
+    t =   500.10s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   501.98s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [45] snap 45-finds-after-detail
+    t =   502.22s Get number of matches for: Elements matching predicate 'label == "Pass"'
+    t =   502.90s Checking existence of `Button (Element at index 0)`
+    t =   503.99s Find the Button (Element at index 0)
+    t =   504.45s Checking existence of `Button (Element at index 1)`
+    t =   504.87s Find the Button (Element at index 1)
+    t =   505.37s Checking existence of `Button (Element at index 2)`
+    t =   505.88s Find the Button (Element at index 2)
+    t =   506.26s Checking existence of `Button (Element at index 3)`
+    t =   506.65s Find the Button (Element at index 3)
+    t =   507.02s Checking existence of `Button (Element at index 4)`
+    t =   507.27s Find the Button (Element at index 4)
+    t =   507.42s Checking existence of `Button (Element at index 5)`
+    t =   507.59s Find the Button (Element at index 5)
+    t =   507.78s Checking existence of `Button (Element at index 6)`
+    t =   507.96s Find the Button (Element at index 6)
+    t =   508.18s Checking existence of `Button (Element at index 7)`
+    t =   508.36s Find the Button (Element at index 7)
+    t =   508.53s Checking existence of `Button (Element at index 8)`
+    t =   508.67s Find the Button (Element at index 8)
+    t =   508.83s Checking existence of `Button (Element at index 9)`
+    t =   508.99s Find the Button (Element at index 9)
+    t =   509.18s Checking existence of `Button (Element at index 10)`
+    t =   509.38s Find the Button (Element at index 10)
+    t =   509.55s Checking existence of `Button (Element at index 11)`
+    t =   509.75s Find the Button (Element at index 11)
+    t =   509.96s Find the "Pass" Button
+    t =   510.23s Find the "xmark" Button
+    t =   510.54s Find the "xmark" Button
+    t =   510.80s Find the "xmark" Button
+    t =   511.15s Find the "xmark" Button
+    t =   511.49s Find the "xmark" Button
+    t =   511.79s Find the "xmark" Button
+    t =   512.01s Find the "xmark" Button
+    t =   512.22s Find the "xmark" Button
+    t =   512.42s Find the "xmark" Button
+    t =   512.65s Find the "xmark" Button
+    t =   512.91s Find the "xmark" Button
+    t =   513.21s Tap "Pass" Button
+    t =   513.21s     Wait for app.baget.ios to idle
+    t =   513.22s     Find the "Pass" Button
+    t =   513.44s     Check for interrupting elements affecting "Pass" Button
+    t =   513.70s     Synthesize event
+    t =   514.14s     Wait for app.baget.ios to idle
+QA: [45] tap Pass
+    t =   518.25s Added attachment named '46-pass-reasons'
+    t =   518.25s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   519.67s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [46] snap 46-pass-reasons
+    t =   519.99s Get number of matches for: Elements matching predicate 'label == "Not my size"'
+    t =   520.30s Checking existence of `Button (Element at index 0)`
+    t =   520.48s Find the Button (Element at index 0)
+    t =   520.72s Find the "Not my size" Button
+    t =   520.97s Tap "Not my size" Button
+    t =   520.97s     Wait for app.baget.ios to idle
+    t =   520.98s     Find the "Not my size" Button
+    t =   521.22s     Check for interrupting elements affecting "Not my size" Button
+    t =   521.46s     Synthesize event
+    t =   522.03s     Wait for app.baget.ios to idle
+QA: [46] tap Not my size
+    t =   522.32s Waiting 4.0s for TextField (First Match) to exist
+    t =   523.34s     Checking `Expect predicate `existsNoRetry == 1` for object TextField (First Match)`
+    t =   523.34s         Checking existence of `TextField (First Match)`
+    t =   524.26s         Capturing element debug description
+    t =   524.35s     Checking `Expect predicate `existsNoRetry == 1` for object TextField (First Match)`
+    t =   524.36s         Checking existence of `TextField (First Match)`
+    t =   526.58s         Capturing element debug description
+    t =   526.59s     Checking existence of `TextField (First Match)`
+    t =   527.94s Added attachment named '47-size-ask'
+    t =   527.94s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   529.25s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [47] snap 47-size-ask
+    t =   529.53s Tap TextField (First Match)
+    t =   529.54s     Wait for app.baget.ios to idle
+    t =   529.54s     Find the TextField (First Match)
+    t =   529.89s     Check for interrupting elements affecting "e.g. M, 32x30, 10.5" TextField
+    t =   530.11s     Synthesize event
+    t =   530.46s     Wait for app.baget.ios to idle
+    t =   531.33s Type 'M' into "e.g. M, 32x30, 10.5" TextField
+    t =   531.33s     Wait for app.baget.ios to idle
+    t =   531.33s     Find the "e.g. M, 32x30, 10.5" TextField
+    t =   531.57s     Check for interrupting elements affecting "e.g. M, 32x30, 10.5" TextField
+    t =   531.79s     Synthesize event
+    t =   532.06s     Wait for app.baget.ios to idle
+    t =   532.41s Get number of matches for: Elements matching predicate 'label == "Save"'
+    t =   532.65s Checking existence of `Button (Element at index 0)`
+    t =   532.80s Find the Button (Element at index 0)
+    t =   532.98s Find the "Save" Button
+    t =   533.14s Tap "Save" Button
+    t =   533.14s     Wait for app.baget.ios to idle
+    t =   533.15s     Find the "Save" Button
+    t =   533.31s     Check for interrupting elements affecting "Save" Button
+    t =   533.49s     Synthesize event
+    t =   533.85s     Wait for app.baget.ios to idle
+QA: [47] tap Save
+    t =   536.08s Added attachment named '48-size-saved'
+    t =   536.08s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   537.02s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [48] snap 48-size-saved
+    t =   537.19s Get number of matches for: Elements matching predicate 'label == "Scouts"'
+    t =   537.32s Checking existence of `Button (Element at index 0)`
+    t =   537.53s Find the Button (Element at index 0)
+    t =   538.10s Find the "binoculars.fill" Button
+    t =   538.70s Tap "binoculars.fill" Button
+    t =   538.70s     Wait for app.baget.ios to idle
+    t =   538.70s     Find the "binoculars.fill" Button
+    t =   538.90s     Check for interrupting elements affecting "binoculars.fill" Button
+    t =   539.05s     Synthesize event
+    t =   539.40s     Wait for app.baget.ios to idle
+QA: [48] tap Scouts
+    t =   545.32s Added attachment named '49-squad'
+    t =   545.33s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   546.89s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [49] snap 49-squad
+    t =   547.11s Swipe up Target Application 'app.baget.ios'
+    t =   547.12s     Wait for app.baget.ios to idle
+    t =   547.12s     Find the Target Application 'app.baget.ios'
+    t =   547.26s     Check for interrupting elements affecting "Baget" Application
+    t =   547.41s     Synthesize event
+    t =   547.96s     Wait for app.baget.ios to idle
+    t =   551.92s Added attachment named '50-squad-scroll'
+    t =   551.93s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   552.72s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [50] snap 50-squad-scroll
+    t =   552.94s Swipe down Target Application 'app.baget.ios'
+    t =   552.94s     Wait for app.baget.ios to idle
+    t =   552.95s     Find the Target Application 'app.baget.ios'
+    t =   553.09s     Check for interrupting elements affecting "Baget" Application
+    t =   553.23s     Synthesize event
+    t =   553.69s     Wait for app.baget.ios to idle
+    t =   555.81s Get number of matches for: Elements matching predicate 'label == "Friends"'
+    t =   556.14s Checking existence of `Button (Element at index 0)`
+    t =   556.40s Find the Button (Element at index 0)
+    t =   556.63s Find the "heart.circle.fill" Button
+    t =   556.87s Tap "heart.circle.fill" Button
+    t =   556.87s     Wait for app.baget.ios to idle
+    t =   556.89s     Find the "heart.circle.fill" Button
+    t =   557.13s     Check for interrupting elements affecting "heart.circle.fill" Button
+    t =   557.33s     Synthesize event
+    t =   557.67s     Wait for app.baget.ios to idle
+QA: [50] tap Friends
+    t =   563.72s Added attachment named '51-friends'
+    t =   563.72s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   564.26s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [51] snap 51-friends
+    t =   564.40s Get number of matches for: Elements matching predicate 'label CONTAINS[c] "Notifications"'
+    t =   564.50s Find the Button (Element at index 0)
+    t =   564.59s Tap Button (Element at index 0)
+    t =   564.59s     Wait for app.baget.ios to idle
+    t =   564.60s     Find the Button (Element at index 0)
+    t =   564.69s     Check for interrupting elements affecting "Notifications, 6 unread" Button
+    t =   564.79s     Synthesize event
+    t =   565.13s     Wait for app.baget.ios to idle
+QA: [51] tap ~Notifications
+    t =   569.82s Added attachment named '52-inbox'
+    t =   569.83s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   570.85s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [52] snap 52-inbox
+    t =   571.04s Checking existence of `"Done" Button`
+    t =   571.23s Find the "Done" Button
+    t =   571.51s Tap "Done" Button
+    t =   571.51s     Wait for app.baget.ios to idle
+    t =   571.51s     Find the "Done" Button
+    t =   571.71s     Check for interrupting elements affecting "Done" Button
+    t =   571.88s     Synthesize event
+    t =   572.22s     Wait for app.baget.ios to idle
+QA: [52] close via Done
+    t =   573.05s Get number of matches for: Elements matching predicate 'label == "You: icon, settings and account"'
+    t =   573.23s Checking existence of `Button (Element at index 0)`
+    t =   573.33s Find the Button (Element at index 0)
+    t =   573.46s Find the "You: icon, settings and account" Button
+    t =   573.61s Tap "You: icon, settings and account" Button
+    t =   573.61s     Wait for app.baget.ios to idle
+    t =   573.61s     Find the "You: icon, settings and account" Button
+    t =   573.70s     Check for interrupting elements affecting "You: icon, settings and account" Button
+    t =   573.79s     Synthesize event
+    t =   574.14s     Wait for app.baget.ios to idle
+QA: [52] tap You: icon, settings and account
+    t =   578.62s Added attachment named '53-profile'
+    t =   578.63s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   579.86s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [53] snap 53-profile
+    t =   580.13s Waiting 3.0s for "Baget" Button to exist
+    t =   581.18s     Checking `Expect predicate `existsNoRetry == 1` for object "Baget" Button`
+    t =   581.18s         Checking existence of `"Baget" Button`
+    t =   581.68s Tap "Baget" Button
+    t =   581.68s     Wait for app.baget.ios to idle
+    t =   581.69s     Find the "Baget" Button
+    t =   581.92s     Check for interrupting elements affecting "Baget" Button
+    t =   582.10s     Synthesize event
+    t =   582.46s     Wait for app.baget.ios to idle
+    t =   586.31s Added attachment named '54-profile-baget-icons'
+    t =   586.32s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   587.18s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [54] snap 54-profile-baget-icons
+    t =   587.41s Swipe up Target Application 'app.baget.ios'
+    t =   587.41s     Wait for app.baget.ios to idle
+    t =   587.41s     Find the Target Application 'app.baget.ios'
+    t =   587.56s     Check for interrupting elements affecting "Baget" Application
+    t =   587.71s     Synthesize event
+    t =   588.16s     Wait for app.baget.ios to idle
+    t =   592.27s Added attachment named '55-profile-scroll-1'
+    t =   592.28s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   593.40s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [55] snap 55-profile-scroll-1
+    t =   593.77s Swipe up Target Application 'app.baget.ios'
+    t =   593.77s     Wait for app.baget.ios to idle
+    t =   593.78s     Find the Target Application 'app.baget.ios'
+    t =   594.25s     Check for interrupting elements affecting "Baget" Application
+    t =   594.41s     Synthesize event
+    t =   594.88s     Wait for app.baget.ios to idle
+    t =   598.98s Added attachment named '56-profile-scroll-2'
+    t =   598.99s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   600.26s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [56] snap 56-profile-scroll-2
+    t =   600.58s Checking existence of `"Done" Button`
+    t =   600.77s Find the "Done" Button
+    t =   601.01s Tap "Done" Button
+    t =   601.01s     Wait for app.baget.ios to idle
+    t =   601.02s     Find the "Done" Button
+    t =   601.22s     Check for interrupting elements affecting "Done" Button
+    t =   601.44s     Synthesize event
+    t =   601.84s     Wait for app.baget.ios to idle
+QA: [56] close via Done
+    t =   602.77s Get number of matches for: Elements matching predicate 'label == "Scouts"'
+    t =   602.89s Checking existence of `Button (Element at index 0)`
+    t =   602.97s Find the Button (Element at index 0)
+    t =   603.09s Find the "binoculars.fill" Button
+    t =   603.21s Tap "binoculars.fill" Button
+    t =   603.21s     Wait for app.baget.ios to idle
+    t =   603.21s     Find the "binoculars.fill" Button
+    t =   603.29s     Check for interrupting elements affecting "binoculars.fill" Button
+    t =   603.36s     Synthesize event
+    t =   603.72s     Wait for app.baget.ios to idle
+QA: [56] tap Scouts
+    t =   605.58s Get number of matches for: Elements matching predicate 'label CONTAINS[c] "Go Pro"'
+    t =   606.22s Get number of matches for: Elements matching predicate 'label CONTAINS[c] "Go Pro"'
+    t =   606.89s Get number of matches for: Elements matching predicate 'label CONTAINS[c] "Go Pro"'
+    t =   607.54s Get number of matches for: Elements matching predicate 'label CONTAINS[c] "Go Pro"'
+    t =   608.22s Get number of matches for: Elements matching predicate 'label CONTAINS[c] "Go Pro"'
+    t =   608.88s Get number of matches for: Elements matching predicate 'label CONTAINS[c] "Go Pro"'
+    t =   609.59s Get number of matches for: Elements matching predicate 'label CONTAINS[c] "Go Pro"'
+    t =   610.27s Get number of matches for: Elements matching predicate 'label CONTAINS[c] "Go Pro"'
+    t =   610.97s Get number of matches for: Elements matching predicate 'label CONTAINS[c] "Go Pro"'
+QA: [56] MISSING ~Go Pro
+    t =   611.64s Get number of matches for: Elements matching predicate 'label CONTAINS[c] "Pro"'
+    t =   612.29s Get number of matches for: Elements matching predicate 'label CONTAINS[c] "Pro"'
+    t =   612.94s Get number of matches for: Elements matching predicate 'label CONTAINS[c] "Pro"'
+    t =   613.62s Get number of matches for: Elements matching predicate 'label CONTAINS[c] "Pro"'
+    t =   614.27s Get number of matches for: Elements matching predicate 'label CONTAINS[c] "Pro"'
+    t =   614.95s Get number of matches for: Elements matching predicate 'label CONTAINS[c] "Pro"'
+    t =   615.63s Get number of matches for: Elements matching predicate 'label CONTAINS[c] "Pro"'
+    t =   616.28s Get number of matches for: Elements matching predicate 'label CONTAINS[c] "Pro"'
+    t =   616.97s Get number of matches for: Elements matching predicate 'label CONTAINS[c] "Pro"'
+    t =   617.63s Get number of matches for: Elements matching predicate 'label CONTAINS[c] "Pro"'
+QA: [56] MISSING ~Pro
+    t =   678.34s Get number of matches for: Elements matching predicate 'label == "Today"'
+    t =   678.72s Checking existence of `Button (Element at index 0)`
+    t =   678.87s Find the Button (Element at index 0)
+    t =   679.05s Find the "sun.max.fill" Button
+    t =   679.28s Tap "sun.max.fill" Button
+    t =   679.28s     Wait for app.baget.ios to idle
+    t =   679.29s     Find the "sun.max.fill" Button
+    t =   679.43s     Check for interrupting elements affecting "sun.max.fill" Button
+    t =   679.67s     Synthesize event
+    t =   680.10s     Wait for app.baget.ios to idle
+QA: [56] tap Today
+    t =   683.69s Swipe down Target Application 'app.baget.ios'
+    t =   683.69s     Wait for app.baget.ios to idle
+    t =   683.69s     Find the Target Application 'app.baget.ios'
+    t =   683.87s     Check for interrupting elements affecting "Baget" Application
+    t =   683.98s     Synthesize event
+    t =   684.42s     Wait for app.baget.ios to idle
+    t =   690.50s Added attachment named '57-today-later'
+    t =   690.50s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   691.35s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [57] snap 57-today-later
+    t =   691.52s Get number of matches for: Elements matching predicate 'label == "Finds"'
+    t =   691.66s Checking existence of `Button (Element at index 0)`
+    t =   691.79s Find the Button (Element at index 0)
+    t =   691.95s Find the "sparkles" Button
+    t =   692.11s Tap "sparkles" Button
+    t =   692.11s     Wait for app.baget.ios to idle
+    t =   692.11s     Find the "sparkles" Button
+    t =   692.24s     Check for interrupting elements affecting "sparkles" Button
+    t =   692.35s     Synthesize event
+    t =   692.68s     Wait for app.baget.ios to idle
+QA: [57] tap Finds
+    t =   698.12s Added attachment named '58-finds-later'
+    t =   698.12s Requesting snapshot of accessibility hierarchy for app with pid 18578
+    t =   698.90s Requesting snapshot of accessibility hierarchy for app with pid 18578
+QA: [58] snap 58-finds-later
+QA: [58] TIME whole session 697.4s
+    t =   699.16s Tear Down
+Test Case '-[BagetUITests.QAWalkthrough testNewCustomer]' passed (701.745 seconds).
+Test Suite 'QAWalkthrough' passed at 2026-11-07 14:44:21.203.
+	 Executed 1 test, with 0 failures (0 unexpected) in 701.745 (701.761) seconds
+Test Suite 'BagetUITests.xctest' passed at 2026-11-07 14:44:21.213.
+	 Executed 1 test, with 0 failures (0 unexpected) in 701.745 (701.771) seconds
+Test Suite 'Selected tests' passed at 2026-11-07 14:44:21.214.
+	 Executed 1 test, with 0 failures (0 unexpected) in 701.745 (701.777) seconds
+2026-11-07 14:44:25.795 xcodebuild[16337:49736] [MT] IDETestOperationsObserverDebug: 736.824 elapsed -- Testing started completed.
+2026-11-07 14:44:25.796 xcodebuild[16337:49736] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-11-07 14:44:25.796 xcodebuild[16337:49736] [MT] IDETestOperationsObserverDebug: 736.824 sec, +736.824 sec -- end
+
+Test session results, code coverage, and logs:
+	/Users/runner/work/_temp/qa.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started

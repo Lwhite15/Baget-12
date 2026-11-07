@@ -1,0 +1,208 @@
+Optional(Attributes: Application, 0x114851540, pid: 18578, label: 'Baget'
+Element subtree:
+ →Application, 0x114851540, pid: 18578, label: 'Baget'
+    Window (Main), 0x114850780, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x114851680, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1148512c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x114852080, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x114852800, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x114850a00, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x114852300, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x114851b80, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x114853e80, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x114852e40, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x114853ac0, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x114852580, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x1148530c0, {{0.0, 0.0}, {402.0, 874.0}}
+                            NavigationBar, 0x114852940, {{0.0, 62.0}, {402.0, 54.0}}, identifier: '_TtGC7SwiftUI32NavigationStackHosting'
+                              Other, 0x114852440, {{20.0, 66.0}, {42.0, 36.0}}
+                                Other, 0x114853d40, {{20.0, 66.0}, {42.0, 36.0}}
+                                  Button, 0x114853700, {{20.0, 66.0}, {42.0, 36.0}}, label: 'You: icon, settings and account'
+                                    StaticText, 0x114853200, {{20.0, 66.0}, {42.0, 36.0}}, label: 'CT'
+                              Other, 0x114851180, {{151.3, 70.7}, {99.0, 26.7}}
+                                Other, 0x114853340, {{151.3, 70.7}, {99.0, 26.7}}
+                                  StaticText, 0x114851f40, {{151.3, 71.0}, {26.0, 26.0}}
+                                  StaticText, 0x114853c00, {{185.3, 70.8}, {59.0, 26.3}}, label: 'Baget'
+                                  StaticText, 0x114852bc0, {{244.3, 70.8}, {6.0, 26.3}}, label: '.'
+                              Other, 0x114850b40, {{346.0, 66.0}, {36.0, 36.0}}
+                                Other, 0x114850f00, {{346.0, 66.0}, {36.0, 36.0}}
+                                  Button, 0x114851a40, {{349.3, 66.0}, {29.3, 36.0}}, label: 'Notifications, 6 unread'
+                                    Image, 0x10aad2d00, {{349.3, 66.0}, {29.3, 36.0}}, identifier: 'bell.fill', label: 'Notifications'
+                                    StaticText, 0x10aad2f80, {{376.3, 65.7}, {6.3, 11.0}}, label: '6'
+                            Other, 0x10aad3840, {{0.0, 0.0}, {402.0, 874.0}}
+                              Other, 0x10aad2300, {{0.0, 0.0}, {402.0, 874.0}}
+                                Other, 0x10aad17c0, {{0.0, 0.0}, {402.0, 874.0}}
+                                  Other, 0x10aad3980, {{0.0, 0.0}, {402.0, 874.0}}
+                                    ScrollView, 0x10aad08c0, {{0.0, 0.0}, {402.0, 874.0}}
+                                      Other, 0x10aad3ac0, {{0.0, -3850.0}, {402.0, 4641.0}}
+                                        Other, 0x10aad1680, {{16.0, -3130.0}, {370.0, 3896.7}}
+                                          StaticText, 0x10aad0640, {{16.0, -3130.0}, {122.3, 24.0}}, label: 'More for you'
+                                          StaticText, 0x10aad0a00, {{16.0, -3094.0}, {279.0, 14.3}}, label: 'Ranked by your taste. Every ♥ and ✕ sharpens it.'
+                                          Other, 0x10aad0140, {{16.0, -876.7}, {370.0, 1553.0}}
+                                            Button, 0x10aad3480, {{16.0, -876.7}, {179.0, 150.0}}, label: 'Nike SB Paul Rodriguez Zoom Air Low (Black/Black/Gum), Nike SB, 510 Skateboarding'
+                                              StaticText, 0x10aad35c0, {{28.0, -864.7}, {61.3, 20.3}}, label: 'Nike SB'
+                                              Image, 0x10aad2080, {{27.3, -826.7}, {156.3, 76.0}}, label: 'Nike SB Paul Rodriguez Zoom Air Low (Black/Black/Gum)'
+                                              StaticText, 0x10aad2bc0, {{28.0, -750.7}, {92.0, 12.0}}, label: '510 Skateboarding'
+                                            Button, 0x10aad1a40, {{207.0, -876.7}, {179.0, 150.0}}, label: 'Adidas x Wales Bonner Adizero Adios Suede in Wonder White / Dark Brown / Chalk White, Adidas, Oneness'
+                                              StaticText, 0x10aad1900, {{219.0, -864.7}, {54.7, 20.3}}, label: 'Adidas'
+                                              Image, 0x10aad1540, {{217.0, -826.7}, {159.0, 76.0}}, label: 'Adidas x Wales Bonner Adizero Adios Suede in Wonder White / Dark Brown / Chalk White'
+                                              StaticText, 0x10aad30c0, {{219.0, -750.7}, {42.3, 12.0}}, label: 'Oneness'
+                                            StaticText, 0x10aad21c0, {{16.0, -720.7}, {172.3, 33.7}}, label: 'Nike SB Paul Rodriguez Zoom Air Low (Black/Black/Gum)'
+                                            StaticText, 0x10aad0280, {{207.0, -720.7}, {172.0, 33.7}}, label: 'Adidas x Wales Bonner Adizero Adios Suede in Wonder White / Dark Brown / Chalk White'
+                                            StaticText, 0x10aad1b80, {{16.0, -680.7}, {133.7, 13.3}}, label: '$125 · 510 Skateboarding'
+                                            StaticText, 0x10aad1e00, {{207.0, -680.7}, {83.3, 13.3}}, label: '$200 · Oneness'
+                                            StaticText, 0x10aad2440, {{16.0, -661.3}, {175.0, 26.3}}, label: 'A low-top skate shoe in black with gum-colored accents, named after skateboarder Paul Rodriguez. It has Zoom Air cushioning.'
+                                            StaticText, 0x10aad0b40, {{207.0, -661.3}, {177.7, 26.3}}, label: 'A running shoe with a suede upper in white and dark brown. It's part of the Wales Bonner collaboration with Adidas.'
+                                            Image, 0x10aad1f40, {{16.7, -627.0}, {9.3, 9.3}}, identifier: 'wand.and.stars', label: 'Magic Wand With Stars'
+                                            StaticText, 0x10aad0500, {{31.3, -629.0}, {126.3, 13.3}}, label: 'For your sneakers taste'
+                                            Image, 0x10aad03c0, {{208.0, -627.3}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x10aad0000, {{221.7, -629.0}, {106.3, 13.3}}, label: 'New to you · Adidas'
+                                            Button, 0x10aad0780, {{16.0, -609.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10aad1cc0, {{109.7, -609.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x10aad2e40, {{207.0, -609.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10b18fd40, {{300.7, -609.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x10b18c500, {{16.0, -563.7}, {179.0, 150.0}}, label: 'Tower Ramones Sneaker Low "Black/Milk" RU02F4891 LCO 911, RICK OWENS, Stadium Goods'
+                                              StaticText, 0x10b18dcc0, {{28.0, -551.7}, {105.3, 20.3}}, label: 'RICK OWENS'
+                                              Image, 0x10b18c000, {{42.0, -513.7}, {126.7, 76.0}}, label: 'Tower Ramones Sneaker Low "Black/Milk" RU02F4891 LCO 911'
+                                              StaticText, 0x10b18c640, {{28.0, -437.7}, {74.0, 12.0}}, label: 'Stadium Goods'
+                                            Button, 0x10b18fac0, {{207.0, -563.7}, {179.0, 150.0}}, label: 'Grolle Black Olive / Peat / Pumpkin Spice Boots, Salomon x The Broken Arm, Sneakinpeace'
+                                              StaticText, 0x10b18cdc0, {{219.0, -551.7}, {121.0, 40.7}}, label: 'Salomon x The Broken Arm'
+                                              Image, 0x10b18c8c0, {{266.0, -513.7}, {61.0, 76.0}}, label: 'Grolle Black Olive / Peat / Pumpkin Spice Boots'
+                                              StaticText, 0x10b18f340, {{219.0, -437.7}, {67.3, 12.0}}, label: 'Sneakinpeace'
+                                            StaticText, 0x10b18f5c0, {{16.0, -407.7}, {173.7, 33.7}}, label: 'Tower Ramones Sneaker Low "Black/Milk" RU02F4891 LCO 911'
+                                            StaticText, 0x10b18e580, {{207.0, -407.7}, {161.0, 33.7}}, label: 'Grolle Black Olive / Peat / Pumpkin Spice Boots'
+                                            StaticText, 0x10b18cf00, {{16.0, -367.7}, {126.3, 13.3}}, label: '$1,440 · Stadium Goods'
+                                            StaticText, 0x10b18ea80, {{207.0, -367.7}, {121.0, 13.3}}, label: '≈ $254 · Sneakinpeace'
+                                            StaticText, 0x10b18e440, {{16.0, -348.3}, {176.3, 26.3}}, label: 'A black and off-white low-top sneaker from Rick Owens with a chunky sole, made for men.'
+                                            StaticText, 0x10b18fc00, {{207.0, -348.3}, {174.3, 26.3}}, label: 'A high-top shoe from a Salomon and The Broken Arm collaboration, in black olive, peat brown and pumpkin spice tones. Made for men and women who want a rugged, outdoor-style look.'
+                                            Image, 0x10b18d540, {{17.0, -314.3}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x10b18e800, {{30.7, -316.0}, {140.7, 13.3}}, label: 'New to you · RICK OWENS'
+                                            Image, 0x10b18cb40, {{208.0, -314.3}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x10b18ca00, {{221.7, -316.0}, {158.3, 13.3}}, label: 'New to you · Salomon x The Broken Arm'
+                                            Button, 0x10b18e300, {{16.0, -296.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10b18de00, {{109.7, -296.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x10b18db80, {{207.0, -296.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10b18e6c0, {{300.7, -296.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x10b18df40, {{16.0, -250.7}, {179.0, 150.0}}, label: 'Saucony Progrid Omni 9 Sneaker, Saucony, END.'
+                                              StaticText, 0x10b18c780, {{28.0, -238.7}, {68.7, 20.3}}, label: 'Saucony'
+                                              Image, 0x10b18e1c0, {{33.3, -200.7}, {144.3, 76.0}}, label: 'Saucony Progrid Omni 9 Sneaker'
+                                              StaticText, 0x10b18d040, {{28.0, -124.7}, {23.7, 12.0}}, label: 'END.'
+                                            Button, 0x10b18fe80, {{207.0, -250.7}, {179.0, 150.0}}, label: 'Club C Revenge "White-Vector Navy" 100033028, REEBOK, Stadium Goods'
+                                              StaticText, 0x10b18e940, {{219.0, -238.7}, {66.7, 20.3}}, label: 'REEBOK'
+                                              Image, 0x10b18f480, {{233.3, -200.7}, {126.7, 76.0}}, label: 'Club C Revenge "White-Vector Navy" 100033028'
+                                              StaticText, 0x10b18cc80, {{219.0, -124.7}, {74.0, 12.0}}, label: 'Stadium Goods'
+                                            StaticText, 0x10b18ee40, {{16.0, -94.7}, {144.3, 33.7}}, label: 'Saucony Progrid Omni 9 Sneaker'
+                                            StaticText, 0x10b18c140, {{207.0, -94.7}, {161.3, 33.7}}, label: 'Club C Revenge "White-Vector Navy" 100033028'
+                                            StaticText, 0x10b18f840, {{16.0, -54.7}, {72.0, 13.3}}, label: '≈ $186 · END.'
+                                            StaticText, 0x10b18c3c0, {{207.0, -54.7}, {111.0, 13.3}}, label: '$83 · Stadium Goods'
+                                            StaticText, 0x10b18f0c0, {{16.0, -35.3}, {178.7, 26.3}}, label: 'A men's running-style sneaker from Saucony with PROGRID foam cushioning. It's made for comfortable everyday wear and training runs.'
+                                            StaticText, 0x10b18f700, {{207.0, -35.3}, {176.0, 26.3}}, label: 'A men's Reebok sneaker in white and navy, from the Club C line, which has a classic tennis-shoe look.'
+                                            Image, 0x10b18d180, {{17.0, -1.3}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x10b18f200, {{30.7, -3.0}, {115.7, 13.3}}, label: 'New to you · Saucony'
+                                            Image, 0x10b18d2c0, {{208.0, -1.3}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x10b18d680, {{221.7, -3.0}, {114.3, 13.3}}, label: 'New to you · REEBOK'
+                                            Button, 0x10b18ebc0, {{16.0, 16.3}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10b18ef80, {{109.7, 16.3}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x10b18ed00, {{207.0, 16.3}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10b18e080, {{300.7, 16.3}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x10b18f980, {{16.0, 62.3}, {179.0, 150.0}}, label: 'Dunk Low Suede Off-Noir / University Gold Low Top Sneakers, Nike x Union, Sneakinpeace'
+                                              StaticText, 0x10b18d7c0, {{28.0, 74.3}, {99.0, 20.3}}, label: 'Nike x Union'
+                                              Image, 0x107293840, {{75.0, 112.3}, {61.0, 76.0}}, label: 'Dunk Low Suede Off-Noir / University Gold Low Top Sneakers'
+                                              StaticText, 0x107293d40, {{28.0, 188.3}, {67.3, 12.0}}, label: 'Sneakinpeace'
+                                            Button, 0x107293c00, {{207.0, 62.3}, {179.0, 150.0}}, label: 'Chuck 70 Hi TD "Black" 7J231, CONVERSE, Stadium Goods'
+                                              StaticText, 0x107293480, {{219.0, 74.3}, {91.0, 20.3}}, label: 'CONVERSE'
+                                              Image, 0x107293ac0, {{233.3, 112.3}, {126.7, 76.0}}, label: 'Chuck 70 Hi TD "Black" 7J231'
+                                              StaticText, 0x107293980, {{219.0, 188.3}, {74.0, 12.0}}, label: 'Stadium Goods'
+                                            StaticText, 0x107293200, {{16.0, 218.3}, {175.7, 33.7}}, label: 'Dunk Low Suede Off-Noir / University Gold Low Top Sneakers'
+                                            StaticText, 0x107291400, {{207.0, 218.3}, {101.0, 33.7}}, label: 'Chuck 70 Hi TD "Black" 7J231'
+                                            StaticText, 0x1072935c0, {{16.0, 258.3}, {118.3, 13.3}}, label: '≈ $173 · Sneakinpeace'
+                                            StaticText, 0x107291540, {{207.0, 258.3}, {109.0, 13.3}}, label: '$31 · Stadium Goods'
+                                            StaticText, 0x10b180140, {{16.0, 277.7}, {179.0, 26.3}}, label: 'A low-top Nike Dunk Low made of suede, in an off-black and university gold colour mix. It's a Nike and Union collaboration, so it has a special joint design.'
+                                            StaticText, 0x10b181400, {{207.0, 277.7}, {174.0, 26.3}}, label: 'A black high-top canvas sneaker in the classic Chuck 70 style, sized for kids.'
+                                            Image, 0x10b180dc0, {{17.0, 311.7}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x10b181a40, {{30.7, 310.0}, {137.0, 13.3}}, label: 'New to you · Nike x Union'
+                                            Image, 0x10b182300, {{208.0, 311.7}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x10b180640, {{221.7, 310.0}, {130.7, 13.3}}, label: 'New to you · CONVERSE'
+                                            Button, 0x10b181cc0, {{16.0, 329.3}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10b180000, {{109.7, 329.3}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x10b181040, {{207.0, 329.3}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10b1808c0, {{300.7, 329.3}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x10b180280, {{16.0, 375.3}, {179.0, 150.0}}, label: 'Skate Era (Oil Green), Vans, 510 Skateboarding'
+                                              StaticText, 0x10b1812c0, {{28.0, 387.3}, {39.0, 20.3}}, label: 'Vans'
+                                              Image, 0x10b180c80, {{26.0, 429.3}, {159.0, 68.0}}, label: 'Skate Era (Oil Green)'
+                                              StaticText, 0x10b181680, {{28.0, 501.3}, {92.0, 12.0}}, label: '510 Skateboarding'
+                                            Button, 0x10b1803c0, {{207.0, 375.3}, {179.0, 150.0}}, label: 'AIR JORDAN 14 RETRO BIG KIDS, JORDAN BRAND, Social Status'
+                                              StaticText, 0x10b180f00, {{219.0, 387.3}, {132.0, 20.3}}, label: 'JORDAN BRAND'
+                                              Image, 0x10b181b80, {{267.7, 425.3}, {57.7, 76.0}}, label: 'AIR JORDAN 14 RETRO BIG KIDS'
+                                              StaticText, 0x10b181180, {{219.0, 501.3}, {63.0, 12.0}}, label: 'Social Status'
+                                            StaticText, 0x10b181e00, {{16.0, 531.3}, {132.3, 15.7}}, label: 'Skate Era (Oil Green)'
+                                            StaticText, 0x10b181900, {{207.0, 531.3}, {148.7, 33.7}}, label: 'AIR JORDAN 14 RETRO BIG KIDS'
+                                            StaticText, 0x10b181f40, {{16.0, 571.3}, {128.0, 13.3}}, label: '$70 · 510 Skateboarding'
+                                            StaticText, 0x10b181540, {{207.0, 571.3}, {104.0, 13.3}}, label: '$155 · Social Status'
+                                            StaticText, 0x10b180a00, {{16.0, 590.7}, {175.7, 26.3}}, label: 'A low-top skate shoe in a deep olive green. It has a padded collar and a grippy sole, made for everyday skating.'
+                                            StaticText, 0x10b1817c0, {{207.0, 590.7}, {174.7, 26.3}}, label: 'A retro basketball-style sneaker from the Air Jordan 14 line, sized for big kids. It has a green and white color scheme.'
+                                            Image, 0x10b180500, {{17.0, 624.3}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x10b180780, {{30.7, 623.0}, {96.0, 13.3}}, label: 'New to you · Vans'
+                                            Image, 0x10b180b40, {{208.0, 624.3}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x114a788c0, {{221.7, 623.0}, {158.0, 13.3}}, label: 'New to you · JORDAN BRAND'
+                                            Button, 0x114a78280, {{16.0, 642.3}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x114a78a00, {{109.7, 642.3}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x114a78780, {{207.0, 642.3}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x114a78140, {{300.7, 642.3}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                          Button, 0x114a78f00, {{16.0, 694.3}, {370.0, 46.0}}, label: 'Check for new picks'
+                                            Image, 0x114a78640, {{117.7, 710.3}, {11.7, 14.3}}, identifier: 'arrow.clockwise', label: 'Refresh'
+                                            StaticText, 0x114a7bc00, {{138.2, 708.3}, {147.3, 18.0}}, label: 'Check for new picks'
+                                          StaticText, 0x114a78000, {{127.5, 752.3}, {147.0, 14.3}}, label: 'That's everything for now.'
+                                      Other, 0x114a7b700, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x114a79540, {{0.0, 0.0}, {402.0, 156.0}}
+                                        Other, 0x114a797c0, {{0.0, 741.0}, {402.0, 133.0}}
+                                      Other, 0x114a79040, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x114a783c0, {{0.0, 0.0}, {402.0, 156.0}}
+                                        Other, 0x114a792c0, {{0.0, 741.0}, {402.0, 133.0}}
+                                    Button, 0x114a7bd40, {{338.0, 731.0}, {46.0, 46.0}}, identifier: 'arrow.up', label: 'Back to top'
+                            Toolbar, 0x114a78c80, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                              Other, 0x114a7be80, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x114a7b200, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x114a79680, {{0.0, 791.0}, {402.0, 83.0}}
+                    Other, 0x114a7b340, {{0.0, 0.0}, {402.0, 874.0}}
+                      TabBar, 0x114a7bac0, {{0.0, 791.0}, {402.0, 83.0}}, label: 'Tab Bar'
+                        Other, 0x114a7b840, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x114a7b980, {{21.0, 791.0}, {98.0, 54.0}}
+                          Other, 0x114a78dc0, {{21.0, 791.0}, {360.0, 62.0}}
+                            Button, 0x114a78500, {{25.0, 795.0}, {98.0, 54.0}}, identifier: 'sun.max.fill', label: 'Today', Selected
+                              Image, 0x114a79400, {{59.7, 800.0}, {29.0, 29.3}}, identifier: 'sun.max.fill', label: 'brightness higher'
+                            Button, 0x10a039180, {{109.7, 795.0}, {98.0, 54.0}}, identifier: 'sparkles', label: 'Finds', value: 13 items
+                              Image, 0x10a039b80, {{145.7, 799.0}, {26.0, 30.0}}, identifier: 'sparkles', label: 'sparkle'
+                            Button, 0x10a03abc0, {{194.3, 795.0}, {98.0, 54.0}}, identifier: 'binoculars.fill', label: 'Scouts'
+                              Image, 0x10a03af80, {{225.7, 802.3}, {35.3, 25.7}}, identifier: 'binoculars.fill', label: 'Binoculars, filled'
+                            Button, 0x10a03bac0, {{279.0, 795.0}, {98.0, 54.0}}, identifier: 'heart.circle.fill', label: 'Friends'
+                              Image, 0x10a03a940, {{314.3, 801.3}, {27.3, 27.3}}, identifier: 'heart.circle.fill', label: 'love'
+                          Other, 0x10a039e00, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x10a03be80, {{25.0, 795.0}, {98.0, 54.0}}
+                            Other, 0x10a038a00, {{25.0, 795.0}, {98.0, 54.0}}
+                              Other, 0x10a03ae40, {{25.0, 795.0}, {98.0, 54.0}}
+                              Other, 0x10a03b5c0, {{25.0, 795.0}, {98.0, 54.0}}
+                                Other, 0x10a039400, {{25.0, 795.0}, {98.0, 54.0}}
+                                  Other, 0x10a039040, {{25.0, 795.0}, {98.0, 54.0}}
+                                    Other, 0x10a03b700, {{25.0, 795.0}, {98.0, 54.0}}
+                                  Other, 0x10a03bc00, {{25.0, 795.0}, {98.0, 54.0}}
+                                Other, 0x10a039540, {{25.0, 795.0}, {98.0, 54.0}}
+                    Other, 0x10a03a580, {{0.0, 791.0}, {402.0, 83.0}}
+                      Other, 0x10a038500, {{0.0, 791.0}, {402.0, 83.0}}
+                        Other, 0x10a0392c0, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x10a03b980, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x10a03a6c0, {{0.0, 791.0}, {402.0, 83.0}}
+                              Other, 0x10a03b480, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x10a03b200, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x10a038f00, {{0.0, 791.0}, {402.0, 83.0}}
+    Window, 0x10a03a1c0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x10a039cc0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10a03a300, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x114851540, pid: 18578, label: 'Baget'
+Query chain:
+ →Find: Target Application 'app.baget.ios'
+  Output: {
+    Application, 0x10a038dc0, pid: 18578, label: 'Baget'
+  }
+)
