@@ -713,13 +713,13 @@ select 'dddddddd-0000-0000-0000-000000000004',
        now() - interval '1 day'
   from generate_series(1, 9) i;
 set role service_role;
-select t.ok(public.make_drop('dddddddd-0000-0000-0000-000000000004', '2026-11-07') = 6, 'a drop: each scout''s 3 best');
+select t.ok(public.make_drop('dddddddd-0000-0000-0000-000000000004', (now() at time zone 'America/New_York')::date) = 6, 'a drop: each scout''s 3 best');
 reset role;
-select t.ok((select count(*) = 3 from public.finds where drop_on = '2026-11-07' and agent_id = 'dddddddd-aaaa-0000-0000-000000000001'), 'three per scout');
-select t.ok((select count(*) = 1 from public.finds f join public.listings l on l.id = f.listing_id where f.drop_on = '2026-11-07' and l.title = 'Shoe 1'), 'one per product');
-select t.ok((select count(*) = 0 from public.finds where drop_on = '2026-11-07' and status <> 'open'), 'only open finds');
+select t.ok((select count(*) = 3 from public.finds where drop_on = (now() at time zone 'America/New_York')::date and agent_id = 'dddddddd-aaaa-0000-0000-000000000001'), 'three per scout');
+select t.ok((select count(*) = 1 from public.finds f join public.listings l on l.id = f.listing_id where f.drop_on = (now() at time zone 'America/New_York')::date and l.title = 'Shoe 1'), 'one per product');
+select t.ok((select count(*) = 0 from public.finds where drop_on = (now() at time zone 'America/New_York')::date and status <> 'open'), 'only open finds');
 set role service_role;
-select t.ok(public.make_drop('dddddddd-0000-0000-0000-000000000004', '2026-11-07') = 6, 'making the same day twice changes nothing');
+select t.ok(public.make_drop('dddddddd-0000-0000-0000-000000000004', (now() at time zone 'America/New_York')::date) = 6, 'making the same day twice changes nothing');
 reset role;
 set role authenticated;
 select t.err($$select public.make_drop('dddddddd-0000-0000-0000-000000000004', '2026-11-08')$$, 'people cannot make drops directly');
@@ -730,8 +730,8 @@ reset role;
 -- as if Scents' finds landed after the drop was made
 update public.finds set drop_on = null where agent_id = 'dddddddd-aaaa-0000-0000-000000000002';
 set role service_role;
-select t.ok(public.make_drop('dddddddd-0000-0000-0000-000000000004', '2026-11-07') = 6, 'a scout missing from today''s drop is added the same day');
-select t.ok(public.make_drop('dddddddd-0000-0000-0000-000000000004', '2026-11-07') = 6, 'without adding more to scouts already in it');
+select t.ok(public.make_drop('dddddddd-0000-0000-0000-000000000004', (now() at time zone 'America/New_York')::date) = 6, 'a scout missing from today''s drop is added the same day');
+select t.ok(public.make_drop('dddddddd-0000-0000-0000-000000000004', (now() at time zone 'America/New_York')::date) = 6, 'without adding more to scouts already in it');
 reset role;
 insert into public.friendships (requester, addressee, status) values ('dddddddd-0000-0000-0000-000000000004', 'eeeeeeee-0000-0000-0000-000000000005', 'accepted');
 insert into public.listings (id, fingerprint, title) values ('eeeeeeee-1111-0000-0000-000000000001', 'eve-1', 'shoe 3');
