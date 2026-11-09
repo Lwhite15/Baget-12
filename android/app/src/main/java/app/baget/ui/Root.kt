@@ -55,7 +55,7 @@ fun RootScreen() {
     Box(Modifier.fillMaxSize().litBackground()) {
         when {
             store.needsWelcome -> WelcomeScreen()
-            // Once open, setup stays open until they finish: the new scouts arriving mid-setup mustn't close it before "Your squad is hunting".
+            // Once open, setup stays open until they finish: the new scouts arriving mid-setup mustn't close it before "Your scouts are hunting".
             !onboarded && ((setupOpen && store.isCloud) || (store.isCloud && s.agents.isEmpty() && s.lastSynced != null)) -> {
                 LaunchedEffect(Unit) { setupOpen = true }
                 OnboardingScreen(onDone = {
@@ -101,6 +101,31 @@ fun RootScreen() {
             },
             dismissButton = { TextButton(onClick = { router.askBought = null }) { Txt("Not yet", color = T.muted) } })
     }
+
+    // "Not my size" on a scout that doesn't know your size yet.
+    val sizeID = router.askSize
+    if (sizeID != null) {
+        var sizeText by remember(sizeID) { mutableStateOf("") }
+        AlertDialog(onDismissRequest = { router.askSize = null },
+            containerColor = T.panel,
+            title = { Txt("What size should ${store.agent(sizeID)?.name ?: "your scout"} look for?", size = T.body, weight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Txt("It'll only bring you things that come in your size. You can change it any time.", color = T.muted)
+                    Field(sizeText, { sizeText = it.take(40) }, "e.g. M, 32x30, 10.5")
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (sizeText.isNotBlank()) {
+                        store.setSize(sizeID, sizeText)
+                        router.say("Got it. ${store.agent(sizeID)?.name ?: "Your scout"} will stick to size ${store.agent(sizeID)?.size ?: sizeText.trim()}")
+                    }
+                    router.askSize = null
+                }) { Txt("Save", color = T.accent, weight = FontWeight.Bold) }
+            },
+            dismissButton = { TextButton(onClick = { router.askSize = null }) { Txt("Skip", color = T.muted) } })
+    }
 }
 
 fun openNote(noteID: String) {
@@ -130,7 +155,7 @@ private fun MainTabs() {
             NavigationBar(containerColor = T.panel.copy(alpha = 0.96f), tonalElevation = 0.dp) {
                 tabItem(AppTab.LIVE, "Today", Icons.Filled.WbSunny, 0)
                 tabItem(AppTab.FINDS, "Finds", Icons.Filled.AutoAwesome, s.finds.count { it.status == FindStatus.OPEN && Catalog.item(it.itemID)?.showsInFinds == true })
-                tabItem(AppTab.SQUAD, "Squad", Icons.Filled.Groups, 0)
+                tabItem(AppTab.SQUAD, "Scouts", Icons.Filled.Groups, 0)
                 tabItem(AppTab.FRIENDS, "Friends", Icons.Filled.Favorite, s.suggestions.count { it.status == SuggestionStatus.NEW })
             }
         },
@@ -151,7 +176,8 @@ private fun MainTabs() {
 private fun RowScope.tabItem(tab: AppTab, label: String, icon: ImageVector, badge: Int) {
     NavigationBarItem(
         selected = Router.tab == tab,
-        onClick = { Router.tab = tab },
+        // Tapping Today again while on it scrolls Today back to the top.
+        onClick = { if (tab == AppTab.LIVE && Router.tab == AppTab.LIVE) Router.todayTop++; Router.tab = tab },
         icon = {
             BadgedBox(badge = { if (badge > 0) Badge(containerColor = T.hot) { Text(if (badge > 99) "99+" else "$badge", fontSize = 10.sp) } }) {
                 Icon(icon, label)

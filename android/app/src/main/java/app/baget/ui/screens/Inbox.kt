@@ -40,7 +40,7 @@ fun InboxSheet() {
         onLeading = { store.markRead(s.notes.filter { !it.read }.map { it.id }) }) {
         Box(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) { Segmented(listOf("Inbox", "Background and alerts"), if (tab == 0) "Inbox" else "Background and alerts") { tab = if (it == "Inbox") 0 else 1 } }
         if (tab == 0) LazyColumn(contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            if (s.notes.isEmpty()) item { EmptyCard("Nothing yet. When your squad finds something, it'll text you here.") }
+            if (s.notes.isEmpty()) item { EmptyCard("Nothing yet. When your scouts find something, they'll text you here.") }
             items(s.notes.toList(), key = { it.id }) { n ->
                 val shape = RoundedCornerShape(16.dp)
                 Row(Modifier.fillMaxWidth().clip(shape).background(if (n.read) T.glass else T.accent.copy(alpha = 0.10f))
@@ -74,13 +74,13 @@ fun AlertSettings(onSimulate: () -> Unit = {}) {
     }
     Column(Modifier.verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         if (!allowed) FormSection {
-            Txt("Notifications are off for Baget. Turn them on so your squad can text you.", size = T.footnote, modifier = Modifier.padding(vertical = 6.dp))
+            Txt("Notifications are off for Baget. Turn them on so your scouts can text you.", size = T.footnote, modifier = Modifier.padding(vertical = 6.dp))
             RowButton("Turn on notifications") {
                 if (Build.VERSION.SDK_INT >= 33 && Notifier.needsPrompt(context)) ask.launch(Manifest.permission.POST_NOTIFICATIONS)
                 else context.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName))
             }
         }
-        FormSection(footer = if (store.isCloud) "Your squad searches on our servers even when your phone is off. Each search costs a little, so less often is cheaper. You can always pull down on Today to check now."
+        FormSection(footer = if (store.isCloud) "Your scouts search on our servers even when your phone is off. Each search costs a little, so less often is cheaper. You can always pull down on Today to check now."
             else "In the sample tour, sweeps are simulated each time you come back to the app.") {
             val opts = listOf(60 to "Every hour", 180 to "Every 3 hours", 360 to "Every 6 hours", 720 to "Twice a day", 1440 to "Once a day")
             Choice("Each scout searches the web", opts.map { it.second }, opts.indexOfFirst { it.first == s.settings.sweepMinutes }.coerceAtLeast(0)) {
@@ -111,7 +111,7 @@ fun AlertSettings(onSimulate: () -> Unit = {}) {
             SwitchRow("Share anonymous usage metrics", if (Analytics.configured) "Sent with a random install ID, never your name or email."
                 else "No backend set up yet, so metrics stay on this phone.", metricsOn) { metricsOn = it; Analytics.enabled = it }
         }
-        if (!store.isCloud) FormSection("Try it", "Fast-forwards three hours of background hunts so you can see what your squad does while you're gone.") {
+        if (!store.isCloud) FormSection("Try it", "Fast-forwards three hours of background hunts so you can see what your scouts do while you're gone.") {
             RowButton("Simulate 3 hours away") {
                 store.catchUp(180.0)
                 Analytics.track(AnalyticsEvent.BACKGROUND_SIMULATED)

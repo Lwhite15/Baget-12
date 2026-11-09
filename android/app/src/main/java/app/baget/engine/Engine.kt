@@ -272,7 +272,7 @@ object FriendVoice {
                 Voice.STRAIGHT -> "Profile updated: added $extra."
             }
             NoteKind.FRIEND -> extra
-            NoteKind.DIGEST -> extra.ifEmpty { "Today's Drop is ready: your squad's best picks." }
+            NoteKind.DIGEST -> extra.ifEmpty { "Today's Drop is ready: your scouts' best picks." }
             NoteKind.DROP -> "Price drop: the $t is now $price at $src."
             NoteKind.FEEDBACK -> extra
             NoteKind.REMINDER -> "Reminder: the $t releases $whenText at $src."

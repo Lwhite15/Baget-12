@@ -80,7 +80,7 @@ fun AppStore.reactForYou(pick: ForYouItem, action: ForYouAction) {
             val a = best(item)?.first ?: state.agents.firstOrNull { Matcher.covers(it, item) } ?: state.agents.firstOrNull { it.mission.category == item.category }
             if (a != null) ensureFind(a.id, item.id, pick.reason)?.let { like(it.id) }
         }
-        ForYouAction.DISMISS -> pick.findID?.let { pass(it, PassReason.STYLE) }
+        ForYouAction.DISMISS -> pick.findID?.let { pass(it, PassReason.PRODUCT) }
         else -> {}
     }
     if (forYou.size < 6) scope.launch { loadForYou() }   // keep the feed full
@@ -269,7 +269,7 @@ suspend fun AppStore.onboard(categories: List<Category>, text: String, photos: L
         scope.launch { cloudSweep() }
         (r["agents"] as? JsonArray)?.mapNotNull { (it as? JsonObject)?.get("agent_id")?.jsonPrimitive?.contentOrNull } ?: emptyList()
     } catch (e: Exception) {
-        syncProblem = (e as? BackendError)?.message ?: "Couldn't set up your squad. Try again."
+        syncProblem = (e as? BackendError)?.message ?: "Couldn't set up your scouts. Try again."
         emptyList()
     }
 }

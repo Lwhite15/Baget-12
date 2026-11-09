@@ -397,10 +397,10 @@ suspend fun AppStore.cloudSweep(agentID: String? = null, quietIfNone: Boolean = 
         m != null -> m
         n == 0 && quietIfNone -> null
         n > 0 -> "$n new find${if (n == 1) "" else "s"}"
-        else -> "Your squad looked. Nothing new fits you right now."
+        else -> "Your scouts looked. Nothing new fits you right now."
     }
 } catch (e: Exception) {
-    (e as? BackendError)?.message ?: "Your squad couldn't reach the web just now."
+    (e as? BackendError)?.message ?: "Your scouts couldn't reach the web just now."
 }
 
 // MARK: Taste photos

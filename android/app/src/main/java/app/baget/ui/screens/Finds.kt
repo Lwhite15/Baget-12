@@ -163,7 +163,10 @@ fun FindsScreen() {
         if (f.status == FindStatus.LIKED || f.watching) savedTotal++
         if (comingSoon(item)) upcomingTotal++
     }
-    val visible = filterFinds(s.finds, show)
+    // The same product from several stores shows once (cheapest), with the others counted on its card.
+    val productGroups = ProductMatch.group(filterFinds(s.finds, show))
+    val visible = productGroups.map { it.lead }
+    val alsoAt = productGroups.filter { it.others.isNotEmpty() }.associate { it.lead.id to it.others.size }
     // Grouped by scout for "Best match" and "By scout" in the list; one flat list otherwise, and always in the grid.
     val grouped = !grid && (sort == FindsSort.BEST || sort == FindsSort.SCOUT)
     val groups = if (grouped) groupFinds(visible, s.agents, sort) else emptyList()
@@ -183,7 +186,7 @@ fun FindsScreen() {
     }
     val emptyText = when {
         s.agents.isEmpty() -> "Set up a scout first, then tap Hunt now."
-        show == FindsShow.NEW -> "You're all caught up. Your squad keeps hunting in the background."
+        show == FindsShow.NEW -> "You're all caught up. Your scouts keep hunting in the background."
         show == FindsShow.SAVED -> "Nothing saved yet. Tap ♥ on a find you love, or watch one for price drops, and it shows up here."
         show == FindsShow.ALL -> "Nothing here yet. Tap Hunt now, or pull down on Today."
         else -> "No drops coming up yet. When your scouts spot a release with a date, it lands here, and you can set a reminder for it."
@@ -195,11 +198,11 @@ fun FindsScreen() {
         val id = Router.focusFind ?: return@LaunchedEffect
         show = FindsShow.ALL
         Router.focusFind = null
-        groupFinds(filterFinds(store.state.finds, FindsShow.ALL), store.state.agents, sort)
+        groupFinds(ProductMatch.group(filterFinds(store.state.finds, FindsShow.ALL)).map { it.lead }, store.state.agents, sort)
             .firstOrNull { g -> g.finds.any { it.id == id } }?.let { collapsed.remove(it.id) }
         delay(250)
         // Recomputed after the filter change has been applied.
-        val all = filterFinds(store.state.finds, FindsShow.ALL)
+        val all = ProductMatch.group(filterFinds(store.state.finds, FindsShow.ALL)).map { it.lead }
         val keys = buildList<List<String>> {
             when {
                 grid -> sortFinds(all, sort).chunked(2).forEach { row -> add(row.map { it.id }) }
@@ -247,9 +250,9 @@ fun FindsScreen() {
                     val isCollapsed = e.g.id in collapsed
                     SectionHeader(e.g, isCollapsed) { if (isCollapsed) collapsed.remove(e.g.id) else collapsed.add(e.g.id) }
                 }
-                is FindsEntry.One -> FindListRow(e.f, e.agent, highlighted == e.f.id) { opened = e.f.id }
+                is FindsEntry.One -> FindListRow(e.f, e.agent, highlighted == e.f.id, alsoAt[e.f.id] ?: 0) { opened = e.f.id }
                 is FindsEntry.Tiles -> Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    e.finds.forEach { f -> Box(Modifier.weight(1f)) { FindTile(f) { opened = f.id } } }
+                    e.finds.forEach { f -> Box(Modifier.weight(1f)) { FindTile(f, alsoAt[f.id] ?: 0) { opened = f.id } } }
                     if (e.finds.size == 1) Spacer(Modifier.weight(1f))
                 }
             }
@@ -419,12 +422,12 @@ private fun PassDialog(find: Find, item: Item, agent: Agent?, onDone: () -> Unit
         title = { Txt("What was off? ${agent?.name ?: "Your scout"} will learn from it.", size = T.body, weight = FontWeight.Bold) },
         text = {
             Column {
-                PassReason.entries.forEach { r ->
-                    Txt(r.label, size = T.body, color = T.accent, modifier = Modifier.fillMaxWidth().clickable {
+                PassReason.options(item).forEach { r ->
+                    Txt(r.label(item), size = T.body, color = T.accent, modifier = Modifier.fillMaxWidth().clickable {
                         onDismiss()
                         store.pass(find.id, r)
-                        Analytics.track(AnalyticsEvent.FIND_PASSED, mapOf("reason" to r.label, "category" to item.category.raw))
-                        Router.say(if (r == PassReason.LATER) "Passed" else "Passed. ${agent?.name ?: "Your scout"} is learning from that")
+                        Analytics.track(AnalyticsEvent.FIND_PASSED, mapOf("reason" to r.raw, "category" to item.category.raw))
+                        Router.passed(r, agent)
                         onDone()
                     }.padding(vertical = 12.dp))
                 }
@@ -443,7 +446,7 @@ private fun RoundAction(icon: ImageVector, label: String, filled: Boolean, tint:
 
 /** One find in the list: photo, title, store · price · match, one line on why; ♥ and ✕. Swipe right to like, left to pass. */
 @Composable
-private fun FindListRow(find: Find, groupAgent: Agent?, highlighted: Boolean, open: () -> Unit) {
+private fun FindListRow(find: Find, groupAgent: Agent?, highlighted: Boolean, alsoAt: Int = 0, open: () -> Unit) {
     val store = AppStore
     val item = Catalog.item(find.itemID) ?: return
     val agent = groupAgent ?: store.agent(find.agentID)
@@ -475,7 +478,7 @@ private fun FindListRow(find: Find, groupAgent: Agent?, highlighted: Boolean, op
                         w > 100 && find.status != FindStatus.LIKED -> { scope.launch { dx.animateTo(0f) }; like() }
                         w < -100 -> scope.launch {
                             dx.animateTo(-1500f, tween(200))
-                            store.pass(find.id, PassReason.STYLE)
+                            store.pass(find.id, PassReason.PRODUCT)
                             Analytics.track(AnalyticsEvent.FIND_PASSED, mapOf("reason" to "swipe", "category" to item.category.raw))
                             Router.say("Passed. ${agent?.name ?: "Your scout"} is learning from that")
                             dx.snapTo(0f)
@@ -499,6 +502,7 @@ private fun FindListRow(find: Find, groupAgent: Agent?, highlighted: Boolean, op
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Txt(item.title, weight = FontWeight.SemiBold, maxLines = 2)
             FindMeta(find, item)
+            if (alsoAt > 0) StoresBadge(alsoAt)
             (find.why.firstOrNull { !it.startsWith("Discovery") && it.isNotEmpty() } ?: find.why.firstOrNull())?.let {
                 Txt(it, size = T.caption, color = T.green.copy(alpha = 0.9f), maxLines = 1)
             }
@@ -516,9 +520,9 @@ private fun FindListRow(find: Find, groupAgent: Agent?, highlighted: Boolean, op
     if (askingWhy) PassDialog(find, item, agent, onDone = {}, onDismiss = { askingWhy = false })
 }
 
-/** One find in the grid: a big photo with its match, title, store · price, ♥ and ✕. */
+/** One find in the grid: a big photo with its match, title, store · price, ✕ and ♥. */
 @Composable
-private fun FindTile(find: Find, open: () -> Unit) {
+fun FindTile(find: Find, alsoAt: Int = 0, open: () -> Unit) {
     val store = AppStore
     val item = Catalog.item(find.itemID) ?: return
     val agent = store.agent(find.agentID)
@@ -533,14 +537,16 @@ private fun FindTile(find: Find, open: () -> Unit) {
         Txt(item.title, size = T.footnote, weight = FontWeight.SemiBold, maxLines = 2, modifier = Modifier.fillMaxWidth().heightIn(min = 34.dp))
         Txt(listOfNotNull(item.source, if (item.priceKnown && item.price > 0) item.priceLabel else null).joinToString(" · "),
             size = T.caption2, color = T.muted, maxLines = 1)
+        if (alsoAt > 0) StoresBadge(alsoAt)
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             if (find.status == FindStatus.LIKED) TilePill(Icons.Filled.Favorite, "Liked. Tap to unlike", false, T.hot, Modifier.weight(1f)) { store.unlike(find.id) }
             else {
+                // ✕ left, ♥ right: the same way you swipe.
+                TilePill(Icons.Filled.Close, "Pass", false, T.muted, Modifier.weight(1f)) { askingWhy = true }
                 TilePill(Icons.Filled.Favorite, "Like", true, T.accentInk, Modifier.weight(1f)) {
                     store.like(find.id)
                     Router.say("${agent?.name ?: "Your scout"} will find more like this")
                 }
-                TilePill(Icons.Filled.Close, "Pass", false, T.muted, Modifier.weight(1f)) { askingWhy = true }
             }
         }
     }
@@ -662,8 +668,11 @@ private fun DetailActions(find: Find, item: Item, agent: Agent?, onPass: () -> U
                     openUrl(context, BuyLink.tracked(item, "find") ?: link)
                 }
             }
-            if (find.status == FindStatus.LIKED) BigButton(Icons.Filled.Favorite, "Liked", primary = false, tint = T.hot, modifier = Modifier.weight(1f)) { store.unlike(find.id) }
-            else BigButton(Icons.Outlined.FavoriteBorder, "Like", primary = link == null && !isUpcoming(item), modifier = Modifier.weight(1f)) {
+            // Beside a long first button (Notify me when it's back, Buy at <store>), Like takes only the room it needs.
+            val beside = (item.isProduct && store.isSoldOut(item) && !item.isSample) || isUpcoming(item) || link != null
+            val likeMod = if (beside) Modifier else Modifier.weight(1f)
+            if (find.status == FindStatus.LIKED) BigButton(Icons.Filled.Favorite, "Liked", primary = false, tint = T.hot, modifier = likeMod, compact = beside) { store.unlike(find.id) }
+            else BigButton(Icons.Outlined.FavoriteBorder, "Like", primary = link == null && !isUpcoming(item), modifier = likeMod, compact = beside) {
                 store.like(find.id)
                 Router.say("${agent?.name ?: "Your scout"} will find more like this")
             }
@@ -688,10 +697,11 @@ private fun DetailActions(find: Find, item: Item, agent: Agent?, onPass: () -> U
 }
 
 @Composable
-private fun BigButton(icon: ImageVector, text: String, primary: Boolean, modifier: Modifier = Modifier, tint: Color? = null, onClick: () -> Unit) {
+/** `compact`: only as wide as its own words, so the button beside it ("Notify me when it's back") has room to show in full. */
+private fun BigButton(icon: ImageVector, text: String, primary: Boolean, modifier: Modifier = Modifier, tint: Color? = null, compact: Boolean = false, onClick: () -> Unit) {
     val shape = RoundedCornerShape(14.dp)
     Row(modifier.height(48.dp).clip(shape).then(if (primary) Modifier.background(T.gradient) else Modifier.background(T.glass).border(1.dp, T.line, shape))
-        .clickable(onClick = onClick).padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+        .clickable(onClick = onClick).padding(horizontal = if (compact) 20.dp else 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
         val c = if (primary) T.accentInk else tint ?: T.ink
         Icon(icon, null, tint = c, modifier = Modifier.size(17.dp))
         Spacer(Modifier.width(6.dp))
@@ -717,6 +727,8 @@ private fun DetailFacts(find: Find, item: Item, agent: Agent?) {
     val pct = if (known && item.market > 0) safeRound(diff / item.price * 100) else 0
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         if (isUpcoming(item)) ReleaseRow(item, find.id)
+        val twins = store.sameProductFinds(find)
+        if (twins.isNotEmpty()) CompareStores(find, twins)
         if (!item.isProduct) {
             // Intel or a results page: what it is, and a way to read it.
             Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(T.cyan.copy(alpha = 0.08f)).padding(10.dp),
@@ -892,6 +904,44 @@ fun CheckoutSheet(findID: String) {
                         Router.close()
                     }
                 }
+            }
+        }
+    }
+}
+
+/** "Also at 3 more stores": the same product is also at other stores (compare them on its page). */
+@Composable
+fun StoresBadge(count: Int) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(Icons.Outlined.Storefront, null, tint = T.cyan, modifier = Modifier.size(12.dp))
+        Spacer(Modifier.width(4.dp))
+        Txt(if (count == 1) "Also at 1 more store" else "Also at $count more stores", size = T.caption2, weight = FontWeight.SemiBold, color = T.cyan, maxLines = 1)
+    }
+}
+
+/** Every store your scouts found this same product at, cheapest first, each one tap to its page. */
+@Composable
+private fun CompareStores(find: Find, twins: List<Find>) {
+    val context = LocalContext.current
+    fun p(i: Item) = if (i.priceKnown && i.price > 0) i.price else Double.POSITIVE_INFINITY
+    val rows = (listOf(find) + twins).mapNotNull { f -> Catalog.item(f.itemID)?.let { f to it } }.sortedBy { p(it.second) }
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Txt("AT ${rows.size} STORES", size = 9.sp, weight = FontWeight.SemiBold, tracking = 1.sp, color = T.muted)
+        rows.forEachIndexed { i, (f, it) ->
+            val known = it.priceKnown && it.price > 0
+            Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(T.glass)
+                .clickable { (BuyLink.tracked(it, "compare") ?: BuyLink.url(it))?.let { url -> openUrl(context, url) } }
+                .padding(horizontal = 10.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Txt(it.source, size = T.footnote, weight = if (f.id == find.id) FontWeight.Bold else FontWeight.Normal, maxLines = 1)
+                if (i == 0 && rows.size > 1 && known) {
+                    Spacer(Modifier.width(8.dp))
+                    Txt("LOWEST", size = 9.sp, weight = FontWeight.Black, color = T.green,
+                        modifier = Modifier.clip(CircleShape).background(T.green.copy(alpha = 0.15f)).padding(horizontal = 5.dp, vertical = 2.dp))
+                }
+                Spacer(Modifier.weight(1f))
+                Txt(if (known) it.priceLabel else "See store", size = T.footnote, weight = FontWeight.SemiBold, mono = true, color = if (i == 0) T.green else T.ink)
+                Spacer(Modifier.width(8.dp))
+                Icon(Icons.Filled.ArrowOutward, null, tint = T.cyan, modifier = Modifier.size(12.dp))
             }
         }
     }

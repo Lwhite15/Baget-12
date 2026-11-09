@@ -15,6 +15,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.CropPortrait
+import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
@@ -22,6 +24,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -39,33 +44,132 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-/** The home screen. One job: what's worth your attention today. (The full For You has its own screen.) */
+/** The home screen: today's finds as a swipe deck (or a grid, for people who'd rather tap), then an endless For You. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodayScreen() {
     val store = AppStore
     val s = store.observe()
-    val picks = store.todaysPicks()
-    val queue = store.swipeQueue.size
+    val prefs = remember { store.context.getSharedPreferences("baget.ui", 0) }
+    // "cards" (the swipe deck) or "grid". Remembered on this phone.
+    var layout by remember { mutableStateOf(prefs.getString("todayLayout", "cards") ?: "cards") }
+    // Today's finds, fixed while you go through them so cards don't jump as likes and passes land.
+    var deckIDs by rememberSaveable { mutableStateOf(listOf<String>()) }
+    var deckIndex by rememberSaveable { mutableIntStateOf(0) }
     var refreshing by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { Analytics.track(AnalyticsEvent.TODAY_VIEWED, mapOf("picks" to picks.size, "toSwipe" to queue)) }
+    // Bumped each time you pull up past the bottom of Today: loads more picks, or checks for new ones at the end.
+    var pullUp by remember { mutableIntStateOf(0) }
+    // Bumped each time the bottom of Today scrolls into view.
+    var nearBottom by remember { mutableIntStateOf(0) }
+    val scroll = rememberScrollState()
+    val scope = rememberCoroutineScope()
+    val density = androidx.compose.ui.platform.LocalDensity.current
+
+    fun freshDeck(): List<String> {
+        val seen = HashSet<String>()
+        val cands = (store.todaysPicks(TODAY_DECK_SIZE * 2) + store.swipeQueue).filter { seen.add(it.id) }
+        // One card per product: the same thing from three stores is one card (its cheapest), not three.
+        return ProductMatch.group(cands).take(TODAY_DECK_SIZE).map { it.lead.id }
+    }
+    // The deck's products, so For You below can skip them.
+    val deckItemIDs = remember(deckIDs, s.finds.size) { deckIDs.mapNotNull { id -> s.finds.firstOrNull { it.id == id }?.itemID }.toSet() }
+
+    LaunchedEffect(Unit) {
+        if (deckIDs.isEmpty() || deckIndex >= deckIDs.size) { deckIDs = freshDeck(); deckIndex = 0 }
+        Analytics.track(AnalyticsEvent.TODAY_VIEWED, mapOf("toSwipe" to deckIDs.size, "layout" to layout))
+    }
+    LaunchedEffect(s.finds.size) { if (deckIDs.isEmpty()) { deckIDs = freshDeck(); deckIndex = 0 } }
+    LaunchedEffect(scroll) {
+        snapshotFlow { scroll.maxValue > 0 && scroll.value >= scroll.maxValue - with(density) { 400.dp.toPx() } }
+            .collect { if (it) nearBottom++ }
+    }
+    LaunchedEffect(Router.todayTop) { if (Router.todayTop > 0) scroll.animateScrollTo(0) }
+
+    // Pulling up past the bottom (like pull-to-refresh, at the other end). Fires once per pull.
+    val pullUpConnection = remember {
+        object : androidx.compose.ui.input.nestedscroll.NestedScrollConnection {
+            var over = 0f
+            var fired = false
+            override fun onPostScroll(consumed: androidx.compose.ui.geometry.Offset, available: androidx.compose.ui.geometry.Offset,
+                                      source: androidx.compose.ui.input.nestedscroll.NestedScrollSource): androidx.compose.ui.geometry.Offset {
+                if (available.y < 0 && scroll.value >= scroll.maxValue) {
+                    over -= available.y
+                    if (!fired && over > with(density) { 70.dp.toPx() }) { fired = true; pullUp++ }
+                } else if (available.y > 0 || consumed.y > 0) { over = 0f }
+                return androidx.compose.ui.geometry.Offset.Zero
+            }
+            override suspend fun onPreFling(available: androidx.compose.ui.unit.Velocity): androidx.compose.ui.unit.Velocity {
+                over = 0f; fired = false
+                return androidx.compose.ui.unit.Velocity.Zero
+            }
+        }
+    }
 
     PullToRefreshBox(isRefreshing = refreshing, onRefresh = {
         refreshing = true
-        store.scope.launch { refreshNow(); refreshing = false }
+        store.scope.launch { refreshNow(); deckIDs = freshDeck(); deckIndex = 0; refreshing = false }
     }) {
-        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 24.dp),
+        Column(Modifier.fillMaxSize().nestedScroll(pullUpConnection).verticalScroll(scroll).padding(horizontal = 16.dp).padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)) {
-            Greeting()
+            TodayHeader(showSwitch = deckIDs.isNotEmpty(), layout = layout) { v ->
+                layout = v
+                prefs.edit().putString("todayLayout", v).apply()
+                Analytics.track(AnalyticsEvent.TODAY_LAYOUT, mapOf("layout" to v))
+            }
             if (store.plan?.pro != true) PlanStatusPill()
-            NewScoutCard()
+            // New scout sits above today's finds (the full confirmation right after sending one).
+            NewScoutCard(compact = Router.scoutSent == null)
             if (store.isCloud && s.agents.isNotEmpty() && s.finds.isEmpty()) FirstHuntCard()
-            if (picks.isNotEmpty()) TodaysDrop(picks)
-            if (queue > 0) SwipeCard(queue, picks.isNotEmpty())
-            ForYouSection(ForYouMode.TODAY, exclude = picks.map { it.itemID }.toSet())
-            Txt("That's today. Pull down any time to check for more.", size = T.caption, color = T.muted,
-                align = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
+            if (deckIDs.isNotEmpty()) {
+                if (layout == "grid") TodayGrid(deckIDs) else TodayDeck(deckIDs, deckIndex) { deckIndex = it }
+            }
+            ForYouSection(ForYouMode.TODAY, exclude = deckItemIDs, pullUp = pullUp, nearBottom = nearBottom)
         }
+        // Back to top, once the greeting has scrolled away.
+        val showTop = scroll.value > with(density) { 120.dp.toPx() }
+        androidx.compose.animation.AnimatedVisibility(showTop, Modifier.align(Alignment.BottomEnd).padding(end = 18.dp, bottom = 14.dp),
+            enter = androidx.compose.animation.scaleIn() + androidx.compose.animation.fadeIn(),
+            exit = androidx.compose.animation.scaleOut() + androidx.compose.animation.fadeOut()) {
+            Box(Modifier.size(46.dp).shadow(10.dp, CircleShape).clip(CircleShape).background(T.gradient)
+                .clickable { scope.launch { scroll.animateScrollTo(0) } }, contentAlignment = Alignment.Center) {
+                Icon(Icons.Filled.ArrowUpward, "Back to top", tint = T.accentInk, modifier = Modifier.size(20.dp))
+            }
+        }
+    }
+}
+
+/** The greeting, with the cards / grid switch beside it. */
+@Composable
+private fun TodayHeader(showSwitch: Boolean, layout: String, onLayout: (String) -> Unit) {
+    Row(verticalAlignment = Alignment.Bottom) {
+        Box(Modifier.weight(1f)) { Greeting() }
+        if (showSwitch) {
+            val shape = RoundedCornerShape(10.dp)
+            Row(Modifier.padding(start = 8.dp, bottom = 2.dp).clip(shape).background(T.glass).border(1.dp, T.line, shape)) {
+                LayoutButton(Icons.Outlined.CropPortrait, layout == "cards", "Swipe cards") { onLayout("cards") }
+                LayoutButton(Icons.Outlined.GridView, layout == "grid", "Grid") { onLayout("grid") }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LayoutButton(icon: androidx.compose.ui.graphics.vector.ImageVector, on: Boolean, label: String, onClick: () -> Unit) {
+    Box(Modifier.size(width = 36.dp, height = 30.dp).background(if (on) T.cyan.copy(alpha = 0.18f) else Color.Transparent)
+        .clickable(enabled = !on, onClick = onClick), contentAlignment = Alignment.Center) {
+        Icon(icon, label, tint = if (on) T.cyan else T.muted, modifier = Modifier.size(16.dp))
+    }
+}
+
+/** Grid mode: today's finds as tiles, with ✕ and ♥ on each. No swiping. */
+@Composable
+private fun TodayGrid(ids: List<String>) {
+    val s = AppStore.observe()
+    val finds = ids.mapNotNull { id -> s.finds.firstOrNull { it.id == id && (it.status == FindStatus.OPEN || it.status == FindStatus.LIKED) } }
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Txt("Today's finds", size = T.title3, weight = FontWeight.Black)
+        if (finds.isEmpty()) Txt("You've been through today's finds. More for you below.", size = T.footnote, color = T.muted)
+        else Grid(finds.size) { i -> val f = finds[i]; FindTile(f) { Router.focusFind = f.id; Router.tab = AppTab.FINDS } }
     }
 }
 
@@ -120,7 +224,7 @@ private fun FirstHuntCard() {
         Row(horizontalArrangement = Arrangement.spacedBy((-8).dp)) { s.agents.take(4).forEach { AgentAvatar(it, 30.dp) } }
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            Txt("Your squad's first hunt is on", weight = FontWeight.Bold)
+            Txt("Your scouts' first hunt is on", weight = FontWeight.Bold)
             Txt("Finds usually land within a few minutes. Pull down to check.", size = T.caption, color = T.muted)
         }
         Spinner()
@@ -154,48 +258,6 @@ private fun EmptyHuntCard(first: Agent) {
     }
 }
 
-/** One line under Today's Drop: the rest of the new finds, to swipe through. */
-@Composable
-private fun SwipeCard(n: Int, picksShown: Boolean) {
-    Row(Modifier.fillMaxWidth().glass(RoundedCornerShape(14.dp), T.accent.copy(alpha = 0.10f), T.accent.copy(alpha = 0.3f))
-        .clickable { Router.open(Sheet.Swipe) }.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(22.dp).clip(RoundedCornerShape(7.dp)).background(T.gradient))
-        Spacer(Modifier.width(10.dp))
-        Txt(if (n == 1) "Swipe 1 more find" else if (picksShown) "Swipe $n more finds" else "Swipe through $n new finds",
-            weight = FontWeight.Bold, modifier = Modifier.weight(1f), maxLines = 1)
-        Icon(Icons.AutoMirrored.Filled.ArrowForward, "Right to like, left to pass, up to buy", tint = T.cyan, modifier = Modifier.size(18.dp))
-    }
-}
-
-@Composable
-private fun TodaysDrop(picks: List<Find>) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Txt("Today's Drop", size = T.title3, weight = FontWeight.Black, modifier = Modifier.weight(1f))
-            Txt("See all", size = T.footnote, weight = FontWeight.SemiBold, color = T.accent, modifier = Modifier.clickable { Router.tab = AppTab.FINDS })
-        }
-        Txt("Your squad's best ${picks.size} right now.", size = T.caption, color = T.muted)
-        picks.forEachIndexed { i, f ->
-            val item = Catalog.item(f.itemID) ?: return@forEachIndexed
-            Row(Modifier.fillMaxWidth().glass().clickable { Router.focusFind = f.id; Router.tab = AppTab.FINDS }.padding(10.dp)) {
-                GradientText("${i + 1}", 20.sp, modifier = Modifier.width(18.dp))
-                Spacer(Modifier.width(12.dp))
-                ProductThumb(item, 60.dp)
-                Spacer(Modifier.width(12.dp))
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Txt(item.title, weight = FontWeight.SemiBold, maxLines = 2)
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        DealVerdict.of(item)?.let { VerdictChip(it); Spacer(Modifier.width(6.dp)) }
-                        Txt(listOfNotNull(item.source, if (item.priceKnown && item.price > 0) item.priceLabel else null).joinToString(" · "),
-                            size = T.caption, color = T.muted, maxLines = 1)
-                    }
-                    f.why.firstOrNull()?.let { Txt(it, size = T.caption, color = T.green.copy(alpha = 0.9f), maxLines = 1) }
-                }
-            }
-        }
-    }
-}
-
 @Composable
 fun VerdictChip(v: DealVerdict, showDetail: Boolean = false) {
     val tint = when (v.level) { DealVerdict.Level.GREAT -> T.green; DealVerdict.Level.FAIR -> T.warn; DealVerdict.Level.WAIT -> T.hot; DealVerdict.Level.INFO -> T.accent }
@@ -209,30 +271,68 @@ fun VerdictChip(v: DealVerdict, showDetail: Boolean = false) {
 
 enum class ForYouMode { TODAY, FULL }
 
+/** How far Today's endless For You goes (the server's cap). */
+const val FOR_YOU_MAX_TODAY = 200
+
 /** "For You": always-on personal picks, ranked by what you like. Every heart and X sharpens it.
- *  Today: a short preview (6, nothing already in Today's Drop) with "See all". Full: everything, with filters. */
+ *  Today: one endless feed (nothing already in today's deck), more loading as you reach the bottom. Full: everything, with filters. */
 @Composable
-fun ForYouSection(mode: ForYouMode = ForYouMode.FULL, exclude: Set<String> = emptySet()) {
+fun ForYouSection(mode: ForYouMode = ForYouMode.FULL, exclude: Set<String> = emptySet(), pullUp: Int = 0, nearBottom: Int = 0) {
     val store = AppStore
     val s = store.observe()
     val context = LocalContext.current
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     var limit by remember { mutableIntStateOf(24) }
     var category by remember { mutableStateOf<Category?>(null) }
-    val all = store.forYou.filter { Catalog.item(it.id) != null && it.id !in exclude }
+    var checking by remember { mutableStateOf(false) }
+    var loading by remember { mutableStateOf(false) }
+    // The same product from several stores shows once.
+    val all = ProductMatch.dedupe(store.forYou.filter { Catalog.item(it.id) != null && it.id !in exclude }).first
     val cats = all.mapNotNull { Catalog.item(it.id)?.category }.distinct().sortedBy { it.info.label }
     val filtered = all.filter { p -> category?.let { Catalog.item(p.id)?.category == it } ?: true }
-    val picks = if (mode == ForYouMode.TODAY) filtered.take(6) else filtered
+    val picks = filtered
+    val more = store.forYou.size >= limit - 4 && limit < FOR_YOU_MAX_TODAY
+    val busy = loading || checking
+
+    /** The next batch of picks; at the end, a check for new ones right here (no trip back to the top). */
+    fun loadMoreOrCheck() {
+        if (store.forYouLoading || busy) return
+        store.scope.launch {
+            if (store.forYou.size >= limit - 4 && limit < FOR_YOU_MAX_TODAY) {
+                loading = true
+                limit = minOf(FOR_YOU_MAX_TODAY, limit + 24)
+                store.loadForYou(limit)
+                loading = false
+            } else {
+                checking = true
+                refreshNow()
+                checking = false
+            }
+        }
+    }
+    // Reaching the bottom of Today loads the next batch once (not batch after batch while you sit there).
+    LaunchedEffect(nearBottom) { if (nearBottom > 0 && mode == ForYouMode.TODAY && more) loadMoreOrCheck() }
+    LaunchedEffect(pullUp) {
+        if (pullUp > 0 && mode == ForYouMode.TODAY) {
+            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+            loadMoreOrCheck()
+        }
+    }
     LaunchedEffect(s.accountID) {
         val at = store.forYouLoadedAt
         if (at == null || at < now() - 180_000 || store.forYou.isEmpty()) store.loadForYou(limit)
     }
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         if (mode == ForYouMode.TODAY) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Txt("For You", size = T.title3, weight = FontWeight.Black, modifier = Modifier.weight(1f))
-                if (all.size > 6) Txt("See all", weight = FontWeight.SemiBold, color = T.cyan, modifier = Modifier.clickable { Router.open(Sheet.ForYou) })
-            }
+            // Today: one endless feed, filters at the top, more loading as you reach the bottom.
+            Txt("More for you", size = T.title3, weight = FontWeight.Black)
             Txt("Ranked by your taste. Every ♥ and ✕ sharpens it.", size = T.caption, color = T.muted)
+            if (cats.size > 1) {
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                    ForYouChip(category == null, "All") { category = null }
+                    cats.forEach { c -> ForYouChip(category == c, c.info.label) { category = c } }
+                }
+            }
         } else {
             Txt("Picked from everything Baget's scouts have found, ranked by your taste. Every ♥ and ✕ sharpens it.", size = T.caption, color = T.muted)
             if (store.tasteTop.isNotEmpty()) {
@@ -274,7 +374,17 @@ fun ForYouSection(mode: ForYouMode = ForYouMode.FULL, exclude: Set<String> = emp
                 Catalog.item(p.id)?.let { ForYouCard(p, it, context) }
             }
             if (mode == ForYouMode.TODAY) {
-                if (all.size > 6) GhostButton("See all For You", Modifier.fillMaxWidth()) { Router.open(Sheet.ForYou) }
+                // A button that always works (pulling up past the end does the same).
+                Row(Modifier.fillMaxWidth().padding(top = 6.dp).height(46.dp).clip(RoundedCornerShape(14.dp)).background(T.gradient)
+                    .clickable(enabled = !busy) { loadMoreOrCheck() }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                    if (busy) Spinner(16.dp, T.accentInk)
+                    else Icon(if (more) Icons.Filled.ArrowDownward else Icons.Filled.Refresh, null, tint = T.accentInk, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Txt(if (busy) "Loading…" else if (more) "Load more picks" else "Check for new picks", weight = FontWeight.Bold, color = T.accentInk)
+                }
+                // Reaching the bottom loads the next batch once (not batch after batch while you sit there).
+                if (!more) Txt("That's everything for now.", size = T.caption, color = T.muted,
+                    align = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.fillMaxWidth())
             } else if (store.forYou.size >= limit - 2 && limit < 120) {
                 GhostButton("Show more", Modifier.fillMaxWidth()) {
                     limit = minOf(120, limit + 24)
@@ -329,14 +439,15 @@ private fun ForYouCard(p: ForYouItem, item: Item, context: android.content.Conte
             Spacer(Modifier.width(4.dp))
             Txt(p.reason, size = T.caption2, weight = FontWeight.Medium, color = tint, maxLines = 1)
         }
+        // ✕ left, ♥ right: the same way you swipe.
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Box(Modifier.weight(1f).height(34.dp).glass(CircleShape).clickable {
+                store.reactForYou(p, ForYouAction.DISMISS); Router.say("Got it, fewer like this")
+            }, contentAlignment = Alignment.Center) { Icon(Icons.Filled.Close, "Not for me", tint = T.muted, modifier = Modifier.size(16.dp)) }
             Box(Modifier.weight(1f).height(34.dp).clip(CircleShape).background(T.gradient).clickable {
                 store.reactForYou(p, ForYouAction.LIKE)
                 Router.say(if (store.state.agents.isEmpty()) "Liked. Baget will show more like this" else "Saved to Finds. More like this coming")
             }, contentAlignment = Alignment.Center) { Icon(Icons.Filled.Favorite, "Like", tint = T.accentInk, modifier = Modifier.size(16.dp)) }
-            Box(Modifier.weight(1f).height(34.dp).glass(CircleShape).clickable {
-                store.reactForYou(p, ForYouAction.DISMISS); Router.say("Got it, fewer like this")
-            }, contentAlignment = Alignment.Center) { Icon(Icons.Filled.Close, "Not for me", tint = T.muted, modifier = Modifier.size(16.dp)) }
         }
     }
 }

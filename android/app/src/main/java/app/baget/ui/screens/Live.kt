@@ -63,7 +63,7 @@ fun LiveFeed() {
                         Router.deployPrefill = Mission.Custom(k.query); Router.open(Sheet.Deploy)
                     }
                 }
-                LiveTabKind.ForYou -> EmptyCard("Your squad hasn't picked anything yet. Set up a scout or rate a few finds and this fills up.")
+                LiveTabKind.ForYou -> EmptyCard("Your scouts haven't picked anything yet. Set up a scout or rate a few finds and this fills up.")
                 else -> EmptyCard("No stories here yet.")
             }
             else -> {
@@ -76,7 +76,7 @@ fun LiveFeed() {
             }
         }
         Trending()
-        if (!store.isCloud) Txt("Sample data. Sign in to have your squad search the real web.", size = T.caption, color = T.muted)
+        if (!store.isCloud) Txt("Sample data. Sign in to have your scouts search the real web.", size = T.caption, color = T.muted)
     }
 }
 
@@ -186,9 +186,9 @@ private fun AwayCard(r: AwayReport) {
     Column(Modifier.fillMaxWidth().glassCard(highlighted = true), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         GradientText("WHILE YOU WERE AWAY · ${if (r.minutes >= 90) "${safeRound(r.minutes / 60.0)} HOURS" else "${r.minutes} MINUTES"}", T.caption, FontWeight.Bold)
         Txt(if (r.sweeps > 0)
-            "Your squad ran ${r.sweeps} sweep${if (r.sweeps == 1) "" else "s"}, checked about ${r.checked} listings and found ${r.found} new thing${if (r.found == 1) "" else "s"} for you." +
+            "Your scouts ran ${r.sweeps} sweep${if (r.sweeps == 1) "" else "s"}, checked about ${r.checked} listings and found ${r.found} new thing${if (r.found == 1) "" else "s"} for you." +
                 (if (r.restocks > 0) " One of your watched items restocked." else "") + (if (r.bought > 0) " Auto-buy landed ${r.bought}." else "")
-        else "Your squad kept searching the web and found ${r.found} new thing${if (r.found == 1) "" else "s"} for you." +
+        else "Your scouts kept searching the web and found ${r.found} new thing${if (r.found == 1) "" else "s"} for you." +
             (if (r.restocks > 0) " Something you're watching restocked." else ""))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             PrimaryButton("${r.notes} notification${if (r.notes == 1) "" else "s"}", Modifier.weight(1f)) { Router.open(Sheet.Inbox) }
@@ -207,7 +207,7 @@ fun CustomizeBarSheet() {
     val hidden = LiveTab.presets.filter { p -> s.liveTabs.none { it.id == p.id } }
 
     fun describe(t: LiveTab) = when (val k = t.kind) {
-        LiveTabKind.ForYou -> "Ranked by what your squad knows you like"
+        LiveTabKind.ForYou -> "Ranked by what your scouts know you like"
         LiveTabKind.Latest -> "Everything, newest first"
         is LiveTabKind.Cat -> "Category"
         is LiveTabKind.Custom -> "Your section · matches “${k.query}”"

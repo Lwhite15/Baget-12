@@ -167,9 +167,10 @@ fun NewScoutSheet() {
                 else "Describe your taste, not one item. Your scout keeps hunting for weeks and brings you things you didn't know to look for.",
                 color = T.muted)
             Field(text, { v -> if (v.contains("\n")) { text = v.replace("\n", " ").trim(); send() } else text = v },
-                if (specific) "e.g. black Dior men's sunglasses, under \$500" else "e.g. indie perfume houses, citrus and green scents, nothing too sweet",
+                if (specific) "e.g. black Dior men's sunglasses, under \$500" else "Describe your taste: brands, sizes, budget, what you don't like…",
                 Modifier.fillMaxWidth(), singleLine = false, minLines = 3, maxLines = 5, enabled = !working,
                 keyboard = KeyboardOptions(imeAction = ImeAction.Send), actions = KeyboardActions(onSend = { send() }))
+            DetailsMatterCard(compact = true)
             if (specific) {
                 Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                     Kick("For example", modifier = Modifier.padding(top = 2.dp))
@@ -200,6 +201,7 @@ fun NewScoutSheet() {
             PrimaryButton(if (working) "Sending…" else "Send scout", Modifier.fillMaxWidth(), enabled = ready && !working, busy = working) { send() }
             val p = store.syncProblem
             if (p != null && p.isNotEmpty() && !working) Txt(p, size = T.footnote, color = T.hot)
+            ChangeAnyTimeNote()
             if (!specific) {
                 val stroke = T.line
                 Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Color.Black.copy(alpha = 0.25f))
@@ -373,5 +375,52 @@ fun NoScoutSheet() {
                 align = androidx.compose.ui.text.style.TextAlign.Center)
             PrimaryButton("Set up a scout") { Router.close(); Router.deployPrefill = null; Router.open(Sheet.Deploy) }
         }
+    }
+}
+
+/** Setup and new scouts: why details matter, with a vague vs. specific example and what to mention. */
+@Composable
+fun DetailsMatterCard(compact: Boolean = false) {
+    val shape = RoundedCornerShape(16.dp)
+    Column(Modifier.fillMaxWidth().clip(shape)
+        .background(Brush.linearGradient(listOf(T.blue.copy(alpha = 0.20f), T.green.copy(alpha = 0.12f))))
+        .border(1.dp, T.cyan.copy(alpha = 0.4f), shape).padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Filled.AutoAwesome, null, tint = T.ink, modifier = Modifier.size(15.dp))
+            Spacer(Modifier.width(6.dp))
+            Txt("The more you tell your scouts, the better they hunt", weight = FontWeight.Bold)
+        }
+        Txt("Scouts only know what you share. A few details turn generic results into things you'd actually buy.",
+            size = T.caption, color = T.ink.copy(alpha = 0.8f))
+        if (!compact) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            DetailsExample("TOO VAGUE", T.hot, "“Fragrance”", Modifier.weight(1f))
+            DetailsExample("SPOT ON", T.green, "“Fresh citrus scents like Le Labo, under \$200, nothing sweet”", Modifier.weight(1f))
+        }
+        Flow {
+            listOf("Brands you love", "Brands to skip", "Sizes", "Budget", "Colors & styles", "What it's for").forEach { t ->
+                Box(Modifier.clip(CircleShape).background(Color.Black.copy(alpha = 0.25f)).padding(horizontal = 8.dp, vertical = 4.dp)) {
+                    Txt(t, size = T.caption2, color = T.ink.copy(alpha = 0.9f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DetailsExample(title: String, tint: Color, text: String, modifier: Modifier) {
+    Column(modifier.clip(RoundedCornerShape(10.dp)).background(Color.Black.copy(alpha = 0.25f)).padding(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Txt(title, size = 9.5.sp, weight = FontWeight.Black, tracking = 0.7.sp, color = tint)
+        Txt(text, size = T.caption, color = T.ink.copy(alpha = 0.9f))
+    }
+}
+
+/** "Nothing's locked in": scouts can be changed any time. */
+@Composable
+fun ChangeAnyTimeNote() {
+    Row(Modifier.fillMaxWidth().glass(RoundedCornerShape(12.dp)).padding(10.dp)) {
+        Icon(Icons.Filled.Edit, null, tint = T.cyan, modifier = Modifier.size(13.dp).padding(top = 2.dp))
+        Spacer(Modifier.width(8.dp))
+        Txt("Nothing's locked in. Change what any scout hunts any time: Scouts, then ••• on the scout, or just text it.",
+            size = T.caption, color = T.ink.copy(alpha = 0.8f))
     }
 }

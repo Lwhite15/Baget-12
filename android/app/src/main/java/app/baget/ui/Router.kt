@@ -59,6 +59,20 @@ object Router {
     /** A find to scroll to and highlight on the Finds tab. */
     var focusFind by mutableStateOf<String?>(null)
     var scoutSent by mutableStateOf<ScoutSent?>(null)
+    /** Bumped when you tap Today while already on it: Today scrolls back to the top. */
+    var todayTop by mutableIntStateOf(0)
+    /** "Not my size" on a scout that doesn't know your size yet: Baget asks once (the dialog lives in Root). */
+    var askSize by mutableStateOf<String?>(null)
+
+    /** The note after passing on a find (or the size question, for "Not my size" on a scout without a size). */
+    fun passed(r: PassReason, agent: Agent?) {
+        val name = agent?.name ?: "Your scout"
+        if (r == PassReason.SIZE && agent != null) {
+            if (agent.size.isBlank()) askSize = agent.id else say("Passed. $name will stick to size ${agent.size}")
+            return
+        }
+        say(if (r == PassReason.LATER) "Passed" else "Passed. $name is learning from that")
+    }
 
     val sheet: Sheet? get() = sheets.lastOrNull()
     fun open(s: Sheet) { sheets.add(s) }

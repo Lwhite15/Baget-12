@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit
 
 /** Product events. Names match the backend's metric views. */
 enum class AnalyticsEvent(val raw: String) {
-    APP_OPENED("app_opened"), LIVE_SECTION_VIEWED("live_section_viewed"), CUSTOM_SECTION_ADDED("custom_section_added"),
+    APP_OPENED("app_opened"), TODAY_LAYOUT("today_layout"), LIVE_SECTION_VIEWED("live_section_viewed"), CUSTOM_SECTION_ADDED("custom_section_added"),
     BACKGROUND_SIMULATED("background_simulated"),
     AGENT_DEPLOYED("agent_deployed"), AGENT_RETIRED("agent_retired"), AGENT_SETTING_CHANGED("agent_setting_changed"),
     AGENT_LEARNED("agent_learned"), TASTE_PHOTO_ADDED("taste_photo_added"), SIGNED_IN("signed_in"), AVATAR_CHANGED("avatar_changed"),

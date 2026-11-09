@@ -164,13 +164,7 @@ fun OnboardingScreen(onDone: () -> Unit) {
                     }
                     if (full && store.isCloud && !store.isPro) Txt("Free includes 2 scouts. You can go Pro any time for up to 5, hunting around the clock.", size = T.caption, color = T.muted)
                     Column(Modifier.padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Txt("Tell your scouts what you're into", weight = FontWeight.SemiBold)
-                        Txt("Your taste, not one item: styles, brands, what you use it for, what you don't like. Anything not listed above, just describe it and your scouts will hunt it.",
-                            size = T.caption, color = T.muted)
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Icon(Icons.Filled.AutoAwesome, null, tint = T.cyan, modifier = Modifier.size(12.dp).padding(top = 2.dp))
-                            Txt("“Indie citrus perfumes, nothing too sweet” · “Fly fishing gear for trout”", size = T.caption, color = T.ink.copy(alpha = 0.8f), italic = true)
-                        }
+                        DetailsMatterCard()
                         // Opens a full-height editor, so what you write stays readable while you type.
                         Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(T.bg.copy(alpha = 0.6f))
                             .border(1.dp, T.line, RoundedCornerShape(14.dp)).clickable { editingWords = true }.padding(12.dp),
@@ -179,6 +173,7 @@ fun OnboardingScreen(onDone: () -> Unit) {
                                 maxLines = 6, modifier = Modifier.weight(1f).heightIn(min = 66.dp))
                             Icon(if (text.isEmpty()) Icons.Filled.EditNote else Icons.Filled.Edit, null, tint = T.accent)
                         }
+                        ChangeAnyTimeNote()
                     }
                 }
                 PrimaryButton("Next", Modifier.fillMaxWidth(), enabled = pickedCount > 0 || text.isNotBlank()) { if (picked.isEmpty()) startQuiz() else step = 1 }
@@ -303,9 +298,9 @@ fun OnboardingScreen(onDone: () -> Unit) {
                 }
                 Spacer(Modifier.weight(1f))
                 if (working) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                    Spinner(); Spacer(Modifier.width(10.dp)); Txt("Building your squad…", color = T.muted)
+                    Spinner(); Spacer(Modifier.width(10.dp)); Txt("Building your scouts…", color = T.muted)
                 } else {
-                    PrimaryButton(if (photos.isEmpty()) "Skip and build my squad" else "Build my squad with these", Modifier.fillMaxWidth()) { build() }
+                    PrimaryButton(if (photos.isEmpty()) "Skip and build my scouts" else "Build my scouts with these", Modifier.fillMaxWidth()) { build() }
                     if (photos.isNotEmpty()) TextButton(onClick = { photos.clear(); build() }, modifier = Modifier.fillMaxWidth()) {
                         Txt("Build without photos", size = T.footnote, weight = FontWeight.SemiBold, color = T.accent)
                     }
@@ -315,7 +310,7 @@ fun OnboardingScreen(onDone: () -> Unit) {
             else -> {
                 val newest = s.finds.filter { it.status == FindStatus.OPEN }.sortedByDescending { it.foundAt }.take(3)
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    Txt(if (newest.isEmpty()) "Your squad is hunting" else "First finds are in", size = 30.sp, weight = FontWeight.Black)
+                    Txt(if (newest.isEmpty()) "Your scouts are hunting" else "First finds are in", size = 30.sp, weight = FontWeight.Black)
                     Txt(if (made > 0) "They're searching stores, resale sites and small shops for you right now."
                         else "Tell Baget what you're hunting on Today and a scout starts right away.", color = T.muted)
                     Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -341,6 +336,7 @@ fun OnboardingScreen(onDone: () -> Unit) {
                             Txt("⏱  First finds land in a few minutes, right in Finds", size = T.footnote)
                             Txt("↻  " + if (store.isPro) "Then they hunt every 6 hours, around the clock" else "Then they hunt every day and keep your finds fresh", size = T.footnote)
                             Txt("♡  Like or pass what they bring, and they learn your taste fast", size = T.footnote)
+                            Txt("✎  Change any scout any time: tell it more, add a brand or size, or start over. Scouts, then ••• on any scout", size = T.footnote)
                             Txt("◎  Hunting one specific thing? Send a specific scout from Today any time", size = T.footnote)
                         }
                         val trial = Billing.proTrial

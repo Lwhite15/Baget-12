@@ -32,7 +32,7 @@ fun SquadScreen() {
     val s = store.observe()
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        SectionTitle("Your squad")
+        SectionTitle("Your scouts")
         NewScoutCard(compact = true)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             GhostButton("What Baget knows", Modifier.weight(1f), icon = Icons.Filled.Psychology) { Router.open(Sheet.Taste) }
@@ -53,7 +53,7 @@ fun SquadScreen() {
             specific.forEach { a -> key(a.id) { AgentCard(a) } }
         }
         Column(Modifier.fillMaxWidth().glassCard(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Kick("Squad activity")
+            Kick("Scout activity")
             if (s.log.isEmpty()) Txt("No activity yet.", size = T.footnote, color = T.muted)
             s.log.take(6).forEach { l ->
                 Row {
@@ -73,7 +73,11 @@ private fun AgentCard(agent: Agent) {
     val k = Matcher.intel(agent)
     val finds = s.finds.count { it.agentID == agent.id }
     val learned = agent.learned.filter { it.value != 0 }.entries.sortedByDescending { kotlin.math.abs(it.value) }.take(8)
-    val styleTags = agent.style.traits + agent.style.makers + agent.style.creators
+    // Show "season:aw26" as "aw26": the part before the colon is for the scout, not for people. No repeats.
+    val styleTags = (agent.style.traits + agent.style.makers + agent.style.creators).map { t ->
+        val parts = t.split(":", limit = 2); if (parts.size == 2) parts[1] else t
+    }.distinct()
+    var menuOpen by remember { mutableStateOf(false) }
 
     fun change(name: String, edit: (Agent) -> Unit) {
         val a = agent.deepCopy(); edit(a); store.update(a)
@@ -84,14 +88,31 @@ private fun AgentCard(agent: Agent) {
         Row(verticalAlignment = Alignment.Top) {
             Box(Modifier.clickable { Router.open(Sheet.AgentIcon(agent.id)) }) { AgentAvatar(agent, 46.dp) }
             Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                // The full name, on up to two lines; the Interest / Specific tag moves under it.
+                Txt(agent.name, size = T.title3, weight = FontWeight.Black, maxLines = 2)
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Txt(agent.name, size = T.title3, weight = FontWeight.Black, maxLines = 1, modifier = Modifier.weight(1f, fill = false))
-                    Spacer(Modifier.width(6.dp))
                     FocusTag(agent.isSpecific)
+                    Spacer(Modifier.width(6.dp))
+                    Txt("${agent.mission.label} · $finds ${if (finds == 1) "find" else "finds"}", size = T.caption, color = T.muted, mono = true, maxLines = 1)
                 }
-                Txt("${agent.mission.label} · $finds ${if (finds == 1) "find" else "finds"}", size = T.caption, color = T.muted, mono = true)
             }
+            // Change or delete it, right from the top of its card.
+            Box {
+                Box(Modifier.size(34.dp).clip(CircleShape).background(T.glass).clickable { menuOpen = true }, contentAlignment = Alignment.Center) {
+                    Icon(Icons.Filled.MoreHoriz, "Change or delete ${agent.name}", tint = T.muted, modifier = Modifier.size(18.dp))
+                }
+                DropdownMenu(menuOpen, onDismissRequest = { menuOpen = false }, containerColor = T.panel) {
+                    DropdownMenuItem(text = { Txt("Change what it hunts") }, leadingIcon = { Icon(Icons.Filled.Edit, null, tint = T.ink) },
+                        onClick = { menuOpen = false; if (store.isCloud) Router.open(Sheet.Chat(agent.id)) })
+                    DropdownMenuItem(text = { Txt(if (agent.isOff) "Turn on" else "Turn off") },
+                        leadingIcon = { Icon(if (agent.isOff) Icons.Filled.PlayArrow else Icons.Filled.Pause, null, tint = T.ink) },
+                        onClick = { menuOpen = false; store.setOff(agent.id, !agent.isOff) })
+                    DropdownMenuItem(text = { Txt("Delete scout…", color = T.hot) }, leadingIcon = { Icon(Icons.Filled.Delete, null, tint = T.hot) },
+                        onClick = { menuOpen = false; confirmRetire = true })
+                }
+            }
+            Spacer(Modifier.width(6.dp))
             Column(horizontalAlignment = Alignment.End) {
                 Switch(checked = !agent.isOff, onCheckedChange = { on ->
                     store.setOff(agent.id, !on)
@@ -156,23 +177,37 @@ private fun AgentCard(agent: Agent) {
             Txt("Delete ${agent.name}", size = T.footnote, weight = FontWeight.SemiBold, color = T.hot)
         }
     }
-    if (confirmRetire) AlertDialog(onDismissRequest = { confirmRetire = false }, containerColor = T.panel,
-        title = { Txt("Delete ${agent.name}?", size = T.body, weight = FontWeight.Bold) },
-        text = { Txt("It stops hunting for good and what it learned is lost. Its finds stay in your Finds.", color = T.muted) },
-        confirmButton = { TextButton(onClick = {
-            confirmRetire = false
-            store.retire(agent.id)
-            Analytics.track(AnalyticsEvent.AGENT_RETIRED, mapOf("mission" to agent.mission.label))
-            Router.say("${agent.name} deleted")
-        }) { Txt("Delete", color = T.hot, weight = FontWeight.Bold) } },
-        dismissButton = {
-            Row {
-                if (!agent.isOff) TextButton(onClick = { confirmRetire = false; store.setOff(agent.id, true); Router.say("${agent.name} is off") }) {
-                    Txt("Just turn it off", color = T.accent)
+    if (confirmRetire) {
+        val mine = s.finds.filter { it.agentID == agent.id && (it.status == FindStatus.OPEN || it.status == FindStatus.LIKED) }.map { it.id }
+        AlertDialog(onDismissRequest = { confirmRetire = false }, containerColor = T.panel,
+            title = { Txt("Delete ${agent.name}?", size = T.body, weight = FontWeight.Bold) },
+            text = {
+                Column {
+                    Txt("It stops hunting for good and what it learned is lost. You can clear its finds too, or keep them in Finds.", color = T.muted)
+                    Spacer(Modifier.height(10.dp))
+                    if (mine.isNotEmpty()) Txt("Delete it and clear its ${mine.size} finds", color = T.hot, weight = FontWeight.Bold,
+                        modifier = Modifier.fillMaxWidth().clickable {
+                            confirmRetire = false
+                            store.removeFinds(mine)
+                            store.retire(agent.id)
+                            Analytics.track(AnalyticsEvent.AGENT_RETIRED, mapOf("mission" to agent.mission.label, "cleared" to mine.size))
+                            Router.say("${agent.name} and its finds are gone")
+                        }.padding(vertical = 12.dp))
+                    Txt(if (mine.isEmpty()) "Delete" else "Delete it, keep its finds", color = T.hot, weight = FontWeight.Bold,
+                        modifier = Modifier.fillMaxWidth().clickable {
+                            confirmRetire = false
+                            store.retire(agent.id)
+                            Analytics.track(AnalyticsEvent.AGENT_RETIRED, mapOf("mission" to agent.mission.label))
+                            Router.say("${agent.name} deleted")
+                        }.padding(vertical = 12.dp))
+                    if (!agent.isOff) Txt("Just turn it off", color = T.accent, modifier = Modifier.fillMaxWidth().clickable {
+                        confirmRetire = false; store.setOff(agent.id, true); Router.say("${agent.name} is off")
+                    }.padding(vertical = 12.dp))
                 }
-                TextButton(onClick = { confirmRetire = false }) { Txt("Cancel", color = T.muted) }
-            }
-        })
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { confirmRetire = false }) { Txt("Cancel", color = T.muted) } })
+    }
 }
 
 @Composable

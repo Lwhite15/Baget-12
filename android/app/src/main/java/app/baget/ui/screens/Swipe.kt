@@ -82,7 +82,7 @@ fun SwipeSheet() {
                     val outY = if (action == "buy") -1800f else dy.value
                     when (action) {
                         "like" -> { store.like(f.id); liked++ }
-                        "pass" -> { store.pass(f.id, PassReason.STYLE); passed++ }
+                        "pass" -> { store.pass(f.id, PassReason.PRODUCT); passed++ }
                         "buy" -> BuyLink.url(item)?.let { link ->
                             Analytics.track(AnalyticsEvent.CHECKOUT_OPENED, mapOf("category" to item.category.raw, "toStore" to true, "from" to "swipe"))
                             Router.buyOpened = f.id
@@ -152,8 +152,8 @@ fun SwipeSheet() {
                 Spacer(Modifier.height(40.dp))
                 Icon(Icons.Filled.Verified, null, tint = T.green, modifier = Modifier.size(54.dp))
                 Txt(if (ids.isEmpty()) "No new finds right now" else "All caught up", size = T.title2, weight = FontWeight.Black)
-                Txt(if (ids.isEmpty()) "Your squad keeps hunting in the background and will text you."
-                    else "$liked liked, $passed passed. Your squad just got sharper; their next search uses it.", color = T.muted,
+                Txt(if (ids.isEmpty()) "Your scouts keep hunting in the background and will text you."
+                    else "$liked liked, $passed passed. Your scouts just got sharper; their next search uses it.", color = T.muted,
                     align = androidx.compose.ui.text.style.TextAlign.Center)
                 PrimaryButton("Back to Today", Modifier.widthIn(max = 240.dp)) { Router.close() }
             }

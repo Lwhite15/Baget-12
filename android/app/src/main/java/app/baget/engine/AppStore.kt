@@ -15,6 +15,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
 import java.io.File
 import java.util.Calendar
 import kotlin.math.max
@@ -31,8 +33,24 @@ data class Story(
 
 data class FriendTake(val text: String, val caution: Boolean)
 
-enum class PassReason(val label: String) {
-    STYLE("Not my style"), PRICE("Too pricey"), OWN("Have one like it"), LATER("Just not now");
+/** Why you passed on a find. Each teaches the scout something different. (`raw` is what the server stores.) */
+enum class PassReason(val raw: String) {
+    BRAND("Not into the brand"), SIZE("Wrong size"), PRODUCT("Not this product"), PRICE("Too pricey"), LATER("Just not now");
+
+    /** What the button says, naming the brand when there is one. */
+    fun label(item: Item): String = when (this) {
+        BRAND -> if (item.brand.isEmpty()) "Not into this brand" else "Not into ${item.brand}"
+        SIZE -> "Not my size"
+        PRODUCT -> "Not this product"
+        PRICE -> "Too expensive"
+        LATER -> "Just not right now"
+    }
+
+    companion object {
+        /** The reasons that make sense for this item ("Not my size" only for things that come in sizes). */
+        fun options(item: Item): List<PassReason> =
+            if (item.category == Category.SNEAKERS || item.category == Category.APPAREL) entries else entries.filter { it != SIZE }
+    }
 }
 
 /**
@@ -305,7 +323,10 @@ object AppStore {
     suspend fun cameBack(goneMinutes: Double) {
         if (isCloud) {
             val since = state.lastSeen
+            // Check in: scouts slow down while you're away. If they had, they hunt right now instead of at the next slot.
+            val wasAway = try { (Backend.rpc("touch_active") as? JsonPrimitive)?.booleanOrNull ?: false } catch (_: Exception) { false }
             pull()
+            if (wasAway) scope.launch { cloudSweep() }
             scope.launch { loadForYou() }
             val found = state.finds.count { it.foundAt > since }
             val notes = state.notes.count { it.date > since }
@@ -515,12 +536,28 @@ object AppStore {
         val item = Catalog.item(f.itemID) ?: return
         if (f.status == FindStatus.LIKED) learn(f.agentID, item, -2)
         f.status = FindStatus.PASSED
-        val reasonText = reason.label.lowercase()
+        val reasonText = reason.raw.lowercase()
         f.passReason = reasonText
+        // The same product from other stores goes too (the server does the same), so it doesn't come straight back.
+        for (o in state.finds) if (o.id != findID && o.status == FindStatus.OPEN) {
+            val other = Catalog.item(o.itemID)
+            if (other != null && ProductMatch.same(item, other)) o.status = FindStatus.PASSED
+        }
         push { it.update("finds", "id=eq.$findID", jobj("status" to "passed", "pass_reason" to reasonText)) }
         val aid = f.agentID
         when (reason) {
-            PassReason.STYLE -> learn(aid, item, -2, "you're not into ${item.traits.take(2).joinToString(", ")}")
+            PassReason.BRAND -> {
+                // Steer clear of the brand itself: the strongest "not into", and off the scout's brand list.
+                val i = agentIndex(aid)
+                if (item.brand.isNotEmpty() && i != null) {
+                    val a = state.agents[i]
+                    a.learned[TextMatch.norm(item.brand)] = -3
+                    a.style.makers.removeAll { TextMatch.norm(it) == TextMatch.norm(item.brand) }
+                    log("${a.name} will steer clear of ${item.brand}")
+                    pushAgent(aid)
+                }
+            }
+            PassReason.PRODUCT -> learn(aid, item, -1, "you passed on ${item.title}")
             PassReason.PRICE -> {
                 // Only a real price can set a price preference ("under $0" is nonsense).
                 val i = agentIndex(aid)
@@ -532,9 +569,19 @@ object AppStore {
                     pushAgent(aid)
                 }
             }
-            PassReason.OWN -> log("${agent(aid)?.name ?: "Agent"} will skip near-duplicates of ${item.title}")
-            PassReason.LATER -> {}
+            PassReason.SIZE, PassReason.LATER -> {}   // a size miss says nothing about their taste
         }
+        save()
+    }
+
+    /** The size a scout hunts in (from "Not my size" when it didn't know yet). */
+    fun setSize(agentID: String, size: String) {
+        val s = size.trim()
+        val i = agentIndex(agentID)
+        if (s.isEmpty() || i == null) return
+        state.agents[i].size = s.take(40)
+        log("${state.agents[i].name} will stick to size ${state.agents[i].size}")
+        pushAgent(agentID)
         save()
     }
 
