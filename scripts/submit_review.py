@@ -81,6 +81,9 @@ rid = rs["id"]
 items = call("GET", f"/reviewSubmissions/{rid}/items?include=appStoreVersion")["data"]
 has_version = any((i.get("relationships", {}).get("appStoreVersion", {}).get("data") or {}).get("id") == vid for i in items)
 note(f"Review submission has {len(items)} item(s); version included: {has_version}")
+for i in items:
+    rel = {k: (v.get("data") or {}).get("id") for k, v in (i.get("relationships") or {}).items() if isinstance(v, dict) and v.get("data")}
+    note(f"  item {i['id']}: {i['attributes'].get('state')} {rel}")
 if not has_version:
     try:
         call("POST", "/reviewSubmissionItems", {"data": {"type": "reviewSubmissionItems", "relationships": {
