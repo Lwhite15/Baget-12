@@ -104,13 +104,13 @@ struct Item: Identifiable, Hashable, Codable {
     let category: Category
     let sku: String
     /// 0 when the store doesn't show a price yet (see `priceKnown`).
-    let price: Double
+    var price: Double
     /// Typical resale or secondhand price. Equals `price` when unknown.
     let market: Double
     let source: String
     /// Sample listings only: minutes after the catalog start when this goes live. Zero or less means available now.
     let dropOffset: Double
-    let soldOutAtStart: Bool
+    var soldOutAtStart: Bool
     let creator: String?
     let traits: [String]
     let tags: [String]
@@ -136,6 +136,8 @@ struct Item: Identifiable, Hashable, Codable {
     /// Stores outside the US: the price in the store's own currency (`price` is converted to US dollars).
     var origPrice: Double? = nil
     var origCurrency: String? = nil
+    /// When the store's own page last said it's in stock. "Buy" only shows when this is recent; otherwise "Check at <store>".
+    var stockSeenAt: Date? = nil
 }
 
 struct Offer: Codable, Hashable {

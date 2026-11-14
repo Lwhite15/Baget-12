@@ -126,6 +126,50 @@ final class AppStore {
     // MARK: - Availability
 
     func dropDate(_ item: Item) -> Date { item.dropAt ?? state.catalogStart.addingTimeInterval(item.dropOffset * 60) }
+    // MARK: Buy button honesty
+
+    enum BuyKind { case buy, check, resale }
+    /// Resale marketplaces: "Buy" there means picking a seller and a price, not a store's own stock.
+    nonisolated static let resaleSites = ["stockx", "goat", "flightclub", "stadiumgoods", "ebay", "mercari", "grailed", "poshmark", "depop", "kickscrew", "therealreal", "vestiaire"]
+    nonisolated static func isResale(_ item: Item) -> Bool {
+        let s = (item.source + " " + (item.url ?? "")).lowercased().replacingOccurrences(of: " ", with: "")
+        return resaleSites.contains { s.contains($0) }
+    }
+    /// "Buy" only when the store's page said in stock in the last two days and the price is known. A page Baget couldn't
+    /// read (resale sites, script-built pages) gets "Check at <store>", never a buy button that might lead to a sold-out page.
+    nonisolated static func buyKind(_ item: Item, now: Date = .now) -> BuyKind {
+        if item.isSample { return .buy }
+        if isResale(item) && !item.priceKnown { return .resale }
+        if let seen = item.stockSeenAt, now.timeIntervalSince(seen) < 48 * 3600, item.priceKnown { return .buy }
+        return .check
+    }
+    func buyLabel(_ item: Item, short: Bool = false) -> String {
+        switch Self.buyKind(item) {
+        case .buy: return short ? String(localized: "Buy") : String(localized: "Buy at \(item.source)")
+        case .check: return short ? String(localized: "Check") : String(localized: "Check at \(item.source)")
+        case .resale: return short ? String(localized: "Prices") : String(localized: "See resale prices")
+        }
+    }
+
+    /// Bumped when a find's stock or price is re-checked, so open screens redraw.
+    var stockTick = 0
+
+    private struct CheckResult: Decodable { let soldOut: Bool; let price: Double?; let stockSeenAt: Date? }
+    /// Opening a find re-reads its store page (the server does it at most hourly per product) and updates price and stock.
+    func recheck(_ item: Item) async {
+        guard Catalog.useCloud, !item.isSample, item.url != nil, Backend.shared.isSignedIn else { return }
+        guard let r = try? await Backend.shared.function("check", ["listing_id": item.id], as: CheckResult.self) else { return }
+        guard var it = Catalog.cloud[item.id] else { return }
+        let before = it
+        it.soldOutAtStart = r.soldOut
+        if let p = r.price, p > 0 { it.price = p; it.priceKnown = true }
+        it.stockSeenAt = r.stockSeenAt
+        guard it != before else { return }
+        Catalog.cloud[item.id] = it
+        if let i = state.listings.firstIndex(where: { $0.id == item.id }) { state.listings[i] = it }
+        stockTick += 1
+    }
+
     func isSoldOut(_ item: Item) -> Bool { item.soldOutAtStart && !state.restockedItemIDs.contains(item.id) }
     func isLive(_ item: Item) -> Bool { !isSoldOut(item) && dropDate(item) <= .now }
 

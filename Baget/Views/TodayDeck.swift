@@ -131,9 +131,9 @@ struct TodayDeck: View {
     }
 
     @ViewBuilder private func buyButton(_ f: Find, _ item: Item) -> some View {
-        if BuyLink.url(item) != nil {
+        if BuyLink.url(item) != nil && !store.isSoldOut(item) {
             Button { act(.buy, f, item) } label: {
-                Label("Buy", systemImage: "arrow.up.right").font(.subheadline.weight(.bold)).foregroundStyle(Theme.cyan)
+                Label(store.buyLabel(item, short: true), systemImage: "arrow.up.right").font(.subheadline.weight(.bold)).foregroundStyle(Theme.cyan)
                     .padding(.horizontal, 16).frame(height: 52)
                     .background(Theme.glass, in: Capsule()).overlay(Capsule().strokeBorder(Theme.line))
             }

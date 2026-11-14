@@ -232,7 +232,7 @@ Rules:
 - The title is the exact product name as the page shows it, including model, colorway or variant.
 - Price in US dollars as a number, or null if the page doesn't show one. "market" is the typical resale or secondhand price if you saw one, else null.
 - drop_at is the release date and time in ISO 8601 if it's upcoming, else null.
-- sizes_in_stock only if the page lists them, else null.
+- sizes_in_stock only if the page itself lists which sizes are available, else null. Never fill in the person's own size.
 - traits are short lowercase descriptors of the product (materials, colors, notes, specs, era).
 - Up to 12 products and releases. Every one should be a strong fit; never pad with weak ones.
 - Between searches, don't write notes or commentary: just search. Your only writing is the final JSON.
@@ -243,6 +243,14 @@ End your reply with only this JSON in a \`\`\`json block:
 
 /** Cleans what Claude returned. Anything without a real web address is dropped. */
 /** Search results and category pages aren't products. eBay items live under /itm/. */
+const ONE_OFF_MARKETS = /(^|\.)(ebay|mercari|grailed|poshmark|depop|vinted|therealreal|vestiairecollective)\./i;
+
+/** "11.5", "US 11.5", "11.5 M" and "M 11.5" are the same size. */
+export function sameSize(a: string, b: string): boolean {
+  const n = (x: string) => x.toLowerCase().replace(/\b(us|men'?s|mens|m|size)\b/g, " ").replace(/[^a-z0-9.]+/g, " ").trim();
+  return n(a) !== "" && n(a) === n(b);
+}
+
 export function isSearchPage(url: string): boolean {
   let u: URL;
   try { u = new URL(url); } catch { return true; }
@@ -263,7 +271,7 @@ export function cleanAbout(text: string): string | null {
   return kept.length > 15 ? kept.slice(0, 400) : null;
 }
 
-export function cleanListings(raw: unknown, fallbackCategory: string): (Listing & { fingerprint: string; url: string; sku: string; image_url: string | null; discovery: boolean; about: string | null; pitch: string; text: string })[] {
+export function cleanListings(raw: unknown, fallbackCategory: string, agentSize = ""): (Listing & { fingerprint: string; url: string; sku: string; image_url: string | null; discovery: boolean; about: string | null; pitch: string; text: string })[] {
   const arr = (raw as { listings?: unknown[] })?.listings;
   if (!Array.isArray(arr)) return [];
   const out = [];
@@ -281,7 +289,10 @@ export function cleanListings(raw: unknown, fallbackCategory: string): (Listing 
     if (typeof r.drop_at === "string" && !Number.isNaN(Date.parse(r.drop_at))) drop = new Date(r.drop_at).toISOString();
     let image: string | null = null;
     if (typeof r.image_url === "string" && /^https:\/\//.test(r.image_url)) image = r.image_url.slice(0, 500);
-    const sizes = Array.isArray(r.sizes_in_stock) ? strs(r.sizes_in_stock, 40) : null;
+    let sizes = Array.isArray(r.sizes_in_stock) ? strs(r.sizes_in_stock, 40) : null;
+    // A one-size list that is just the person's own size is the scout filling it in, not the page: don't claim it's in stock.
+    // Single-item marketplaces (one pair, one size) are the exception: there the one size is real.
+    if (sizes?.length === 1 && agentSize && sameSize(sizes[0], agentSize) && !ONE_OFF_MARKETS.test(host)) sizes = null;
     out.push({
       fingerprint: `${host}|${norm(title).replace(/[^a-z0-9]+/g, " ").trim()}`.slice(0, 300),
       title,
@@ -490,7 +501,7 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
     const blocked = await blockedDomains();
     // Only products and releases become finds. Calendars, articles, guides, groups and collection pages ("reference")
     // are dropped here, whatever the scout called them: by the scout's own label, then by address, title and product signals.
-    const classify = (raw: unknown) => cleanListings(raw, a.mission_category ?? "other").flatMap((l) => {
+    const classify = (raw: unknown) => cleanListings(raw, a.mission_category ?? "other", a.size ?? "").flatMap((l) => {
       if (/vertexaisearch\.cloud\.google\.com/.test(l.url)) return [l];   // resolved (and checked) below
       const k = pageKind(l.url, blocked);
       if (!k || k !== "product") return [];
@@ -532,7 +543,7 @@ export async function sweepAgent(a: Candidate, trigger: "scheduled" | "manual", 
     const needPhotos = listings.filter((_, i) => !known[i]);
     if (needPhotos.length) await addImages(needPhotos);
     // eBay listings come straight from eBay with their own item page and photo, so they skip both checks.
-    const ebay = cleanListings({ listings: ebayRaw }, a.mission_category ?? "other");
+    const ebay = cleanListings({ listings: ebayRaw }, a.mission_category ?? "other");  // eBay sizes come from the listing itself: one pair, one size
     const seen = new Set(listings.map((l) => l.fingerprint));
     for (const l of ebay) if (!seen.has(l.fingerprint)) { listings.push(l); seen.add(l.fingerprint); }
     run.listings = listings.length;
@@ -983,6 +994,7 @@ export async function refreshFinds(limit: number, now = new Date(), fetchFn: typ
       } else if (p) {
         if (p.price && (!l.price || Math.abs(p.price - l.price) / l.price > 0.01)) { patch.price = p.price; updated++; }
         if (p.stock === "out" && !l.sold_out) { patch.sold_out = true; soldOut++; }
+        if (p.stock === "in") patch.stock_seen_at = now.toISOString();
       }
       await db.update("listings", `id=eq.${l.id}`, patch).catch(() => {});
     }));

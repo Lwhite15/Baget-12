@@ -160,7 +160,7 @@ export const handler = handle(async (req) => {
       const reason = String(input.reason ?? "").slice(0, 160);
       let listingId = typeof input.listing_id === "string" ? input.listing_id : "";
       if (!listingId) {
-        const cleaned = cleanListings({ listings: [{ ...input, category: a.mission_category ?? "other" }] }, a.mission_category ?? "other");
+        const cleaned = cleanListings({ listings: [{ ...input, category: a.mission_category ?? "other" }] }, a.mission_category ?? "other", a.size ?? "");
         if (!cleaned.length) throw new Error("Need a listing_id, or a title and a real https URL for something you found");
         if (notFindable(cleaned[0])) throw new Error("That's not one product someone can buy (it looks like a calendar, article, guide, group or collection page). Flag the specific product or release instead.");
         await addImages(cleaned);   // verified product photo

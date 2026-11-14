@@ -113,7 +113,7 @@ struct SwipeDeckView: View {
     private func buttons(_ f: Find, _ item: Item) -> some View {
         FoldRow(spacing: 18) {
             round("xmark", Theme.hot, String(localized: "Pass")) { act(.pass, f, item) }
-            if BuyLink.url(item) != nil { round("arrow.up.right", Theme.accent, String(localized: "Buy")) { act(.buy, f, item) } }
+            if BuyLink.url(item) != nil && !store.isSoldOut(item) { round("arrow.up.right", Theme.accent, store.buyLabel(item, short: true)) { act(.buy, f, item) } }
         } trailing: {
             round(f.watching ? "eye.fill" : "eye", Theme.warn, f.watching ? String(localized: "Watching") : String(localized: "Watch")) { act(.watch, f, item) }
             round("heart.fill", Theme.green, String(localized: "Like"), big: true) { act(.like, f, item) }
@@ -124,7 +124,7 @@ struct SwipeDeckView: View {
         VStack(spacing: 14) {
             round("heart.fill", Theme.green, String(localized: "Like"), big: true) { act(.like, f, item) }
             round("xmark", Theme.hot, String(localized: "Pass")) { act(.pass, f, item) }
-            if BuyLink.url(item) != nil { round("arrow.up.right", Theme.accent, String(localized: "Buy")) { act(.buy, f, item) } }
+            if BuyLink.url(item) != nil && !store.isSoldOut(item) { round("arrow.up.right", Theme.accent, store.buyLabel(item, short: true)) { act(.buy, f, item) } }
             round(f.watching ? "eye.fill" : "eye", Theme.warn, f.watching ? String(localized: "Watching") : String(localized: "Watch")) { act(.watch, f, item) }
         }
     }

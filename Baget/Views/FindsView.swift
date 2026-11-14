@@ -650,10 +650,12 @@ struct FindDetailView: View {
     var body: some View {
         if let find, let item = Catalog.item(find.itemID) {
             let agent = store.agent(find.agentID)
+            let _ = store.stockTick
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     HStack { Spacer(); CloseButton { dismiss() } }
                     Plate(item: item, label: item.brand.isEmpty ? item.category.info.label : item.brand, height: 290)
+                        .task(id: item.id) { await store.recheck(item) }   // fresh stock and price from the store's page
                         .overlay(alignment: .topTrailing) {
                             Text("\(find.score)% MATCH").font(.caption2.weight(.heavy)).tracking(0.6)
                                 .foregroundStyle(find.score >= 80 ? Theme.green : Theme.accent)
@@ -876,7 +878,7 @@ struct FindDetailView: View {
                     let r = store.reminder(for: item)
                     bigButton(r == nil ? "bell" : "bell.fill", r == nil ? String(localized: "Remind me") : String(localized: "Reminder set"), primary: r == nil) { reminding = true }
                 } else if let link {
-                    bigButton("arrow.up.right", String(localized: "Buy at \(item.source)"), primary: true) {
+                    bigButton("arrow.up.right", store.buyLabel(item), primary: AppStore.buyKind(item) == .buy) {
                         Analytics.track(.checkoutOpened, ["category": item.category.rawValue, "toStore": true, "from": "find"])
                         router.buyOpened = find.id
                         openURL(BuyLink.tracked(item, from: "find") ?? link)

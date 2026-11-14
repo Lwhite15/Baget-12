@@ -110,7 +110,7 @@ export async function restockCheck(limit = 15, now = new Date(), fetchFn: FetchF
     const l = watchers[0].listing!;
     const stock = await pageStock(l.url!, fetchFn).catch(() => null);
     checked++;
-    await db.update("listings", `id=eq.${lid}`, { stock_checked_at: now.toISOString(), ...(stock === "in" ? { sold_out: false } : {}) }).catch(() => {});
+    await db.update("listings", `id=eq.${lid}`, { stock_checked_at: now.toISOString(), ...(stock === "in" ? { sold_out: false, stock_seen_at: now.toISOString() } : {}) }).catch(() => {});
     if (stock !== "in") continue;
     restocked++;
     for (const r of watchers) {

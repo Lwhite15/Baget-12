@@ -34,6 +34,7 @@ const A = await import("../functions/_shared/apns.ts");
 const sweep = await import("../functions/sweep/handler.ts");
 const chat = await import("../functions/chat/handler.ts");
 const photo = await import("../functions/read-photo/handler.ts");
+const check = await import("../functions/check/handler.ts");
 const push = await import("../functions/push/handler.ts");
 const del = await import("../functions/delete-account/handler.ts");
 const hunt = await import("../functions/hunt/handler.ts");
@@ -1517,6 +1518,46 @@ await test("refresh: open finds get the store's current price, sold out, or come
   const l1 = patches.find((p) => p.path.includes("listings") && p.path.includes("l1")).b;
   assert.equal(l1.price, 180); assert.equal(l1.sold_out, true);
   assert.ok(patches.some((p) => p.path.includes("finds") && p.path.includes("l2") && p.b.status === "removed"));
+});
+
+await test("sizes: a one-size list that's just the scout's own size isn't treated as in stock", () => {
+  const row = (sizes: unknown) => ({ title: "Made in USA 990v6", url: "https://www.flightclub.com/990v6-grey", sizes_in_stock: sizes });
+  const [echo] = sweep.cleanListings({ listings: [row(["US 11.5"])] }, "sneakers", "11.5");
+  assert.equal(echo.sizes_in_stock, null, "the scout filled in the person's size");
+  const [real] = sweep.cleanListings({ listings: [row(["10", "11.5", "12"])] }, "sneakers", "11.5");
+  assert.deepEqual(real.sizes_in_stock, ["10", "11.5", "12"], "a real size run from the page stays");
+  const [other] = sweep.cleanListings({ listings: [row(["9"])] }, "sneakers", "11.5");
+  assert.deepEqual(other.sizes_in_stock, ["9"]);
+  assert.ok(sweep.sameSize("M 11.5", "11.5") && !sweep.sameSize("11", "11.5"));
+});
+
+await test("check: opening a find re-reads its store page at most hourly, and records when it was last seen in stock", async () => {
+  const patches: any[] = [];
+  let pageHits = 0;
+  const listing = (over: Record<string, unknown> = {}) => ({ id: "11111111-2222-3333-4444-555555555555", url: "https://kith.com/p/9", price: 200, sold_out: false, page_checked_at: null, stock_seen_at: null, tags: [], ...over });
+  const run = (l: Record<string, unknown>, html: string) => {
+    reset([
+      [/auth\/v1\/user/, () => ok({ id: "u1" })],
+      [/rpc\/take_quota/, () => ok("ok")],
+      [/GET .*rest\/v1\/finds/, () => ok([{ id: "f1" }])],
+      [/GET .*rest\/v1\/listings/, () => ok([l])],
+      [/kith\.com\/p\/9/, () => { pageHits++; return new Response(html, { headers: { "content-type": "text/html" } }); }],
+      [/PATCH .*rest\/v1\/listings/, (_u, _i, b) => { patches.push(b); return ok([]); }],
+    ]);
+    return check.handler(post("check", { listing_id: "11111111-2222-3333-4444-555555555555" }, { Authorization: "Bearer user-jwt" })).then((r) => r.json());
+  };
+  const ld = (avail: string, price = "180") => `<script type="application/ld+json">{"@type":"Product","name":"A","offers":{"price":"${price}","priceCurrency":"USD","availability":"https://schema.org/${avail}"}}</script>`;
+  let out = await run(listing(), ld("InStock"));
+  assert.equal(out.price, 180);
+  assert.ok(out.stock_seen_at, "in stock is recorded");
+  assert.equal(out.sold_out, false);
+  out = await run(listing(), ld("OutOfStock"));
+  assert.equal(out.sold_out, true);
+  assert.equal(out.stock_seen_at, null);
+  pageHits = 0;
+  out = await run(listing({ page_checked_at: new Date().toISOString() }), ld("OutOfStock"));
+  assert.equal(pageHits, 0, "checked in the last hour: no new page visit");
+  assert.equal(out.sold_out, false);
 });
 
 await test("pulse: a famous brand at a fraction of its usual price, or a dupe, isn't kept", async () => {
