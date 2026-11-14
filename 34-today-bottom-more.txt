@@ -1,0 +1,282 @@
+Optional(Attributes: Application, 0x1095ac780, pid: 17534, label: 'Baget'
+Element subtree:
+ →Application, 0x1095ac780, pid: 17534, label: 'Baget'
+    Window (Main), 0x1095ad900, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1095ad180, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1095acb40, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1095adb80, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x1095ad2c0, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x10568f0c0, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x10568f840, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x10568fd40, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x10568f700, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x10568d400, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x10568f480, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x10568f980, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x10568fac0, {{0.0, 0.0}, {402.0, 874.0}}
+                            NavigationBar, 0x10568d540, {{0.0, 62.0}, {402.0, 54.0}}, identifier: '_TtGC7SwiftUI32NavigationStackHosting'
+                              Other, 0x10568fc00, {{20.0, 66.0}, {42.0, 36.0}}
+                                Other, 0x10845d2c0, {{20.0, 66.0}, {42.0, 36.0}}
+                                  Button, 0x10845e800, {{20.0, 66.0}, {42.0, 36.0}}, label: 'You: icon, settings and account'
+                                    StaticText, 0x10845de00, {{20.0, 66.0}, {42.0, 36.0}}, label: 'CT'
+                              Other, 0x10845ee40, {{151.3, 70.7}, {99.0, 26.7}}
+                                Other, 0x10845e080, {{151.3, 70.7}, {99.0, 26.7}}
+                                  StaticText, 0x10845f340, {{151.3, 71.0}, {26.0, 26.0}}
+                                  StaticText, 0x10845f700, {{185.3, 70.8}, {59.0, 26.3}}, label: 'Baget'
+                                  StaticText, 0x10845fe80, {{244.3, 70.8}, {6.0, 26.3}}, label: '.'
+                              Other, 0x10845ef80, {{346.0, 66.0}, {36.0, 36.0}}
+                                Other, 0x10845f200, {{346.0, 66.0}, {36.0, 36.0}}
+                                  Button, 0x10845ea80, {{349.3, 66.0}, {29.3, 36.0}}, label: 'Notifications, 6 unread'
+                                    Image, 0x10845f840, {{349.3, 66.0}, {29.3, 36.0}}, identifier: 'bell.fill', label: 'Notifications'
+                                    StaticText, 0x10845dcc0, {{376.3, 65.7}, {6.3, 11.0}}, label: '6'
+                            Other, 0x10845ebc0, {{0.0, 0.0}, {402.0, 874.0}}
+                              Other, 0x10845fc00, {{0.0, 0.0}, {402.0, 874.0}}
+                                Other, 0x10845e440, {{0.0, 0.0}, {402.0, 874.0}}
+                                  Other, 0x10845d040, {{0.0, 0.0}, {402.0, 874.0}}
+                                    ScrollView, 0x10845d180, {{0.0, 0.0}, {402.0, 874.0}}
+                                      Other, 0x10845e580, {{0.0, -6085.0}, {402.0, 21886.0}}
+                                        Other, 0x10845f0c0, {{16.0, -5376.3}, {370.0, 21153.3}}
+                                          StaticText, 0x10845e6c0, {{16.0, -5376.3}, {122.3, 24.0}}, label: 'More for you'
+                                          StaticText, 0x10845c500, {{16.0, -5340.3}, {279.0, 14.3}}, label: 'Ranked by your taste. Every ♥ and ✕ sharpens it.'
+                                          ScrollView, 0x10845f980, {{16.0, -5314.0}, {370.0, 29.7}}
+                                            Other, 0x10845e300, {{16.0, -5314.0}, {378.7, 29.7}}
+                                              Button, 0x10845ed00, {{16.0, -5314.0}, {38.3, 29.7}}, label: 'All'
+                                              Button, 0x10845fac0, {{61.3, -5314.0}, {98.7, 29.7}}, label: 'Accessories'
+                                              Button, 0x10845f480, {{167.0, -5314.0}, {75.3, 29.7}}, label: 'Clothing'
+                                              Button, 0x10845c8c0, {{249.3, -5314.0}, {58.0, 29.7}}, label: 'Other'
+                                              Button, 0x10845df40, {{314.3, -5314.0}, {80.3, 29.7}}, label: 'Sneakers'
+                                          Other, 0x10845e1c0, {{16.0, -890.3}, {370.0, 2492.0}}
+                                            Button, 0x10845d540, {{16.0, -890.3}, {179.0, 150.0}}, label: 'Rick Owens DRKSHDW x Converse TURBOWPN OX Sneaker, Rick Owens DRKSHDW, END.'
+                                              StaticText, 0x10845c780, {{28.0, -878.3}, {97.0, 40.7}}, label: 'Rick Owens DRKSHDW'
+                                              Image, 0x10845f5c0, {{51.7, -840.3}, {107.7, 76.0}}, label: 'Rick Owens DRKSHDW x Converse TURBOWPN OX Sneaker'
+                                              StaticText, 0x10845db80, {{28.0, -764.3}, {23.7, 12.0}}, label: 'END.'
+                                            Button, 0x10845e940, {{207.0, -890.3}, {179.0, 150.0}}, label: 'Crosley Brands Luke Bryan Record Player, Crosley, Luke Bryan Album Store'
+                                              StaticText, 0x10845cf00, {{219.0, -878.3}, {60.7, 20.3}}, label: 'Crosley'
+                                              Image, 0x10845d400, {{258.7, -840.3}, {76.0, 76.0}}, label: 'Crosley Brands Luke Bryan Record Player'
+                                              StaticText, 0x10845fd40, {{219.0, -764.3}, {115.7, 12.0}}, label: 'Luke Bryan Album Store'
+                                            StaticText, 0x10845da40, {{16.0, -734.3}, {173.3, 33.7}}, label: 'Rick Owens DRKSHDW x Converse TURBOWPN OX Sneaker'
+                                            StaticText, 0x1127d48c0, {{207.0, -734.3}, {173.0, 33.7}}, label: 'Crosley Brands Luke Bryan Record Player'
+                                            StaticText, 0x1127d7340, {{16.0, -694.3}, {71.7, 13.3}}, label: '≈ $142 · END.'
+                                            StaticText, 0x1127d5400, {{207.0, -694.3}, {161.3, 13.3}}, label: '$125 · Luke Bryan Album Store'
+                                            StaticText, 0x1127d7d40, {{16.0, -675.0}, {177.7, 26.3}}, label: 'A low-top sneaker for men and women, made as a collaboration with Converse in its Turbo Wpn style.'
+                                            StaticText, 0x1127d5040, {{207.0, -675.0}, {175.7, 26.3}}, label: 'A custom limited edition retro Crosley Bluetooth suitcase record player with a Luke Bryan logo on the front. The store lists it as shipping on November 17, 2026.'
+                                            Image, 0x1127d7ac0, {{17.0, -641.3}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x1127d7e80, {{30.7, -642.7}, {160.3, 13.3}}, label: 'New to you · Rick Owens DRKSHDW'
+                                            Image, 0x1127d7c00, {{208.0, -640.0}, {10.7, 8.0}}, identifier: 'tray.full', label: 'Inbox Full'
+                                            StaticText, 0x1127d4780, {{223.7, -642.7}, {93.3, 13.3}}, label: 'From your scouts'
+                                            Button, 0x1127d4a00, {{16.0, -623.3}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x1127d4280, {{109.7, -623.3}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x1127d52c0, {{207.0, -623.3}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x1127d7980, {{300.7, -623.3}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x1127d7700, {{16.0, -577.3}, {179.0, 150.0}}, label: 'C.P. Company Cingino Boots Dark Brown, ROA, Slam Jam'
+                                              StaticText, 0x1127d7840, {{28.0, -565.3}, {35.3, 20.3}}, label: 'ROA'
+                                              Image, 0x1127d4c80, {{34.7, -527.3}, {142.0, 76.0}}, label: 'C.P. Company Cingino Boots Dark Brown'
+                                              StaticText, 0x1127d4140, {{28.0, -451.3}, {46.7, 12.0}}, label: 'Slam Jam'
+                                            Button, 0x1127d43c0, {{207.0, -577.3}, {179.0, 150.0}}, label: 'Y-3 Adios Pro 4 Sneaker, Y-3, END.'
+                                              StaticText, 0x1127d4500, {{219.0, -565.3}, {28.7, 20.3}}, label: 'Y-3'
+                                              Image, 0x1127d7200, {{223.7, -527.3}, {145.7, 76.0}}, label: 'Y-3 Adios Pro 4 Sneaker'
+                                              StaticText, 0x1127d5680, {{219.0, -451.3}, {23.7, 12.0}}, label: 'END.'
+                                            StaticText, 0x1127d4dc0, {{16.0, -421.3}, {143.0, 33.7}}, label: 'C.P. Company Cingino Boots Dark Brown'
+                                            StaticText, 0x1127d57c0, {{207.0, -421.3}, {153.3, 15.7}}, label: 'Y-3 Adios Pro 4 Sneaker'
+                                            StaticText, 0x1127d5540, {{16.0, -381.3}, {98.7, 13.3}}, label: '≈ $344 · Slam Jam'
+                                            StaticText, 0x1127d4000, {{207.0, -381.3}, {71.7, 13.3}}, label: '≈ $201 · END.'
+                                            StaticText, 0x1127d4640, {{16.0, -362.0}, {179.0, 26.3}}, label: 'Dark brown boots with a rugged, outdoor-style look, suited to casual everyday wear.'
+                                            StaticText, 0x1127d4f00, {{207.0, -362.0}, {177.3, 26.3}}, label: 'A sporty sneaker with a bold, technical look. It's meant for men who want athletic styling for everyday wear.'
+                                            Image, 0x1095bb200, {{16.7, -327.7}, {9.3, 9.3}}, identifier: 'wand.and.stars', label: 'Magic Wand With Stars'
+                                            StaticText, 0x1095b8640, {{31.3, -329.7}, {160.7, 13.3}}, label: 'Like your Made in USA 990v7 Sneakers Kool Gray'
+                                            Image, 0x1095b9540, {{208.0, -328.3}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x1095ba300, {{221.7, -329.7}, {89.0, 13.3}}, label: 'New to you · Y-3'
+                                            Button, 0x1095b9cc0, {{16.0, -310.3}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x1095b8a00, {{109.7, -310.3}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x1095bb980, {{207.0, -310.3}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x1095bb5c0, {{300.7, -310.3}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x1095b9040, {{16.0, -264.3}, {179.0, 150.0}}, label: 'Pro-Ject Audio The Dark Side of The Moon Special Edition Turntable, Pro-Ject, 9120129861649 · House Of Stereo'
+                                              StaticText, 0x1095bb700, {{28.0, -252.3}, {69.3, 20.3}}, label: 'Pro-Ject'
+                                              Image, 0x1095b83c0, {{48.3, -214.3}, {114.3, 76.0}}, label: 'Pro-Ject Audio The Dark Side of The Moon Special Edition Turntable'
+                                              StaticText, 0x1095ba080, {{28.0, -138.3}, {146.0, 12.0}}, label: '9120129861649 · House Of Stereo'
+                                            Button, 0x1095bad00, {{207.0, -264.3}, {179.0, 150.0}}, label: 'Pringle of Scotland Slip-On 98 Sneakers Navy / Marshmallow, Vans, Slam Jam'
+                                              StaticText, 0x1095b8dc0, {{219.0, -252.3}, {39.0, 20.3}}, label: 'Vans'
+                                              Image, 0x1095b9180, {{217.0, -210.7}, {159.0, 68.7}}, label: 'Pringle of Scotland Slip-On 98 Sneakers Navy / Marshmallow'
+                                              StaticText, 0x1095bb340, {{219.0, -138.3}, {46.7, 12.0}}, label: 'Slam Jam'
+                                            StaticText, 0x1095bae40, {{16.0, -108.3}, {171.0, 33.7}}, label: 'Pro-Ject Audio The Dark Side of The Moon Special Edition Turntable'
+                                            StaticText, 0x1095ba940, {{207.0, -108.3}, {176.0, 33.7}}, label: 'Pringle of Scotland Slip-On 98 Sneakers Navy / Marshmallow'
+                                            StaticText, 0x1095b9680, {{16.0, -68.3}, {132.3, 13.3}}, label: '$2,199 · House Of Stereo'
+                                            StaticText, 0x1095b97c0, {{207.0, -68.3}, {95.0, 13.3}}, label: '≈ $118 · Slam Jam'
+                                            StaticText, 0x1095bbe80, {{16.0, -49.0}, {173.3, 26.3}}, label: 'A Pro-Ject turntable styled after the Dark Side of the Moon album cover, with a prism-shaped MDF plinth, an acrylic tonearm and a dimmable rainbow LED backlight. It plays records as well as it looks.'
+                                            StaticText, 0x1095b8f00, {{207.0, -49.0}, {178.3, 26.3}}, label: 'Navy sneakers with marshmallow-white accents, made from 100% textile. Slip-on style, so there are no laces to tie.'
+                                            Image, 0x1095bbac0, {{17.0, -14.0}, {10.7, 8.0}}, identifier: 'tray.full', label: 'Inbox Full'
+                                            StaticText, 0x1095baf80, {{32.7, -16.7}, {93.3, 13.3}}, label: 'From your scouts'
+                                            Image, 0x1095b8780, {{207.7, -14.7}, {9.3, 9.3}}, identifier: 'wand.and.stars', label: 'Magic Wand With Stars'
+                                            StaticText, 0x1095babc0, {{222.3, -16.7}, {160.7, 13.3}}, label: 'Like your Made in USA 990v7 Sneakers Kool Gray'
+                                            Button, 0x1095bb480, {{16.0, 2.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x1095b9f40, {{109.7, 2.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x1095b8b40, {{207.0, 2.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x1095b8000, {{300.7, 2.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x1095ba440, {{16.0, 48.7}, {179.0, 150.0}}, label: 'Comme des Garçons SHIRT x Asics Gel SD Lyte Sneaker, Comme des Garçons SHIRT, END.'
+                                              StaticText, 0x1095ba580, {{28.0, 60.7}, {120.3, 40.7}}, label: 'Comme des Garçons SHIRT'
+                                              Image, 0x1095b9e00, {{29.7, 98.7}, {151.7, 76.0}}, label: 'Comme des Garçons SHIRT x Asics Gel SD Lyte Sneaker'
+                                              StaticText, 0x1095ba6c0, {{28.0, 174.7}, {23.7, 12.0}}, label: 'END.'
+                                            Button, 0x1095bb840, {{207.0, 48.7}, {179.0, 150.0}}, label: '1460 Metal Toe Leather Boots Black, Dr. Martens, Slam Jam'
+                                              StaticText, 0x1095b9b80, {{219.0, 60.7}, {92.7, 20.3}}, label: 'Dr. Martens'
+                                              Image, 0x1095b8c80, {{252.3, 98.7}, {88.3, 76.0}}, label: '1460 Metal Toe Leather Boots Black'
+                                              StaticText, 0x1095bbc00, {{219.0, 174.7}, {46.7, 12.0}}, label: 'Slam Jam'
+                                            StaticText, 0x1095b92c0, {{16.0, 204.7}, {177.0, 33.7}}, label: 'Comme des Garçons SHIRT x Asics Gel SD Lyte Sneaker'
+                                            StaticText, 0x1095b8500, {{207.0, 204.7}, {151.7, 33.7}}, label: '1460 Metal Toe Leather Boots Black'
+                                            StaticText, 0x1095ba1c0, {{16.0, 244.7}, {72.3, 13.3}}, label: '≈ $274 · END.'
+                                            StaticText, 0x1095baa80, {{207.0, 244.7}, {96.7, 13.3}}, label: '≈ $138 · Slam Jam'
+                                            StaticText, 0x1095bbd40, {{16.0, 264.0}, {176.0, 26.3}}, label: 'A retro-style running sneaker from Asics, made as a collaboration with Comme des Garçons SHIRT.'
+                                            StaticText, 0x1095b8140, {{207.0, 264.0}, {179.0, 26.3}}, label: 'Classic black leather boots with a metal toe cap for protection, made from 100% leather for everyday wear and tough jobs.'
+                                            Image, 0x1095ba800, {{17.0, 297.7}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x1095bb0c0, {{30.7, 296.3}, {160.3, 13.3}}, label: 'New to you · Comme des Garçons SHIRT'
+                                            Image, 0x1095b88c0, {{207.7, 298.3}, {9.3, 9.3}}, identifier: 'wand.and.stars', label: 'Magic Wand With Stars'
+                                            StaticText, 0x112bd6f80, {{222.3, 296.3}, {160.7, 13.3}}, label: 'Like your Made in USA 990v7 Sneakers Kool Gray'
+                                            Button, 0x112bd6d00, {{16.0, 315.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x112bd4b40, {{109.7, 315.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x112bd61c0, {{207.0, 315.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x112bd7480, {{300.7, 315.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x112bd5cc0, {{16.0, 361.7}, {179.0, 150.0}}, label: 'Nike Alphafly 3 Sneaker, Nike Running, END.'
+                                              StaticText, 0x112bd6bc0, {{28.0, 373.7}, {105.0, 20.3}}, label: 'Nike Running'
+                                              Image, 0x112bd5b80, {{39.3, 411.7}, {132.3, 76.0}}, label: 'Nike Alphafly 3 Sneaker'
+                                              StaticText, 0x112bd6080, {{28.0, 487.7}, {23.7, 12.0}}, label: 'END.'
+                                            Button, 0x112bd43c0, {{207.0, 361.7}, {179.0, 150.0}}, label: 'Wave MG4 LS, Mizuno, Overkill'
+                                              StaticText, 0x112bd6440, {{219.0, 373.7}, {58.0, 20.3}}, label: 'Mizuno'
+                                              Image, 0x112bd5900, {{229.0, 411.7}, {135.0, 76.0}}, label: 'Wave MG4 LS'
+                                              StaticText, 0x112bd5a40, {{219.0, 487.7}, {36.7, 12.0}}, label: 'Overkill'
+                                            StaticText, 0x112bd5f40, {{16.0, 517.7}, {150.3, 15.7}}, label: 'Nike Alphafly 3 Sneaker'
+                                            StaticText, 0x112bd7840, {{207.0, 517.7}, {87.0, 15.7}}, label: 'Wave MG4 LS'
+                                            StaticText, 0x112bd4140, {{16.0, 557.7}, {73.3, 13.3}}, label: '≈ $208 · END.'
+                                            StaticText, 0x112bd5680, {{207.0, 557.7}, {83.7, 13.3}}, label: '≈ $141 · Overkill'
+                                            StaticText, 0x112bd5e00, {{16.0, 577.0}, {179.0, 26.3}}, label: 'A lightweight racing shoe built for long runs and marathons. It has a carbon plate and thick foam to help you move forward with each stride.'
+                                            StaticText, 0x112bd4000, {{207.0, 577.0}, {176.7, 26.3}}, label: 'Blue low-top sneakers for men. The low cut sits below the ankle, so the shoe is easy to slip on and off.'
+                                            Image, 0x112bd7980, {{17.0, 610.7}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x112bd4640, {{30.7, 609.3}, {140.7, 13.3}}, label: 'New to you · Nike Running'
+                                            Image, 0x112bd75c0, {{207.7, 611.3}, {9.3, 9.3}}, identifier: 'wand.and.stars', label: 'Magic Wand With Stars'
+                                            StaticText, 0x112bd57c0, {{222.3, 609.3}, {95.3, 13.3}}, label: 'Like your U992LB'
+                                            Button, 0x112bd7ac0, {{16.0, 628.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x112bd4280, {{109.7, 628.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x112bd6300, {{207.0, 628.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x112bd48c0, {{300.7, 628.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x112bd4500, {{16.0, 674.7}, {179.0, 150.0}}, label: 'Air Jordan 4 Retro 'Bred' - Black/Fire Red, Jordan Brand, Sneaker Politics'
+                                              StaticText, 0x112bd4780, {{28.0, 686.7}, {107.0, 20.3}}, label: 'Jordan Brand'
+                                              Image, 0x112bd4a00, {{45.3, 724.7}, {120.3, 76.0}}, label: 'Air Jordan 4 Retro 'Bred' - Black/Fire Red'
+                                              StaticText, 0x112bd6e40, {{28.0, 800.7}, {77.0, 12.0}}, label: 'Sneaker Politics'
+                                            Button, 0x112bd70c0, {{207.0, 674.7}, {179.0, 150.0}}, label: 'Maharishi Daystorm Horizon Zip GTX Boots Stone Green, Sorel, Slam Jam'
+                                              StaticText, 0x112698500, {{219.0, 686.7}, {41.3, 20.3}}, label: 'Sorel'
+                                              Image, 0x11269a1c0, {{245.7, 724.7}, {101.7, 76.0}}, label: 'Maharishi Daystorm Horizon Zip GTX Boots Stone Green'
+                                              StaticText, 0x112699b80, {{219.0, 800.7}, {46.7, 12.0}}, label: 'Slam Jam'
+                                            StaticText, 0x11269a800, {{16.0, 830.7}, {169.3, 33.7}}, label: 'Air Jordan 4 Retro 'Bred' - Black/Fire Red'
+                                            StaticText, 0x112698280, {{207.0, 830.7}, {179.0, 33.7}}, label: 'Maharishi Daystorm Horizon Zip GTX Boots Stone Green'
+                                            StaticText, 0x11269b340, {{16.0, 870.7}, {121.0, 13.3}}, label: '$230 · Sneaker Politics'
+                                            StaticText, 0x11269b980, {{207.0, 870.7}, {98.3, 13.3}}, label: '≈ $330 · Slam Jam'
+                                            StaticText, 0x11269a440, {{16.0, 890.0}, {177.7, 26.3}}, label: 'A high-top basketball sneaker in black and bright red. This 'Bred' colorway is a retro version of the Air Jordan 4 from the original line.'
+                                            StaticText, 0x11269b840, {{207.0, 890.0}, {176.3, 26.3}}, label: 'Waterproof men's boots in a stone green shade, with a zip for quick on and off. Made with Maharishi, they suit wet or rough weather outdoors.'
+                                            Image, 0x11269be80, {{17.0, 923.7}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x1126988c0, {{30.7, 922.3}, {141.7, 13.3}}, label: 'New to you · Jordan Brand'
+                                            Image, 0x11269b0c0, {{207.7, 924.3}, {9.3, 9.3}}, identifier: 'wand.and.stars', label: 'Magic Wand With Stars'
+                                            StaticText, 0x11269ae40, {{222.3, 922.3}, {160.7, 13.3}}, label: 'Like your Made in USA 990v7 Sneakers Kool Gray'
+                                            Button, 0x112698640, {{16.0, 941.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x1126992c0, {{109.7, 941.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x11269b480, {{207.0, 941.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x112699400, {{300.7, 941.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x112698000, {{16.0, 987.7}, {179.0, 150.0}}, label: 'Gel-Ventx GTX, ASICS SportStyle, Sneakersnstuff'
+                                              StaticText, 0x11269a300, {{28.0, 999.7}, {138.7, 20.3}}, label: 'ASICS SportStyle'
+                                              Image, 0x11269a940, {{30.3, 1037.7}, {150.3, 76.0}}, label: 'Gel-Ventx GTX'
+                                              StaticText, 0x1126983c0, {{28.0, 1113.7}, {73.0, 12.0}}, label: 'Sneakersnstuff'
+                                            Button, 0x112699cc0, {{207.0, 987.7}, {179.0, 150.0}}, label: '983 Mens Lifestyle Shoes (Bayberry/Concrete), NEWBALANCE, Shoe Palace'
+                                              StaticText, 0x11269b5c0, {{219.0, 999.7}, {117.3, 20.3}}, label: 'NEWBALANCE'
+                                              Image, 0x1126997c0, {{228.7, 1037.7}, {135.7, 76.0}}, label: '983 Mens Lifestyle Shoes (Bayberry/Concrete)'
+                                              StaticText, 0x112699a40, {{219.0, 1113.7}, {59.3, 12.0}}, label: 'Shoe Palace'
+                                            StaticText, 0x11269bc00, {{16.0, 1143.7}, {93.3, 15.7}}, label: 'Gel-Ventx GTX'
+                                            StaticText, 0x11269aa80, {{207.0, 1143.7}, {166.3, 33.7}}, label: '983 Mens Lifestyle Shoes (Bayberry/Concrete)'
+                                            StaticText, 0x112699e00, {{16.0, 1183.7}, {125.7, 13.3}}, label: '≈ $144 · Sneakersnstuff'
+                                            StaticText, 0x112698b40, {{207.0, 1183.7}, {100.0, 13.3}}, label: '$165 · Shoe Palace'
+                                            StaticText, 0x112699040, {{16.0, 1203.0}, {177.3, 26.3}}, label: 'A limited ASICS sneaker with a Gore-Tex waterproof lining to keep feet dry in wet weather, plus gel cushioning in the sole.'
+                                            StaticText, 0x112699540, {{207.0, 1203.0}, {175.7, 26.3}}, label: 'A low-top men's sneaker from New Balance in grey with bayberry and concrete tones. Its lifestyle style suits everyday wear, and it is a pre-release model sold at Shoe Palace.'
+                                            Image, 0x11269af80, {{17.0, 1236.7}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x112698140, {{30.7, 1235.3}, {163.3, 13.3}}, label: 'New to you · ASICS SportStyle'
+                                            Image, 0x11269b700, {{207.7, 1237.3}, {9.3, 9.3}}, identifier: 'wand.and.stars', label: 'Magic Wand With Stars'
+                                            StaticText, 0x11269b200, {{222.3, 1235.3}, {163.7, 13.3}}, label: 'Like your Air Max 95 Big Bubble Premium'
+                                            Button, 0x11269a080, {{16.0, 1254.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x112698dc0, {{109.7, 1254.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x11269a6c0, {{207.0, 1254.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x11269bac0, {{300.7, 1254.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x112698780, {{16.0, 1300.7}, {179.0, 150.0}}, label: 'ALOHAS Rowan Sporty Leather Loafers, ALOHAS, END.'
+                                              StaticText, 0x112699680, {{28.0, 1312.7}, {69.0, 20.3}}, label: 'ALOHAS'
+                                              Image, 0x11269ad00, {{75.0, 1350.7}, {61.0, 76.0}}, label: 'ALOHAS Rowan Sporty Leather Loafers'
+                                              StaticText, 0x11269abc0, {{28.0, 1426.7}, {23.7, 12.0}}, label: 'END.'
+                                            Button, 0x112699f40, {{207.0, 1300.7}, {179.0, 150.0}}, label: 'Air Jordan 1 Low Premium Shoes Sail Cream Brown Men's | Size 7.5 - 14, Jordan, eBay (Triple-Z Store)'
+                                              StaticText, 0x112698f00, {{219.0, 1312.7}, {55.3, 20.3}}, label: 'Jordan'
+                                              Image, 0x112699180, {{266.0, 1350.7}, {61.0, 76.0}}, label: 'Air Jordan 1 Low Premium Shoes Sail Cream Brown Men's | Size 7.5 - 14'
+                                              StaticText, 0x112698c80, {{219.0, 1426.7}, {101.3, 12.0}}, label: 'eBay (Triple-Z Store)'
+                                            StaticText, 0x112699900, {{16.0, 1456.7}, {148.7, 33.7}}, label: 'ALOHAS Rowan Sporty Leather Loafers'
+                                            StaticText, 0x11269bd40, {{207.0, 1456.7}, {166.7, 33.7}}, label: 'Air Jordan 1 Low Premium Shoes Sail Cream Brown Men's | Size 7.5 - 14'
+                                            StaticText, 0x112b90000, {{16.0, 1496.7}, {73.3, 13.3}}, label: '≈ $228 · END.'
+                                            StaticText, 0x112b90140, {{207.0, 1496.7}, {147.7, 13.3}}, label: '$200 · eBay (Triple-Z Store)'
+                                            StaticText, 0x112b90280, {{16.0, 1516.0}, {176.3, 26.3}}, label: 'Women's leather loafers with a sporty style that slips on without laces.'
+                                            StaticText, 0x112b903c0, {{207.0, 1516.0}, {179.0, 26.3}}, label: 'A low-top Air Jordan 1 Premium in sail cream and brown leather with suede and mesh panels, new with box. The listing shows size 10 in stock.'
+                                            Image, 0x112b90500, {{17.0, 1549.7}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x112b90640, {{30.7, 1548.3}, {115.7, 13.3}}, label: 'New to you · ALOHAS'
+                                            Image, 0x112b90780, {{207.7, 1550.3}, {9.3, 9.3}}, identifier: 'wand.and.stars', label: 'Magic Wand With Stars'
+                                            StaticText, 0x112b908c0, {{222.3, 1548.3}, {162.0, 13.3}}, label: 'Like your Made in USA 992 (U992V1-52807, deep gree…'
+                                            Button, 0x112b90a00, {{16.0, 1567.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x112b90b40, {{109.7, 1567.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x112b90c80, {{207.0, 1567.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x112b90dc0, {{300.7, 1567.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                          Button, 0x112b90f00, {{16.0, 15704.7}, {370.0, 46.0}}, label: 'Loading…', value: 1, Disabled
+                                            ActivityIndicator, 0x112b91040, {{151.0, 15717.7}, {20.0, 20.0}}, value: 1, Disabled
+                                              ActivityIndicator, 0x112b91180, {{151.0, 15717.7}, {20.0, 20.0}}, value: 1
+                                            StaticText, 0x112b912c0, {{178.8, 15718.7}, {72.3, 18.0}}, label: 'Loading…', Disabled
+                                          StaticText, 0x112b91400, {{127.5, 15762.7}, {147.0, 14.3}}, label: 'That's everything for now.'
+                                      Other, 0x112b91540, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x112b91680, {{0.0, 0.0}, {402.0, 156.0}}
+                                        Other, 0x112b917c0, {{0.0, 741.0}, {402.0, 133.0}}
+                                      Other, 0x112b91900, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x112b91a40, {{0.0, 0.0}, {402.0, 156.0}}
+                                        Other, 0x112b91b80, {{0.0, 741.0}, {402.0, 133.0}}
+                                    Button, 0x112b91cc0, {{338.0, 731.0}, {46.0, 46.0}}, identifier: 'arrow.up', label: 'Back to top'
+                            Toolbar, 0x112b91e00, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                              Other, 0x112b91f40, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x112b92080, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x112b921c0, {{0.0, 791.0}, {402.0, 83.0}}
+                    Other, 0x112b92300, {{0.0, 0.0}, {402.0, 874.0}}
+                      TabBar, 0x112b92440, {{0.0, 791.0}, {402.0, 83.0}}, label: 'Tab Bar'
+                        Other, 0x112b92580, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x112b926c0, {{21.0, 791.0}, {98.0, 54.0}}
+                          Other, 0x112b92800, {{21.0, 791.0}, {360.0, 62.0}}
+                            Button, 0x112b92940, {{25.0, 795.0}, {98.0, 54.0}}, identifier: 'sun.max.fill', label: 'Today', Selected
+                              Image, 0x112b92a80, {{59.7, 800.0}, {29.0, 29.3}}, identifier: 'sun.max.fill', label: 'brightness higher'
+                            Button, 0x112b92bc0, {{109.7, 795.0}, {98.0, 54.0}}, identifier: 'sparkles', label: 'Finds', value: 17 items
+                              Image, 0x112b92d00, {{145.7, 799.0}, {26.0, 30.0}}, identifier: 'sparkles', label: 'sparkle'
+                            Button, 0x112b92e40, {{194.3, 795.0}, {98.0, 54.0}}, identifier: 'binoculars.fill', label: 'Scouts'
+                              Image, 0x112b92f80, {{225.7, 802.3}, {35.3, 25.7}}, identifier: 'binoculars.fill', label: 'Binoculars, filled'
+                            Button, 0x112b930c0, {{279.0, 795.0}, {98.0, 54.0}}, identifier: 'heart.circle.fill', label: 'Friends'
+                              Image, 0x112b93200, {{314.3, 801.3}, {27.3, 27.3}}, identifier: 'heart.circle.fill', label: 'love'
+                          Other, 0x112b93340, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x112b93480, {{25.0, 795.0}, {98.0, 54.0}}
+                            Other, 0x112b935c0, {{25.0, 795.0}, {98.0, 54.0}}
+                              Other, 0x112b93700, {{25.0, 795.0}, {98.0, 54.0}}
+                              Other, 0x112b93840, {{25.0, 795.0}, {98.0, 54.0}}
+                                Other, 0x112b93980, {{25.0, 795.0}, {98.0, 54.0}}
+                                  Other, 0x112b93ac0, {{25.0, 795.0}, {98.0, 54.0}}
+                                    Other, 0x112b93c00, {{25.0, 795.0}, {98.0, 54.0}}
+                                  Other, 0x112b93d40, {{25.0, 795.0}, {98.0, 54.0}}
+                                Other, 0x112b93e80, {{25.0, 795.0}, {98.0, 54.0}}
+                    Other, 0x1095a0000, {{0.0, 791.0}, {402.0, 83.0}}
+                      Other, 0x1095a0140, {{0.0, 791.0}, {402.0, 83.0}}
+                        Other, 0x1095a0280, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x1095a03c0, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x1095a0500, {{0.0, 791.0}, {402.0, 83.0}}
+                              Other, 0x1095a0640, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x1095a0780, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x1095a08c0, {{0.0, 791.0}, {402.0, 83.0}}
+    Window, 0x1095a0a00, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1095a0b40, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1095a0c80, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x1095ac780, pid: 17534, label: 'Baget'
+Query chain:
+ →Find: Target Application 'app.baget.ios'
+  Output: {
+    Application, 0x1095a0dc0, pid: 17534, label: 'Baget'
+  }
+)

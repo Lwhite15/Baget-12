@@ -1,0 +1,197 @@
+Optional(Attributes: Application, 0x112699e00, pid: 17534, label: 'Baget'
+Element subtree:
+ →Application, 0x112699e00, pid: 17534, label: 'Baget'
+    Window (Main), 0x11269aa80, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x11269a1c0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x11269bc00, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x112699cc0, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x112699a40, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1126997c0, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x11269b5c0, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x1126983c0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x11269a940, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x11269a300, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x112698000, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x112699400, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x11269b480, {{0.0, 0.0}, {402.0, 874.0}}
+                            NavigationBar, 0x1126992c0, {{0.0, 62.0}, {402.0, 54.0}}, identifier: '_TtGC7SwiftUI32NavigationStackHosting'
+                              Other, 0x11269b980, {{20.0, 66.0}, {42.0, 36.0}}
+                                Other, 0x112698280, {{20.0, 66.0}, {42.0, 36.0}}
+                                  Button, 0x112699b80, {{20.0, 66.0}, {42.0, 36.0}}, label: 'You: icon, settings and account'
+                                    StaticText, 0x112698500, {{20.0, 66.0}, {42.0, 36.0}}, label: 'CT'
+                              Other, 0x11269be80, {{151.3, 70.7}, {99.0, 26.7}}
+                                Other, 0x11269b840, {{151.3, 70.7}, {99.0, 26.7}}
+                                  StaticText, 0x11269b340, {{151.3, 71.0}, {26.0, 26.0}}
+                                  StaticText, 0x11269a800, {{185.3, 70.8}, {59.0, 26.3}}, label: 'Baget'
+                                  StaticText, 0x11269a440, {{244.3, 70.8}, {6.0, 26.3}}, label: '.'
+                              Other, 0x112698640, {{346.0, 66.0}, {36.0, 36.0}}
+                                Other, 0x11269ae40, {{346.0, 66.0}, {36.0, 36.0}}
+                                  Button, 0x11269b0c0, {{349.3, 66.0}, {29.3, 36.0}}, label: 'Notifications, 6 unread'
+                                    Image, 0x1126988c0, {{349.3, 66.0}, {29.3, 36.0}}, identifier: 'bell.fill', label: 'Notifications'
+                                    StaticText, 0x112bd4140, {{376.3, 65.7}, {6.3, 11.0}}, label: '6'
+                            Other, 0x112bd57c0, {{0.0, 0.0}, {402.0, 874.0}}
+                              Other, 0x112bd43c0, {{0.0, 0.0}, {402.0, 874.0}}
+                                Other, 0x112bd6440, {{0.0, 0.0}, {402.0, 874.0}}
+                                  Other, 0x112bd6e40, {{0.0, 0.0}, {402.0, 874.0}}
+                                    ScrollView, 0x112bd5900, {{0.0, 0.0}, {402.0, 874.0}}
+                                      Other, 0x112bd5680, {{0.0, -3839.0}, {402.0, 4630.0}}
+                                        Other, 0x112bd4780, {{16.0, -3130.3}, {370.0, 3896.7}}
+                                          StaticText, 0x112bd7840, {{16.0, -3130.3}, {122.3, 24.0}}, label: 'More for you'
+                                          StaticText, 0x112bd5f40, {{16.0, -3094.3}, {279.0, 14.3}}, label: 'Ranked by your taste. Every ♥ and ✕ sharpens it.'
+                                          Other, 0x112bd4a00, {{16.0, -877.0}, {370.0, 1553.0}}
+                                            Button, 0x112bd4000, {{16.0, -877.0}, {179.0, 150.0}}, label: 'Air Jordan, AJ, END.'
+                                              StaticText, 0x112bd4640, {{28.0, -865.0}, {82.0, 20.3}}, label: 'Air Jordan'
+                                              StaticText, 0x112bd75c0, {{28.0, -799.0}, {49.0, 48.0}}, label: 'AJ'
+                                              StaticText, 0x112bd7980, {{28.0, -751.0}, {23.7, 12.0}}, label: 'END.'
+                                            Button, 0x112bd7ac0, {{207.0, -877.0}, {179.0, 150.0}}, label: 'Marni Clifton 11 Sneakers White, Hoka One One, Slam Jam'
+                                              StaticText, 0x112bd5e00, {{219.0, -865.0}, {114.3, 20.3}}, label: 'Hoka One One'
+                                              Image, 0x112bd4280, {{224.0, -827.0}, {145.0, 76.0}}, label: 'Marni Clifton 11 Sneakers White'
+                                              StaticText, 0x112bd6300, {{219.0, -751.0}, {46.7, 12.0}}, label: 'Slam Jam'
+                                            StaticText, 0x112bd6d00, {{16.0, -721.0}, {111.3, 33.7}}, label: 'Air Jordan 1 High OG Sneaker'
+                                            StaticText, 0x112bd6f80, {{207.0, -721.0}, {101.0, 33.7}}, label: 'Marni Clifton 11 Sneakers White'
+                                            StaticText, 0x112bd48c0, {{16.0, -681.0}, {71.7, 13.3}}, label: '≈ $185 · END.'
+                                            StaticText, 0x112bd5cc0, {{207.0, -681.0}, {98.3, 13.3}}, label: '≈ $305 · Slam Jam'
+                                            StaticText, 0x112bd7480, {{16.0, -661.7}, {178.3, 26.3}}, label: 'A men's high-top sneaker in the original Air Jordan 1 design, first made for basketball in 1985. It's a classic look that works for everyday wear.'
+                                            StaticText, 0x112bd6080, {{207.0, -661.7}, {172.3, 26.3}}, label: 'A white men's running-style sneaker from a Marni and Hoka collaboration, based on Hoka's Clifton 11 shoe. It has soft, light cushioning for walking or running, and the clean white look works with casual outfits.'
+                                            Image, 0x112bd5b80, {{17.0, -627.7}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x112bd6bc0, {{30.7, -629.3}, {125.0, 13.3}}, label: 'New to you · Air Jordan'
+                                            Image, 0x112bd61c0, {{208.0, -627.7}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x112bd4b40, {{221.7, -629.3}, {147.0, 13.3}}, label: 'New to you · Hoka One One'
+                                            Button, 0x112bd70c0, {{16.0, -610.0}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x112bd5a40, {{109.7, -610.0}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x112bd4500, {{207.0, -610.0}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x1095baa80, {{300.7, -610.0}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x1095b9cc0, {{16.0, -564.0}, {179.0, 150.0}}, label: 'Merrell x Khakis Moab 3, Merrell, END.'
+                                              StaticText, 0x1095ba1c0, {{28.0, -552.0}, {56.0, 20.3}}, label: 'Merrell'
+                                              Image, 0x1095b8140, {{44.3, -514.0}, {122.3, 76.0}}, label: 'Merrell x Khakis Moab 3'
+                                              StaticText, 0x1095ba800, {{28.0, -438.0}, {23.7, 12.0}}, label: 'END.'
+                                            Button, 0x1095bb0c0, {{207.0, -564.0}, {179.0, 150.0}}, label: 'Air Jordan XVII in Black / Anthracite, Jordan, Oneness'
+                                              StaticText, 0x1095bbd40, {{219.0, -552.0}, {55.3, 20.3}}, label: 'Jordan'
+                                              Image, 0x1095b8500, {{268.3, -514.0}, {56.3, 76.0}}, label: 'Air Jordan XVII in Black / Anthracite'
+                                              StaticText, 0x1095b8c80, {{219.0, -438.0}, {42.3, 12.0}}, label: 'Oneness'
+                                            StaticText, 0x1095b92c0, {{16.0, -408.0}, {151.0, 15.7}}, label: 'Merrell x Khakis Moab 3'
+                                            StaticText, 0x1095b88c0, {{207.0, -408.0}, {112.7, 33.7}}, label: 'Air Jordan XVII in Black / Anthracite'
+                                            StaticText, 0x1095ba300, {{16.0, -368.0}, {71.3, 13.3}}, label: '≈ $152 · END.'
+                                            StaticText, 0x1095b9540, {{207.0, -368.0}, {83.0, 13.3}}, label: '$245 · Oneness'
+                                            StaticText, 0x1095b8640, {{16.0, -348.7}, {176.0, 26.3}}, label: 'A men's hiking shoe from Merrell's Moab 3 line, made in collaboration with Khakis.'
+                                            StaticText, 0x1095bb200, {{207.0, -348.7}, {176.3, 26.3}}, label: 'A men's Air Jordan sneaker in black and dark grey. It's a classic Jordan style for everyday wear.'
+                                            Image, 0x1095b9e00, {{17.0, -314.7}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x1095bbc00, {{30.7, -316.3}, {107.3, 13.3}}, label: 'New to you · Merrell'
+                                            Image, 0x1095b9b80, {{208.0, -314.7}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x1095ba6c0, {{221.7, -316.3}, {107.0, 13.3}}, label: 'New to you · Jordan'
+                                            Button, 0x1095ba580, {{16.0, -297.0}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x1095bb840, {{109.7, -297.0}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x1095b8000, {{207.0, -297.0}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x1095b8b40, {{300.7, -297.0}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x1095baf80, {{16.0, -251.0}, {179.0, 150.0}}, label: 'Rick Owens DRKSHDW x Converse TURBOWPN OX Sneaker, Rick Owens DRKSHDW, END.'
+                                              StaticText, 0x1095ba440, {{28.0, -239.0}, {97.0, 40.7}}, label: 'Rick Owens DRKSHDW'
+                                              Image, 0x1095b9f40, {{51.7, -201.0}, {107.7, 76.0}}, label: 'Rick Owens DRKSHDW x Converse TURBOWPN OX Sneaker'
+                                              StaticText, 0x1095babc0, {{28.0, -125.0}, {23.7, 12.0}}, label: 'END.'
+                                            Button, 0x1095b8f00, {{207.0, -251.0}, {179.0, 150.0}}, label: 'Timberland Heritage 6-Inch Stacked Waterproof Boot in Black, Timberland, Oneness'
+                                              StaticText, 0x1095b8780, {{219.0, -239.0}, {90.7, 20.3}}, label: 'Timberland'
+                                              Image, 0x1095bb480, {{248.0, -201.0}, {97.0, 76.0}}, label: 'Timberland Heritage 6-Inch Stacked Waterproof Boot in Black'
+                                              StaticText, 0x1095bbac0, {{219.0, -125.0}, {42.3, 12.0}}, label: 'Oneness'
+                                            StaticText, 0x1095bbe80, {{16.0, -95.0}, {173.3, 33.7}}, label: 'Rick Owens DRKSHDW x Converse TURBOWPN OX Sneaker'
+                                            StaticText, 0x1095b97c0, {{207.0, -95.0}, {178.3, 33.7}}, label: 'Timberland Heritage 6-Inch Stacked Waterproof Boot in Black'
+                                            StaticText, 0x1095b9680, {{16.0, -55.0}, {71.7, 13.3}}, label: '≈ $142 · END.'
+                                            StaticText, 0x1095b9180, {{207.0, -55.0}, {83.3, 13.3}}, label: '$230 · Oneness'
+                                            StaticText, 0x1095ba940, {{16.0, -35.7}, {177.7, 26.3}}, label: 'A low-top sneaker for men and women, made as a collaboration with Converse in its Turbo Wpn style.'
+                                            StaticText, 0x1095bb340, {{207.0, -35.7}, {176.0, 26.3}}, label: 'A black men's boot with a 6-inch shaft, a stacked heel, and a waterproof build. It suits everyday wear in wet or cold weather.'
+                                            Image, 0x1095b83c0, {{17.0, -1.7}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x1095b8dc0, {{30.7, -3.3}, {160.3, 13.3}}, label: 'New to you · Rick Owens DRKSHDW'
+                                            Image, 0x1095bae40, {{208.0, -1.7}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x1095bad00, {{221.7, -3.3}, {130.7, 13.3}}, label: 'New to you · Timberland'
+                                            Button, 0x1095ba080, {{16.0, 16.0}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x1095bb700, {{109.7, 16.0}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x1095b9040, {{207.0, 16.0}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x1095bb5c0, {{300.7, 16.0}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x1095b8a00, {{16.0, 62.0}, {179.0, 150.0}}, label: 'Y-3 Adios Pro 4 Sneaker, Y-3, END.'
+                                              StaticText, 0x1095bb980, {{28.0, 74.0}, {28.7, 20.3}}, label: 'Y-3'
+                                              Image, 0x1127d4f00, {{32.7, 112.0}, {145.7, 76.0}}, label: 'Y-3 Adios Pro 4 Sneaker'
+                                              StaticText, 0x1127d4640, {{28.0, 188.0}, {23.7, 12.0}}, label: 'END.'
+                                            Button, 0x1127d4dc0, {{207.0, 62.0}, {179.0, 150.0}}, label: 'Comme des Garçons SHIRT x Asics Gel SD Lyte Sneaker, Comme des Garçons SHIRT, END.'
+                                              StaticText, 0x1127d4000, {{219.0, 74.0}, {120.3, 40.7}}, label: 'Comme des Garçons SHIRT'
+                                              Image, 0x1127d5540, {{220.7, 112.0}, {151.7, 76.0}}, label: 'Comme des Garçons SHIRT x Asics Gel SD Lyte Sneaker'
+                                              StaticText, 0x1127d57c0, {{219.0, 188.0}, {23.7, 12.0}}, label: 'END.'
+                                            StaticText, 0x1127d5680, {{16.0, 218.0}, {153.3, 15.7}}, label: 'Y-3 Adios Pro 4 Sneaker'
+                                            StaticText, 0x1127d4500, {{207.0, 218.0}, {177.0, 33.7}}, label: 'Comme des Garçons SHIRT x Asics Gel SD Lyte Sneaker'
+                                            StaticText, 0x1127d7840, {{16.0, 258.0}, {71.7, 13.3}}, label: '≈ $201 · END.'
+                                            StaticText, 0x1127d43c0, {{207.0, 258.0}, {72.3, 13.3}}, label: '≈ $274 · END.'
+                                            StaticText, 0x1127d7200, {{16.0, 277.3}, {177.3, 26.3}}, label: 'A sporty sneaker with a bold, technical look. It's meant for men who want athletic styling for everyday wear.'
+                                            StaticText, 0x1127d4c80, {{207.0, 277.3}, {176.0, 26.3}}, label: 'A retro-style running sneaker from Asics, made as a collaboration with Comme des Garçons SHIRT.'
+                                            Image, 0x1127d4280, {{17.0, 311.0}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x1127d7700, {{30.7, 309.7}, {89.0, 13.3}}, label: 'New to you · Y-3'
+                                            Image, 0x1127d4140, {{208.0, 311.0}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x1127d7980, {{221.7, 309.7}, {160.3, 13.3}}, label: 'New to you · Comme des Garçons SHIRT'
+                                            Button, 0x1127d52c0, {{16.0, 329.0}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x1127d4a00, {{109.7, 329.0}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x1127d4780, {{207.0, 329.0}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x1127d7c00, {{300.7, 329.0}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x1127d7d40, {{16.0, 375.0}, {179.0, 150.0}}, label: 'Maharishi Daystorm Horizon Zip GTX Boots Stone Green, Sorel, Slam Jam'
+                                              StaticText, 0x1127d7e80, {{28.0, 387.0}, {41.3, 20.3}}, label: 'Sorel'
+                                              Image, 0x1127d7ac0, {{54.7, 425.0}, {101.7, 76.0}}, label: 'Maharishi Daystorm Horizon Zip GTX Boots Stone Green'
+                                              StaticText, 0x1127d5040, {{28.0, 501.0}, {46.7, 12.0}}, label: 'Slam Jam'
+                                            StaticText, 0x1127d5400, {{16.0, 531.0}, {179.0, 33.7}}, label: 'Maharishi Daystorm Horizon Zip GTX Boots Stone Green'
+                                            StaticText, 0x1127d7340, {{16.0, 571.0}, {98.3, 13.3}}, label: '≈ $330 · Slam Jam'
+                                            StaticText, 0x1127d48c0, {{16.0, 590.3}, {176.3, 26.3}}, label: 'Waterproof men's boots in a stone green shade, with a zip for quick on and off. Made with Maharishi, they suit wet or rough weather outdoors.'
+                                            Image, 0x10845da40, {{17.0, 624.0}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x10845fd40, {{30.7, 622.7}, {97.7, 13.3}}, label: 'New to you · Sorel'
+                                            Button, 0x10845cf00, {{16.0, 642.0}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10845c780, {{109.7, 642.0}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                          Button, 0x10845f5c0, {{16.0, 694.0}, {370.0, 46.0}}, label: 'Check for new picks'
+                                            Image, 0x10845e940, {{117.7, 710.0}, {11.7, 14.3}}, identifier: 'arrow.clockwise', label: 'Refresh'
+                                            StaticText, 0x10845d400, {{138.2, 708.0}, {147.3, 18.0}}, label: 'Check for new picks'
+                                          StaticText, 0x10845c8c0, {{127.5, 752.0}, {147.0, 14.3}}, label: 'That's everything for now.'
+                                      Other, 0x10845e1c0, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x10845d540, {{0.0, 0.0}, {402.0, 156.0}}
+                                        Other, 0x10845db80, {{0.0, 741.0}, {402.0, 133.0}}
+                                      Other, 0x10845fac0, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x10845df40, {{0.0, 0.0}, {402.0, 156.0}}
+                                        Other, 0x10845f480, {{0.0, 741.0}, {402.0, 133.0}}
+                                    Button, 0x10845ed00, {{338.0, 731.0}, {46.0, 46.0}}, identifier: 'arrow.up', label: 'Back to top'
+                            Toolbar, 0x10845f980, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                              Other, 0x10845e300, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x10845d2c0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x10845e800, {{0.0, 791.0}, {402.0, 83.0}}
+                    Other, 0x10845de00, {{0.0, 0.0}, {402.0, 874.0}}
+                      TabBar, 0x10845ee40, {{0.0, 791.0}, {402.0, 83.0}}, label: 'Tab Bar'
+                        Other, 0x10845e080, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x10845c500, {{21.0, 791.0}, {98.0, 54.0}}
+                          Other, 0x10845dcc0, {{21.0, 791.0}, {360.0, 62.0}}
+                            Button, 0x10845f0c0, {{25.0, 795.0}, {98.0, 54.0}}, identifier: 'sun.max.fill', label: 'Today', Selected
+                              Image, 0x10845e6c0, {{59.7, 800.0}, {29.0, 29.3}}, identifier: 'sun.max.fill', label: 'brightness higher'
+                            Button, 0x10845d180, {{109.7, 795.0}, {98.0, 54.0}}, identifier: 'sparkles', label: 'Finds', value: 17 items
+                              Image, 0x10845e580, {{145.7, 799.0}, {26.0, 30.0}}, identifier: 'sparkles', label: 'sparkle'
+                            Button, 0x10845e440, {{194.3, 795.0}, {98.0, 54.0}}, identifier: 'binoculars.fill', label: 'Scouts'
+                              Image, 0x10845d040, {{225.7, 802.3}, {35.3, 25.7}}, identifier: 'binoculars.fill', label: 'Binoculars, filled'
+                            Button, 0x10845f200, {{279.0, 795.0}, {98.0, 54.0}}, identifier: 'heart.circle.fill', label: 'Friends'
+                              Image, 0x10845ebc0, {{314.3, 801.3}, {27.3, 27.3}}, identifier: 'heart.circle.fill', label: 'love'
+                          Other, 0x10845fc00, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x10845f700, {{25.0, 795.0}, {98.0, 54.0}}
+                            Other, 0x10845fe80, {{25.0, 795.0}, {98.0, 54.0}}
+                              Other, 0x10845ea80, {{25.0, 795.0}, {98.0, 54.0}}
+                              Other, 0x10845f840, {{25.0, 795.0}, {98.0, 54.0}}
+                                Other, 0x10845ef80, {{25.0, 795.0}, {98.0, 54.0}}
+                                  Other, 0x10845f340, {{25.0, 795.0}, {98.0, 54.0}}
+                                    Other, 0x10568fc00, {{25.0, 795.0}, {98.0, 54.0}}
+                                  Other, 0x10568d540, {{25.0, 795.0}, {98.0, 54.0}}
+                                Other, 0x10568fac0, {{25.0, 795.0}, {98.0, 54.0}}
+                    Other, 0x10568f0c0, {{0.0, 791.0}, {402.0, 83.0}}
+                      Other, 0x10568f840, {{0.0, 791.0}, {402.0, 83.0}}
+                        Other, 0x10568fd40, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x10568d400, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x10568f480, {{0.0, 791.0}, {402.0, 83.0}}
+                              Other, 0x10568f980, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x10568f700, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x1095acb40, {{0.0, 791.0}, {402.0, 83.0}}
+    Window, 0x1095ac780, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1095ad900, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1095ad180, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x112699e00, pid: 17534, label: 'Baget'
+Query chain:
+ →Find: Target Application 'app.baget.ios'
+  Output: {
+    Application, 0x1095acf00, pid: 17534, label: 'Baget'
+  }
+)

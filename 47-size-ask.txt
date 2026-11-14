@@ -1,0 +1,323 @@
+Optional(Attributes: Application, 0x1127d5040, pid: 17534, label: 'Baget'
+Element subtree:
+ →Application, 0x1127d5040, pid: 17534, label: 'Baget'
+    Window (Main), 0x1127d48c0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1127d7d40, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1127d4a00, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1127d7c00, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x1127d5540, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1127d5400, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x1127d43c0, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x1127d7700, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x10845f0c0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x10845cf00, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x10845f980, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x10845f700, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x10845fe80, {{0.0, 0.0}, {402.0, 874.0}}, value: 16
+                            NavigationBar, 0x10845db80, {{0.0, 62.0}, {402.0, 54.0}}, identifier: 'SwiftUI.PlatformAlert'
+                              Other, 0x10845d2c0, {{20.0, 66.0}, {42.0, 36.0}}
+                                Other, 0x10845ee40, {{20.0, 66.0}, {42.0, 36.0}}
+                                  Button, 0x10845fac0, {{20.0, 66.0}, {42.0, 36.0}}, label: 'You: icon, settings and account'
+                                    StaticText, 0x10845e300, {{20.0, 66.0}, {42.0, 36.0}}, label: 'CT'
+                              Other, 0x10845f5c0, {{151.3, 70.7}, {99.0, 26.7}}
+                                Other, 0x10845e440, {{151.3, 70.7}, {99.0, 26.7}}
+                                  StaticText, 0x10845c500, {{151.3, 71.0}, {26.0, 26.0}}
+                                  StaticText, 0x10845f200, {{185.3, 70.8}, {59.0, 26.3}}, label: 'Baget'
+                                  StaticText, 0x10845fd40, {{244.3, 70.8}, {6.0, 26.3}}, label: '.'
+                              Other, 0x10845f840, {{346.0, 66.0}, {36.0, 36.0}}
+                                Other, 0x10845e580, {{346.0, 66.0}, {36.0, 36.0}}
+                                  Button, 0x10845e1c0, {{349.3, 66.0}, {29.3, 36.0}}, label: 'Notifications, 6 unread'
+                                    Image, 0x10845e940, {{353.7, 72.7}, {20.7, 22.7}}, identifier: 'bell.fill', label: 'Notifications'
+                                    StaticText, 0x10845de00, {{376.3, 65.7}, {6.3, 11.0}}, label: '6'
+                            Other, 0x10845f340, {{0.0, 0.0}, {402.0, 874.0}}
+                              Other, 0x10845ea80, {{0.0, 0.0}, {402.0, 874.0}}
+                                Other, 0x10845c8c0, {{0.0, 0.0}, {402.0, 874.0}}
+                                  Other, 0x10845e6c0, {{0.0, 0.0}, {402.0, 874.0}}
+                                    ScrollView, 0x10845e800, {{0.0, 0.0}, {402.0, 874.0}}
+                                      Other, 0x10845ef80, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x10845f480, {{0.0, 0.0}, {402.0, 156.0}}
+                                        Other, 0x10845d400, {{0.0, 586.0}, {402.0, 155.0}}
+                                      Other, 0x10845d180, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x10845ebc0, {{0.0, 586.0}, {402.0, 155.0}}
+                                      Other, 0x10845dcc0, {{0.0, 116.0}, {402.0, 2115.0}}
+                                        Other, 0x10845d540, {{16.0, 120.0}, {370.0, 1216.7}}
+                                          StaticText, 0x10845d040, {{16.0, 120.0}, {75.7, 36.0}}, label: 'Finds'
+                                          Button, 0x10845fc00, {{298.0, 127.0}, {40.0, 40.0}}, identifier: 'arrow.clockwise', label: 'Hunt now'
+                                          Button, 0x10845da40, {{346.0, 127.0}, {40.0, 40.0}}, label: 'More'
+                                            Button, 0x112698500, {{346.0, 127.0}, {40.0, 40.0}}
+                                              Image, 0x112698f00, {{358.0, 145.0}, {16.0, 3.7}}, identifier: 'ellipsis', label: 'More'
+                                          StaticText, 0x11269a800, {{16.0, 158.0}, {154.7, 15.7}}, label: '16 new · 2 scouts hunting'
+                                          ScrollView, 0x112698640, {{16.0, 187.7}, {370.0, 29.7}}
+                                            Other, 0x11269a6c0, {{16.0, 187.7}, {332.7, 29.7}}
+                                              Button, 0x11269b200, {{16.0, 187.7}, {76.0, 29.7}}, label: 'New · 16'
+                                              Button, 0x1126983c0, {{98.0, 187.7}, {76.7, 29.7}}, label: '♥ Saved'
+                                              Button, 0x112698c80, {{180.7, 187.7}, {123.7, 29.7}}, label: 'Coming soon · 2'
+                                              Button, 0x112699180, {{310.3, 187.7}, {38.3, 29.7}}, label: 'All', Selected
+                                          Button, 0x11269a1c0, {{16.0, 238.7}, {121.7, 15.3}}, label: 'Sort:, Best match'
+                                            Button, 0x11269a300, {{16.0, 238.7}, {121.7, 15.3}}
+                                              StaticText, 0x11269b340, {{16.0, 238.5}, {29.3, 15.7}}, label: 'Sort:'
+                                              StaticText, 0x11269a940, {{49.3, 238.5}, {71.7, 15.7}}, label: 'Best match'
+                                              Image, 0x1126992c0, {{126.3, 243.3}, {10.0, 6.0}}, identifier: 'chevron.down', label: 'Go Down'
+                                          Button, 0x11269b0c0, {{314.0, 231.3}, {36.0, 30.0}}, identifier: 'list.bullet', label: 'List', Selected
+                                          Button, 0x11269a440, {{362.0, 240.3}, {12.0, 12.0}}, identifier: 'square.grid.2x2', label: 'Grid'
+                                          StaticText, 0x1126997c0, {{50.3, 284.3}, {233.0, 33.7}}, label: 'Tap the heart (or swipe right) to teach your scout'
+                                          Image, 0x112699b80, {{29.3, 295.7}, {11.7, 11.0}}, identifier: 'heart.fill', label: 'Love'
+                                          Button, 0x112699400, {{362.7, 296.3}, {10.0, 10.0}}, identifier: 'xmark', label: 'Dismiss tip'
+                                          Button, 0x11269ae40, {{16.0, 347.0}, {370.0, 35.7}}, label: 'Trail Retro Hunter, 11 finds, 11 new'
+                                            StaticText, 0x11269b480, {{16.0, 350.0}, {30.0, 30.0}}, label: '👟'
+                                            StaticText, 0x11269b980, {{56.0, 347.0}, {140.3, 20.3}}, label: 'Trail Retro Hunter'
+                                            StaticText, 0x11269b5c0, {{315.7, 358.2}, {37.3, 13.3}}, label: '11 new'
+                                            StaticText, 0x11269be80, {{56.0, 368.3}, {52.0, 14.3}}, label: 'Sneakers'
+                                            Image, 0x112699900, {{372.7, 361.3}, {11.7, 7.0}}, identifier: 'chevron.down', label: 'Go Down'
+                                          Other, 0x11269b840, {{16.0, 390.7}, {370.0, 98.0}}
+                                            Image, 0x11269bd40, {{26.0, 406.7}, {66.0, 66.0}}
+                                            StaticText, 0x112698000, {{103.0, 403.3}, {217.7, 38.0}}, label: 'Made in USA 992 (U992V1-52807, deep green and brown)'
+                                            Button, 0x112699f40, {{340.0, 400.7}, {36.0, 36.0}}, identifier: 'heart.fill', label: 'Like'
+                                            StaticText, 0x112698280, {{103.0, 444.3}, {151.7, 14.3}}, label: 'New Balance · 84% match'
+                                            Button, 0x1095ad180, {{340.0, 442.7}, {36.0, 36.0}}, identifier: 'xmark', label: 'Pass'
+                                            StaticText, 0x1095acb40, {{103.0, 461.7}, {219.7, 14.3}}, label: 'Deep green and brown with suede and leather is exactly the earth-tone 992 you've been circling.'
+                                          Other, 0x1095ad2c0, {{16.0, 496.7}, {370.0, 98.0}}
+                                            Image, 0x1095ac780, {{26.0, 512.7}, {66.0, 66.0}}
+                                            StaticText, 0x1095ac500, {{103.0, 509.3}, {214.7, 38.0}}, label: 'Made in USA 990v7 Sneakers Kool Gray'
+                                            Button, 0x1095adb80, {{340.0, 506.7}, {36.0, 36.0}}, identifier: 'heart.fill', label: 'Like'
+                                            StaticText, 0x1095ad900, {{103.0, 550.3}, {184.3, 14.3}}, label: 'Slam Jam · ≈ $280 · 84% match'
+                                            Button, 0x1095b9e00, {{340.0, 548.7}, {36.0, 36.0}}, identifier: 'xmark', label: 'Pass'
+                                            StaticText, 0x1095bbc00, {{103.0, 567.7}, {223.3, 14.3}}, label: 'Matches your keywords: 990v7, made in usa'
+                                          Other, 0x1095b9b80, {{16.0, 602.7}, {370.0, 98.0}}
+                                            Other, 0x1095bbd40, {{23.0, 615.7}, {11.0, 11.0}}, label: 'New to you'
+                                            Image, 0x1095bb200, {{26.0, 618.7}, {66.0, 66.0}}
+                                            StaticText, 0x1095b9cc0, {{103.0, 615.3}, {218.3, 38.0}}, label: 'Made in USA 992 (U992V1-52135, deep sea stone)'
+                                            Button, 0x1095b9540, {{340.0, 612.7}, {36.0, 36.0}}, identifier: 'heart.fill', label: 'Like'
+                                            StaticText, 0x1095bb5c0, {{103.0, 656.3}, {150.7, 14.3}}, label: 'New Balance · 79% match'
+                                            Button, 0x1095baf80, {{340.0, 654.7}, {36.0, 36.0}}, identifier: 'xmark', label: 'Pass'
+                                            StaticText, 0x1095ba800, {{103.0, 673.7}, {220.7, 14.3}}, label: 'A 992 in a muted sea-stone colorway with green and yellow accents, a color story you may not have named yet but fits your earth-tone taste.'
+                                          Other, 0x1095bad00, {{16.0, 708.7}, {370.0, 98.0}}
+                                            Image, 0x1095b97c0, {{26.0, 724.7}, {66.0, 66.0}}
+                                            Button, 0x1095b9680, {{340.0, 718.7}, {36.0, 36.0}}, identifier: 'heart.fill', label: 'Like'
+                                            StaticText, 0x1095bb340, {{103.0, 731.3}, {184.0, 18.0}}, label: 'XA PRO 3D V9 GORE-TEX'
+                                            StaticText, 0x1095bae40, {{103.0, 752.3}, {126.3, 14.3}}, label: 'Salomon · 79% match'
+                                            Button, 0x1095ba580, {{340.0, 760.7}, {36.0, 36.0}}, identifier: 'xmark', label: 'Pass'
+                                            StaticText, 0x1095bbac0, {{103.0, 769.7}, {219.3, 14.3}}, label: 'You love the XA PRO 3D and GORE-TEX, and this is the one with both in a single pair.'
+                                          Other, 0x1095ba6c0, {{16.0, 814.7}, {370.0, 98.0}}
+                                            Image, 0x1095b8500, {{26.0, 830.7}, {66.0, 66.0}}
+                                            Button, 0x1095b8c80, {{340.0, 824.7}, {36.0, 36.0}}, identifier: 'heart.fill', label: 'Like'
+                                            StaticText, 0x1095b8140, {{103.0, 837.3}, {161.3, 18.0}}, label: 'Made in USA 992 Core'
+                                            StaticText, 0x1095b8640, {{103.0, 858.3}, {190.7, 14.3}}, label: 'New Balance · $200 · 79% match'
+                                            Button, 0x1095b83c0, {{340.0, 866.7}, {36.0, 36.0}}, identifier: 'xmark', label: 'Pass'
+                                            StaticText, 0x1095ba080, {{103.0, 875.7}, {225.3, 14.3}}, label: 'The plain core 992 in suede and mesh, the one you'd wear every day without thinking.'
+                                          Other, 0x1095b8dc0, {{16.0, 920.7}, {370.0, 98.0}}
+                                            Image, 0x1095bb700, {{26.0, 936.7}, {66.0, 66.0}}
+                                            Button, 0x1095b9040, {{340.0, 930.7}, {36.0, 36.0}}, identifier: 'heart.fill', label: 'Like'
+                                            StaticText, 0x1095ba940, {{103.0, 943.3}, {225.0, 18.0}}, label: 'Air Max 95 Big Bubble Premium'
+                                            StaticText, 0x1095b92c0, {{103.0, 964.3}, {167.7, 14.3}}, label: 'Overkill · ≈ $177 · 77% match'
+                                            Button, 0x1095b8b40, {{340.0, 972.7}, {36.0, 36.0}}, identifier: 'xmark', label: 'Pass'
+                                            StaticText, 0x1095b8a00, {{103.0, 981.7}, {200.0, 14.3}}, label: 'Matches your keywords: air max 95'
+                                          Other, 0x1095b9180, {{16.0, 1026.7}, {370.0, 98.0}}
+                                            Image, 0x1095b9f40, {{26.0, 1042.7}, {66.0, 66.0}}
+                                            StaticText, 0x1095b8780, {{103.0, 1039.3}, {226.0, 38.0}}, label: 'Made in USA 992 Black Leather & White Mesh (raw-edge)'
+                                            Button, 0x1095bb0c0, {{340.0, 1036.7}, {36.0, 36.0}}, identifier: 'heart.fill', label: 'Like'
+                                            StaticText, 0x1095b88c0, {{103.0, 1080.3}, {192.3, 14.3}}, label: 'New Balance · 74% match · IN 4D'
+                                            Button, 0x1095bb980, {{340.0, 1078.7}, {36.0, 36.0}}, identifier: 'xmark', label: 'Pass'
+                                            StaticText, 0x1095baa80, {{103.0, 1097.7}, {222.0, 14.3}}, label: 'A 992 drop five days away, a black and white take on the silhouette you love.'
+                                          Other, 0x1095ba300, {{16.0, 1132.7}, {370.0, 98.0}}
+                                            Other, 0x1095bb840, {{23.0, 1145.7}, {11.0, 11.0}}, label: 'New to you'
+                                            Image, 0x1095babc0, {{26.0, 1148.7}, {66.0, 66.0}}
+                                            StaticText, 0x1095b8f00, {{103.0, 1145.3}, {219.0, 38.0}}, label: 'New Balance 992 Sport Green Sea Moss Interstellar'
+                                            Button, 0x1095bbe80, {{340.0, 1142.7}, {36.0, 36.0}}, identifier: 'heart.fill', label: 'Like'
+                                            StaticText, 0x1095ba1c0, {{103.0, 1186.3}, {109.3, 14.3}}, label: 'GOAT · 74% match'
+                                            Button, 0x1095b8000, {{340.0, 1184.7}, {36.0, 36.0}}, identifier: 'xmark', label: 'Pass'
+                                            StaticText, 0x1095ba440, {{103.0, 1203.7}, {221.7, 14.3}}, label: 'A green-and-sea-moss 992 is a colorway you haven't named, and the suede fits your earthy taste.'
+                                          Other, 0x1095bb480, {{16.0, 1238.7}, {370.0, 98.0}}
+                                            Image, 0x10568f480, {{26.0, 1254.7}, {66.0, 66.0}}
+                                            Button, 0x10568f980, {{340.0, 1248.7}, {36.0, 36.0}}, identifier: 'heart.fill', label: 'Like'
+                                            StaticText, 0x10568f700, {{103.0, 1261.3}, {202.0, 18.0}}, label: 'XA PRO 3D Unisex Sneakers'
+                                            StaticText, 0x10568fd40, {{103.0, 1282.3}, {126.0, 14.3}}, label: 'Salomon · 73% match'
+                                            Button, 0x10568d540, {{340.0, 1290.7}, {36.0, 36.0}}, identifier: 'xmark', label: 'Pass'
+                                            StaticText, 0x10568fac0, {{103.0, 1299.7}, {221.0, 14.3}}, label: 'A mesh XA PRO 3D built for everyday wear, the kind of dad shoe you keep reaching for.'
+                            Toolbar, 0x10568f840, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                              Other, 0x10568f0c0, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x10568d400, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x10568fc00, {{0.0, 791.0}, {402.0, 83.0}}
+                    Other, 0x112bd6e40, {{0.0, 0.0}, {402.0, 874.0}}
+                      TabBar, 0x112bd5680, {{0.0, 791.0}, {402.0, 83.0}}, label: 'Tab Bar'
+                        Other, 0x112bd6f80, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x112bd61c0, {{21.0, 791.0}, {98.0, 54.0}}
+                          Other, 0x112bd4500, {{21.0, 791.0}, {360.0, 62.0}}
+                            Button, 0x112bd4280, {{25.0, 795.0}, {98.0, 54.0}}, identifier: 'sun.max.fill', label: 'Today'
+                              Image, 0x112bd4b40, {{59.7, 800.0}, {29.0, 29.3}}, identifier: 'sun.max.fill', label: 'brightness higher'
+                            Button, 0x112bd5a40, {{109.7, 795.0}, {98.0, 54.0}}, identifier: 'sparkles', label: 'Finds', value: 16 items, Selected
+                              Image, 0x112bd5f40, {{145.7, 799.0}, {26.0, 30.0}}, identifier: 'sparkles', label: 'sparkle'
+                            Button, 0x112bd4640, {{194.3, 795.0}, {98.0, 54.0}}, identifier: 'binoculars.fill', label: 'Scouts'
+                              Image, 0x112bd4140, {{225.7, 802.3}, {35.3, 25.7}}, identifier: 'binoculars.fill', label: 'Binoculars, filled'
+                            Button, 0x112bd5cc0, {{279.0, 795.0}, {98.0, 54.0}}, identifier: 'heart.circle.fill', label: 'Friends'
+                              Image, 0x112bd75c0, {{314.3, 801.3}, {27.3, 27.3}}, identifier: 'heart.circle.fill', label: 'love'
+                          Other, 0x112bd6440, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x112bd5900, {{109.7, 795.0}, {98.0, 54.0}}
+                            Other, 0x112bd4000, {{109.7, 795.0}, {98.0, 54.0}}
+                              Other, 0x112bd4a00, {{109.7, 795.0}, {98.0, 54.0}}
+                              Other, 0x112bd6300, {{109.7, 795.0}, {98.0, 54.0}}
+                                Other, 0x112bd43c0, {{109.7, 795.0}, {98.0, 54.0}}
+                                  Other, 0x112bd70c0, {{109.7, 795.0}, {98.0, 54.0}}
+                                    Other, 0x112bd4780, {{109.7, 795.0}, {98.0, 54.0}}
+                                  Other, 0x112bd6bc0, {{109.7, 795.0}, {98.0, 54.0}}
+                                Other, 0x112bd6080, {{109.7, 795.0}, {98.0, 54.0}}
+                    Other, 0x112bd48c0, {{0.0, 791.0}, {402.0, 83.0}}
+                      Other, 0x112bd5b80, {{0.0, 791.0}, {402.0, 83.0}}
+                        Other, 0x112bd7480, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x112bd7840, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x112bd7ac0, {{0.0, 791.0}, {402.0, 83.0}}
+                              Other, 0x112bd7980, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x112bd57c0, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x112bd5e00, {{0.0, 791.0}, {402.0, 83.0}}
+      Other, 0x112bd6d00, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1095a0000, {{0.0, 0.0}, {402.0, 546.0}}
+        Other, 0x1095a0140, {{0.0, 0.0}, {402.0, 874.0}}
+        Alert, 0x1095a0280, {{41.0, 175.0}, {320.0, 258.0}}, label: 'What size should Trail Retro Hunter look for?'
+          Other, 0x1095a3700, {{41.0, 175.0}, {320.0, 258.0}}
+            Other, 0x1095a35c0, {{41.0, 175.0}, {320.0, 258.0}}
+              Other, 0x1095a2e40, {{41.0, 175.0}, {320.0, 258.0}}
+              Other, 0x1095a2d00, {{41.0, 175.0}, {320.0, 258.0}}
+                ScrollView, 0x1095a08c0, {{41.0, 175.0}, {320.0, 178.0}}
+                  Other, 0x1095a03c0, {{41.0, 175.0}, {320.0, 178.0}}
+                    StaticText, 0x1095a0500, {{71.0, 197.0}, {260.0, 42.3}}, label: 'What size should Trail Retro Hunter look for?'
+                    StaticText, 0x1095a0640, {{71.0, 246.7}, {260.0, 38.0}}, label: 'It'll only bring you things that come in your size. You can change it any time.'
+                    Other, 0x1095a0780, {{41.0, 301.0}, {320.0, 52.0}}
+                      Other, 0x1095a0dc0, {{41.0, 301.0}, {320.0, 52.0}}
+                        CollectionView, 0x1095a0a00, {{41.0, 301.0}, {320.0, 52.0}}
+                          Cell, 0x1095a0b40, {{41.0, 301.0}, {320.0, 48.0}}
+                            Other, 0x1095a0c80, {{41.0, 301.0}, {320.0, 48.0}}
+                              Other, 0x1095a0f00, {{56.0, 301.0}, {290.0, 48.0}}
+                                Other, 0x1095a1040, {{56.0, 301.0}, {290.0, 48.0}}
+                                  Other, 0x1095a1180, {{56.0, 301.0}, {290.0, 48.0}}
+                                    Other, 0x1095a1400, {{56.0, 301.0}, {290.0, 48.0}}
+                                    TextField, 0x1095a1540, {{71.0, 308.0}, {260.0, 35.0}}, placeholderValue: 'e.g. M, 32x30, 10.5', Keyboard Focused, Focused
+                          Other, 0x1095a12c0, {{328.0, 301.0}, {30.0, 52.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                            Other, 0x1095a17c0, {{355.0, 262.0}, {3.0, 36.0}}
+                          Other, 0x1095a1a40, {{41.0, 324.0}, {320.0, 26.0}}, label: 'Horizontal scroll bar, 2 pages', value: 50%
+                            Other, 0x1095a1cc0, {{2.0, 347.0}, {36.0, 3.0}}
+                          Other, 0x1095a1900, {{328.0, 301.0}, {30.0, 52.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                            Other, 0x1095a1680, {{355.0, 262.0}, {3.0, 36.0}}
+                          Other, 0x1095a1b80, {{41.0, 324.0}, {320.0, 26.0}}, label: 'Horizontal scroll bar, 2 pages', value: 50%
+                            Other, 0x1095a21c0, {{2.0, 347.0}, {36.0, 3.0}}
+                  Other, 0x1095a2440, {{41.0, 351.0}, {320.0, 2.0}}
+                  Other, 0x1095a1f40, {{328.0, 175.0}, {30.0, 178.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                    Other, 0x1095a2080, {{355.0, 136.0}, {3.0, 36.0}}
+                  Other, 0x1095a1e00, {{41.0, 320.0}, {320.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                    Other, 0x1095a2300, {{2.0, 347.0}, {36.0, 3.0}}
+                  Other, 0x1095a26c0, {{328.0, 175.0}, {30.0, 178.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                    Other, 0x1095a2940, {{355.0, 136.0}, {3.0, 36.0}}
+                  Other, 0x1095a2580, {{41.0, 320.0}, {320.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                    Other, 0x1095a2800, {{2.0, 347.0}, {36.0, 3.0}}
+                ScrollView, 0x1095a2a80, {{41.0, 353.0}, {320.0, 80.0}}
+                  Other, 0x1095a2bc0, {{41.0, 353.0}, {320.0, 80.0}}
+                    Other, 0x1095a30c0, {{57.0, 369.0}, {288.0, 48.0}}
+                      Button, 0x1095a2f80, {{57.0, 369.0}, {140.0, 48.0}}, label: 'Skip'
+                      Button, 0x1095a3480, {{205.0, 369.0}, {140.0, 48.0}}, label: 'Save'
+                  Other, 0x1095a3200, {{328.0, 353.0}, {30.0, 80.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x1095a3340, {{355.0, 443.0}, {3.0, 7.0}}
+                  Other, 0x1095a3840, {{41.0, 400.0}, {320.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                    Other, 0x1095a3ac0, {{131.0, 427.0}, {7.0, 3.0}}
+                  Other, 0x1095a3980, {{328.0, 353.0}, {30.0, 80.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x112b99cc0, {{355.0, 443.0}, {3.0, 7.0}}
+                  Other, 0x112b99e00, {{41.0, 400.0}, {320.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                    Other, 0x112b9a1c0, {{131.0, 427.0}, {7.0, 3.0}}
+          Other, 0x112b9a300, {{41.0, 175.0}, {320.0, 258.0}}
+            Other, 0x112b9a580, {{41.0, 175.0}, {320.0, 258.0}}
+              Other, 0x112b9a6c0, {{41.0, 175.0}, {320.0, 258.0}}
+                Other, 0x112b9a800, {{41.0, 175.0}, {320.0, 258.0}}
+                  Other, 0x112b9a940, {{41.0, 175.0}, {320.0, 258.0}}
+                    Other, 0x112b9aa80, {{41.0, 175.0}, {402.0, 874.0}}
+                Other, 0x112b9abc0, {{41.0, 175.0}, {320.0, 258.0}}
+                  Other, 0x112b9ad00, {{41.0, 175.0}, {402.0, 874.0}}
+        Other, 0x112b9ae40, {{0.0, 546.0}, {402.0, 328.0}}
+    Window, 0x112b9af80, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x112b9b0c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x112b9bd40, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x112b9be80, {{0.0, 546.0}, {402.0, 328.0}}
+          Other, 0x112b9b700, {{0.0, 546.0}, {402.0, 328.0}}, identifier: 'inputView'
+    Window, 0x112b9b840, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x112b9bc00, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x112b9bac0, {{0.0, 546.0}, {402.0, 328.0}}
+          Other, 0x112b9b980, {{0.0, 546.0}, {402.0, 44.0}}, identifier: 'SystemInputAssistantView'
+            Other, 0x112b9b200, {{0.0, 546.0}, {402.0, 44.0}}
+              Other, 0x112b9b340, {{0.0, 546.0}, {402.0, 44.0}}, identifier: 'CenterPageView'
+                Other, 0x112b9b480, {{0.0, -54.0}, {402.0, 1244.0}}
+                  ScrollView, 0x112b9b5c0, {{0.0, 546.0}, {402.0, 44.0}}
+                Other, 0x112b9a440, {{0.0, 546.0}, {402.0, 44.0}}
+                  Other, 0x112b9a080, {{0.0, 546.0}, {402.0, 44.0}}
+                    Other, 0x112b99f40, {{0.0, 546.0}, {402.0, 44.0}}, label: 'Typing Predictions'
+                      Other, 0x1095a8000, {{0.0, 546.0}, {402.0, 44.0}}
+                        Other, 0x1095a8140, {{0.0, 546.0}, {402.0, 44.0}}
+                          Button, 0x1095a8280, {{0.0, 546.0}, {134.0, 44.0}}
+                          Button, 0x1095a83c0, {{134.0, 546.0}, {134.0, 44.0}}
+                          Button, 0x1095a8500, {{268.0, 546.0}, {134.0, 44.0}}
+          Other, 0x1095a8640, {{0.0, 546.0}, {402.0, 328.0}}, identifier: 'UIContinuousPathIntroductionView'
+            Other, 0x1095a8780, {{0.0, 546.0}, {402.0, 328.0}}
+            Other, 0x1095a88c0, {{24.0, 546.0}, {354.0, 328.0}}
+              Other, 0x1095a8a00, {{24.0, 546.0}, {354.0, 251.0}}
+                ScrollView, 0x1095a8b40, {{24.0, 546.0}, {354.0, 251.0}}
+                  Other, 0x1095a8c80, {{24.0, 546.0}, {354.0, 248.3}}
+                    Other, 0x1095a8dc0, {{61.0, 570.0}, {280.0, 168.0}}
+                      Other, 0x1095a8f00, {{61.0, 570.0}, {280.0, 168.0}}
+                    StaticText, 0x1095a9040, {{24.0, 754.0}, {354.0, 40.3}}, label: 'Speed up your typing by sliding your finger across the letters to compose a word.'
+              Button, 0x1095a9180, {{77.0, 809.0}, {248.0, 33.0}}, label: 'Continue'
+                StaticText, 0x1095a92c0, {{165.7, 815.0}, {71.0, 21.0}}, label: 'Continue'
+          Other, 0x1095a9400, {{0.0, 546.0}, {402.0, 329.0}}
+            Other, 0x1095a9540, {{0.0, 546.0}, {402.0, 329.0}}
+              Other, 0x1095a9680, {{0.0, 546.0}, {402.0, 329.0}}
+          Other, 0x1095a97c0, {{0.0, 590.0}, {402.0, 226.0}}
+            Keyboard, 0x1095a9900, {{0.0, 590.0}, {402.0, 226.0}}
+              Other, 0x1095a9a40, {{0.0, 590.0}, {402.0, 226.0}}
+                Other, 0x1095a9b80, {{0.0, 590.0}, {402.0, 226.0}}, identifier: 'UIKeyboardLayoutStar Preview'
+                  Key, 0x1095a9cc0, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x1095a9e00, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x1095a9f40, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x1095aa080, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x1095aa1c0, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x1095aa300, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x1095aa440, {{4.7, 597.0}, {39.3, 54.0}}, label: 'Q'
+                  Key, 0x1095aa580, {{44.0, 597.0}, {39.7, 54.0}}, label: 'W'
+                  Key, 0x1095aa6c0, {{83.7, 597.0}, {39.3, 54.0}}, label: 'E'
+                  Key, 0x1095aa800, {{123.0, 597.0}, {39.7, 54.0}}, label: 'R'
+                  Key, 0x1095aa940, {{162.7, 597.0}, {39.3, 54.0}}, label: 'T'
+                  Key, 0x1095aaa80, {{202.0, 597.0}, {39.7, 54.0}}, label: 'Y'
+                  Key, 0x1095aabc0, {{241.7, 597.0}, {39.3, 54.0}}, label: 'U'
+                  Key, 0x1095aad00, {{281.0, 597.0}, {39.7, 54.0}}, label: 'I'
+                  Key, 0x1095aae40, {{320.7, 597.0}, {39.3, 54.0}}, label: 'O'
+                  Key, 0x1095aaf80, {{360.0, 597.0}, {39.7, 54.0}}, label: 'P'
+                  Key, 0x1095ab0c0, {{24.3, 651.0}, {39.3, 54.0}}, label: 'A'
+                  Key, 0x1095ab200, {{63.7, 651.0}, {39.7, 54.0}}, label: 'S'
+                  Key, 0x1095ab340, {{103.3, 651.0}, {39.3, 54.0}}, label: 'D'
+                  Key, 0x1095ab480, {{142.7, 651.0}, {39.7, 54.0}}, label: 'F'
+                  Key, 0x1095ab5c0, {{182.3, 651.0}, {39.3, 54.0}}, label: 'G'
+                  Key, 0x1095ab700, {{221.7, 651.0}, {39.7, 54.0}}, label: 'H'
+                  Key, 0x1095ab840, {{261.3, 651.0}, {39.3, 54.0}}, label: 'J'
+                  Key, 0x1095ab980, {{300.7, 651.0}, {39.7, 54.0}}, label: 'K'
+                  Key, 0x1095abac0, {{340.3, 651.0}, {39.3, 54.0}}, label: 'L'
+                  Button, 0x1095abc00, {{4.7, 705.0}, {51.3, 54.0}}, identifier: 'shift', label: 'shift', Selected
+                  Key, 0x1095abd40, {{63.7, 705.0}, {39.7, 54.0}}, label: 'Z'
+                  Key, 0x1095abe80, {{103.3, 705.0}, {39.3, 54.0}}, label: 'X'
+                  Key, 0x11269c000, {{142.7, 705.0}, {39.7, 54.0}}, label: 'C'
+                  Key, 0x11269c140, {{182.3, 705.0}, {39.3, 54.0}}, label: 'V'
+                  Key, 0x11269c280, {{221.7, 705.0}, {39.7, 54.0}}, label: 'B'
+                  Key, 0x11269c3c0, {{261.3, 705.0}, {39.3, 54.0}}, label: 'N'
+                  Key, 0x11269c500, {{300.7, 705.0}, {39.7, 54.0}}, label: 'M'
+                  Key, 0x11269c640, {{348.0, 705.0}, {51.7, 54.0}}, identifier: 'delete', label: 'delete'
+                  Key, 0x11269c780, {{4.7, 759.0}, {98.7, 54.0}}, identifier: 'more', label: 'numbers'
+                  Key, 0x11269c8c0, {{103.3, 759.0}, {197.3, 54.0}}, identifier: 'space', label: 'space'
+                  Button, 0x11269ca00, {{300.7, 759.0}, {99.0, 54.0}}, identifier: 'Return', label: 'return'
+          Other, 0x11269cb40, {{0.0, 590.0}, {402.0, 284.0}}
+            Button, 0x11269cc80, {{8.5, 805.7}, {68.1, 68.7}}, label: 'Emoji'
+              StaticText, 0x11269cdc0, {{8.5, 805.7}, {0.0, 0.0}}
+            Button, 0x11269cf00, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x11269d040, {{325.4, 805.4}, {0.0, 0.0}}
+            Button, 0x11269d180, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x11269d2c0, {{325.4, 805.4}, {0.0, 0.0}}
+Path to element:
+ →Application, 0x1127d5040, pid: 17534, label: 'Baget'
+Query chain:
+ →Find: Target Application 'app.baget.ios'
+  Output: {
+    Application, 0x11269d400, pid: 17534, label: 'Baget'
+  }
+)

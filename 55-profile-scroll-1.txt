@@ -1,0 +1,290 @@
+Optional(Attributes: Application, 0x1127d5040, pid: 17534, label: 'Baget'
+Element subtree:
+ →Application, 0x1127d5040, pid: 17534, label: 'Baget'
+    Window (Main), 0x1127d4640, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1127d4140, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1127d4280, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1127d5680, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x1127d4f00, {{-402.0, -874.0}, {1206.0, 2622.0}}
+          Other, 0x1127d4780, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1127d4a00, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x1127d5540, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x1127d43c0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x1127d48c0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1127d4c80, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x1127d4000, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x1127d4500, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x1127d7ac0, {{0.0, 0.0}, {402.0, 874.0}}
+                            NavigationBar, 0x1127d7840, {{0.0, 62.0}, {402.0, 54.0}}, identifier: '_TtGC7SwiftUI29PresentationHosting'
+                              Other, 0x1127d7e80, {{20.0, 66.0}, {42.0, 36.0}}
+                                Other, 0x1127d4dc0, {{20.0, 66.0}, {42.0, 36.0}}
+                                  Button, 0x1127d57c0, {{20.0, 66.0}, {42.0, 36.0}}, label: 'You: icon, settings and account'
+                                    Image, 0x1127d7340, {{20.0, 66.0}, {42.0, 36.0}}, identifier: 'shoe.fill', label: 'Shoe, Filled'
+                              Other, 0x1127d5400, {{151.3, 70.7}, {99.0, 26.7}}
+                                Other, 0x1127d7200, {{151.3, 70.7}, {99.0, 26.7}}
+                                  StaticText, 0x1127d52c0, {{151.3, 71.0}, {26.0, 26.0}}
+                                  StaticText, 0x1127d7980, {{185.3, 70.8}, {59.0, 26.3}}, label: 'Baget'
+                                  StaticText, 0x1127d7700, {{244.3, 70.8}, {6.0, 26.3}}, label: '.'
+                              Other, 0x1127d7c00, {{346.0, 66.0}, {36.0, 36.0}}
+                                Other, 0x112bd6440, {{346.0, 66.0}, {36.0, 36.0}}
+                                  Button, 0x112bd5f40, {{349.3, 66.0}, {29.3, 36.0}}, label: 'Notifications, 6 unread'
+                                    Image, 0x112bd4280, {{353.7, 72.7}, {20.7, 22.7}}, identifier: 'bell.fill', label: 'Notifications'
+                                    StaticText, 0x112bd5cc0, {{376.3, 65.7}, {6.3, 11.0}}, label: '6'
+                            Other, 0x112bd4140, {{0.0, 0.0}, {402.0, 874.0}}
+                              Other, 0x112bd6d00, {{0.0, 0.0}, {402.0, 874.0}}
+                                Other, 0x112bd7ac0, {{0.0, 0.0}, {402.0, 874.0}}
+                                  Other, 0x112bd75c0, {{0.0, 0.0}, {402.0, 874.0}}
+                                    ScrollView, 0x112bd4640, {{0.0, 0.0}, {402.0, 874.0}}
+                                      Other, 0x112bd5a40, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x112bd5e00, {{0.0, 0.0}, {402.0, 156.0}}
+                                        Other, 0x112bd7840, {{0.0, 741.0}, {402.0, 133.0}}
+                                      Other, 0x112bd5b80, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x112bd61c0, {{0.0, 741.0}, {402.0, 133.0}}
+                                      Other, 0x112bd4b40, {{0.0, 116.0}, {402.0, 863.0}}
+                                        StaticText, 0x112bd6300, {{20.0, 116.0}, {125.0, 43.0}}, label: 'Friends'
+                                        StaticText, 0x112bd6e40, {{20.0, 165.0}, {330.7, 18.0}}, label: 'Hunting's better with people who get your taste.'
+                                        Image, 0x112bd7980, {{90.3, 243.3}, {13.7, 13.7}}, identifier: 'plus', label: 'Add'
+                                        Image, 0x10568f480, {{124.3, 243.3}, {13.7, 13.7}}, identifier: 'plus', label: 'Add'
+                                        Image, 0x10568f980, {{158.0, 243.3}, {13.7, 13.7}}, identifier: 'plus', label: 'Add'
+                                        StaticText, 0x10568d400, {{40.0, 287.0}, {312.3, 57.3}}, label: 'Bring your crew.
+See who shares your taste.'
+                                        StaticText, 0x10568fd40, {{40.0, 350.3}, {290.0, 38.0}}, label: 'When a friend joins, Baget compares your taste and unlocks:'
+                                        Image, 0x10568d540, {{48.3, 415.0}, {13.7, 12.7}}, identifier: 'percent', label: 'Percent Sign'
+                                        StaticText, 0x112698000, {{81.0, 402.3}, {235.3, 38.0}}, label: 'Your taste match how close your styles are'
+                                        Image, 0x112698f00, {{47.3, 456.3}, {16.0, 18.0}}, identifier: 'rectangle.portrait.on.rectangle.portrait.angled.fill', label: 'Portrait Rectangle On Another Portrait Rectangle, Angled, Filled'
+                                        StaticText, 0x112699180, {{81.0, 456.3}, {215.7, 18.0}}, label: 'Taste Cards swap your style ID'
+                                        Image, 0x112698500, {{48.7, 498.3}, {13.0, 14.0}}, identifier: 'gift.fill', label: 'Gift'
+                                        StaticText, 0x11269a800, {{81.0, 496.3}, {228.3, 18.0}}, label: 'Gift radar picks for their birthday'
+                                        Image, 0x112699900, {{47.7, 542.3}, {14.0, 14.0}}, identifier: 'paperplane.fill', label: 'Send'
+                                        StaticText, 0x11269be80, {{81.0, 530.3}, {235.7, 38.0}}, label: 'Send finds "saw this and thought of you"'
+                                        Button, 0x112699f40, {{40.0, 584.3}, {156.0, 44.0}}, label: 'Invite friends'
+                                        Button, 0x11269a6c0, {{206.0, 584.3}, {156.0, 44.0}}, label: 'Add by username'
+                                        StaticText, 0x11269a940, {{52.2, 645.3}, {91.0, 15.7}}, label: 'Your username'
+                                        StaticText, 0x112699b80, {{161.2, 645.3}, {137.3, 15.7}}, label: '@claudetester88790'
+                                        Button, 0x112698640, {{316.5, 645.3}, {33.3, 15.7}}, label: 'Copy'
+                                        StaticText, 0x11269a300, {{20.0, 706.0}, {108.0, 25.3}}, label: 'Sent to you'
+                                        Image, 0x11269b340, {{44.0, 769.7}, {19.7, 19.3}}, identifier: 'tray.and.arrow.down.fill', label: 'Inbox'
+                                        StaticText, 0x11269b200, {{86.0, 761.5}, {119.0, 18.0}}, label: 'Nothing here yet'
+                                        StaticText, 0x112699400, {{86.0, 781.5}, {253.0, 15.7}}, label: 'Friends' finds and picks for you land here.'
+                                        StaticText, 0x11269b0c0, {{36.0, 851.3}, {137.7, 20.3}}, label: 'What friends see'
+                                        Button, 0x1126992c0, {{337.3, 852.5}, {28.7, 18.0}}, label: 'Edit'
+                                        Image, 0x11269b480, {{49.7, 902.0}, {15.7, 19.0}}, identifier: 'sparkles', label: 'Sparkle'
+                                        StaticText, 0x11269ae40, {{77.0, 894.7}, {40.0, 18.0}}, label: 'Taste'
+                                        Image, 0x112698280, {{220.3, 903.3}, {11.3, 16.3}}, identifier: 'lock.fill', label: 'Lock'
+                                        StaticText, 0x11269b840, {{244.0, 894.7}, {77.0, 18.0}}, label: 'Purchases'
+                                        StaticText, 0x1126983c0, {{77.0, 913.7}, {40.0, 14.3}}, label: 'Shared'
+                                        StaticText, 0x11269b980, {{244.0, 913.7}, {39.3, 14.3}}, label: 'Private'
+                            Toolbar, 0x11269a440, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                              Other, 0x1126997c0, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x11269b5c0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x11269bd40, {{0.0, 791.0}, {402.0, 83.0}}
+                    Other, 0x11269a1c0, {{0.0, 0.0}, {402.0, 874.0}}
+                      TabBar, 0x112698c80, {{0.0, 791.0}, {402.0, 83.0}}, label: 'Tab Bar'
+                        Other, 0x1095acb40, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x1095ad2c0, {{21.0, 791.0}, {98.0, 54.0}}
+                          Other, 0x1095ac780, {{21.0, 791.0}, {360.0, 62.0}}
+                            Button, 0x1095ad900, {{25.0, 795.0}, {98.0, 54.0}}, identifier: 'sun.max.fill', label: 'Today'
+                              Image, 0x1095ad180, {{59.7, 800.0}, {29.0, 29.3}}, identifier: 'sun.max.fill', label: 'brightness higher'
+                            Button, 0x1095ac500, {{109.7, 795.0}, {98.0, 54.0}}, identifier: 'sparkles', label: 'Finds', value: 16 items
+                              Image, 0x1095adb80, {{145.7, 799.0}, {26.0, 30.0}}, identifier: 'sparkles', label: 'sparkle'
+                            Button, 0x10845ebc0, {{194.3, 795.0}, {98.0, 54.0}}, identifier: 'binoculars.fill', label: 'Scouts'
+                              Image, 0x10845f480, {{225.7, 802.3}, {35.3, 25.7}}, identifier: 'binoculars.fill', label: 'Binoculars, filled'
+                            Button, 0x10845db80, {{279.0, 795.0}, {98.0, 54.0}}, identifier: 'heart.circle.fill', label: 'Friends', Selected
+                              Image, 0x10845ef80, {{314.3, 801.3}, {27.3, 27.3}}, identifier: 'heart.circle.fill', label: 'love'
+                          Other, 0x10845f840, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x10845fac0, {{279.0, 795.0}, {98.0, 54.0}}
+                            Other, 0x10845f200, {{279.0, 795.0}, {98.0, 54.0}}
+                              Other, 0x10845c500, {{279.0, 795.0}, {98.0, 54.0}}
+                              Other, 0x10845f700, {{279.0, 795.0}, {98.0, 54.0}}
+                                Other, 0x10845d2c0, {{279.0, 795.0}, {98.0, 54.0}}
+                                  Other, 0x10845e300, {{279.0, 795.0}, {98.0, 54.0}}
+                                    Other, 0x10845f0c0, {{279.0, 795.0}, {98.0, 54.0}}
+                                  Other, 0x10845e940, {{279.0, 795.0}, {98.0, 54.0}}
+                                Other, 0x10845cf00, {{279.0, 795.0}, {98.0, 54.0}}
+                    Other, 0x10845df40, {{0.0, 791.0}, {402.0, 83.0}}
+                      Other, 0x10845fe80, {{0.0, 791.0}, {402.0, 83.0}}
+                        Other, 0x10845f980, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x10845d180, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x10845ee40, {{0.0, 791.0}, {402.0, 83.0}}
+                              Other, 0x10845e580, {{0.0, 791.0}, {402.0, 83.0}}
+      Other, 0x10845e1c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10845d400, {{-402.0, -874.0}, {1206.0, 2622.0}}
+        Other, 0x10845f5c0, {{0.0, 62.0}, {402.0, 812.0}}
+          Other, 0x10845da40, {{0.0, 62.0}, {402.0, 812.0}}
+          Other, 0x10845fc00, {{0.0, 62.0}, {402.0, 812.0}}
+            Other, 0x10845de00, {{0.0, 62.0}, {402.0, 812.0}}
+              Other, 0x10845dcc0, {{0.0, 62.0}, {402.0, 812.0}}
+                Other, 0x10845e440, {{0.0, 62.0}, {402.0, 812.0}}
+                  NavigationBar, 0x10845d040, {{0.0, 78.0}, {402.0, 54.0}}, identifier: 'You'
+                    StaticText, 0x10845d540, {{186.0, 89.7}, {29.7, 20.7}}, label: 'You'
+                    Button, 0x10845fd40, {{316.3, 82.0}, {65.7, 36.0}}, label: 'Done'
+                  Other, 0x10845c8c0, {{0.0, 62.0}, {402.0, 812.0}}
+                    Other, 0x10845e6c0, {{0.0, 62.0}, {402.0, 812.0}}
+                      Other, 0x10845e800, {{0.0, 62.0}, {402.0, 812.0}}
+                        Other, 0x10845ea80, {{0.0, 62.0}, {402.0, 812.0}}
+                          CollectionView, 0x10845f340, {{0.0, 62.0}, {402.0, 812.0}}
+                            Other, 0x1095bbc00, {{-16.0, -347.7}, {434.0, 513.3}}
+                            Cell, 0x1095bb200, {{16.0, 29.3}, {370.0, 106.3}}
+                              Other, 0x1095b9cc0, {{16.0, 29.3}, {370.0, 106.3}}
+                                Other, 0x1095bb480, {{16.0, 29.3}, {370.0, 106.3}}
+                              Other, 0x1095b8f00, {{16.0, 29.3}, {370.0, 106.3}}
+                                Other, 0x1095b8640, {{16.0, 29.3}, {370.0, 106.3}}
+                                  Other, 0x1095bb840, {{16.0, 29.3}, {370.0, 106.3}}
+                                    ScrollView, 0x1095b88c0, {{32.0, 44.3}, {338.0, 40.0}}
+                                      Other, 0x1095bbe80, {{32.0, 44.3}, {440.0, 40.0}}
+                                        Button, 0x1095baa80, {{32.0, 44.3}, {40.0, 40.0}}, identifier: 'sparkle', label: 'Your taste palette'
+                                        Button, 0x1095b9180, {{82.0, 44.3}, {40.0, 40.0}}, label: 'Color 1, selected'
+                                        Button, 0x1095b8dc0, {{132.0, 44.3}, {40.0, 40.0}}, label: 'Color 2'
+                                        Button, 0x1095b8a00, {{182.0, 44.3}, {40.0, 40.0}}, label: 'Color 3'
+                                        Button, 0x1095ba1c0, {{232.0, 44.3}, {40.0, 40.0}}, label: 'Color 4'
+                                        Button, 0x1095b8b40, {{282.0, 44.3}, {40.0, 40.0}}, label: 'Color 5'
+                                        Button, 0x1095b9e00, {{332.0, 44.3}, {40.0, 40.0}}, label: 'Color 6'
+                                        Button, 0x1095babc0, {{382.0, 44.3}, {40.0, 40.0}}, label: 'Color 7'
+                                        Button, 0x1095bb700, {{432.0, 44.3}, {40.0, 40.0}}, label: 'Color 8'
+                                    Image, 0x1095b92c0, {{36.7, 98.0}, {15.0, 15.0}}, identifier: 'sparkle', label: 'Sparkle Star'
+                                    StaticText, 0x1095b9f40, {{36.7, 90.3}, {295.0, 30.3}}, label: 'The first color is your taste palette, from your Taste Card'
+                            Other, 0x1095ba940, {{0.0, 62.0}, {402.0, 812.0}}
+                              Other, 0x1095b8780, {{0.0, 62.0}, {402.0, 110.0}}
+                            Other, 0x1095bbd40, {{0.0, 62.0}, {402.0, 812.0}}
+                              Other, 0x1095bb0c0, {{0.0, 62.0}, {402.0, 110.0}}
+                            Cell, 0x1095b9040, {{16.0, 136.0}, {370.0, 29.7}}
+                              Other, 0x1095bb980, {{16.0, 136.0}, {370.0, 29.7}}
+                              Other, 0x1095b8140, {{16.0, 136.0}, {370.0, 29.7}}
+                                Other, 0x1095ba440, {{16.0, 136.0}, {370.0, 29.7}}
+                                  Other, 0x1095ba080, {{16.0, 136.0}, {370.0, 29.7}}
+                                    StaticText, 0x1095b83c0, {{16.0, 136.0}, {370.0, 29.7}}, label: 'Shows at the top left of every screen.'
+                            Other, 0x1095b8000, {{-16.0, 165.7}, {434.0, 260.3}}
+                            Cell, 0x1095bb5c0, {{16.0, 165.7}, {370.0, 40.3}}
+                              Other, 0x1095baf80, {{16.0, 165.7}, {370.0, 40.3}}
+                              Other, 0x1095b9b80, {{16.0, 165.7}, {370.0, 40.3}}
+                                Other, 0x1095ba300, {{16.0, 165.7}, {370.0, 40.3}}
+                                  Other, 0x1095b9540, {{16.0, 165.7}, {370.0, 40.3}}
+                                    StaticText, 0x1095b97c0, {{16.0, 165.7}, {370.0, 40.3}}, label: 'Ring'
+                            Cell, 0x1095b9680, {{16.0, 206.0}, {370.0, 122.3}}
+                              Other, 0x1095b8c80, {{16.0, 206.0}, {370.0, 122.3}}
+                                Other, 0x1095bbac0, {{16.0, 206.0}, {370.0, 122.3}}
+                              Other, 0x1095ba6c0, {{16.0, 206.0}, {370.0, 122.3}}
+                                Other, 0x1095ba800, {{16.0, 206.0}, {370.0, 122.3}}
+                                  Other, 0x1095bae40, {{16.0, 206.0}, {370.0, 122.3}}
+                                    ScrollView, 0x1095bad00, {{32.0, 221.0}, {338.0, 92.3}}
+                                      Other, 0x1095ba580, {{32.0, 221.0}, {376.0, 92.3}}
+                                        Button, 0x1095bb340, {{35.0, 225.0}, {58.0, 77.3}}, label: 'No ring', Selected
+                                          Image, 0x1095b8500, {{55.7, 245.7}, {17.0, 17.0}}, identifier: 'nosign', label: 'Stop'
+                                          StaticText, 0x114a68000, {{49.3, 289.0}, {29.3, 13.3}}, label: 'None'
+                                        Image, 0x114a68140, {{138.0, 245.3}, {8.0, 11.7}}, identifier: 'lock.fill', label: 'Lock'
+                                        Other, 0x114a68280, {{116.0, 225.0}, {52.0, 52.0}}, label: 'First like'
+                                        Image, 0x114a683c0, {{216.0, 245.3}, {8.0, 11.7}}, identifier: 'lock.fill', label: 'Lock'
+                                        Other, 0x114a68500, {{194.0, 225.0}, {52.0, 52.0}}, label: 'Crew of 3'
+                                        Image, 0x114a68640, {{294.0, 245.3}, {8.0, 11.7}}, identifier: 'lock.fill', label: 'Lock'
+                                        Other, 0x114a68780, {{272.0, 225.0}, {52.0, 52.0}}, label: '7-day streak'
+                                        Image, 0x114a688c0, {{372.0, 245.3}, {8.0, 11.7}}, identifier: 'lock.fill', label: 'Lock'
+                                        Other, 0x114a68a00, {{350.0, 225.0}, {52.0, 52.0}}, label: 'First buy'
+                                        StaticText, 0x114a68b40, {{119.8, 283.0}, {44.3, 13.3}}, label: 'First like'
+                                        StaticText, 0x114a68c80, {{194.5, 283.0}, {51.0, 13.3}}, label: 'Crew of 3'
+                                        StaticText, 0x114a68dc0, {{280.7, 283.0}, {34.7, 26.3}}, label: '7-day streak'
+                                        StaticText, 0x114a68f00, {{353.2, 283.0}, {45.7, 13.3}}, label: 'First buy'
+                            Cell, 0x114a69040, {{16.0, 328.3}, {370.0, 52.0}}
+                              Other, 0x114a69180, {{16.0, 328.3}, {370.0, 52.0}}
+                                Other, 0x114a692c0, {{16.0, 328.3}, {370.0, 52.0}}
+                              Other, 0x114a69400, {{16.0, 328.3}, {370.0, 52.0}}
+                                Other, 0x114a69540, {{16.0, 328.3}, {370.0, 52.0}}
+                                  Other, 0x114a69680, {{16.0, 328.3}, {370.0, 52.0}}
+                                    Button, 0x114a697c0, {{16.0, 328.3}, {370.0, 52.0}}, label: 'Your rings, 0 earned'
+                                      StaticText, 0x114a69900, {{33.3, 343.7}, {115.3, 21.7}}, label: 'Your rings'
+                                      Image, 0x114a69a40, {{33.3, 343.7}, {21.7, 21.7}}, identifier: 'circle.circle', label: 'Circle Inside A Circle'
+                                      StaticText, 0x114a69b80, {{280.0, 344.2}, {68.0, 20.3}}, label: '0 earned'
+                                      Image, 0x114a69cc0, {{360.7, 348.3}, {7.0, 12.0}}, identifier: 'chevron.forward'
+                            Other, 0x114a69e00, {{32.0, 327.3}, {338.0, 1.0}}
+                            Cell, 0x114a69f40, {{16.0, 380.3}, {370.0, 45.7}}
+                              Other, 0x114a6a080, {{16.0, 380.3}, {370.0, 45.7}}
+                              Other, 0x114a6a1c0, {{16.0, 380.3}, {370.0, 45.7}}
+                                Other, 0x114a6a300, {{16.0, 380.3}, {370.0, 45.7}}
+                                  Other, 0x114a6a440, {{16.0, 380.3}, {370.0, 45.7}}
+                                    StaticText, 0x114a6a580, {{16.0, 380.3}, {370.0, 45.7}}, label: 'A ring around your icon that friends see. Earn more by using Baget.'
+                            Other, 0x114a6a6c0, {{-16.0, 426.0}, {434.0, 122.0}}
+                            Cell, 0x114a6a800, {{16.0, 426.0}, {370.0, 40.3}}
+                              Other, 0x114a6a940, {{16.0, 426.0}, {370.0, 40.3}}
+                              Other, 0x114a6aa80, {{16.0, 426.0}, {370.0, 40.3}}
+                                Other, 0x114a6abc0, {{16.0, 426.0}, {370.0, 40.3}}
+                                  Other, 0x114a6ad00, {{16.0, 426.0}, {370.0, 40.3}}
+                                    StaticText, 0x114a6ae40, {{16.0, 426.0}, {370.0, 40.3}}, label: 'Name'
+                            Cell, 0x114a6af80, {{16.0, 466.3}, {370.0, 52.0}}
+                              Other, 0x114a6b0c0, {{16.0, 466.3}, {370.0, 52.0}}
+                                Other, 0x114a6b200, {{16.0, 466.3}, {370.0, 52.0}}
+                              Other, 0x114a6b340, {{16.0, 466.3}, {370.0, 52.0}}
+                                Other, 0x114a6b480, {{16.0, 466.3}, {370.0, 52.0}}
+                                  Other, 0x114a6b5c0, {{16.0, 466.3}, {370.0, 52.0}}
+                                    TextField, 0x114a6b700, {{32.0, 481.3}, {338.0, 22.0}}, placeholderValue: 'Your name', value: Claude Tester
+                            Cell, 0x114a6b840, {{16.0, 518.3}, {370.0, 29.7}}
+                              Other, 0x114a6b980, {{16.0, 518.3}, {370.0, 29.7}}
+                              Other, 0x114a6bac0, {{16.0, 518.3}, {370.0, 29.7}}
+                                Other, 0x114a6bc00, {{16.0, 518.3}, {370.0, 29.7}}
+                                  Other, 0x114a6bd40, {{16.0, 518.3}, {370.0, 29.7}}
+                                    StaticText, 0x114a6be80, {{16.0, 518.3}, {370.0, 29.7}}, label: 'What friends see next to your handle.'
+                            Other, 0x114a74000, {{-16.0, 548.0}, {434.0, 138.0}}
+                            Cell, 0x114a74140, {{16.0, 548.0}, {370.0, 40.3}}
+                              Other, 0x114a74280, {{16.0, 548.0}, {370.0, 40.3}}
+                              Other, 0x114a743c0, {{16.0, 548.0}, {370.0, 40.3}}
+                                Other, 0x114a74500, {{16.0, 548.0}, {370.0, 40.3}}
+                                  Other, 0x114a74640, {{16.0, 548.0}, {370.0, 40.3}}
+                                    StaticText, 0x114a74780, {{16.0, 548.0}, {370.0, 40.3}}, label: 'Username'
+                            Cell, 0x114a748c0, {{16.0, 588.3}, {370.0, 52.0}}
+                              Other, 0x114a74a00, {{16.0, 588.3}, {370.0, 52.0}}
+                                Other, 0x114a74b40, {{16.0, 588.3}, {370.0, 52.0}}
+                              Other, 0x114a74c80, {{16.0, 588.3}, {370.0, 52.0}}
+                                Other, 0x114a74dc0, {{16.0, 588.3}, {370.0, 52.0}}
+                                  Other, 0x114a74f00, {{16.0, 588.3}, {370.0, 52.0}}
+                                    StaticText, 0x114a75040, {{32.0, 604.2}, {15.3, 20.3}}, label: '@'
+                                    TextField, 0x114a75180, {{51.3, 603.3}, {318.7, 22.0}}, placeholderValue: 'username', value: claudetester88790
+                            Cell, 0x114a752c0, {{16.0, 640.3}, {370.0, 45.7}}
+                              Other, 0x114a75400, {{16.0, 640.3}, {370.0, 45.7}}
+                              Other, 0x114a75540, {{16.0, 640.3}, {370.0, 45.7}}
+                                Other, 0x114a75680, {{16.0, 640.3}, {370.0, 45.7}}
+                                  Other, 0x114a757c0, {{16.0, 640.3}, {370.0, 45.7}}
+                                    StaticText, 0x114a75900, {{16.0, 640.3}, {370.0, 45.7}}, label: 'Friends add you by your username. No two people can have the same one.'
+                            Other, 0x114a75a40, {{-16.0, 686.0}, {434.0, 154.0}}
+                            Cell, 0x114a75b80, {{16.0, 686.0}, {370.0, 40.3}}
+                              Other, 0x114a75cc0, {{16.0, 686.0}, {370.0, 40.3}}
+                              Other, 0x114a75e00, {{16.0, 686.0}, {370.0, 40.3}}
+                                Other, 0x114a75f40, {{16.0, 686.0}, {370.0, 40.3}}
+                                  Other, 0x114a76080, {{16.0, 686.0}, {370.0, 40.3}}
+                                    StaticText, 0x114a761c0, {{16.0, 686.0}, {370.0, 40.3}}, label: 'Birthday'
+                            Cell, 0x114a76300, {{16.0, 726.3}, {370.0, 52.0}}
+                              Other, 0x114a76440, {{16.0, 726.3}, {370.0, 52.0}}
+                                Other, 0x114a76580, {{16.0, 726.3}, {370.0, 52.0}}
+                              Other, 0x114a766c0, {{16.0, 726.3}, {370.0, 52.0}}
+                                Other, 0x114a76800, {{16.0, 726.3}, {370.0, 52.0}}
+                                  Other, 0x114a76940, {{16.0, 726.3}, {370.0, 52.0}}
+                                    Switch, 0x114a76a80, {{16.0, 726.3}, {370.0, 52.0}}, label: 'My birthday', value: 0
+                                      StaticText, 0x114a76bc0, {{32.0, 742.2}, {90.3, 20.3}}, label: 'My birthday'
+                                      Switch, 0x114a76d00, {{309.0, 738.3}, {63.0, 28.0}}, value: 0
+                            Cell, 0x114a76e40, {{16.0, 778.3}, {370.0, 61.7}}
+                              Other, 0x114a76f80, {{16.0, 778.3}, {370.0, 61.7}}
+                              Other, 0x114a770c0, {{16.0, 778.3}, {370.0, 61.7}}
+                                Other, 0x114a77200, {{16.0, 778.3}, {370.0, 61.7}}
+                                  Other, 0x114a77340, {{16.0, 778.3}, {370.0, 61.7}}
+                                    StaticText, 0x114a77480, {{16.0, 778.3}, {370.0, 61.7}}, label: 'Month and day only. Friends get a heads-up a week before, with gift ideas for your taste when you both share taste.'
+                            Other, 0x114a775c0, {{-16.0, 840.0}, {434.0, 214.0}}
+                            Cell, 0x114a77700, {{16.0, 840.0}, {370.0, 40.3}}
+                              Other, 0x114a77840, {{16.0, 840.0}, {370.0, 40.3}}
+                              Other, 0x114a77980, {{16.0, 840.0}, {370.0, 40.3}}
+                                Other, 0x114a77ac0, {{16.0, 840.0}, {370.0, 40.3}}
+                                  Other, 0x114a77c00, {{16.0, 840.0}, {370.0, 40.3}}
+                                    StaticText, 0x114a77d40, {{16.0, 840.0}, {370.0, 40.3}}, label: 'Account'
+                            Other, 0x114a77e80, {{369.0, 132.0}, {30.0, 680.0}}, label: 'Vertical scroll bar, 4 pages', value: 48%
+                              Other, 0x112b98000, {{396.0, 345.3}, {3.0, 233.0}}
+                            Other, 0x112b98140, {{369.0, 132.0}, {30.0, 680.0}}, label: 'Vertical scroll bar, 4 pages', value: 48%
+                              Other, 0x112b98280, {{396.0, 345.3}, {3.0, 233.0}}
+                  Toolbar, 0x112b983c0, {{0.0, 62.0}, {402.0, 812.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                    Other, 0x112b98500, {{0.0, 62.0}, {402.0, 812.0}}
+    Window, 0x112b98640, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x112b98780, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x112b988c0, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x1127d5040, pid: 17534, label: 'Baget'
+Query chain:
+ →Find: Target Application 'app.baget.ios'
+  Output: {
+    Application, 0x112b98a00, pid: 17534, label: 'Baget'
+  }
+)

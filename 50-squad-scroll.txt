@@ -1,0 +1,221 @@
+Optional(Attributes: Application, 0x1127d48c0, pid: 17534, label: 'Baget'
+Element subtree:
+ →Application, 0x1127d48c0, pid: 17534, label: 'Baget'
+    Window (Main), 0x1127d4a00, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1127d7c00, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1127d5540, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1127d43c0, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x1127d7700, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1127d7d40, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x1127d5400, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x1127d52c0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x1127d4780, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1127d4f00, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x1127d7980, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x1127d4000, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x1127d57c0, {{0.0, 0.0}, {402.0, 874.0}}
+                            NavigationBar, 0x1127d4c80, {{0.0, 62.0}, {402.0, 54.0}}, identifier: '_TtGC7SwiftUI32NavigationStackHosting'
+                              Other, 0x1127d4500, {{20.0, 66.0}, {42.0, 36.0}}
+                                Other, 0x1127d4140, {{20.0, 66.0}, {42.0, 36.0}}
+                                  Button, 0x1127d4280, {{20.0, 66.0}, {42.0, 36.0}}, label: 'You: icon, settings and account'
+                                    StaticText, 0x1127d4640, {{20.0, 66.0}, {42.0, 36.0}}, label: 'CT'
+                              Other, 0x1127d5680, {{151.3, 70.7}, {99.0, 26.7}}
+                                Other, 0x1127d7340, {{151.3, 70.7}, {99.0, 26.7}}
+                                  StaticText, 0x1127d7ac0, {{151.3, 71.0}, {26.0, 26.0}}
+                                  StaticText, 0x1127d7840, {{185.3, 70.8}, {59.0, 26.3}}, label: 'Baget'
+                                  StaticText, 0x1127d7e80, {{244.3, 70.8}, {6.0, 26.3}}, label: '.'
+                              Other, 0x1127d4dc0, {{346.0, 66.0}, {36.0, 36.0}}
+                                Other, 0x1127d7200, {{346.0, 66.0}, {36.0, 36.0}}
+                                  Button, 0x112bd6d00, {{349.3, 66.0}, {29.3, 36.0}}, label: 'Notifications, 6 unread'
+                                    Image, 0x112bd48c0, {{353.7, 72.7}, {20.7, 22.7}}, identifier: 'bell.fill', label: 'Notifications'
+                                    StaticText, 0x112bd57c0, {{376.3, 65.7}, {6.3, 11.0}}, label: '6'
+                            Other, 0x112bd5b80, {{0.0, 0.0}, {402.0, 874.0}}
+                              Other, 0x112bd7480, {{0.0, 0.0}, {402.0, 874.0}}
+                                Other, 0x112bd5e00, {{0.0, 0.0}, {402.0, 874.0}}
+                                  Other, 0x112bd7840, {{0.0, 0.0}, {402.0, 874.0}}
+                                    ScrollView, 0x112bd7980, {{0.0, 0.0}, {402.0, 874.0}}
+                                      Other, 0x112bd6e40, {{0.0, -549.0}, {402.0, 1642.3}}
+                                        StaticText, 0x112bd5680, {{16.0, -549.0}, {111.0, 24.0}}, label: 'Your scouts'
+                                        Button, 0x112bd6f80, {{16.0, -511.0}, {370.0, 70.0}}, label: 'New scout'
+                                          Image, 0x112bd5900, {{42.3, -484.7}, {17.3, 17.3}}, identifier: 'plus', label: 'Add'
+                                          StaticText, 0x112bd4000, {{84.0, -486.2}, {84.3, 20.3}}, label: 'New scout'
+                                          Image, 0x112bd7ac0, {{362.7, -483.3}, {8.3, 14.7}}, identifier: 'chevron.right', label: 'Forward'
+                                        Button, 0x112bd6080, {{16.0, -427.0}, {181.0, 38.0}}, label: 'What Baget knows'
+                                          Image, 0x112bd43c0, {{31.3, -415.0}, {12.0, 14.3}}, identifier: 'brain.head.profile', label: 'Head Profile Showing The Brain'
+                                          StaticText, 0x112bd6bc0, {{49.7, -417.0}, {133.3, 18.0}}, label: 'What Baget knows'
+                                        Button, 0x112bd70c0, {{205.0, -427.0}, {181.0, 38.0}}, label: 'Detailed hunt setup'
+                                          Image, 0x112bd4780, {{217.0, -413.3}, {12.3, 10.7}}, identifier: 'slider.horizontal.3', label: 'Edit'
+                                          StaticText, 0x112bd4a00, {{235.5, -417.0}, {140.0, 18.0}}, label: 'Detailed hunt setup'
+                                        Button, 0x112bd6300, {{32.0, -359.0}, {46.0, 46.0}}, label: 'Change Trail Retro Hunter's icon'
+                                          StaticText, 0x112bd4500, {{32.0, -359.0}, {46.0, 46.0}}, label: '👟'
+                                        StaticText, 0x112bd5cc0, {{90.0, -359.0}, {104.7, 49.0}}, label: 'Trail Retro Hunter'
+                                        Button, 0x112bd75c0, {{263.0, -359.0}, {34.0, 34.0}}, label: 'Change or delete Trail Retro Hunter'
+                                          Button, 0x112bd4640, {{263.0, -359.0}, {34.0, 34.0}}
+                                            Image, 0x112bd4140, {{263.0, -359.0}, {34.0, 34.0}}, identifier: 'ellipsis', label: 'More'
+                                        Switch, 0x112bd5a40, {{309.0, -359.0}, {61.0, 28.0}}, label: 'Turn Trail Retro Hunter off', value: 1
+                                          Switch, 0x112bd6440, {{309.0, -359.0}, {63.0, 28.0}}, value: 1
+                                        StaticText, 0x112bd4280, {{353.7, -329.0}, {16.3, 11.0}}, label: 'ON'
+                                        StaticText, 0x112bd5f40, {{96.0, -305.0}, {52.7, 11.0}}, label: 'INTEREST'
+                                        StaticText, 0x112bd4b40, {{160.7, -306.7}, {68.7, 14.3}}, label: 'Sneakers · 12 finds'
+                                        StaticText, 0x112bd61c0, {{41.0, -275.0}, {54.7, 14.3}}, label: 'xa pro 3d'
+                                        StaticText, 0x10568d540, {{119.7, -275.0}, {23.3, 14.3}}, label: '992'
+                                        StaticText, 0x10568fd40, {{167.0, -275.0}, {37.3, 14.3}}, label: '990v7'
+                                        StaticText, 0x10568f0c0, {{228.3, -275.0}, {61.0, 14.3}}, label: 'air max 95'
+                                        StaticText, 0x10568f980, {{41.0, -246.7}, {69.7, 14.3}}, label: 'made in usa'
+                                        StaticText, 0x10568f480, {{134.7, -246.7}, {49.7, 14.3}}, label: 'gore-tex'
+                                        StaticText, 0x10568f700, {{41.0, -212.3}, {87.7, 14.3}}, label: 'running & retro'
+                                        StaticText, 0x10568fc00, {{152.7, -212.3}, {44.3, 14.3}}, label: 'running'
+                                        StaticText, 0x10568fac0, {{221.0, -212.3}, {28.3, 14.3}}, label: 'retro'
+                                        StaticText, 0x10568f840, {{273.3, -212.3}, {26.0, 14.3}}, label: 'grey'
+                                        StaticText, 0x10568d400, {{323.3, -212.3}, {35.3, 14.3}}, label: 'suede'
+                                        StaticText, 0x1095b9040, {{41.0, -184.0}, {31.7, 14.3}}, label: 'mesh'
+                                        StaticText, 0x1095bb700, {{96.7, -184.0}, {66.3, 14.3}}, label: 'earth tones'
+                                        StaticText, 0x1095bb0c0, {{187.0, -184.0}, {49.7, 14.3}}, label: 'gore-tex'
+                                        StaticText, 0x1095b8780, {{260.7, -184.0}, {53.3, 14.3}}, label: 'dad shoe'
+                                        StaticText, 0x1095b9f40, {{41.0, -155.7}, {50.3, 14.3}}, label: 'Salomon'
+                                        StaticText, 0x1095b92c0, {{115.3, -155.7}, {75.0, 14.3}}, label: 'New Balance'
+                                        StaticText, 0x1095ba940, {{214.3, -155.7}, {25.7, 14.3}}, label: 'Nike'
+                                        StaticText, 0x1095b8dc0, {{264.0, -155.7}, {31.3, 14.3}}, label: 'Asics'
+                                        StaticText, 0x1095b8a00, {{41.0, -127.3}, {49.7, 14.3}}, label: 'Saucony'
+                                        StaticText, 0x1095b8b40, {{114.7, -127.3}, {29.7, 14.3}}, label: 'Hoka'
+                                        StaticText, 0x1095ba1c0, {{44.0, -85.0}, {97.0, 14.3}}, label: 'TASTE BOARD'
+                                        Button, 0x1095bbe80, {{266.0, -85.0}, {92.0, 14.3}}, label: 'Add a photo'
+                                          StaticText, 0x1095babc0, {{266.0, -85.0}, {92.0, 14.3}}, label: 'Add a photo'
+                                          Image, 0x1095b88c0, {{267.3, -83.0}, {10.0, 10.0}}, identifier: 'plus', label: 'Add'
+                                        StaticText, 0x1095bb840, {{44.0, -60.7}, {312.3, 51.7}}, label: 'Show me photos of things you love, like a fit, a shelf, a car or a room. I'll pick up the style and hunt for more of it.'
+                                        Button, 0x1095bb980, {{32.0, 15.0}, {338.0, 43.3}}, label: 'Talk to Trail Retro Hunter'
+                                          StaticText, 0x1095b9180, {{95.0, 27.0}, {214.2, 19.0}}, label: 'Talk to Trail Retro Hunter'
+                                          Image, 0x1095baa80, {{95.0, 27.3}, {23.7, 18.7}}, identifier: 'bubble.left.and.text.bubble.right.fill', label: 'Left Speech Bubble And Right Text Bubble, Filled'
+                                        StaticText, 0x1095ba080, {{42.0, 80.3}, {318.0, 33.7}}, label: 'Needs your size. I won't flag anything until I know it, so you only see things that fit.'
+                                        StaticText, 0x1095bbc00, {{32.0, 136.0}, {58.7, 11.0}}, label: 'SHOE SIZE'
+                                        StaticText, 0x1095b9e00, {{205.0, 136.0}, {154.0, 11.0}}, label: 'WHEN IT FINDS SOMETHING'
+                                        StaticText, 0x1095b8640, {{32.0, 149.0}, {13.3, 18.0}}, label: 'M'
+                                        StaticText, 0x1095bbd40, {{205.0, 149.0}, {83.3, 18.0}}, label: 'Asks to buy'
+                                        StaticText, 0x1095bb200, {{32.0, 179.0}, {161.0, 14.3}}, label: 'Taste profile 100% complete'
+                                        StaticText, 0x1095b9cc0, {{32.0, 217.3}, {338.0, 33.7}}, label: 'Nothing learned yet. Buy, watch or pass on finds and I'll pick up your taste.'
+                                        Button, 0x1095b83c0, {{32.0, 263.0}, {107.3, 36.0}}, label: 'Hype friend'
+                                          Button, 0x1095ba440, {{32.0, 263.0}, {107.3, 36.0}}
+                                            StaticText, 0x1095bb480, {{37.0, 273.4}, {98.3, 15.7}}, label: 'Hype friend'
+                                            Image, 0x1095b8f00, {{37.0, 274.0}, {15.3, 13.0}}, identifier: 'message.fill', label: 'Message'
+                                        Button, 0x1095ba300, {{147.3, 263.3}, {107.3, 35.7}}, label: 'Asks to buy'
+                                          Button, 0x1095b8000, {{147.3, 263.3}, {107.3, 35.7}}
+                                            Image, 0x1095b9540, {{152.7, 274.7}, {15.0, 13.0}}, identifier: 'cart.fill', label: 'Shopping Cart'
+                                            StaticText, 0x1095b9b80, {{152.7, 273.2}, {98.2, 15.7}}, label: 'Asks to buy'
+                                        Button, 0x1095ba800, {{262.7, 263.3}, {107.3, 35.7}}, label: 'Texts'
+                                          Button, 0x1095baf80, {{262.7, 263.3}, {107.3, 35.7}}
+                                            Image, 0x1095b8140, {{289.0, 274.3}, {12.7, 13.7}}, identifier: 'bell.fill', label: 'Notifications'
+                                            StaticText, 0x1095bb5c0, {{289.0, 273.2}, {56.0, 15.7}}, label: 'Texts'
+                                        Button, 0x1095ba580, {{112.3, 314.0}, {178.3, 16.2}}, label: 'Delete Trail Retro Hunter'
+                                          Image, 0x1095bae40, {{112.3, 314.0}, {13.0, 14.7}}, identifier: 'trash', label: 'Trash'
+                                          StaticText, 0x1095b97c0, {{112.3, 314.0}, {178.3, 16.2}}, label: 'Delete Trail Retro Hunter'
+                                        Button, 0x1095b9680, {{32.0, 376.0}, {46.0, 46.0}}, label: 'Change Vinyl Digger's icon'
+                                          StaticText, 0x1095bb340, {{32.0, 376.0}, {46.0, 46.0}}, label: '💿'
+                                        StaticText, 0x1095b8c80, {{90.0, 376.2}, {119.0, 24.0}}, label: 'Vinyl Digger'
+                                        Button, 0x1095b8500, {{263.0, 376.0}, {34.0, 34.0}}, label: 'Change or delete Vinyl Digger'
+                                          Button, 0x1095bad00, {{263.0, 376.0}, {34.0, 34.0}}
+                                            Image, 0x1095bbac0, {{263.0, 376.0}, {34.0, 34.0}}, identifier: 'ellipsis', label: 'More'
+                                        Switch, 0x1095ba6c0, {{309.0, 376.0}, {61.0, 28.0}}, label: 'Turn Vinyl Digger off', value: 1
+                                          Switch, 0x10845fac0, {{309.0, 376.0}, {63.0, 28.0}}, value: 1
+                                        StaticText, 0x10845e300, {{96.0, 405.2}, {52.7, 11.0}}, label: 'INTEREST'
+                                        StaticText, 0x10845ee40, {{160.7, 403.5}, {68.3, 14.3}}, label: 'vinyl records and music gear · 5 finds'
+                                        StaticText, 0x10845d2c0, {{353.7, 406.2}, {16.3, 11.0}}, label: 'ON'
+                                        StaticText, 0x10845c500, {{41.0, 438.2}, {74.7, 14.3}}, label: 'vinyl records'
+                                        StaticText, 0x10845f200, {{139.7, 438.2}, {76.7, 14.3}}, label: 'first pressing'
+                                        StaticText, 0x10845fd40, {{240.3, 438.2}, {53.0, 14.3}}, label: 'turntable'
+                                        StaticText, 0x10845e440, {{41.0, 466.5}, {77.0, 14.3}}, label: 'record player'
+                                        StaticText, 0x10845de00, {{142.0, 466.5}, {96.3, 14.3}}, label: 'limited edition lp'
+                                        StaticText, 0x10845f5c0, {{262.3, 466.5}, {42.0, 14.3}}, label: 'reissue'
+                                        StaticText, 0x10845e940, {{41.0, 500.8}, {58.7, 14.3}}, label: 'first press'
+                                        StaticText, 0x10845e1c0, {{123.7, 500.8}, {74.0, 14.3}}, label: 'colored vinyl'
+                                        StaticText, 0x10845db80, {{221.7, 500.8}, {82.3, 14.3}}, label: 'limited edition'
+                                        StaticText, 0x10845e580, {{41.0, 529.2}, {96.0, 14.3}}, label: 'original pressing'
+                                        StaticText, 0x10845f840, {{161.0, 529.2}, {60.0, 14.3}}, label: 'audiophile'
+                                        StaticText, 0x10845f480, {{245.0, 529.2}, {57.3, 14.3}}, label: 'used mint'
+                                        StaticText, 0x10845d400, {{41.0, 557.5}, {89.7, 14.3}}, label: 'Audio-Technica'
+                                        StaticText, 0x10845ef80, {{154.7, 557.5}, {51.3, 14.3}}, label: 'Technics'
+                                        StaticText, 0x10845ebc0, {{230.0, 557.5}, {50.7, 14.3}}, label: 'Pro-Ject'
+                                        StaticText, 0x10845d180, {{304.7, 557.5}, {44.0, 14.3}}, label: 'Crosley'
+                                        StaticText, 0x10845d040, {{44.0, 599.8}, {97.0, 14.3}}, label: 'TASTE BOARD'
+                                        Button, 0x10845fc00, {{266.0, 599.7}, {92.0, 14.3}}, label: 'Add a photo'
+                                          StaticText, 0x10845da40, {{266.0, 599.7}, {92.0, 14.3}}, label: 'Add a photo'
+                                          Image, 0x10845d540, {{267.3, 601.7}, {10.0, 10.0}}, identifier: 'plus', label: 'Add'
+                                        StaticText, 0x10845dcc0, {{44.0, 624.2}, {312.3, 51.7}}, label: 'Show me photos of things you love, like a fit, a shelf, a car or a room. I'll pick up the style and hunt for more of it.'
+                                        Button, 0x10845e800, {{32.0, 699.7}, {338.0, 43.3}}, label: 'Talk to Vinyl Digger'
+                                          Image, 0x10845e6c0, {{115.3, 712.0}, {23.7, 18.7}}, identifier: 'bubble.left.and.text.bubble.right.fill', label: 'Left Speech Bubble And Right Text Bubble, Filled'
+                                          StaticText, 0x10845c8c0, {{115.3, 711.8}, {173.5, 18.9}}, label: 'Talk to Vinyl Digger'
+                                        StaticText, 0x10845ea80, {{32.0, 755.2}, {47.7, 11.0}}, label: 'MISSION'
+                                        StaticText, 0x10845f340, {{32.0, 768.2}, {126.3, 38.0}}, label: 'vinyl records and music gear'
+                                        StaticText, 0x10845fe80, {{205.0, 765.2}, {154.0, 11.0}}, label: 'WHEN IT FINDS SOMETHING'
+                                        StaticText, 0x10845f700, {{205.0, 778.2}, {83.3, 18.0}}, label: 'Asks to buy'
+                                        StaticText, 0x10845f980, {{32.0, 818.2}, {161.0, 14.3}}, label: 'Taste profile 100% complete'
+                                        StaticText, 0x10845cf00, {{32.0, 856.5}, {338.0, 33.7}}, label: 'Nothing learned yet. Buy, watch or pass on finds and I'll pick up your taste.'
+                                        Button, 0x10845f0c0, {{32.0, 902.0}, {107.3, 36.3}}, label: 'Chill friend'
+                                          Button, 0x10845df40, {{32.0, 902.0}, {107.3, 36.3}}
+                                            Image, 0x112698f00, {{39.7, 913.0}, {15.3, 13.0}}, identifier: 'message.fill', label: 'Message'
+                                            StaticText, 0x11269b200, {{39.7, 912.6}, {93.2, 15.7}}, label: 'Chill friend'
+                                        Button, 0x11269a800, {{147.3, 902.3}, {107.3, 35.7}}, label: 'Asks to buy'
+                                          Button, 0x112698500, {{147.3, 902.3}, {107.3, 35.7}}
+                                            Image, 0x1126983c0, {{152.7, 914.0}, {15.0, 13.0}}, identifier: 'cart.fill', label: 'Shopping Cart'
+                                            StaticText, 0x112699180, {{152.7, 912.4}, {98.2, 15.7}}, label: 'Asks to buy'
+                                        Button, 0x112698c80, {{262.7, 902.3}, {107.3, 35.7}}, label: 'Texts'
+                                          Button, 0x11269b340, {{262.7, 902.3}, {107.3, 35.7}}
+                                            Image, 0x11269a6c0, {{289.0, 913.3}, {12.7, 13.7}}, identifier: 'bell.fill', label: 'Notifications'
+                                            StaticText, 0x112698640, {{289.0, 912.4}, {56.0, 15.7}}, label: 'Texts'
+                                        Button, 0x11269a1c0, {{130.0, 953.3}, {143.2, 16.0}}, label: 'Delete Vinyl Digger'
+                                          StaticText, 0x11269a300, {{130.0, 953.3}, {143.2, 16.0}}, label: 'Delete Vinyl Digger'
+                                          Image, 0x11269a940, {{130.0, 953.3}, {13.0, 14.7}}, identifier: 'trash', label: 'Trash'
+                                        StaticText, 0x1126992c0, {{32.0, 1015.3}, {118.3, 14.3}}, label: 'SCOUT ACTIVITY'
+                                        StaticText, 0x112699b80, {{32.0, 1039.7}, {21.7, 13.3}}, label: 'now'
+                                        StaticText, 0x1126997c0, {{106.0, 1037.7}, {220.3, 15.7}}, label: 'Trail Retro Hunter will stick to size M'
+                                      Other, 0x11269b0c0, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x11269a440, {{0.0, 0.0}, {402.0, 156.0}}
+                                        Other, 0x11269b5c0, {{0.0, 741.0}, {402.0, 133.0}}
+                                      Other, 0x11269b980, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x112699400, {{0.0, 0.0}, {402.0, 156.0}}
+                                        Other, 0x11269b480, {{0.0, 741.0}, {402.0, 133.0}}
+                            Toolbar, 0x11269be80, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                              Other, 0x112699900, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x11269ae40, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x11269bd40, {{0.0, 791.0}, {402.0, 83.0}}
+                    Other, 0x112698000, {{0.0, 0.0}, {402.0, 874.0}}
+                      TabBar, 0x112699f40, {{0.0, 791.0}, {402.0, 83.0}}, label: 'Tab Bar'
+                        Other, 0x112698280, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x11269b840, {{21.0, 791.0}, {98.0, 54.0}}
+                          Other, 0x1095acb40, {{21.0, 791.0}, {360.0, 62.0}}
+                            Button, 0x1095ad180, {{25.0, 795.0}, {98.0, 54.0}}, identifier: 'sun.max.fill', label: 'Today'
+                              Image, 0x1095ac780, {{59.7, 800.0}, {29.0, 29.3}}, identifier: 'sun.max.fill', label: 'brightness higher'
+                            Button, 0x1095ad900, {{109.7, 795.0}, {98.0, 54.0}}, identifier: 'sparkles', label: 'Finds', value: 16 items
+                              Image, 0x1095ac500, {{145.7, 799.0}, {26.0, 30.0}}, identifier: 'sparkles', label: 'sparkle'
+                            Button, 0x1095adb80, {{194.3, 795.0}, {98.0, 54.0}}, identifier: 'binoculars.fill', label: 'Scouts', Selected
+                              Image, 0x1095ad2c0, {{225.7, 802.3}, {35.3, 25.7}}, identifier: 'binoculars.fill', label: 'Binoculars, filled'
+                            Button, 0x114a64000, {{279.0, 795.0}, {98.0, 54.0}}, identifier: 'heart.circle.fill', label: 'Friends'
+                              Image, 0x114a64140, {{314.3, 801.3}, {27.3, 27.3}}, identifier: 'heart.circle.fill', label: 'love'
+                          Other, 0x114a64280, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x114a643c0, {{194.3, 795.0}, {98.0, 54.0}}
+                            Other, 0x114a64500, {{194.3, 795.0}, {98.0, 54.0}}
+                              Other, 0x114a64640, {{194.3, 795.0}, {98.0, 54.0}}
+                              Other, 0x114a64780, {{194.3, 795.0}, {98.0, 54.0}}
+                                Other, 0x114a648c0, {{194.3, 795.0}, {98.0, 54.0}}
+                                  Other, 0x114a64a00, {{194.3, 795.0}, {98.0, 54.0}}
+                                    Other, 0x114a64b40, {{194.3, 795.0}, {98.0, 54.0}}
+                                  Other, 0x114a64c80, {{194.3, 795.0}, {98.0, 54.0}}
+                                Other, 0x114a64dc0, {{194.3, 795.0}, {98.0, 54.0}}
+                    Other, 0x114a64f00, {{0.0, 791.0}, {402.0, 83.0}}
+                      Other, 0x114a65040, {{0.0, 791.0}, {402.0, 83.0}}
+                        Other, 0x114a65180, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x114a652c0, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x114a65400, {{0.0, 791.0}, {402.0, 83.0}}
+                              Other, 0x114a65540, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x114a65680, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x114a657c0, {{0.0, 791.0}, {402.0, 83.0}}
+    Window, 0x114a65900, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x114a65a40, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x114a65b80, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x1127d48c0, pid: 17534, label: 'Baget'
+Query chain:
+ →Find: Target Application 'app.baget.ios'
+  Output: {
+    Application, 0x114a65cc0, pid: 17534, label: 'Baget'
+  }
+)

@@ -1,0 +1,137 @@
+Optional(Attributes: Application, 0x1095b8640, pid: 17534, label: 'Baget'
+Element subtree:
+ →Application, 0x1095b8640, pid: 17534, label: 'Baget'
+    Window (Main), 0x1095ba300, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1095bb200, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1095b9cc0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1095b88c0, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x1095bb0c0, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1095bbac0, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x1095bb340, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x1095b97c0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x1095bad00, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1095b9680, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x1095bae40, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x1095baf80, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x1095ba800, {{0.0, 0.0}, {402.0, 874.0}}, value: 17
+                            NavigationBar, 0x1095b9e00, {{0.0, 62.0}, {402.0, 54.0}}, identifier: '_TtGC7SwiftUI32NavigationStackHosting'
+                              Other, 0x1095bbd40, {{20.0, 66.0}, {42.0, 36.0}}
+                                Other, 0x10845df40, {{20.0, 66.0}, {42.0, 36.0}}
+                                  Button, 0x10845e940, {{20.0, 66.0}, {42.0, 36.0}}, label: 'You: icon, settings and account'
+                                    StaticText, 0x10845fd40, {{20.0, 66.0}, {42.0, 36.0}}, label: 'CT'
+                              Other, 0x10845fe80, {{151.3, 70.7}, {99.0, 26.7}}
+                                Other, 0x10845f700, {{151.3, 70.7}, {99.0, 26.7}}
+                                  StaticText, 0x10845f340, {{151.3, 71.0}, {26.0, 26.0}}
+                                  StaticText, 0x10845e1c0, {{185.3, 70.8}, {59.0, 26.3}}, label: 'Baget'
+                                  StaticText, 0x10845f980, {{244.3, 70.8}, {6.0, 26.3}}, label: '.'
+                              Other, 0x10845fac0, {{346.0, 66.0}, {36.0, 36.0}}
+                                Other, 0x10845c500, {{346.0, 66.0}, {36.0, 36.0}}
+                                  Button, 0x10845e6c0, {{349.3, 66.0}, {29.3, 36.0}}, label: 'Notifications, 6 unread'
+                                    Image, 0x10845ea80, {{353.7, 72.7}, {20.7, 22.7}}, identifier: 'bell.fill', label: 'Notifications'
+                                    StaticText, 0x10845f840, {{376.3, 65.7}, {6.3, 11.0}}, label: '6'
+                            Other, 0x10845f480, {{0.0, 0.0}, {402.0, 874.0}}
+                              Other, 0x10845ee40, {{0.0, 0.0}, {402.0, 874.0}}
+                                Other, 0x10845e800, {{0.0, 0.0}, {402.0, 874.0}}
+                                  Other, 0x10845d2c0, {{0.0, 0.0}, {402.0, 874.0}}
+                                    ScrollView, 0x10845f200, {{0.0, 0.0}, {402.0, 874.0}}
+                                      Other, 0x10845ef80, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x10845db80, {{0.0, 0.0}, {402.0, 156.0}}
+                                        Other, 0x10845c8c0, {{0.0, 741.0}, {402.0, 133.0}}
+                                      Other, 0x10845d400, {{0.0, 0.0}, {402.0, 874.0}}
+                                      Other, 0x10845e300, {{0.0, 116.0}, {402.0, 559.0}}
+                                        Other, 0x10568d400, {{16.0, 120.0}, {370.0, 530.3}}
+                                          StaticText, 0x10568f480, {{16.0, 120.0}, {75.7, 36.0}}, label: 'Finds'
+                                          Button, 0x10568d540, {{298.0, 127.0}, {40.0, 40.0}}, identifier: 'arrow.clockwise', label: 'Hunt now'
+                                          Button, 0x10568fac0, {{346.0, 127.0}, {40.0, 40.0}}, label: 'More'
+                                            Button, 0x10568fc00, {{346.0, 127.0}, {40.0, 40.0}}
+                                              Image, 0x10568f840, {{358.0, 145.0}, {16.0, 3.7}}, identifier: 'ellipsis', label: 'More'
+                                          StaticText, 0x10568f700, {{16.0, 158.0}, {153.7, 15.7}}, label: '17 new · 2 scouts hunting'
+                                          ScrollView, 0x10568f980, {{16.0, 187.7}, {370.0, 29.7}}
+                                            Other, 0x10568f0c0, {{16.0, 187.7}, {331.7, 29.7}}
+                                              Button, 0x10568fd40, {{16.0, 187.7}, {75.0, 29.7}}, label: 'New · 17'
+                                              Button, 0x1095adb80, {{97.0, 187.7}, {76.7, 29.7}}, label: '♥ Saved'
+                                              Button, 0x1095ad900, {{179.7, 187.7}, {123.7, 29.7}}, label: 'Coming soon · 2', Selected
+                                              Button, 0x1095ac500, {{309.3, 187.7}, {38.3, 29.7}}, label: 'All'
+                                          Button, 0x1095ac780, {{16.0, 238.7}, {121.7, 15.3}}, label: 'Sort:, Best match'
+                                            Button, 0x1095acb40, {{16.0, 238.7}, {121.7, 15.3}}
+                                              StaticText, 0x1095ad2c0, {{16.0, 238.5}, {29.3, 15.7}}, label: 'Sort:'
+                                              StaticText, 0x1095ad180, {{49.3, 238.5}, {71.7, 15.7}}, label: 'Best match'
+                                              Image, 0x112699900, {{126.3, 243.3}, {10.0, 6.0}}, identifier: 'chevron.down', label: 'Go Down'
+                                          Button, 0x11269bd40, {{314.0, 231.3}, {36.0, 30.0}}, identifier: 'list.bullet', label: 'List', Selected
+                                          Button, 0x11269be80, {{362.0, 240.3}, {12.0, 12.0}}, identifier: 'square.grid.2x2', label: 'Grid'
+                                          StaticText, 0x1126983c0, {{50.3, 284.3}, {233.0, 33.7}}, label: 'Tap the heart (or swipe right) to teach your scout'
+                                          Image, 0x112699f40, {{29.3, 295.7}, {11.7, 11.0}}, identifier: 'heart.fill', label: 'Love'
+                                          Button, 0x112698280, {{362.7, 296.3}, {10.0, 10.0}}, identifier: 'xmark', label: 'Dismiss tip'
+                                          Button, 0x112698500, {{16.0, 347.0}, {370.0, 35.7}}, label: 'Trail Retro Hunter, 1 finds, 1 new'
+                                            StaticText, 0x11269a300, {{16.0, 350.0}, {30.0, 30.0}}, label: '👟'
+                                            StaticText, 0x11269a1c0, {{56.0, 347.0}, {140.3, 20.3}}, label: 'Trail Retro Hunter'
+                                            StaticText, 0x112698f00, {{321.3, 358.2}, {31.7, 13.3}}, label: '1 new'
+                                            StaticText, 0x11269b5c0, {{56.0, 368.3}, {52.0, 14.3}}, label: 'Sneakers'
+                                            Image, 0x112698000, {{372.7, 361.3}, {11.7, 7.0}}, identifier: 'chevron.down', label: 'Go Down'
+                                          Other, 0x11269a440, {{16.0, 390.7}, {370.0, 98.0}}
+                                            Image, 0x11269b980, {{26.0, 406.7}, {66.0, 66.0}}
+                                            StaticText, 0x11269b340, {{103.0, 403.3}, {226.0, 38.0}}, label: 'Made in USA 992 Black Leather & White Mesh (raw-edge)'
+                                            Button, 0x11269a800, {{340.0, 400.7}, {36.0, 36.0}}, identifier: 'heart.fill', label: 'Like'
+                                            StaticText, 0x11269b840, {{103.0, 444.3}, {192.3, 14.3}}, label: 'New Balance · 74% match · IN 4D'
+                                            Button, 0x11269ae40, {{340.0, 442.7}, {36.0, 36.0}}, identifier: 'xmark', label: 'Pass'
+                                            StaticText, 0x11269b0c0, {{103.0, 461.7}, {222.0, 14.3}}, label: 'A 992 drop five days away, a black and white take on the silhouette you love.'
+                                          Button, 0x112699400, {{16.0, 508.7}, {370.0, 35.7}}, label: 'Vinyl Digger, 1 finds, 1 new'
+                                            StaticText, 0x11269b480, {{16.0, 511.7}, {30.0, 30.0}}, label: '💿'
+                                            StaticText, 0x112699b80, {{56.0, 508.7}, {96.7, 20.3}}, label: 'Vinyl Digger'
+                                            StaticText, 0x1126997c0, {{321.3, 519.8}, {31.7, 13.3}}, label: '1 new'
+                                            StaticText, 0x11269a940, {{56.0, 530.0}, {164.0, 14.3}}, label: 'Vinyl records and music gear'
+                                            Image, 0x1126992c0, {{372.7, 523.0}, {11.7, 7.0}}, identifier: 'chevron.down', label: 'Go Down'
+                                          Other, 0x112698640, {{16.0, 552.3}, {370.0, 98.0}}
+                                            Other, 0x1127d7700, {{23.0, 565.3}, {11.0, 11.0}}, label: 'New to you'
+                                            Image, 0x1127d7d40, {{26.0, 568.3}, {66.0, 66.0}}
+                                            StaticText, 0x1127d7ac0, {{103.0, 565.0}, {195.7, 38.0}}, label: 'Crosley Brands Luke Bryan Record Player'
+                                            Button, 0x1127d7340, {{340.0, 562.3}, {36.0, 36.0}}, identifier: 'heart.fill', label: 'Like'
+                                            StaticText, 0x1127d5040, {{103.0, 606.0}, {223.0, 14.3}}, label: 'Luke Bryan Album Store · $125 · 68% match · IN 2D'
+                                            Button, 0x1127d4a00, {{340.0, 604.3}, {36.0, 36.0}}, identifier: 'xmark', label: 'Pass'
+                                            StaticText, 0x1127d48c0, {{103.0, 623.3}, {223.0, 14.3}}, label: 'A Crosley collab with a country star, a limited suitcase player that's a fun piece for your Crosley collection.'
+                            Toolbar, 0x1127d7c00, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                              Other, 0x112b98000, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x112b98140, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x112b98280, {{0.0, 791.0}, {402.0, 83.0}}
+                    Other, 0x112b983c0, {{0.0, 0.0}, {402.0, 874.0}}
+                      TabBar, 0x112b98500, {{0.0, 791.0}, {402.0, 83.0}}, label: 'Tab Bar'
+                        Other, 0x112b98640, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x112b98780, {{21.0, 791.0}, {98.0, 54.0}}
+                          Other, 0x112b988c0, {{21.0, 791.0}, {360.0, 62.0}}
+                            Button, 0x112b98a00, {{25.0, 795.0}, {98.0, 54.0}}, identifier: 'sun.max.fill', label: 'Today'
+                              Image, 0x112b98b40, {{59.7, 800.0}, {29.0, 29.3}}, identifier: 'sun.max.fill', label: 'brightness higher'
+                            Button, 0x112b98c80, {{109.7, 795.0}, {98.0, 54.0}}, identifier: 'sparkles', label: 'Finds', value: 17 items, Selected
+                              Image, 0x112b98dc0, {{145.7, 799.0}, {26.0, 30.0}}, identifier: 'sparkles', label: 'sparkle'
+                            Button, 0x112b98f00, {{194.3, 795.0}, {98.0, 54.0}}, identifier: 'binoculars.fill', label: 'Scouts'
+                              Image, 0x112b99040, {{225.7, 802.3}, {35.3, 25.7}}, identifier: 'binoculars.fill', label: 'Binoculars, filled'
+                            Button, 0x112b99180, {{279.0, 795.0}, {98.0, 54.0}}, identifier: 'heart.circle.fill', label: 'Friends'
+                              Image, 0x112b992c0, {{314.3, 801.3}, {27.3, 27.3}}, identifier: 'heart.circle.fill', label: 'love'
+                          Other, 0x112b99400, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x112b99540, {{109.7, 795.0}, {98.0, 54.0}}
+                            Other, 0x112b99680, {{109.7, 795.0}, {98.0, 54.0}}
+                              Other, 0x112b997c0, {{109.7, 795.0}, {98.0, 54.0}}
+                              Other, 0x112b99900, {{109.7, 795.0}, {98.0, 54.0}}
+                                Other, 0x112b99a40, {{109.7, 795.0}, {98.0, 54.0}}
+                                  Other, 0x112b99b80, {{109.7, 795.0}, {98.0, 54.0}}
+                                    Other, 0x112b99cc0, {{109.7, 795.0}, {98.0, 54.0}}
+                                  Other, 0x112b99e00, {{109.7, 795.0}, {98.0, 54.0}}
+                                Other, 0x112b99f40, {{109.7, 795.0}, {98.0, 54.0}}
+                    Other, 0x112b9a080, {{0.0, 791.0}, {402.0, 83.0}}
+                      Other, 0x112b9a1c0, {{0.0, 791.0}, {402.0, 83.0}}
+                        Other, 0x112b9a300, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x112b9a440, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x112b9a580, {{0.0, 791.0}, {402.0, 83.0}}
+                              Other, 0x112b9a6c0, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x112b9a800, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x112b9a940, {{0.0, 791.0}, {402.0, 83.0}}
+    Window, 0x112b9aa80, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x112b9abc0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x112b9ad00, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x1095b8640, pid: 17534, label: 'Baget'
+Query chain:
+ →Find: Target Application 'app.baget.ios'
+  Output: {
+    Application, 0x112b9ae40, pid: 17534, label: 'Baget'
+  }
+)
