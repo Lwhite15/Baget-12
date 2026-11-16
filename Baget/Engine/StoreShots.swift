@@ -41,7 +41,7 @@ enum StoreShots {
         await shot("3-swipe", router) { router.sheet = .swipe }
         await shot("4-texts", router) { router.sheet = .inbox }
         await shot("5-squad", router) { router.sheet = nil; router.tab = .squad }
-        await shot("6-pro", router) { router.sheet = .pro }
+        // No Pro screen: App Review rejects screenshots that show the app's price (Guideline 2.3.7).
         mark("shots-done")
     }
 

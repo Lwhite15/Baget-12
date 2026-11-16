@@ -1,6 +1,6 @@
 """Fills the App Store listing for version 1.0 from appstore/listing.json, appstore/description.txt and the latest
 store screenshots on the "shots" branch. Doesn't submit anything for review. Prints statuses only.
-Env: ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_PATH, BUNDLE_ID, SHOTS_DIR."""
+Env: ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_PATH, BUNDLE_ID, SHOTS_DIR, ONLY (run just the steps whose name contains it)."""
 import hashlib, json, os, sys, time
 import jwt, requests
 
@@ -22,7 +22,10 @@ def call(method, path, body=None, ok=(200, 201, 204)):
 
 
 def note(m): print(f"::notice::{m}")
+ONLY = os.environ.get("ONLY", "").strip()
 def step(name, fn):
+    if ONLY and ONLY.lower() not in name.lower():
+        print(f"skip {name}"); return
     try:
         fn(); note(f"OK   {name}")
     except Exception as e:
@@ -75,7 +78,7 @@ step("App Review notes and demo account name", review)
 
 def screenshots():
     d = os.environ["SHOTS_DIR"]
-    files = sorted(f for f in os.listdir(d) if f[0].isdigit() and f.endswith(".png"))
+    files = sorted(f for f in os.listdir(d) if f[0].isdigit() and f.endswith(".png") and "pro" not in f.lower())
     if not files: raise RuntimeError("no screenshots found")
     sets = call("GET", f"/appStoreVersionLocalizations/{vloc['id']}/appScreenshotSets")["data"]
     s = next((x for x in sets if x["attributes"]["screenshotDisplayType"] == "APP_IPHONE_67"), None)

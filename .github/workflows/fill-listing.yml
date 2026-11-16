@@ -1,6 +1,11 @@
 # Fills the App Store listing (version 1.0) from appstore/ and the latest store screenshots. Doesn't submit for review.
 name: Fill App Store listing
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Run just the steps whose name contains this (e.g. screenshots). Empty runs everything."
+        default: ""
 permissions:
   contents: read
 jobs:
@@ -29,6 +34,7 @@ jobs:
         env:
           ASC_KEY_PATH: ${{ runner.temp }}/keys/k.p8
           SHOTS_DIR: ${{ runner.temp }}/shots
+          ONLY: ${{ inputs.only }}
         run: |
           pip install -q pyjwt cryptography requests
           python3 scripts/fill_listing.py
