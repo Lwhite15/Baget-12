@@ -135,12 +135,12 @@ fun TodayDeck(ids: List<String>, index: Int, onIndex: (Int) -> Unit) {
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
             DeckRound(Icons.Filled.Close, T.ink, "Pass", filled = false) { act("pass") }
             DeckRound(Icons.Filled.Favorite, T.accentInk, "Like", filled = true, big = true) { act("like") }
-            if (BuyLink.url(item) != null) {
+            if (BuyLink.url(item) != null && !AppStore.isSoldOut(item)) {
                 Row(Modifier.height(52.dp).clip(CircleShape).background(T.glass).border(1.dp, T.line, CircleShape)
                     .clickable { act("buy") }.padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.ArrowOutward, null, tint = T.cyan, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(6.dp))
-                    Txt("Buy", weight = FontWeight.Bold, color = T.cyan)
+                    Txt(AppStore.buyLabel(item, short = true), weight = FontWeight.Bold, color = T.cyan)
                 }
             }
         }

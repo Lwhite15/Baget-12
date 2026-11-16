@@ -144,7 +144,7 @@ fun SwipeSheet() {
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(18.dp), verticalAlignment = Alignment.CenterVertically) {
                     RoundButton(Icons.Filled.Close, T.hot, "Pass") { act("pass") }
-                    if (BuyLink.url(item) != null) RoundButton(Icons.Filled.ArrowOutward, T.accent, "Buy") { act("buy") }
+                    if (BuyLink.url(item) != null && !AppStore.isSoldOut(item)) RoundButton(Icons.Filled.ArrowOutward, T.accent, AppStore.buyLabel(item, short = true)) { act("buy") }
                     RoundButton(if (f.watching) Icons.Filled.Visibility else Icons.Filled.VisibilityOff, T.warn, if (f.watching) "Watching" else "Watch") { act("watch") }
                     RoundButton(Icons.Filled.Favorite, T.green, "Like", big = true) { act("like") }
                 }

@@ -20,7 +20,7 @@ data class ListingRow(
     val traits: List<String> = emptyList(), val tags: List<String> = emptyList(), val sizesInStock: List<String>? = null,
     val firstSeenAt: String? = null, val offers: List<Offer>? = null, val lowPrice: Double? = null, val lowStore: String? = null,
     val about: String? = null, val brandAbout: String? = null,
-    val origPrice: Double? = null, val origCurrency: String? = null,
+    val origPrice: Double? = null, val origCurrency: String? = null, val stockSeenAt: String? = null,
 ) {
     val item: Item get() {
         val cat = Category.of(category) ?: Category.OTHER
@@ -31,7 +31,7 @@ data class ListingRow(
             topSizes = if (cat == Category.APPAREL && sizes.isNotEmpty()) sizes.mapNotNull(Sizes::topSize) else null,
             url = url, imageURL = imageUrl, dropAt = parseDate(dropAt), firstSeen = parseDate(firstSeenAt), priceKnown = price != null,
             isSample = false, offers = offers, lowPrice = lowPrice, lowStore = lowStore, about = about, brandAbout = brandAbout,
-            origPrice = origPrice, origCurrency = origCurrency)
+            origPrice = origPrice, origCurrency = origCurrency, stockSeenAt = parseDate(stockSeenAt))
     }
 }
 

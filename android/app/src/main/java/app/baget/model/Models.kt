@@ -112,6 +112,8 @@ data class Item(
     /** Stores outside the US: the price in the store's own currency (`price` is converted to US dollars). */
     val origPrice: Double? = null,
     val origCurrency: String? = null,
+    /** When the store's own page last said it's in stock. "Buy" only shows when this is recent; otherwise "Check at <store>". */
+    val stockSeenAt: Long? = null,
 ) {
     /** Shown in Finds, Swipe and Today's Drop only once Baget has its real photo (sample listings always show). */
     val showable: Boolean get() = isSample || (imageURL?.startsWith("https://") == true)

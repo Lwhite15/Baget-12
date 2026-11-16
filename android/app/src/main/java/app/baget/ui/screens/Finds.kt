@@ -605,6 +605,7 @@ private fun FindDetail(findID: String, close: () -> Unit) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Txt("This find isn't here anymore.", color = T.muted) }
         } else {
         val agent = store.agent(find.agentID)
+        LaunchedEffect(item.id) { store.recheck(item) }   // fresh stock and price from the store's page
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 18.dp, end = 18.dp, bottom = 30.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Box {
@@ -662,7 +663,7 @@ private fun DetailActions(find: Find, item: Item, agent: Agent?, onPass: () -> U
                     BigButton(if (r == null) Icons.Outlined.Notifications else Icons.Filled.Notifications, if (r == null) "Remind me" else "Reminder set",
                         primary = r == null, modifier = Modifier.weight(1f)) { Router.open(Sheet.Reminder(item.id, find.id)) }
                 }
-                link != null -> BigButton(Icons.Filled.ArrowOutward, "Buy at ${item.source}", primary = true, modifier = Modifier.weight(1f)) {
+                link != null -> BigButton(Icons.Filled.ArrowOutward, store.buyLabel(item), primary = store.buyKind(item) == AppStore.BuyKind.BUY, modifier = Modifier.weight(1f)) {
                     Analytics.track(AnalyticsEvent.CHECKOUT_OPENED, mapOf("category" to item.category.raw, "toStore" to true, "from" to "find"))
                     Router.buyOpened = find.id
                     openUrl(context, BuyLink.tracked(item, "find") ?: link)

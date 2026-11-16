@@ -15,7 +15,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.booleanOrNull
 import java.io.File
 import java.util.Calendar
@@ -153,6 +156,47 @@ object AppStore {
     // MARK: Availability
 
     fun dropDate(item: Item): Long = item.dropAt ?: (state.catalogStart + (item.dropOffset * 60_000).toLong())
+    // MARK: Buy button honesty
+
+    enum class BuyKind { BUY, CHECK, RESALE }
+    /** Resale marketplaces: "Buy" there means picking a seller and a price, not a store's own stock. */
+    val resaleSites = listOf("stockx", "goat", "flightclub", "stadiumgoods", "ebay", "mercari", "grailed", "poshmark", "depop", "kickscrew", "therealreal", "vestiaire")
+    fun isResale(item: Item): Boolean {
+        val s = (item.source + " " + (item.url ?: "")).lowercase().replace(" ", "")
+        return resaleSites.any { s.contains(it) }
+    }
+    /** "Buy" only when the store's page said in stock in the last two days and the price is known. A page Baget couldn't
+     *  read (resale sites, script-built pages) gets "Check at <store>", never a buy button that might lead to a sold-out page. */
+    fun buyKind(item: Item, at: Long = now()): BuyKind {
+        if (item.isSample) return BuyKind.BUY
+        if (isResale(item) && !item.priceKnown) return BuyKind.RESALE
+        val seen = item.stockSeenAt
+        if (seen != null && at - seen < 48 * 3_600_000L && item.priceKnown) return BuyKind.BUY
+        return BuyKind.CHECK
+    }
+    fun buyLabel(item: Item, short: Boolean = false): String = when (buyKind(item)) {
+        BuyKind.BUY -> if (short) "Buy" else "Buy at ${item.source}"
+        BuyKind.CHECK -> if (short) "Check" else "Check at ${item.source}"
+        BuyKind.RESALE -> if (short) "Prices" else "See resale prices"
+    }
+
+    /** Opening a find re-reads its store page (the server does it at most hourly per product) and updates price and stock. */
+    suspend fun recheck(item: Item) {
+        if (!Catalog.useCloud || item.isSample || item.url == null || !Backend.isSignedIn) return
+        val r = runCatching { Backend.function("check", jobj("listing_id" to item.id)) as? JsonObject }.getOrNull() ?: return
+        val cur = Catalog.cloud[item.id] ?: return
+        val soldOut = (r["sold_out"] as? JsonPrimitive)?.booleanOrNull ?: cur.soldOutAtStart
+        val price = (r["price"] as? JsonPrimitive)?.doubleOrNull
+        val seen = parseDate((r["stock_seen_at"] as? JsonPrimitive)?.contentOrNull)
+        var next = cur.copy(soldOutAtStart = soldOut, stockSeenAt = seen)
+        if (price != null && price > 0) next = next.copy(price = price, priceKnown = true)
+        if (next == cur) return
+        Catalog.cloud[item.id] = next
+        val i = state.listings.indexOfFirst { l -> l.id == item.id }
+        if (i >= 0) state.listings[i] = next
+        tick++   // open screens redraw
+    }
+
     fun isSoldOut(item: Item): Boolean = item.soldOutAtStart && item.id !in state.restockedItemIDs
     fun isLive(item: Item): Boolean = !isSoldOut(item) && dropDate(item) <= now()
 
@@ -385,8 +429,8 @@ object AppStore {
         val i = agentIndex(agentID) ?: return
         val a = state.agents[i]
         val gained = mutableListOf<String>()
-        for (k in item.traits + item.brand) {
-            if (!isTaste(k)) continue
+        for (raw in item.traits + item.brand) {
+            val k = tasteLabel(raw) ?: continue
             val n = TextMatch.norm(k)
             val before = a.learned[n] ?: 0
             a.learned[n] = max(-3, min(5, before + delta))
@@ -402,10 +446,37 @@ object AppStore {
         if (gained.isNotEmpty()) {
             log("${a.name} learned you like ${gained.joinToString(", ")}")
             Analytics.track(AnalyticsEvent.AGENT_LEARNED, mapOf("mission" to (a.mission.category?.raw ?: "custom"), "count" to gained.size))
-            notify(a, NoteKind.LEARNED, null, extra = gained.joinToString(", "))?.let { showBanner(it) }
+            notify(a, NoteKind.LEARNED, null, extra = tasteList(gained))?.let { showBanner(it) }
         } else if (note != null) log("${a.name} noted: $note")
         save()
         pushAgent(agentID)
+    }
+
+    /** A store tag as a person would say it: "note:balsam" is "balsam", "house:boadicea-the-victorious" is
+     *  "boadicea the victorious", and site bookkeeping ("_related_x", "pre-order", unknown "x:y" codes) is dropped. */
+    fun tasteLabel(s: String): String? {
+        var t = s.trim()
+        if (t.startsWith("_")) return null
+        val colon = t.indexOf(':')
+        if (colon >= 0) {
+            val prefix = t.substring(0, colon).lowercase()
+            val known = setOf("note", "notes", "family", "house", "accord", "brand", "designer", "style", "color", "colour", "material", "scent")
+            if (prefix !in known) return null
+            t = t.substring(colon + 1).replace("-", " ").trim()
+        }
+        val junk = setOf("pre-order", "preorder", "pre order", "new", "new arrival", "new arrivals", "sale", "in stock", "sold out", "products", "product", "all")
+        if (t.lowercase() in junk) return null
+        return if (isTaste(t)) t else null
+    }
+
+    /** "a", "a and b", "a, b and c": at most three, so the message reads like a sentence. */
+    fun tasteList(items: List<String>): String {
+        val few = items.take(3)
+        return when (few.size) {
+            0 -> ""
+            1 -> few[0]
+            else -> few.dropLast(1).joinToString(", ") + " and " + few.last()
+        }
     }
 
     /** A real taste word, not a price, sale tag, size, SKU or season code. */
@@ -714,7 +785,7 @@ object AppStore {
             val old = a.tasteBoard.removeAt(a.tasteBoard.lastIndex)
             photoFile(old.id).delete()
         }
-        for (t in tags.map { it.lowercase() }) {
+        for (t in tags.mapNotNull { tasteLabel(it)?.lowercase() }) {
             if (a.style.traits.none { TextMatch.norm(it) == TextMatch.norm(t) }) a.style.traits.add(t)
             // what you choose to show is a strong signal
             a.learned[TextMatch.norm(t)] = max(a.learned[TextMatch.norm(t)] ?: 0, 1)
@@ -722,7 +793,7 @@ object AppStore {
         log("${a.name} learned from your photo: ${photo.tags.take(4).joinToString(", ")}")
         Analytics.track(AnalyticsEvent.TASTE_PHOTO_ADDED, mapOf("mission" to (a.mission.category?.raw ?: "custom"), "tags" to photo.tags.size,
             "boardSize" to a.tasteBoard.size))
-        notify(a, NoteKind.LEARNED, null, extra = photo.tags.take(3).joinToString(", "))?.let { showBanner(it) }
+        notify(a, NoteKind.LEARNED, null, extra = tasteList(photo.tags.mapNotNull { tasteLabel(it) }))?.let { showBanner(it) }
         if (isCloud) uploadTastePhoto(agentID, photo, jpeg)
         save()
     }

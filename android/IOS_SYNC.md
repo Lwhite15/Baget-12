@@ -3,7 +3,7 @@
 The Android app mirrors the iPhone app. Every Monday a scheduled task ports the iPhone changes made since the
 commit below, then moves this marker forward.
 
-last-synced-ios-commit: 9ace5d01226ba9d46fe975a2d991623b3a83374d
+last-synced-ios-commit: 5b5ebcabe5df7d586c894e805e3b7cc21a2f68c2
 
 ## Not ported, on purpose
 
