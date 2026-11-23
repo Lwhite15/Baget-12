@@ -3,7 +3,7 @@
 The Android app mirrors the iPhone app. Every Monday a scheduled task ports the iPhone changes made since the
 commit below, then moves this marker forward.
 
-last-synced-ios-commit: 5b5ebcabe5df7d586c894e805e3b7cc21a2f68c2
+last-synced-ios-commit: 38cd94df2f81c453fd9935af19bd6cc043a65987
 
 ## Not ported, on purpose
 
@@ -19,6 +19,8 @@ iOS widgets and the notification extension) are covered by their Android counter
 - Daily drop / Today swipe-deck experiment (payoff cards, release countdowns, morning drop time): the iPhone app rolled
   it back to build 251's Today before this sync, so there was nothing to port. Today's swipe deck / grid and endless
   For You (the version that stayed) are ported.
+- App Store screenshot script dropping the Pro screen (StoreShots): iPhone-only App Store listing plumbing, no app
+  behavior change.
 - Settings "Language" row: it opens iOS's per-app language picker; see "Still to do" below.
 
 ## Still to do
