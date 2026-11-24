@@ -36,7 +36,7 @@ app = call("GET", f"/apps?filter[bundleId]={os.environ['BUNDLE_ID']}")["data"][0
 aid = app["id"]
 want = L.get("version")
 ver = call("GET", f"/apps/{aid}/appStoreVersions?filter[platform]=IOS&limit=1")["data"][0]
-if want and ver["attributes"]["versionString"] != want and ver["attributes"]["appStoreState"] == "READY_FOR_DISTRIBUTION":
+if want and ver["attributes"]["versionString"] != want and ver["attributes"]["appStoreState"] in ("READY_FOR_DISTRIBUTION", "READY_FOR_SALE"):
     # The newest version is live: start the next one (it copies screenshots and most of the listing from the live one).
     ver = call("POST", "/appStoreVersions", {"data": {"type": "appStoreVersions",
           "attributes": {"platform": "IOS", "versionString": want, "releaseType": L["releaseType"]},
