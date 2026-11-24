@@ -10,5 +10,7 @@
   "releaseType": "MANUAL",
   "build": "125",
   "reviewNotes": "Sign in: tap 'Continue with email', then 'Sign in', and use the demo account below. The account has three scouts with real finds. Baget Pro is an auto-renewing subscription (monthly or yearly) on the Pro screen, reachable from Settings > Go Pro.",
-  "demoAccountName": "appreview@example.com"
+  "demoAccountName": "appreview@example.com",
+  "version": "1.1",
+  "whatsNew": "What's new in 1.1\n• Honest buy buttons: Buy only shows when the store recently confirmed it's in stock with a known price. Otherwise you'll see \"Check at\" the store or \"See resale prices\".\n• Opening a find re-checks the store for the latest price and stock.\n• Close the app right after messaging a scout and your scout still answers, instead of showing \"You're offline\".\n• Cleaner \"Seems like you like…\" notes from your scouts.\n• New support and privacy pages."
 }

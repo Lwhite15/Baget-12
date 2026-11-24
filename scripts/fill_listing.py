@@ -34,9 +34,19 @@ def step(name, fn):
 
 app = call("GET", f"/apps?filter[bundleId]={os.environ['BUNDLE_ID']}")["data"][0]
 aid = app["id"]
-info = call("GET", f"/apps/{aid}/appInfos")["data"][0]
+want = L.get("version")
 ver = call("GET", f"/apps/{aid}/appStoreVersions?filter[platform]=IOS&limit=1")["data"][0]
+if want and ver["attributes"]["versionString"] != want and ver["attributes"]["appStoreState"] == "READY_FOR_DISTRIBUTION":
+    # The newest version is live: start the next one (it copies screenshots and most of the listing from the live one).
+    ver = call("POST", "/appStoreVersions", {"data": {"type": "appStoreVersions",
+          "attributes": {"platform": "IOS", "versionString": want, "releaseType": L["releaseType"]},
+          "relationships": {"app": {"data": {"type": "apps", "id": aid}}}}})["data"]
+    note(f"Created version {want}")
 vid = ver["id"]
+note(f"Editing version {ver['attributes']['versionString']}")
+# With a version live and the next one in progress there are two app infos; edit the one that isn't live.
+infos = call("GET", f"/apps/{aid}/appInfos")["data"]
+info = next((x for x in infos if (x["attributes"].get("appStoreState") or x["attributes"].get("state")) not in ("READY_FOR_DISTRIBUTION", "READY_FOR_SALE")), infos[0])
 
 def categories():
     call("PATCH", f"/appInfos/{info['id']}", {"data": {"type": "appInfos", "id": info["id"], "relationships": {
@@ -58,8 +68,9 @@ step("Copyright and manual release", version_attrs)
 vloc = [x for x in call("GET", f"/appStoreVersions/{vid}/appStoreVersionLocalizations")["data"] if x["attributes"]["locale"] == "en-US"][0]
 def version_loc():
     call("PATCH", f"/appStoreVersionLocalizations/{vloc['id']}", {"data": {"type": "appStoreVersionLocalizations", "id": vloc["id"], "attributes": {
-        "description": DESC, "keywords": L["keywords"], "supportUrl": L["supportUrl"], "promotionalText": L["promotionalText"]}}})
-step("Description, keywords, support link, promotional text", version_loc)
+        "description": DESC, "keywords": L["keywords"], "supportUrl": L["supportUrl"], "promotionalText": L["promotionalText"],
+        **({"whatsNew": L["whatsNew"]} if L.get("whatsNew") and want and want != "1.0" else {})}}})
+step("Description, keywords, support link, promotional text, what's new", version_loc)
 
 def build():
     b = call("GET", f"/builds?filter[app]={aid}&filter[version]={L['build']}")["data"][0]
