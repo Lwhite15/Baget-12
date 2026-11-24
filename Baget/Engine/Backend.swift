@@ -8,7 +8,9 @@ struct BackendError: LocalizedError {
     var status: Int = 0
     var errorDescription: String? { message }
     static let notSignedIn = BackendError(message: String(localized: "Sign in to use this."))
-    static let offline = BackendError(message: String(localized: "You're offline. Check your connection and try again."))
+    static let offline = BackendError(message: String(localized: "You're offline. Check your connection and try again."), status: -1)
+    /// The request never reached the server or its answer never came back (no signal, or the app was closed mid-request).
+    var isNetwork: Bool { status == -1 }
 }
 
 /// A minimal Supabase client: Sign in with Apple, database (PostgREST), RPC, edge functions and storage.

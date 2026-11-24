@@ -34,6 +34,8 @@ final class AppStore {
     var syncProblem: String?
     /// The agent whose chat is waiting on a reply.
     var chatBusy: String?
+    /// Goes up each time the app leaves the screen, so a request can tell it was cut off by that, not by a bad connection.
+    var backgroundEpoch = 0
     /// The Today screen's personal feed, best first, and the strongest taste signals behind it.
     var forYou: [ForYouItem] = []
     var tasteTop: [TasteFeature] = []
@@ -339,6 +341,7 @@ final class AppStore {
     /// When the app opens: the sample tour simulates missed sweeps; signed in, it pulls what the server found.
     func cameBack(afterMinutes gone: Double) async {
         if isCloud {
+            resumeUnansweredChats()
             let since = state.lastSeen
             // Check in: scouts slow down while you're away. If they had, they hunt right now instead of at the next slot.
             let wasAway = (try? await api.rpc("touch_active", as: Bool.self)) ?? false

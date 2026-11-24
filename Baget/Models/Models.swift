@@ -578,6 +578,8 @@ struct ChatTurn: Codable, Hashable, Identifiable {
     var role: String          // "user" or "assistant"
     var text: String
     var actions: [ChatAction] = []
+    /// When it was sent (older saved chats have none).
+    var at: Date? = nil
 }
 
 struct ChatAction: Codable, Hashable {

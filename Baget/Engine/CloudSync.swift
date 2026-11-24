@@ -535,23 +535,47 @@ extension AppStore {
     // MARK: Chat
 
     func sendChat(agentID: String, text: String) async {
-        var turns = state.chats[agentID] ?? []
-        turns.append(ChatTurn(role: "user", text: text))
-        state.chats[agentID] = turns
+        state.chats[agentID, default: []].append(ChatTurn(role: "user", text: text, at: .now))
+        save()
+        await answerChat(agentID: agentID)
+    }
+
+    /// Asks the scout to answer the last message. Closing the app right after sending used to cut the request off and
+    /// show "You're offline": now iOS is asked for time to finish it, and if it still gets cut off, the message stays
+    /// unanswered (no error) and is answered when you come back.
+    func answerChat(agentID: String) async {
+        guard chatBusy == nil, let turns = state.chats[agentID], turns.last?.role == "user" else { return }
         chatBusy = agentID
         defer { chatBusy = nil }
+        let epoch = backgroundEpoch
+        let bg = UIApplication.shared.beginBackgroundTask(withName: "chat") {}
+        defer { if bg != .invalid { UIApplication.shared.endBackgroundTask(bg) } }
         let history = turns.suffix(14).map { ["role": $0.role, "content": $0.text] }
         do {
             let r: ChatReply = try await api.function("chat", ["agent_id": agentID, "messages": Array(history), "lang": AppLanguage.code])
             let actions = r.actions.map { ChatAction(type: $0.type, findID: $0.findId, title: $0.title) }
-            state.chats[agentID, default: []].append(ChatTurn(role: "assistant", text: r.reply, actions: actions))
+            state.chats[agentID, default: []].append(ChatTurn(role: "assistant", text: r.reply, actions: actions, at: .now))
             Analytics.track(.chatSent, ["actions": actions.count])
             if !actions.isEmpty { await pull() }
         } catch {
-            state.chats[agentID, default: []].append(ChatTurn(role: "assistant", text: (error as? LocalizedError)?.errorDescription ?? String(localized: "I lost the connection there. Send that again?")))
+            let cutOffByClosing = (error as? BackendError)?.isNetwork == true
+                && (backgroundEpoch != epoch || UIApplication.shared.applicationState != .active)
+            if !cutOffByClosing {
+                state.chats[agentID, default: []].append(ChatTurn(role: "assistant", text: (error as? LocalizedError)?.errorDescription ?? String(localized: "I lost the connection there. Send that again?"), at: .now))
+            }
         }
         if (state.chats[agentID]?.count ?? 0) > 60 { state.chats[agentID]?.removeFirst((state.chats[agentID]?.count ?? 0) - 60) }
         save()
+    }
+
+    /// Back in the app: answer messages sent in the last half hour that never got a reply.
+    func resumeUnansweredChats() {
+        let waiting = state.chats.filter { _, turns in
+            guard let last = turns.last, last.role == "user", let at = last.at else { return false }
+            return Date.now.timeIntervalSince(at) < 30 * 60
+        }.map(\.key)
+        guard !waiting.isEmpty else { return }
+        Task { @MainActor in for id in waiting { await self.answerChat(agentID: id) } }
     }
 
     // MARK: Friends

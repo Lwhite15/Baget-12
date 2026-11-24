@@ -72,6 +72,7 @@ struct BagetApp: App {
                 Analytics.track(.appOpened, ["minutesAway": Int(gone), "signedIn": store.isCloud])
                 Analytics.flush()
             case .background:
+                store.backgroundEpoch += 1
                 store.state.lastSeen = .now
                 store.saveNow()
                 Notifier.setBadge(store.unreadCount)
