@@ -91,9 +91,21 @@ for g in call("GET", f"/apps/{app_id}/betaGroups?limit=50")["data"]:
     if g["attributes"].get("isInternalGroup"):
         internal_ids |= {t["id"] for t in call("GET", f"/betaGroups/{g['id']}/betaTesters?limit=200")["data"]}
 external = [t for t in testers if t["id"] not in internal_ids]
+shared = 0
 if external:
-    call("POST", f"/builds/{bid}/relationships/individualTesters", {"data": [{"type": "betaTesters", "id": t["id"]} for t in external]}, ok=(200, 201, 204, 409))
-note(f"Shared with {len(external)} individual external tester(s)")
+    try:
+        call("POST", f"/builds/{bid}/relationships/individualTesters", {"data": [{"type": "betaTesters", "id": t["id"]} for t in external]}, ok=(200, 201, 204, 409))
+        shared = len(external)
+    except RuntimeError as e:
+        # Apple sometimes answers 404 on the build side of this link; add the build from each tester's side instead.
+        print(f"::warning::Build-side tester link failed ({e}); adding per tester")
+        for t in external:
+            try:
+                call("POST", f"/betaTesters/{t['id']}/relationships/builds", {"data": [{"type": "builds", "id": bid}]}, ok=(200, 201, 204, 409))
+                shared += 1
+            except RuntimeError as e2:
+                print(f"::warning::Couldn't share with one tester: {e2}")
+note(f"Shared with {shared} of {len(external)} individual external tester(s)")
 
 # Submit.
 subs = call("GET", f"/betaAppReviewSubmissions?filter[build]={bid}")["data"]
