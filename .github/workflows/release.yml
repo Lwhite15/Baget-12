@@ -1,0 +1,37 @@
+# Releases an approved version to the App Store. Run only when Larry says to release.
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (empty: the one waiting for release)"
+        default: ""
+permissions:
+  contents: read
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      BUNDLE_ID: ${{ secrets.BUNDLE_ID }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Write key
+        env:
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/keys"
+          if printf '%s' "$ASC_KEY_P8_BASE64" | grep -q "BEGIN"; then printf '%s\n' "$ASC_KEY_P8_BASE64" > "$RUNNER_TEMP/keys/k.p8"
+          else echo "$ASC_KEY_P8_BASE64" | base64 --decode > "$RUNNER_TEMP/keys/k.p8"; fi
+          chmod 600 "$RUNNER_TEMP/keys/k.p8"
+      - name: Release
+        env:
+          ASC_KEY_PATH: ${{ runner.temp }}/keys/k.p8
+          VERSION: ${{ inputs.version }}
+        run: |
+          pip install -q pyjwt cryptography requests
+          python3 scripts/release.py
+      - name: Remove key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/keys"
