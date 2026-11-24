@@ -34,7 +34,7 @@ private struct SubscriptionReply: Decodable { let applied: Bool?; let pro: Bool?
 extension AppStore {
     static let proProductIDs = ["baget.pro.monthly", "baget.pro.yearly"]
     static let termsURL = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
-    static let privacyURL = URL(string: "https://github.com/Lwhite15/Baget-12/blob/main/PRIVACY.md")!
+    static let privacyURL = URL(string: "https://lwhite15.github.io/baget-site/privacy/")!
 
     var isPro: Bool { plan?.pro ?? false }
 

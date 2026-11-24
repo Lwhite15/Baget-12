@@ -31,5 +31,5 @@ Baget Pro gives you up to 5 scouts that hunt around the clock, every 6 hours, wi
 Baget Pro is an auto-renewing subscription, billed monthly or yearly. Payment is charged to your Apple ID when you confirm the purchase. It renews automatically unless you cancel at least 24 hours before the end of the current period. Manage or cancel any time in your App Store account settings.
 
 Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
-Privacy Policy: https://github.com/Lwhite15/Baget-12/blob/main/PRIVACY.md
+Privacy Policy: https://lwhite15.github.io/baget-site/privacy/
 Support: bagetsupport@gmail.com

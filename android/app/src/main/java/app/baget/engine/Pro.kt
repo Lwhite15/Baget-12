@@ -58,7 +58,7 @@ data class PlanInfo(
 }
 
 const val TERMS_URL = "https://play.google.com/intl/en_us/about/play-terms/"
-const val PRIVACY_URL = "https://github.com/Lwhite15/Baget-12/blob/main/PRIVACY.md"
+const val PRIVACY_URL = "https://lwhite15.github.io/baget-site/privacy/"
 val PRO_PRODUCT_IDS = listOf("baget.pro.monthly", "baget.pro.yearly")
 
 val AppStore.isPro: Boolean get() = plan?.pro ?: false

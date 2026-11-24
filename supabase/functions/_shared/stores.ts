@@ -110,7 +110,7 @@ const SIZE = /^(\d{1,2}(\.5)?|x{0,3}s|m|x{0,3}l|one size|os)$/i;
 
 /** Reads a Shopify store's newest products and the currency it prices in. null = not a Shopify catalog. */
 export async function shopifyProducts(domain: string, knownCurrency: string | null, fetchFn: FetchFn = fetch): Promise<{ products: ShopifyProduct[]; currency: string } | null> {
-  const headers = { "User-Agent": "Mozilla/5.0 (compatible; BagetBot/1.0; +https://github.com/Lwhite15/Baget-12)", Accept: "application/json" };
+  const headers = { "User-Agent": "Mozilla/5.0 (compatible; BagetBot/1.0; +https://lwhite15.github.io/baget-site/)", Accept: "application/json" };
   let currency = knownCurrency;
   if (!currency) {
     const c = await fetchFn(`https://${domain}/cart.js`, { headers, signal: AbortSignal.timeout(8000) }).catch(() => null);
