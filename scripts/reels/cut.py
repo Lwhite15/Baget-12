@@ -24,7 +24,8 @@ subprocess.run(["ffmpeg", "-v", "error", "-i", src, "-vf", f"fps={FPS_SCAN},crop
 frames = sorted(glob.glob(f"{work}/f*.png"))
 from concurrent.futures import ThreadPoolExecutor
 def ocr(f):
-    r = subprocess.run(["tesseract", f, "-", "--psm", "6"], capture_output=True, text=True)
+    # One thread per tesseract: it otherwise spawns a thread per core in every process and crawls on CI.
+    r = subprocess.run(["tesseract", f, "-", "--psm", "6"], capture_output=True, text=True, env={**os.environ, "OMP_THREAD_LIMIT": "1"})
     return re.sub(r"\s+", " ", r.stdout.lower())
 with ThreadPoolExecutor(max_workers=os.cpu_count() or 4) as ex: texts = list(ex.map(ocr, frames))
 T = lambda i: i / FPS_SCAN
@@ -62,7 +63,11 @@ if P.get("mode") == "longterm":
     add(scouts, 6.5, 1.4, f"{days} days in," if days else "Weeks later,", "every scout still learning your taste")
     add(inbox, 8, 1.5, "Still texting you", "new finds, restocks, price drops")
     add(finds, 7, 1.5, f"{count:,} finds and counting" if count else "Hundreds of finds", "most you'd never find yourself")
-    add(detail, 6, 1.3, "Every find checked:", "in stock, real price")
+    if detail is None and P.get("detail_at"): detail = float(P["detail_at"]) - 0.6
+    # The detail screen often gets only a second or two of the recording: hold it rather than skip it.
+    if detail is not None:
+        span = float(P.get("detail_len") or max(1.2, min(duration, detail + 0.6 + 7.8) - (detail + 0.6)))
+        add(detail, 4.5, min(1.3, span / 4.5), "Every find checked:", "in stock, real price")
     hook = "a team of AI scouts that never stops hunting"
 else:
     words = [w for w in re.findall(r"[a-z]{5,}", P["prompt"].lower())][:4]
