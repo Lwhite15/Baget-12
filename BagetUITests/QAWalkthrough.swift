@@ -332,6 +332,9 @@ final class QAWalkthrough: XCTestCase {
         let env = ProcessInfo.processInfo.environment
         guard env["QA_DEMO"] == "1" else { throw XCTSkip("no QA_DEMO") }
         let email = env["QA_EMAIL"] ?? "", password = env["QA_PASSWORD"] ?? ""
+        let pill = env["QA_PILL"] ?? "Fragrance"
+        let ask = env["QA_PROMPT"] ?? "Esoteric niche scents nobody else wears. Smoky incense, resinous oud, green fig, indie perfume houses. Nothing mainstream or sweet."
+        let followUp = env["QA_FOLLOWUP"] ?? "Go deeper. Rarer houses, small batches, under $150."
         app.launch()
         scene("welcome"); Thread.sleep(forTimeInterval: 3)
         tap("Continue with email")
@@ -346,12 +349,15 @@ final class QAWalkthrough: XCTestCase {
         _ = app.staticTexts["What are you into?"].waitForExistence(timeout: 25)
 
         scene("ask"); Thread.sleep(forTimeInterval: 1.5)
-        tap("Fragrance", timeout: 3, last: true); Thread.sleep(forTimeInterval: 0.8)
+        tap(pill, timeout: 3, last: true); Thread.sleep(forTimeInterval: 0.8)
+        // The words box sits below the category pills: bring it on screen first.
+        app.swipeUp(velocity: .slow); Thread.sleep(forTimeInterval: 0.8)
         if tap("Describe your taste in your own words", timeout: 4) {
             let editor = app.textViews.firstMatch
             if editor.waitForExistence(timeout: 4) {
                 Thread.sleep(forTimeInterval: 0.6)
-                typeSlowly(editor, "Esoteric niche scents nobody else wears. Smoky incense, resinous oud, green fig, indie perfume houses. Nothing mainstream or sweet.")
+                scene("typing")
+                typeSlowly(editor, ask)
             }
             Thread.sleep(forTimeInterval: 1.5)
             tap("Done")
@@ -360,7 +366,6 @@ final class QAWalkthrough: XCTestCase {
         Thread.sleep(forTimeInterval: 1)
         tap("Next")
         scene("vibe"); Thread.sleep(forTimeInterval: 2)
-        for l in ["Niche", "Woody", "Smoky", "Incense", "Up to $250"] { if tap(l, timeout: 1) { Thread.sleep(forTimeInterval: 0.5) } }
         Thread.sleep(forTimeInterval: 1)
         if !tap("Next", timeout: 2) { tap("Skip") }
 
@@ -402,7 +407,7 @@ final class QAWalkthrough: XCTestCase {
             let field = app.textFields.firstMatch.exists ? app.textFields.firstMatch : app.textViews.firstMatch
             if field.waitForExistence(timeout: 4) {
                 field.tap(); Thread.sleep(forTimeInterval: 0.6)
-                typeSlowly(field, "Go deeper. Rarer houses, small batches, under $150.")
+                typeSlowly(field, followUp)
                 Thread.sleep(forTimeInterval: 1)
                 tap("Send", timeout: 3)
                 Thread.sleep(forTimeInterval: 25)

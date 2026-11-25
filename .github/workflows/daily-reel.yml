@@ -1,0 +1,113 @@
+# Daily Reel: a brand-new customer asks Baget for something different each day (scripts/reels/prompts.json, rotating
+# by day), the scout hunts for real, and the recording is cut into a captioned 1080x1920 Reel on the "reels" branch
+# (reels/YYYY-MM-DD.mp4 plus a suggested Instagram caption). Runs early so the Reel is ready by 8am Eastern.
+name: Daily reel
+on:
+  schedule:
+    - cron: "7 10 * * *"
+  workflow_dispatch:
+    inputs:
+      index:
+        description: "Prompt number to use (empty: today's)"
+        default: ""
+permissions:
+  contents: write
+jobs:
+  record:
+    runs-on: xcode-27
+    timeout-minutes: 60
+    env:
+      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Use Xcode 27 (iOS 27.1 SDK for iPhone Duo)
+        run: bash scripts/use-xcode.sh
+      - name: Build
+        env:
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          brew install xcodegen >/dev/null
+          xcodegen generate
+          set -o pipefail
+          xcodebuild build-for-testing -project Baget.xcodeproj -scheme BagetQA -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' -derivedDataPath build CODE_SIGNING_ALLOWED=NO BAGET_DUO_FLAG="$BAGET_DUO_FLAG" \
+            BAGET_SUPABASE_URL="https://${PROJECT_REF}.supabase.co" BAGET_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" > build.log 2>&1 \
+            || { grep -E ": error: " build.log | head -20 | while IFS= read -r l; do echo "::error::$l"; done; exit 1; }
+      - name: Record the demo
+        env:
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json,sys
+          d=json.load(sys.stdin)["devices"]
+          devs=[x for k,v in d.items() if "iOS" in k for x in v if x["name"].startswith("iPhone")]
+          pick=next((x for x in devs if x["name"].endswith("Pro")), None) or devs[0]
+          print(pick["udid"])')
+          echo "::notice::Device: $(xcrun simctl list devices | grep "$UDID" | sed 's/^ *//')"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b >/dev/null
+          xcrun simctl ui "$UDID" appearance dark
+          xcrun simctl status_bar "$UDID" override --time "9:41" --dataNetwork wifi --wifiMode active --wifiBars 3 \
+            --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100
+          pw=$(python3 -c "import secrets,string; print('Qa-' + ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(20)))")
+          echo "::add-mask::$pw"
+          email="reel-${GITHUB_RUN_ID}@example.com"
+          r=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "https://${PROJECT_REF}.supabase.co/auth/v1/signup" -H "apikey: ${SUPABASE_ANON_KEY}" \
+                -H "Content-Type: application/json" -d "$(jq -nc --arg e "$email" --arg p "$pw" '{email:$e,password:$p,data:{full_name:"Maya"}}')")
+          echo "::notice::sign-up HTTP $r ($email)"
+          OUT="$RUNNER_TEMP/out"; mkdir -p "$OUT/qa"
+          python3 - "$OUT/qa/prompt.json" "${{ inputs.index }}" <<'PY'
+          import json, sys, datetime
+          ps = json.load(open("scripts/reels/prompts.json"))
+          day = datetime.datetime.utcnow().date()
+          i = int(sys.argv[2]) if sys.argv[2].strip() else day.toordinal()
+          p = dict(ps[i % len(ps)], index=i % len(ps), date=day.isoformat())
+          json.dump(p, open(sys.argv[1], "w"))
+          print(f"::notice::Today's ask ({p['index']}): {p['pill']}: {p['prompt']}")
+          PY
+          export TEST_RUNNER_QA_PILL="$(jq -r .pill "$OUT/qa/prompt.json")" TEST_RUNNER_QA_PROMPT="$(jq -r .prompt "$OUT/qa/prompt.json")" TEST_RUNNER_QA_FOLLOWUP="$(jq -r .followUp "$OUT/qa/prompt.json")"
+          xcrun simctl io "$UDID" recordVideo --codec=h264 --force "$OUT/qa/demo.mp4" > "$OUT/rec.log" 2>&1 &
+          REC=$!
+          sleep 3
+          python3 -c "import time; print('REC_START %.2f' % time.time())" > "$OUT/qa/rec_start.txt"
+          TEST_RUNNER_QA_EMAIL="$email" TEST_RUNNER_QA_PASSWORD="$pw" TEST_RUNNER_QA_OUT="$OUT" TEST_RUNNER_QA_DEMO=1 \
+            xcodebuild test-without-building -only-testing:BagetUITests/QAWalkthrough/testDemoReel -project Baget.xcodeproj -scheme BagetQA -derivedDataPath build \
+            -destination "id=$UDID" -resultBundlePath "$RUNNER_TEMP/demo.xcresult" > test.log 2>&1 || echo "::warning::The demo script reported failures (see steps.txt)"
+          kill -INT $REC; wait $REC || true
+          cat "$OUT/rec.log" | tail -3
+          grep "QA: " test.log | sed 's/.*QA: //' | tail -80
+          [ -f "$OUT/qa/steps.txt" ] || grep "QA: " test.log | sed 's/.*QA: //' > "$OUT/qa/steps.txt"
+          ls -la "$OUT/qa"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: demo
+          path: ${{ runner.temp }}/out/qa
+          retention-days: 7
+  cut:
+    needs: record
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: demo
+          path: raw
+      - name: Tools
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q ffmpeg tesseract-ocr fonts-inter >/dev/null
+          pip install -q pillow
+      - name: Cut the Reel
+        run: |
+          D=$(jq -r .date raw/prompt.json)
+          mkdir -p out && python3 scripts/reels/cut.py raw/demo.mp4 raw/prompt.json "out/$D.mp4" "out/$D.txt"
+          echo "::notice::Reel $D: $(jq -r .hook raw/prompt.json) ($(ffprobe -v error -show_entries format=duration -of csv=p=0 out/$D.mp4)s)"
+      - name: Put it on the reels branch
+        run: |
+          git config user.name "Baget reels"; git config user.email "reels@users.noreply.github.com"
+          if git fetch -q origin reels 2>/dev/null; then git checkout -q -B reels origin/reels; else git checkout -q --orphan reels && git rm -rfq . ; fi
+          mkdir -p reels && cp out/* reels/
+          # Keep two weeks.
+          ls reels/*.mp4 | sort | head -n -14 | while read f; do git rm -q "$f" "${f%.mp4}.txt" 2>/dev/null || rm -f "$f"; done
+          git add reels && git commit -qm "Reel $(ls out/*.mp4 | xargs -n1 basename)" && git push -q origin HEAD:reels
