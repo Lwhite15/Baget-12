@@ -1,0 +1,15 @@
+[00] SCENE today 1795626177.49
+[00] tap Scouts
+[00] SCENE scouts 1795626196.61
+[00] tap ~Notifications
+[00] SCENE inbox 1795626226.20
+[00] close via Done
+[00] tap Finds
+[00] SCENE finds 1795626251.19
+[00] tap Coming soon
+[00] SCENE coming 1795626275.74
+[00] tap All
+[00] SCENE all 1795626290.30
+[00] SCENE detail 1795626296.03
+[00] close via swipe
+[00] SCENE end 1795626308.66
