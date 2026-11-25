@@ -7,6 +7,27 @@ import Foundation
 @MainActor
 enum StoreShots {
     static var enabled: Bool { ProcessInfo.processInfo.arguments.contains("-BagetStoreShots") }
+    /// Demo footage: sign in to the long-running demo account the same way, then hand the app to the UI test.
+    static var demoSignedIn: Bool { ProcessInfo.processInfo.arguments.contains("-BagetDemoSignedIn") }
+
+    static func signInForDemo(store: AppStore) async {
+        Analytics.enabled = false
+        UserDefaults.standard.set(true, forKey: "baget.onboarded")
+        let env = ProcessInfo.processInfo.environment
+        guard let email = env["BAGET_SHOT_EMAIL"], let password = env["BAGET_SHOT_PASSWORD"] else { return }
+        do {
+            try await Backend.shared.signInWithEmail(email: email, password: password)
+            guard let uid = Backend.shared.userID else { return }
+            store.state = AppState()
+            store.state.accountID = uid
+            Catalog.cloud = [:]
+            Catalog.useCloud = true
+            store.save()
+        } catch { return }
+        await store.pull()
+        await store.loadPlan()
+        await store.loadForYou()
+    }
 
     private static var docs: URL { FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0] }
     private static func mark(_ name: String, _ text: String = "") { FileManager.default.createFile(atPath: docs.appendingPathComponent(name).path, contents: Data(text.utf8)) }

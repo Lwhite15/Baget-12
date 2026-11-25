@@ -44,6 +44,7 @@ struct BagetApp: App {
                     #if DEBUG
                     if SmokeTest.enabled { await SmokeTest.run(store: store, router: router); return }
                     if StoreShots.enabled { await StoreShots.run(store: store, router: router); return }
+                    if StoreShots.demoSignedIn { await StoreShots.signInForDemo(store: store); return }
                     if PaywallView.screenshotMode { router.sheet = .pro; return }
                     #endif
                     // New accounts are asked during setup, when it means something ("text me when they find something").

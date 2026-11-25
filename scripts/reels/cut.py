@@ -41,42 +41,61 @@ def last(pred, after=0.0):
     return hit
 has = lambda *ws: (lambda t: any(w in t for w in ws))
 
-words = [w for w in re.findall(r"[a-z]{5,}", P["prompt"].lower())][:4]
-welcome = first(has("never miss what", "continue with apple"))
-ask = first(has("what are you into"))
-quiz = first(has("quick taste check"), after=ask or 0)
-typing = first(lambda t: sum(w in t for w in words) >= 2, after=ask or 0, before=quiz or 1e9)
-taste = first(has("tap the brands", "the vibe you"), after=ask or 0, before=quiz or 1e9)
-quiz_end = last(has("quick taste check"), after=quiz or 0)
-found = first(has("first finds are in", "finds are in"), after=quiz or 0)
-finds = first(lambda t: "finds" in t and ("sort" in t or "saved" in t or "hunting" in t), after=found or 0)
-detail = first(lambda t: "match" in t and not any(w in t for w in ("finds", "sort", "saved", "scout hunting")), after=finds or 0)
-chat = first(has("ask me to", "tell me what you're into, or"), after=detail or finds or 0)
-print("timeline", dict(welcome=welcome, ask=ask, typing=typing, taste=taste, quiz=quiz, quiz_end=quiz_end, found=found, finds=finds, detail=detail, chat=chat, duration=duration))
-if found is None or finds is None:
-    sys.exit("The hunt never showed finds: no reel today.")
-
-hook = P["hook"]
 segs = []  # (start, end, speed, line1, line2)
 def add(a, length, speed, l1, l2):
     if a is None: return
     a += 0.6  # skip the transition into the screen
     b = min(a + length * speed, duration)
     if b - a > 1: segs.append((a, b, speed, l1, l2))
-add(welcome, 4, 1, "I asked Baget for", hook)
-if typing is not None:
-    end = taste if taste and taste > typing else typing + 10
-    add(typing - 1, min(8, (end - typing) / 1.6), 1.6, "Say it in", "your own words")
+
+if P.get("mode") == "longterm":
+    # The long-running demo account: weeks of hunting, shown in order.
+    today = first(has("good morning", "good afternoon", "good evening"))
+    scouts = first(has("your scouts"), after=today or 0)
+    inbox = first(has("mark all read", "background and alerts"), after=scouts or 0)
+    finds = first(lambda t: "finds" in t and ("sort" in t or "saved" in t), after=inbox or scouts or 0)
+    detail = first(lambda t: "match" in t and not any(w in t for w in ("finds", "sort", "saved", "scout hunting", "good m", "good a", "good e")), after=(finds or 0) + 6)
+    print("timeline", dict(today=today, scouts=scouts, inbox=inbox, finds=finds, detail=detail, duration=duration))
+    if today is None or finds is None: sys.exit("Couldn't find the screens in the recording.")
+    days, count = P.get("days"), P.get("finds")
+    add(today, 5, 1.2, "Set it up once.", "Your scouts never stop hunting")
+    add(scouts, 6.5, 1.4, f"{days} days in," if days else "Weeks later,", "every scout still learning your taste")
+    add(inbox, 8, 1.5, "Still texting you", "new finds, restocks, price drops")
+    add(finds, 7, 1.5, f"{count:,} finds and counting" if count else "Hundreds of finds", "most you'd never find yourself")
+    add(detail, 6, 1.3, "Every find checked:", "in stock, real price")
+    hook = "a team of AI scouts that never stops hunting"
 else:
-    add(ask, 4, 1.3, "Tell it what", "you're into")
-add(taste, 3.5, 1.3, "Pick the vibe", "you're after")
-if quiz is not None:
-    span = max(4, (quiz_end or quiz + 20) - quiz)
-    add(quiz, 8, min(2.2, max(1.5, span / 8)), "Swipe to teach", "your taste")
-add(found, 5, 1.2, "Minutes later:", "first finds are in")
-add(finds + 1.0, 4.5, 1, "Real stores, real prices,", "picked for you")
-add(detail, 6, 1.3, "Every find checked:", "in stock, real price")
-add(chat, 9, 1.6, "Ask for more", "and it digs deeper")
+    words = [w for w in re.findall(r"[a-z]{5,}", P["prompt"].lower())][:4]
+    welcome = first(has("never miss what", "continue with apple"))
+    ask = first(has("what are you into"))
+    quiz = first(has("quick taste check"), after=ask or 0)
+    typing = first(lambda t: sum(w in t for w in words) >= 2, after=ask or 0, before=quiz or 1e9)
+    taste = first(has("tap the brands", "the vibe you"), after=ask or 0, before=quiz or 1e9)
+    quiz_end = last(has("quick taste check"), after=quiz or 0)
+    found = first(has("first finds are in", "finds are in"), after=quiz or 0)
+    finds = first(lambda t: "finds" in t and ("sort" in t or "saved" in t or "hunting" in t), after=found or 0)
+    detail = first(lambda t: "match" in t and not any(w in t for w in ("finds", "sort", "saved", "scout hunting")), after=finds or 0)
+    chat = first(has("ask me to", "tell me what you're into, or"), after=detail or finds or 0)
+    print("timeline", dict(welcome=welcome, ask=ask, typing=typing, taste=taste, quiz=quiz, quiz_end=quiz_end, found=found, finds=finds, detail=detail, chat=chat, duration=duration))
+    if found is None or finds is None:
+        sys.exit("The hunt never showed finds: no reel today.")
+
+    hook = P.get("hook", "")
+    add(welcome, 4, 1, "I asked Baget for", hook)
+    if typing is not None:
+        end = taste if taste and taste > typing else typing + 10
+        add(typing - 1, min(8, (end - typing) / 1.6), 1.6, "Say it in", "your own words")
+    else:
+        add(ask, 4, 1.3, "Tell it what", "you're into")
+    add(taste, 3.5, 1.3, "Pick the vibe", "you're after")
+    if quiz is not None:
+        span = max(4, (quiz_end or quiz + 20) - quiz)
+        add(quiz, 8, min(2.2, max(1.5, span / 8)), "Swipe to teach", "your taste")
+    add(found, 5, 1.2, "Minutes later:", "first finds are in")
+    add(finds + 1.0, 4.5, 1, "Real stores, real prices,", "picked for you")
+    add(detail, 6, 1.3, "Every find checked:", "in stock, real price")
+    add(chat, 9, 1.6, "Ask for more", "and it digs deeper")
+
 
 def bg():
     b = Image.new("RGB", (W, H), NAVY); g = Image.new("RGB", (W, H), NAVY); d = ImageDraw.Draw(g)
@@ -125,9 +144,9 @@ files.append(f"{work}/end.mp4")
 open(f"{work}/list.txt", "w").write("".join(f"file '{f}'\n" for f in files))
 subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", f"{work}/list.txt", "-c", "copy", "-movflags", "+faststart", out_mp4], check=True)
 
-tag = re.sub(r"[^a-z]", "", P["pill"].lower())
+tag = re.sub(r"[^a-z]", "", P.get("pill", "shopping").lower())
 open(out_txt, "w").write(
-    f"I asked my AI personal shopper for {hook}. Here's what it found 👀\n\n"
+    (f"{P.get('days', 'Weeks')} days ago I set up my AI scouts. They're still finding things for me every day 👀\n\n" if P.get("mode") == "longterm" else f"I asked my AI personal shopper for {hook}. Here's what it found 👀\n\n") +
     f"Baget sends your own AI scouts across the web, checks the price and stock, and tells you when they find something worth it.\n\n"
     f"Free on the App Store (US).\n\n#baget #personalshopper #aishopping #{tag} #shoppingfinds #founditonbaget\n")
 print("segments", [(round(a, 1), round(b, 1), sp, l1) for a, b, sp, l1, _ in segs])

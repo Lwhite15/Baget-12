@@ -417,4 +417,40 @@ final class QAWalkthrough: XCTestCase {
         if tapContaining("Notifications") { scene("inbox"); Thread.sleep(forTimeInterval: 3); slowScroll(2); closeSheet() }
         scene("end"); Thread.sleep(forTimeInterval: 2)
     }
+
+    /// Footage for Instagram (QA_LONGTERM=1): the demo account that has had scouts hunting every day for weeks. Shows
+    /// Today, the scouts, weeks of texts, the pile of finds, what's coming soon, and one find up close.
+    func testLongTermReel() throws {
+        let env = ProcessInfo.processInfo.environment
+        guard env["QA_LONGTERM"] == "1" else { throw XCTSkip("no QA_LONGTERM") }
+        app.launchArguments += ["-BagetDemoSignedIn"]
+        app.launchEnvironment["BAGET_SHOT_EMAIL"] = env["QA_SHOT_EMAIL"] ?? ""
+        app.launchEnvironment["BAGET_SHOT_PASSWORD"] = env["QA_SHOT_PASSWORD"] ?? ""
+        app.launch()
+        _ = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Good '")).firstMatch.waitForExistence(timeout: 60)
+        Thread.sleep(forTimeInterval: 4)
+        scene("today"); Thread.sleep(forTimeInterval: 3.5)
+        slowScroll(2, pause: 2)
+        app.swipeDown(); app.swipeDown(); Thread.sleep(forTimeInterval: 1)
+
+        tap("Scouts"); scene("scouts"); Thread.sleep(forTimeInterval: 3.5)
+        slowScroll(3, pause: 2)
+        app.swipeDown(); app.swipeDown(); app.swipeDown(); Thread.sleep(forTimeInterval: 1)
+
+        if tapContaining("Notifications") { scene("inbox"); Thread.sleep(forTimeInterval: 3.5); slowScroll(4, pause: 1.8); closeSheet(); Thread.sleep(forTimeInterval: 1) }
+
+        tap("Finds"); scene("finds"); Thread.sleep(forTimeInterval: 3.5)
+        slowScroll(3, pause: 1.8)
+        app.swipeDown(); app.swipeDown(); app.swipeDown(); Thread.sleep(forTimeInterval: 1)
+        if tap("Coming soon", timeout: 3) { scene("coming"); Thread.sleep(forTimeInterval: 3.5); slowScroll(2, pause: 2); app.swipeDown(); app.swipeDown(); Thread.sleep(forTimeInterval: 1) }
+        if tap("All", timeout: 3) { scene("all"); Thread.sleep(forTimeInterval: 2.5) }
+
+        let card = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "% match")).firstMatch
+        if card.waitForExistence(timeout: 4), card.isHittable {
+            card.tap(); scene("detail"); Thread.sleep(forTimeInterval: 4.5)
+            app.swipeUp(velocity: .slow); Thread.sleep(forTimeInterval: 3)
+            closeSheet(); Thread.sleep(forTimeInterval: 1)
+        }
+        scene("end"); Thread.sleep(forTimeInterval: 2)
+    }
 }
