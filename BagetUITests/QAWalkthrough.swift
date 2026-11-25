@@ -305,4 +305,111 @@ final class QAWalkthrough: XCTestCase {
         if tap("Close", timeout: 3) { snap("friend-closed", wait: 1.5) }
         if tap("Friends", timeout: 3) { snap("friends-birthday", wait: 2) }
     }
+
+    // MARK: Demo reel
+
+    /// Marks where a scene starts, by wall clock, so the workflow can cut the screen recording into clips.
+    private func scene(_ name: String) { note(String(format: "SCENE %@ %.2f", name, Date().timeIntervalSince1970)) }
+
+    /// Types like a person: a few characters at a time.
+    private func typeSlowly(_ el: XCUIElement, _ text: String) {
+        var chunk = ""
+        for ch in text {
+            chunk.append(ch)
+            if chunk.count >= 3 || ch == " " { el.typeText(chunk); chunk = ""; Thread.sleep(forTimeInterval: 0.05) }
+        }
+        if !chunk.isEmpty { el.typeText(chunk) }
+    }
+
+    private func slowScroll(_ times: Int, pause: Double = 1.6) {
+        for _ in 0..<times { app.swipeUp(velocity: .slow); Thread.sleep(forTimeInterval: pause) }
+    }
+
+    /// Footage for Instagram (DEMO=1): a brand-new customer asks for esoteric, niche scents, the scout hunts, and we walk
+    /// through the real finds (price, store, in stock), a find up close, and a chat with the scout. Paced for a viewer;
+    /// the workflow records the screen and cuts it at the SCENE marks.
+    func testDemoReel() throws {
+        let env = ProcessInfo.processInfo.environment
+        guard env["QA_DEMO"] == "1" else { throw XCTSkip("no QA_DEMO") }
+        let email = env["QA_EMAIL"] ?? "", password = env["QA_PASSWORD"] ?? ""
+        app.launch()
+        scene("welcome"); Thread.sleep(forTimeInterval: 3)
+        tap("Continue with email")
+        type(into: app.textFields["Email"], email)
+        type(into: app.secureTextFields.firstMatch, password)
+        app.staticTexts["Sign in with email"].firstMatch.tap()
+        let submit = app.buttons.matching(NSPredicate(format: "label == 'Sign in'")).allElementsBoundByIndex
+        if let b = submit.max(by: { $0.frame.minY < $1.frame.minY }), b.frame.minY > 300 {
+            b.tap(); Thread.sleep(forTimeInterval: 1)
+            if app.buttons.matching(NSPredicate(format: "label == 'Sign in'")).count > 1 { b.tap() }
+        }
+        _ = app.staticTexts["What are you into?"].waitForExistence(timeout: 25)
+
+        scene("ask"); Thread.sleep(forTimeInterval: 1.5)
+        tap("Fragrance", timeout: 3, last: true); Thread.sleep(forTimeInterval: 0.8)
+        if tap("Describe your taste in your own words", timeout: 4) {
+            let editor = app.textViews.firstMatch
+            if editor.waitForExistence(timeout: 4) {
+                Thread.sleep(forTimeInterval: 0.6)
+                typeSlowly(editor, "Esoteric niche scents nobody else wears. Smoky incense, resinous oud, green fig, indie perfume houses. Nothing mainstream or sweet.")
+            }
+            Thread.sleep(forTimeInterval: 1.5)
+            tap("Done")
+        }
+        if app.keyboards.count > 0 { app.swipeDown() }
+        Thread.sleep(forTimeInterval: 1)
+        tap("Next")
+        scene("vibe"); Thread.sleep(forTimeInterval: 2)
+        for l in ["Niche", "Woody", "Smoky", "Incense", "Up to $250"] { if tap(l, timeout: 1) { Thread.sleep(forTimeInterval: 0.5) } }
+        Thread.sleep(forTimeInterval: 1)
+        if !tap("Next", timeout: 2) { tap("Skip") }
+
+        scene("quiz"); Thread.sleep(forTimeInterval: 3)
+        for i in 0..<6 { if !tap(i % 3 == 2 ? "Not for me" : "Love it", timeout: 4) { break }; Thread.sleep(forTimeInterval: 1.1) }
+        if !tap("Next", timeout: 3) { tap("Done", timeout: 3) }
+        Thread.sleep(forTimeInterval: 1.5)
+        if !tap("Skip and build my scouts", timeout: 4) { tap("Build without photos") }
+
+        scene("hunting")
+        _ = app.staticTexts["First finds are in"].waitForExistence(timeout: 300)
+        scene("found"); Thread.sleep(forTimeInterval: 3)
+        if !tap("Not now, see my finds", timeout: 3) && !tap("Not now, show me Today", timeout: 3) { _ = tap("See my finds", timeout: 2) || tap("Show me Today", timeout: 2) }
+        if app.staticTexts["How Baget works"].waitForExistence(timeout: 6) {
+            for _ in 1...4 { tap("Next", timeout: 2) }
+            tap("Start exploring", timeout: 3)
+        }
+
+        scene("today"); Thread.sleep(forTimeInterval: 4)
+        slowScroll(3)
+        app.swipeDown(); app.swipeDown(); Thread.sleep(forTimeInterval: 1)
+
+        tap("Finds"); scene("finds"); Thread.sleep(forTimeInterval: 3.5)
+        slowScroll(3, pause: 2)
+        app.swipeDown(); app.swipeDown(); Thread.sleep(forTimeInterval: 1.2)
+
+        let cards = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "% match"))
+        for i in 0..<2 {
+            let card = cards.element(boundBy: i)
+            guard card.waitForExistence(timeout: 4), card.isHittable else { break }
+            card.tap(); scene("detail\(i + 1)"); Thread.sleep(forTimeInterval: 4)
+            app.swipeUp(velocity: .slow); Thread.sleep(forTimeInterval: 3)
+            closeSheet(); Thread.sleep(forTimeInterval: 1.5)
+        }
+
+        tap("Scouts"); scene("scouts"); Thread.sleep(forTimeInterval: 3)
+        if tapContaining("Talk to") {
+            scene("chat"); Thread.sleep(forTimeInterval: 2)
+            let field = app.textFields.firstMatch.exists ? app.textFields.firstMatch : app.textViews.firstMatch
+            if field.waitForExistence(timeout: 4) {
+                field.tap(); Thread.sleep(forTimeInterval: 0.6)
+                typeSlowly(field, "Go deeper. Rarer houses, small batches, under $150.")
+                Thread.sleep(forTimeInterval: 1)
+                tap("Send", timeout: 3)
+                Thread.sleep(forTimeInterval: 25)
+            }
+            closeSheet(); Thread.sleep(forTimeInterval: 1)
+        }
+        if tapContaining("Notifications") { scene("inbox"); Thread.sleep(forTimeInterval: 3); slowScroll(2); closeSheet() }
+        scene("end"); Thread.sleep(forTimeInterval: 2)
+    }
 }
