@@ -19,8 +19,13 @@ jobs:
       - uses: actions/checkout@v5
       - name: Get the store screenshots
         run: |
-          git fetch -q origin shots && mkdir -p "$RUNNER_TEMP/shots"
-          for f in $(git ls-tree -r --name-only origin/shots | grep '^store/[0-9].*\.png$'); do git show "origin/shots:$f" > "$RUNNER_TEMP/shots/$(basename $f)"; done
+          mkdir -p "$RUNNER_TEMP/shots"
+          # The designed marketing panels in appstore/screenshots win; otherwise the raw captures from the shots branch.
+          if ls appstore/screenshots/[0-9]*.png >/dev/null 2>&1; then cp appstore/screenshots/[0-9]*.png "$RUNNER_TEMP/shots/"
+          else
+            git fetch -q origin shots
+            for f in $(git ls-tree -r --name-only origin/shots | grep '^store/[0-9].*\.png$'); do git show "origin/shots:$f" > "$RUNNER_TEMP/shots/$(basename $f)"; done
+          fi
           ls "$RUNNER_TEMP/shots"
       - name: Write key
         env:
