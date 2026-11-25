@@ -1,0 +1,27 @@
+# Copies a Demo reel run's recording onto the "demo" branch (artifacts can't be downloaded from Claude's workspace).
+name: Demo fetch
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Demo reel run id"
+        required: true
+permissions:
+  contents: write
+  actions: read
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: demo
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+          path: demo
+      - name: Put it on the demo branch
+        run: |
+          cd demo && ls -la
+          git init -q && git checkout -q -b demo && git add -A
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "Demo reel ${{ inputs.run_id }}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" HEAD:demo
