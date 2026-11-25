@@ -57,7 +57,7 @@ step("Category: Shopping, then Lifestyle", categories)
 def info_loc():
     loc = [x for x in call("GET", f"/appInfos/{info['id']}/appInfoLocalizations")["data"] if x["attributes"]["locale"] == "en-US"][0]
     call("PATCH", f"/appInfoLocalizations/{loc['id']}", {"data": {"type": "appInfoLocalizations", "id": loc["id"], "attributes": {
-        "subtitle": L["subtitle"], "privacyPolicyUrl": L["privacyPolicyUrl"]}}})
+        "subtitle": L["subtitle"], "privacyPolicyUrl": L["privacyPolicyUrl"], **({"name": L["name"]} if L.get("name") else {})}}})
 step("Subtitle and privacy policy link", info_loc)
 
 def version_attrs():
@@ -71,6 +71,19 @@ def version_loc():
         "description": DESC, "keywords": L["keywords"], "supportUrl": L["supportUrl"], "promotionalText": L["promotionalText"],
         **({"whatsNew": L["whatsNew"]} if L.get("whatsNew") and want and want != "1.0" else {})}}})
 step("Description, keywords, support link, promotional text, what's new", version_loc)
+
+def promo_only():
+    # Promotional text can change any time, even on a live version or one in review. Update every current version.
+    vs = call("GET", f"/apps/{aid}/appStoreVersions?filter[platform]=IOS&limit=5")["data"]
+    done = []
+    for v in vs:
+        if v["attributes"]["appStoreState"] in ("READY_FOR_SALE", "READY_FOR_DISTRIBUTION", "WAITING_FOR_REVIEW", "IN_REVIEW", "PENDING_DEVELOPER_RELEASE", "PREPARE_FOR_SUBMISSION"):
+            for loc in call("GET", f"/appStoreVersions/{v['id']}/appStoreVersionLocalizations")["data"]:
+                if loc["attributes"]["locale"] == "en-US":
+                    call("PATCH", f"/appStoreVersionLocalizations/{loc['id']}", {"data": {"type": "appStoreVersionLocalizations", "id": loc["id"], "attributes": {"promotionalText": L["promotionalText"]}}})
+                    done.append(f"{v['attributes']['versionString']} ({v['attributes']['appStoreState']})")
+    note("Promo text set on " + ", ".join(done))
+step("Promo only", promo_only)
 
 def build():
     b = call("GET", f"/builds?filter[app]={aid}&filter[version]={L['build']}")["data"][0]
