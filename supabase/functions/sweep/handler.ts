@@ -6,7 +6,7 @@ import { notFindable } from "../_shared/findable.ts";
 import { isAdultText } from "../_shared/adult.ts";
 import { type Agent, CATEGORIES, GROUP_OF, type Listing, firstName, friendLine, localHour, heldForMorning, kindFor, match, minBudgetOf, deptOf, langOf, missionLabel, norm } from "../_shared/match.ts";
 import { type Block, type ClaudeMessage, HttpError, MODEL, batchResults, batchStatus, claude, db, enc, env, handle, isScheduler, json, logBatchUsage, parseJSON, requireUser, submitBatch, textOf } from "../_shared/platform.ts";
-import { addImages, linkIsDead, pageProduct, smaller, traceImage } from "../_shared/images.ts";
+import { addImages, linkIsDead, pageProduct, plausiblePrice, smaller, traceImage } from "../_shared/images.ts";
 import { setupDemo, setupShots } from "./demo.ts";
 import { restockCheck } from "../_shared/daily.ts";
 import { blockedDomains, notAProduct, pageKind, releaseLeads, storeFeeds, storeLeads } from "../_shared/stores.ts";
@@ -992,7 +992,7 @@ export async function refreshFinds(limit: number, now = new Date(), fetchFn: typ
         patch.sold_out = true;
         await db.update("finds", `listing_id=eq.${l.id}&status=eq.open`, { status: "removed" }).catch(() => {});
       } else if (p) {
-        if (p.price && (!l.price || Math.abs(p.price - l.price) / l.price > 0.01)) { patch.price = p.price; updated++; }
+        if (p.price && (!l.price || Math.abs(p.price - l.price) / l.price > 0.01) && plausiblePrice(l.price, p.price)) { patch.price = p.price; updated++; }
         if (p.stock === "out" && !l.sold_out) { patch.sold_out = true; soldOut++; }
         if (p.stock === "in") patch.stock_seen_at = now.toISOString();
       }

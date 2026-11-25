@@ -1,6 +1,6 @@
 // Fresh look at one find's store page when someone opens it: price, and whether the page says it's in stock or sold out.
 // Each product's page is opened at most once an hour, whoever asks; otherwise the last answer comes back.
-import { pageProduct } from "../_shared/images.ts";
+import { pageProduct, plausiblePrice } from "../_shared/images.ts";
 import { HttpError, db, enc, handle, json, quota, requireUser } from "../_shared/platform.ts";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -25,7 +25,7 @@ export const handler = handle(async (req) => {
   const patch: Partial<Row> = { page_checked_at: now.toISOString() };
   if (p === "gone") patch.sold_out = true;
   else if (p) {
-    if (p.price && (!l.price || Math.abs(p.price - l.price) / l.price > 0.01)) patch.price = p.price;
+    if (p.price && (!l.price || Math.abs(p.price - l.price) / l.price > 0.01) && plausiblePrice(l.price, p.price)) patch.price = p.price;
     if (p.stock === "out") patch.sold_out = true;
     // Back in stock is left to the restock watcher, which texts everyone watching; here it only counts as confirmed.
     if (p.stock === "in") patch.stock_seen_at = now.toISOString();

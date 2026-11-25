@@ -147,7 +147,15 @@ export async function pageStock(pageUrl: string, fetchFn: FetchFn = fetch, timeo
 
 /** What a store's own product page says about the product: name, brand, price (US dollars only), stock and photo,
  *  read from its schema.org Product data and product meta tags. Anything the page doesn't state stays null. */
-export interface PageProduct { name: string | null; brand: string | null; price: number | null; stock: "in" | "out" | null; image: string | null; site: string | null }
+export interface PageProduct { name: string | null; brand: string | null; price: number | null; stock: "in" | "out" | null; image: string | null; site: string | null; sizesVary?: boolean }
+
+/** A re-read price is trusted only if it's within half to double what we had: a bigger jump is almost always a different
+ *  size on the same page (a $10 sample of a $200 perfume), not a real price change. */
+export function plausiblePrice(old: number | null | undefined, next: number): boolean {
+  if (!old || old <= 0) return true;
+  const r = next / old;
+  return r >= 0.5 && r <= 2;
+}
 
 export function productFromHtml(html: string, pageUrl: string): PageProduct {
   const out: PageProduct = { name: null, brand: null, price: null, stock: stockFromHtml(html), image: null, site: null };
@@ -171,8 +179,13 @@ export function productFromHtml(html: string, pageUrl: string): PageProduct {
         const r = x as Record<string, unknown>;
         return r && Array.isArray(r.offers) ? r.offers : [r];
       }) as Record<string, unknown>[];
-      const prices = offers.map(offerPrice).filter((x): x is number => x !== null);
-      if (prices.length) out.price = Math.min(...prices);
+      const prices = offers.flatMap((x) => [offerPrice(x), usd(x.priceCurrency) ? num(x.highPrice) : null]).filter((x): x is number => x !== null);
+      if (prices.length) {
+        const lo = Math.min(...prices), hi = Math.max(...prices);
+        // Same item in very different sizes (samples and decants next to the full bottle): the full size is the
+        // honest price. Shoe sizes and colors cost the same, so they keep the one price.
+        if (hi / lo > 2.5) { out.price = hi; out.sizesVary = true; } else out.price = lo;
+      }
       return;
     }
     for (const v of Object.values(o)) if (v && typeof v === "object") walk(v, depth + 1);

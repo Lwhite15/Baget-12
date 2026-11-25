@@ -1473,6 +1473,20 @@ await test("store pages: product, US price, stock and photo are read from what t
   assert.equal(eur.price, null, "never shows a euro price as dollars");
 });
 
+await test("store pages: a sample next to the full bottle is priced at the full bottle; a re-read can't swing the price wildly", async () => {
+  const I3 = await import("../functions/_shared/images.ts");
+  const decants = I3.productFromHtml(`<script type="application/ld+json">{"@type":"Product","name":"Zoologist Hyrax Extrait","offers":[
+    {"price":"10","priceCurrency":"USD"},{"price":"45","priceCurrency":"USD"},{"price":"200","priceCurrency":"USD"}]}</script>`, "https://fragrancevault.net/products/zoologist");
+  assert.equal(decants.price, 200, "the full size, not the $10 sample");
+  assert.equal(decants.sizesVary, true);
+  const shoes = I3.productFromHtml(`<script type="application/ld+json">{"@type":"Product","name":"990v6","offers":[{"price":"199.99","priceCurrency":"USD"},{"price":"209.99","priceCurrency":"USD"}]}</script>`, "https://kith.com/p");
+  assert.equal(shoes.price, 199.99, "sizes that cost about the same keep the lowest price");
+  assert.equal(I3.plausiblePrice(200, 10), false, "$200 to $10 is a different size, not a price drop");
+  assert.equal(I3.plausiblePrice(200, 170), true);
+  assert.equal(I3.plausiblePrice(null, 10), true, "nothing to compare with: take it");
+  assert.equal(I3.plausiblePrice(100, 260), false);
+});
+
 await test("pulse: keeps only what the store's own page confirms and what fits the scout", async () => {
   process.env.SERPER_API_KEY = "serper-test";
   const pageFor = (name: string, avail: string, img = true) => new Response(`<meta property="og:site_name" content="Kith">${img ? '<meta property="og:image" content="https://cdn.kith.com/a.jpg">' : ""}
