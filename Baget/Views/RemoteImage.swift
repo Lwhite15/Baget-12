@@ -11,8 +11,16 @@ struct ProductPhoto {
     let lifted: Bool
 }
 
+extension Notification.Name {
+    /// Posted (object: the photo URL) when a product's cut-out is ready to replace the plain photo shown first.
+    static let bagetPhotoUpdated = Notification.Name("baget.photoUpdated")
+}
+
 /// Product photos from store pages (used by Plate). The cleaned-up version is cached on disk,
 /// so the cut-out runs once per photo, not every time a tile appears.
+///
+/// A photo shows as soon as it downloads (plain, just downsized and trimmed); the slow cut-out runs afterwards and
+/// swaps in when it's done (`bagetPhotoUpdated`). Tiles used to sit on a letter placeholder until the cut-out finished.
 @MainActor
 final class ImageCache {
     static let shared = ImageCache()
@@ -52,7 +60,14 @@ final class ImageCache {
             req.setValue("image/jpeg,image/png,image/webp,image/*;q=0.8", forHTTPHeaderField: "Accept")
             guard let (data, resp) = try? await session.data(for: req),
                   (resp as? HTTPURLResponse).map({ (200..<300).contains($0.statusCode) }) ?? false else { return nil }
-            return await Task.detached(priority: .userInitiated) { Self.process(data, key: key) }.value
+            guard let quick = await Task.detached(priority: .userInitiated, operation: { Self.quick(data) }).value else { return nil }
+            // The cut-out, in the background: swap it in when it's ready.
+            Task { @MainActor [weak self] in
+                guard let done = await Task.detached(priority: .utility, operation: { Self.process(data, key: key) }).value else { return }
+                self?.memory.setObject(Box(done), forKey: url as NSURL)
+                NotificationCenter.default.post(name: .bagetPhotoUpdated, object: url)
+            }
+            return quick
         }
         inFlight[url] = task
         let photo = await task.value
@@ -73,6 +88,13 @@ final class ImageCache {
         let flat = dir.appendingPathComponent("\(key)-flat.jpg")
         if let img = UIImage(contentsOfFile: flat.path) { return ProductPhoto(image: img, lifted: false) }
         return nil
+    }
+
+    /// The plain photo, downsized and trimmed: fast enough to show the moment it downloads.
+    nonisolated private static func quick(_ data: Data) -> ProductPhoto? {
+        guard let raw = UIImage(data: data), raw.size.width >= 120, raw.size.height >= 120 else { return nil }
+        let img = raw.preparingThumbnail(of: fit(raw.size, max: 800)) ?? raw
+        return ProductPhoto(image: trimWhite(img) ?? img, lifted: false)
     }
 
     /// Downsizes, then tries to cut the product out of its background. Saves whichever result it gets.

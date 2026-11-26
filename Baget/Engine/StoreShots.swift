@@ -27,6 +27,8 @@ enum StoreShots {
         await store.pull()
         await store.loadPlan()
         await store.loadForYou()
+        // Photos ready before the camera rolls.
+        await store.prefetchPhotos(limit: 60)
     }
 
     private static var docs: URL { FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0] }

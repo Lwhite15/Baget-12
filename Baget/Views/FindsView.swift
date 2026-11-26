@@ -631,6 +631,10 @@ struct ProductThumb: View {
             if let hit = ImageCache.shared.cached(url) { photo = hit; return }
             photo = await ImageCache.shared.load(url)
         }
+        .onReceive(NotificationCenter.default.publisher(for: .bagetPhotoUpdated)) { note in
+            guard let url = note.object as? URL, url == photoURL, let p = ImageCache.shared.cached(url) else { return }
+            withAnimation(.easeOut(duration: 0.25)) { photo = p }
+        }
         .accessibilityHidden(true)
     }
 }

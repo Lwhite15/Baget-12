@@ -216,6 +216,10 @@ struct Plate: View {
             let p = await ImageCache.shared.load(url)
             withAnimation(.easeOut(duration: 0.25)) { photo = p }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .bagetPhotoUpdated)) { note in
+            guard let url = note.object as? URL, url == photoURL, let p = ImageCache.shared.cached(url) else { return }
+            withAnimation(.easeOut(duration: 0.25)) { photo = p }
+        }
     }
 
     @ViewBuilder private var background: some View {
