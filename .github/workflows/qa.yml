@@ -62,6 +62,13 @@ jobs:
           TEST_RUNNER_QA_EMAIL="qa-${GITHUB_RUN_ID}@example.com" TEST_RUNNER_QA_PASSWORD="$pw" TEST_RUNNER_QA_OUT="$RUNNER_TEMP/out" \
             TEST_RUNNER_QA_LANG="${{ inputs.lang }}" TEST_RUNNER_QA_FRIENDS="${{ inputs.friends && '1' || '' }}" xcodebuild test-without-building $ONLY -project Baget.xcodeproj -scheme BagetQA -derivedDataPath build \
             -destination "id=$UDID" -resultBundlePath "$RUNNER_TEMP/qa.xcresult" > test.log 2>&1 || echo "::warning::The walkthrough reported failures (see steps.txt)"
+          # Clean up: delete the test account the way a person would (the app's Delete account path).
+          tok=$(curl -sS -X POST "https://${PROJECT_REF}.supabase.co/auth/v1/token?grant_type=password" -H "apikey: ${SUPABASE_ANON_KEY}" \
+                -H "Content-Type: application/json" -d "$(jq -nc --arg e "qa-${GITHUB_RUN_ID}@example.com" --arg p "$pw" '{email:$e,password:$p}')" | jq -r '.access_token // empty')
+          if [ -n "$tok" ]; then
+            curl -sS -o /dev/null -w "::notice::Test account deleted (HTTP %{http_code})\n" -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/delete-account" \
+              -H "Authorization: Bearer $tok" -H "apikey: ${SUPABASE_ANON_KEY}" -H "Content-Type: application/json" -d '{}' || true
+          fi
           grep "QA: " test.log | sed 's/.*QA: //' | tail -150
           # Screenshots also live in the result bundle, in case the simulator couldn't write to the runner's folder.
           if ! ls "$RUNNER_TEMP/out/qa/"*.png >/dev/null 2>&1; then

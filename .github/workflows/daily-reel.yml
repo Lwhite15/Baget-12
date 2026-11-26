@@ -73,6 +73,13 @@ jobs:
           TEST_RUNNER_QA_EMAIL="$email" TEST_RUNNER_QA_PASSWORD="$pw" TEST_RUNNER_QA_OUT="$OUT" TEST_RUNNER_QA_DEMO=1 \
             xcodebuild test-without-building -only-testing:BagetUITests/QAWalkthrough/testDemoReel -project Baget.xcodeproj -scheme BagetQA -derivedDataPath build \
             -destination "id=$UDID" -resultBundlePath "$RUNNER_TEMP/demo.xcresult" > test.log 2>&1 || echo "::warning::The demo script reported failures (see steps.txt)"
+          # Clean up: delete the test account the way a person would (the app's Delete account path).
+          tok=$(curl -sS -X POST "https://${PROJECT_REF}.supabase.co/auth/v1/token?grant_type=password" -H "apikey: ${SUPABASE_ANON_KEY}" \
+                -H "Content-Type: application/json" -d "$(jq -nc --arg e "$email" --arg p "$pw" '{email:$e,password:$p}')" | jq -r '.access_token // empty')
+          if [ -n "$tok" ]; then
+            curl -sS -o /dev/null -w "::notice::Test account deleted (HTTP %{http_code})\n" -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/delete-account" \
+              -H "Authorization: Bearer $tok" -H "apikey: ${SUPABASE_ANON_KEY}" -H "Content-Type: application/json" -d '{}' || true
+          fi
           kill -INT $REC; wait $REC || true
           cat "$OUT/rec.log" | tail -3
           grep "QA: " test.log | sed 's/.*QA: //' | tail -80
