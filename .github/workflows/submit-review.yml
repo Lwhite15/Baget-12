@@ -16,6 +16,10 @@ on:
         description: "Pull a waiting submission back first (to add the subscriptions)"
         type: boolean
         default: false
+      cancel_only:
+        description: "Only pull the waiting submission back from review; don't resubmit"
+        type: boolean
+        default: false
       require_subs:
         description: "Don't submit unless the Pro subscriptions go with it"
         type: boolean
@@ -31,7 +35,8 @@ jobs:
       BUNDLE_ID: ${{ secrets.BUNDLE_ID }}
       EXPECT_BUILD: ${{ inputs.build }}
       ATTACH_BUILD: ${{ inputs.attach_build }}
-      CANCEL_FIRST: ${{ inputs.cancel_first && '1' || '' }}
+      CANCEL_FIRST: ${{ (inputs.cancel_first || inputs.cancel_only) && '1' || '' }}
+      CANCEL_ONLY: ${{ inputs.cancel_only && '1' || '' }}
       REQUIRE_SUBS: ${{ inputs.require_subs && '1' || '' }}
     steps:
       - uses: actions/checkout@v5

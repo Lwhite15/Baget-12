@@ -38,6 +38,9 @@ if os.environ.get("CANCEL_FIRST") == "1":
                 st = call("GET", f"/reviewSubmissions/{s['id']}")["data"]["attributes"]["state"]
                 if st not in ("CANCELING", "WAITING_FOR_REVIEW"): break
             note(f"Previous submission now: {st}")
+    if os.environ.get("CANCEL_ONLY") == "1":
+        note("Pulled from review only; not resubmitting")
+        sys.exit(0)
 # Swap in a different build (by number) when asked.
 want = os.environ.get("ATTACH_BUILD", "")
 if want:
