@@ -180,9 +180,13 @@ extension AppStore {
     /// What the invite says: who you are on Baget and how to find you.
     var inviteMessage: String {
         let h = state.profile?.handle ?? ""
-        return h.isEmpty ? String(localized: "I'm hunting on Baget. Add me so we can compare our taste.")
-                         : String(localized: "I'm hunting on Baget. Add me, @\(h), so we can compare our taste.")
+        let line = h.isEmpty ? String(localized: "I'm hunting on Baget. Add me so we can compare our taste.")
+                             : String(localized: "I'm hunting on Baget. Add me, @\(h), so we can compare our taste.")
+        // The download link, so a friend without the app can get it in one tap.
+        return "\(line) \(Self.appStoreLink)"
     }
+
+    static let appStoreLink = "https://apps.apple.com/app/id6820232083"
 }
 
 /// Opens the share sheet with the invite (Messages, WhatsApp, Instagram...).

@@ -12,6 +12,6 @@
   "reviewNotes": "Sign in: tap 'Continue with email', then 'Sign in', and use the demo account below. The account has three scouts with real finds. Baget Pro is an auto-renewing subscription (monthly or yearly) on the Pro screen, reachable from Settings > Go Pro.",
   "demoAccountName": "appreview@example.com",
   "version": "1.3",
-  "whatsNew": "What's new in 1.3\n• Product photos show up instantly instead of loading in.\n• A clearer name in the App Store: Baget, your AI personal shopper.",
+  "whatsNew": "What's new in 1.3\n• Product photos show up instantly instead of loading in.\n• Friend invites now include a link to download Baget.\n• A clearer name in the App Store: Baget, your AI personal shopper.",
   "name": "Baget: AI Personal Shopper"
 }
