@@ -93,6 +93,7 @@ jobs:
         # Runs Baget's launch test on the iPhone Duo simulator (when the runner has one) and takes a screenshot of
         # each display. Informational: it never blocks the build.
         continue-on-error: true
+        timeout-minutes: 15
         run: |
           mkdir -p "$RUNNER_TEMP/duo"
           APP=$(ls -d build/Build/Products/Debug-iphonesimulator/Baget.app | head -1)
