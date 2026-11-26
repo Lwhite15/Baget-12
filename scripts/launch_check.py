@@ -38,7 +38,7 @@ def need(m):
 apps = get(f"/apps?filter[bundleId]={os.environ['BUNDLE_ID']}")["data"]
 app = apps[0]
 aid = app["id"]
-print(f"App: {app['attributes']['name']} (primary locale {app['attributes'].get('primaryLocale')})")
+print(f"App: {app['attributes']['name']} (primary locale {app['attributes'].get('primaryLocale')}, App Store id {app['id']})")
 
 # App info: categories, age rating, privacy policy
 infos = get(f"/apps/{aid}/appInfos?include=primaryCategory,ageRatingDeclaration")
