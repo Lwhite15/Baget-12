@@ -1,7 +1,7 @@
 {
-  "subtitle": "Your personal shopping curator",
+  "subtitle": "Finds drops, restocks & deals",
   "promotionalText": "Holiday hunting is on: your AI scouts are finding gifts, restocks and deals right now.",
-  "keywords": "sneakers,fragrance,watches,vintage,gifts,furniture,collectibles,vinyl,drops,restock,deals,resale",
+  "keywords": "perfume,finder,fragrance,sneaker,alerts,price,tracker,compare,gift,watch,niche,scent,resale,vintage",
   "supportUrl": "https://lwhite15.github.io/baget-site/support/",
   "privacyPolicyUrl": "https://lwhite15.github.io/baget-site/privacy/",
   "primaryCategory": "SHOPPING",
@@ -11,12 +11,7 @@
   "build": "280",
   "reviewNotes": "Sign in: tap 'Continue with email', then 'Sign in', and use the demo account below. The account has three scouts with real finds. Baget Pro is an auto-renewing subscription (monthly or yearly) on the Pro screen, reachable from Settings > Go Pro.",
   "demoAccountName": "appreview@example.com",
-  "version": "1.2",
-  "whatsNew": "What's new in 1.2\n• A fresh new look for Baget in the App Store.\n• Small fixes and improvements to keep your scouts hunting smoothly.",
-  "next": {
-    "note": "Queued for 1.3 (after 1.2 is approved): move these into name/subtitle/keywords.",
-    "name": "Baget: AI Personal Shopper",
-    "subtitle": "Finds drops, restocks & deals",
-    "keywords": "perfume,finder,fragrance,sneaker,alerts,price,tracker,compare,gift,watch,niche,scent,resale,vintage"
-  }
+  "version": "1.3",
+  "whatsNew": "What's new in 1.3\n• Product photos show up instantly instead of loading in.\n• A clearer name in the App Store: Baget, your AI personal shopper.",
+  "name": "Baget: AI Personal Shopper"
 }
