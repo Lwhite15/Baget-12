@@ -1114,7 +1114,8 @@ export const handler = handle(async (req) => {
     return json({ ...pulses, feeds });
   }
   if (isScheduler(req) && typeof body.shots === "object" && body.shots) {
-    return json(await setupShots(String((body.shots as { password_hash?: string }).password_hash ?? "")));
+    const shots = body.shots as { password_hash?: string; keep?: boolean };
+    return json(await setupShots(String(shots.password_hash ?? ""), shots.keep === true));
   }
   // One scheduled hunt in its own worker (handed out by the dispatcher below).
   if (isScheduler(req) && body.one && typeof body.one === "object") {

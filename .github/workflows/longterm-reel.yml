@@ -42,7 +42,7 @@ jobs:
           hash=$(PW="$pw" python3 -c "import bcrypt,os; print(bcrypt.hashpw(os.environ['PW'].encode(), bcrypt.gensalt(10)).decode())")
           echo "::add-mask::$hash"
           echo "SHOT_PW=$pw" >> "$GITHUB_ENV"
-          body=$(jq -nc --arg h "$hash" '{shots: {password_hash: $h}}')
+          body=$(jq -nc --arg h "$hash" '{shots: {password_hash: $h, keep: true}}')
           r=$(curl -sS -m 120 -w ' [HTTP %{http_code}]' -X POST "https://${PROJECT_REF}.supabase.co/functions/v1/sweep" \
                 -H "Content-Type: application/json" -H "x-baget-secret: ${BAGET_CRON_SECRET}" -d "$body")
           echo "::notice::account: $r"

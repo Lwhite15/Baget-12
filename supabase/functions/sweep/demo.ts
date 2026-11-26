@@ -49,7 +49,7 @@ export async function setupDemo(
  *  real finds copied from the catalog account. Called by the "Store screenshots" workflow with a fresh bcrypt hash. */
 export const SHOTS_USER_ID = "0a99e1e0-5eed-4d3e-8a00-0000000054a7";
 
-export async function setupShots(passwordHash: string) {
+export async function setupShots(passwordHash: string, keep = false) {
   if (!/^\$2[aby]\$\d\d\$[./A-Za-z0-9]{53}$/.test(passwordHash)) throw new HttpError(400, "Password must be a bcrypt hash");
   const attrs = { email: "screenshots@example.com", password_hash: passwordHash, email_confirm: true, user_metadata: { full_name: "Maya" } };
   let r = await db.raw("/auth/v1/admin/users", { method: "POST", body: JSON.stringify({ id: SHOTS_USER_ID, ...attrs }) });
@@ -60,5 +60,7 @@ export async function setupShots(passwordHash: string) {
   }
   await r.text().catch(() => "");
   const passwordSet = await db.rpc<boolean>("set_shots_password", { p_hash: passwordHash });
+  // keep: just a fresh password, leaving the account's history alone (demo footage of weeks of hunting).
+  if (keep) return { password_set: passwordSet, kept: 1 };
   return { ...(await db.rpc<Record<string, number>>("seed_shots", { p_user: SHOTS_USER_ID })), password_set: passwordSet };
 }
