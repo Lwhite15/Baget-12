@@ -357,7 +357,8 @@ struct OnboardingView: View {
         // Quiz only what they're into: picked categories, custom interests that fit one, and clues in their words.
         // Before, picking only custom interests (or none) gave a random mix from every category: jeans for a lamp hunter.
         var cats = picked.union(extras.compactMap { Self.extraCategory[$0] })
-        if cats.isEmpty { cats = Self.categories(in: text) }
+        // Their own words only when they picked nothing: "fishing" plus "a rain jacket" must not turn into a clothing quiz.
+        if picked.isEmpty && extras.isEmpty { cats = Self.categories(in: text) }
         let nothingFits = cats.isEmpty && (!extras.isEmpty || !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         Task { @MainActor in
             quiz = nothingFits ? [] : await store.tasteQuiz(Array(cats), brands: brands.values.flatMap { Array($0) }, department: department)
