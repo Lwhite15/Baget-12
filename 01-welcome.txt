@@ -1,0 +1,232 @@
+Optional(Attributes: Application, 0x102a23200, pid: 8484, label: 'Baget'
+Element subtree:
+ →Application, 0x102a23200, pid: 8484, label: 'Baget'
+    Window (Main), 0x102a23480, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x102a235c0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x102a23840, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x102a23980, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x102a23c00, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x102a23d40, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x102a23ac0, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x102a21400, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x102a21540, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1058548c0, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x105855b80, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x105854dc0, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x1058552c0, {{0.0, 0.0}, {402.0, 874.0}}
+                            NavigationBar, 0x105854f00, {{0.0, 62.0}, {402.0, 54.0}}, identifier: '_TtGC7SwiftUI29PresentationHosting'
+                              Other, 0x105855180, {{20.0, 66.0}, {42.0, 36.0}}
+                                Other, 0x105855400, {{20.0, 66.0}, {42.0, 36.0}}
+                                  Button, 0x105855040, {{20.0, 66.0}, {42.0, 36.0}}, label: 'You: icon, settings and account'
+                                    StaticText, 0x105855540, {{20.0, 66.0}, {42.0, 36.0}}, label: 'B'
+                              Other, 0x105855a40, {{151.3, 70.7}, {99.0, 26.7}}
+                                Other, 0x105855cc0, {{151.3, 70.7}, {99.0, 26.7}}
+                                  StaticText, 0x105855f40, {{151.3, 71.0}, {26.0, 26.0}}
+                                  StaticText, 0x105855e00, {{185.3, 70.8}, {59.0, 26.3}}, label: 'Baget'
+                                  StaticText, 0x105856080, {{244.3, 70.8}, {6.0, 26.3}}, label: '.'
+                              Other, 0x105856440, {{346.0, 66.0}, {36.0, 36.0}}
+                                Other, 0x105856580, {{346.0, 66.0}, {36.0, 36.0}}
+                                  Button, 0x1058561c0, {{349.3, 66.0}, {29.3, 36.0}}, identifier: 'bell.fill', label: 'Notifications, 0 unread'
+                            Other, 0x1058566c0, {{0.0, 0.0}, {402.0, 874.0}}
+                              Other, 0x105856940, {{0.0, 0.0}, {402.0, 874.0}}
+                                Other, 0x105856a80, {{0.0, 0.0}, {402.0, 874.0}}
+                                  Other, 0x105856300, {{0.0, 0.0}, {402.0, 874.0}}
+                                    ScrollView, 0x105856bc0, {{0.0, 0.0}, {402.0, 874.0}}
+                                      Other, 0x105856e40, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x105856f80, {{0.0, 0.0}, {402.0, 156.0}}
+                                        Other, 0x105856d00, {{0.0, 741.0}, {402.0, 133.0}}
+                                      Other, 0x1058570c0, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x105857340, {{0.0, 741.0}, {402.0, 133.0}}
+                                      Other, 0x105857480, {{0.0, 116.0}, {402.0, 4126.0}}
+                                        Other, 0x105857200, {{16.0, 120.0}, {370.0, 4097.7}}
+                                          StaticText, 0x1058575c0, {{16.0, 120.0}, {205.3, 33.7}}, label: 'Good afternoon'
+                                          StaticText, 0x105857840, {{16.0, 156.7}, {244.3, 15.7}}, label: '0 scouts hunting for you · Friday, Nov 27'
+                                          Button, 0x105857980, {{16.0, 192.3}, {370.0, 70.0}}, label: 'New scout'
+                                            Image, 0x105857700, {{42.3, 218.7}, {17.3, 17.3}}, identifier: 'plus', label: 'Add'
+                                            StaticText, 0x105857ac0, {{84.0, 217.2}, {84.3, 20.3}}, label: 'New scout'
+                                            Image, 0x105857c00, {{362.7, 220.0}, {8.3, 14.7}}, identifier: 'chevron.right', label: 'Forward'
+                                          StaticText, 0x105857e80, {{16.0, 282.3}, {122.3, 24.0}}, label: 'More for you'
+                                          StaticText, 0x105857d40, {{16.0, 318.3}, {279.0, 14.3}}, label: 'Ranked by your taste. Every ♥ and ✕ sharpens it.'
+                                          ScrollView, 0x105854500, {{16.0, 344.7}, {370.0, 29.7}}
+                                            Other, 0x105854a00, {{16.0, 344.7}, {739.3, 29.7}}
+                                              Button, 0x106988000, {{16.0, 344.7}, {38.3, 29.7}}, label: 'All'
+                                              Button, 0x106988140, {{61.3, 344.7}, {98.7, 29.7}}, label: 'Accessories'
+                                              Button, 0x106988280, {{167.0, 344.7}, {51.3, 29.7}}, label: 'Cars'
+                                              Button, 0x1069883c0, {{225.3, 344.7}, {75.3, 29.7}}, label: 'Clothing'
+                                              Button, 0x106988500, {{307.7, 344.7}, {96.7, 29.7}}, label: 'Collectibles'
+                                              Button, 0x106988640, {{411.3, 344.7}, {86.0, 29.7}}, label: 'Fragrance'
+                                              Button, 0x106988780, {{504.3, 344.7}, {80.0, 29.7}}, label: 'Furniture'
+                                              Button, 0x1069888c0, {{591.3, 344.7}, {80.3, 29.7}}, label: 'Sneakers'
+                                              Button, 0x106988a00, {{678.7, 344.7}, {76.7, 29.7}}, label: 'Watches'
+                                          Other, 0x106988b40, {{16.0, 386.3}, {370.0, 3012.3}}
+                                            Button, 0x106988c80, {{16.0, 386.3}, {179.0, 150.0}}, label: 'Longines HydroConquest 41mm, Sunray Black, Longines, L3.790.4.56.6 · Longines'
+                                              StaticText, 0x106988dc0, {{28.0, 398.3}, {72.0, 20.3}}, label: 'Longines'
+                                              Image, 0x106988f00, {{67.7, 436.3}, {76.0, 76.0}}, label: 'Longines HydroConquest 41mm, Sunray Black'
+                                              StaticText, 0x106989040, {{28.0, 512.3}, {122.0, 12.0}}, label: 'L3.790.4.56.6 · Longines'
+                                            Button, 0x106989180, {{207.0, 386.3}, {179.0, 150.0}}, label: 'Takashi Murakami Kaikai & Kiki Set, Signed Edition of 100, Takashi Murakami, TM-KK-2026 · Artsy'
+                                              StaticText, 0x1069892c0, {{219.0, 398.3}, {142.7, 20.3}}, label: 'Takashi Murakami'
+                                              Image, 0x106989400, {{254.3, 436.3}, {84.3, 76.0}}, label: 'Takashi Murakami Kaikai & Kiki Set, Signed Edition of 100'
+                                              StaticText, 0x106989540, {{219.0, 512.3}, {97.3, 12.0}}, label: 'TM-KK-2026 · Artsy'
+                                            StaticText, 0x106989680, {{16.0, 542.3}, {163.0, 33.7}}, label: 'Longines HydroConquest 41mm, Sunray Black'
+                                            StaticText, 0x1069897c0, {{207.0, 542.3}, {174.3, 33.7}}, label: 'Takashi Murakami Kaikai & Kiki Set, Signed Edition of 100'
+                                            StaticText, 0x106989900, {{16.0, 582.3}, {93.0, 13.3}}, label: '$1,600 · Longines'
+                                            StaticText, 0x106989a40, {{207.0, 582.3}, {80.0, 13.3}}, label: '$10,000 · Artsy'
+                                            StaticText, 0x106989b80, {{16.0, 601.7}, {3.3, 13.3}}, label: ' '
+                                            StaticText, 0x106989cc0, {{207.0, 601.7}, {3.3, 13.3}}, label: ' '
+                                            Image, 0x106989e00, {{17.0, 635.0}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x106989f40, {{30.7, 633.7}, {115.0, 13.3}}, label: 'Something new to try'
+                                            Image, 0x10698a080, {{208.0, 635.0}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x10698a1c0, {{221.7, 633.7}, {115.0, 13.3}}, label: 'Something new to try'
+                                            Button, 0x10698a300, {{16.0, 653.0}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10698a440, {{109.7, 653.0}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x10698a580, {{207.0, 653.0}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10698a6c0, {{300.7, 653.0}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x10698a800, {{16.0, 699.0}, {179.0, 150.0}}, label: 'Fjällräven Vidda Pro Ventilated Trousers, Fjällräven, F81160 · Fjällräven'
+                                              StaticText, 0x10698a940, {{28.0, 711.0}, {76.0, 20.3}}, label: 'Fjällräven'
+                                              Image, 0x10698aa80, {{88.0, 749.0}, {35.0, 76.0}}, label: 'Fjällräven Vidda Pro Ventilated Trousers'
+                                              StaticText, 0x10698abc0, {{28.0, 825.0}, {93.0, 12.0}}, label: 'F81160 · Fjällräven'
+                                            Button, 0x10698ad00, {{207.0, 699.0}, {179.0, 150.0}}, label: 'Bottega Veneta Small Leather Pouch Crossbody, Bottega Veneta, BV-POUCH-S · Bergdorf Goodman'
+                                              StaticText, 0x10698ae40, {{219.0, 711.0}, {122.3, 20.3}}, label: 'Bottega Veneta'
+                                              Image, 0x10698af80, {{264.3, 749.0}, {64.3, 76.0}}, label: 'Bottega Veneta Small Leather Pouch Crossbody'
+                                              StaticText, 0x10698b0c0, {{219.0, 825.0}, {154.7, 12.0}}, label: 'BV-POUCH-S · Bergdorf Goodman'
+                                            StaticText, 0x10698b200, {{16.0, 855.0}, {128.7, 33.7}}, label: 'Fjällräven Vidda Pro Ventilated Trousers'
+                                            StaticText, 0x10698b340, {{207.0, 855.0}, {162.7, 33.7}}, label: 'Bottega Veneta Small Leather Pouch Crossbody'
+                                            StaticText, 0x10698b480, {{16.0, 895.0}, {85.7, 13.3}}, label: '$190 · Fjällräven'
+                                            StaticText, 0x10698b5c0, {{207.0, 895.0}, {145.7, 13.3}}, label: '$1,850 · Bergdorf Goodman'
+                                            StaticText, 0x10698b700, {{16.0, 914.3}, {3.3, 13.3}}, label: ' '
+                                            StaticText, 0x10698b840, {{207.0, 914.3}, {3.3, 13.3}}, label: ' '
+                                            Image, 0x10698b980, {{17.0, 948.0}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x10698bac0, {{30.7, 946.3}, {115.0, 13.3}}, label: 'Something new to try'
+                                            Image, 0x10698bc00, {{208.0, 948.0}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x10698bd40, {{221.7, 946.3}, {115.0, 13.3}}, label: 'Something new to try'
+                                            Button, 0x10698be80, {{16.0, 965.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10698c000, {{109.7, 965.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x10698c140, {{207.0, 965.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10698c280, {{300.7, 965.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x10698c3c0, {{16.0, 3098.0}, {179.0, 150.0}}, label: 'Jens Risom, JR, JR-LC-PR · Midcentury Warehouse'
+                                              StaticText, 0x10698c500, {{28.0, 3110.0}, {91.3, 20.3}}, label: 'Jens Risom'
+                                              StaticText, 0x10698c640, {{28.0, 3176.0}, {47.0, 48.0}}, label: 'JR'
+                                              StaticText, 0x10698c780, {{28.0, 3224.0}, {153.0, 12.0}}, label: 'JR-LC-PR · Midcentury Warehouse'
+                                            Button, 0x10698c8c0, {{16.0, 3098.0}, {179.0, 150.0}}, label: 'Amouage, A, AMG-OUT-100 · Twisted Lily'
+                                              StaticText, 0x10698ca00, {{28.0, 3110.0}, {76.0, 20.3}}, label: 'Amouage'
+                                              StaticText, 0x10698cb40, {{28.0, 3176.0}, {27.3, 48.0}}, label: 'A'
+                                              StaticText, 0x10698cc80, {{28.0, 3224.0}, {139.3, 12.0}}, label: 'AMG-OUT-100 · Twisted Lily'
+                                            Button, 0x10698cdc0, {{207.0, 3098.0}, {179.0, 150.0}}, label: 'Nike, N, HF4334-001 · Nike SNKRS'
+                                              StaticText, 0x10698cf00, {{219.0, 3110.0}, {35.3, 20.3}}, label: 'Nike'
+                                              StaticText, 0x10698d040, {{219.0, 3176.0}, {27.3, 48.0}}, label: 'N'
+                                              StaticText, 0x10698d180, {{219.0, 3224.0}, {130.3, 12.0}}, label: 'HF4334-001 · Nike SNKRS'
+                                            Button, 0x10698d2c0, {{207.0, 3098.0}, {179.0, 150.0}}, label: 'Bottega Veneta, BV, BV1196S · Net-a-Porter'
+                                              StaticText, 0x10698d400, {{219.0, 3110.0}, {122.3, 20.3}}, label: 'Bottega Veneta'
+                                              StaticText, 0x10698d540, {{219.0, 3176.0}, {51.0, 48.0}}, label: 'BV'
+                                              StaticText, 0x10698d680, {{219.0, 3224.0}, {117.0, 12.0}}, label: 'BV1196S · Net-a-Porter'
+                                            StaticText, 0x10698d7c0, {{16.0, 3254.0}, {166.7, 15.7}}, label: 'Amouage Outlands, 100ml'
+                                            StaticText, 0x10698d900, {{16.0, 3254.0}, {173.0, 33.7}}, label: 'Jens Risom Walnut Lounge Chairs, Pair'
+                                            StaticText, 0x10698da40, {{207.0, 3254.0}, {145.0, 33.7}}, label: 'Nike Air Bakin High SP 'Black and Varsity Red''
+                                            StaticText, 0x10698db80, {{207.0, 3254.0}, {120.3, 33.7}}, label: 'Bottega Veneta Aviator Sunglasses'
+                                            StaticText, 0x10698dcc0, {{16.0, 3294.0}, {167.3, 13.3}}, label: '$2,795 · Midcentury Warehouse'
+                                            StaticText, 0x10698de00, {{16.0, 3294.0}, {100.0, 13.3}}, label: '$404 · Twisted Lily'
+                                            StaticText, 0x10698df40, {{207.0, 3294.0}, {98.3, 13.3}}, label: '$170 · Nike SNKRS'
+                                            StaticText, 0x10698e080, {{207.0, 3294.0}, {104.0, 13.3}}, label: '$775 · Net-a-Porter'
+                                            StaticText, 0x10698e1c0, {{16.0, 3313.3}, {3.3, 13.3}}, label: ' '
+                                            StaticText, 0x10698e300, {{16.0, 3313.3}, {3.3, 13.3}}, label: ' '
+                                            StaticText, 0x10698e440, {{207.0, 3313.3}, {3.3, 13.3}}, label: ' '
+                                            StaticText, 0x10698e580, {{207.0, 3313.3}, {3.3, 13.3}}, label: ' '
+                                            Image, 0x10698e6c0, {{17.0, 3347.0}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            Image, 0x10698e800, {{17.0, 3347.0}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x10698e940, {{30.7, 3345.3}, {115.0, 13.3}}, label: 'Something new to try'
+                                            StaticText, 0x10698ea80, {{30.7, 3345.3}, {115.0, 13.3}}, label: 'Something new to try'
+                                            Image, 0x10698ebc0, {{208.0, 3347.0}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            Image, 0x10698ed00, {{208.0, 3347.0}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x10698ee40, {{221.7, 3345.3}, {115.0, 13.3}}, label: 'Something new to try'
+                                            StaticText, 0x10698ef80, {{221.7, 3345.3}, {115.0, 13.3}}, label: 'Something new to try'
+                                            Button, 0x10698f0c0, {{16.0, 3364.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10698f200, {{16.0, 3364.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10698f340, {{109.7, 3364.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x10698f480, {{109.7, 3364.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x10698f5c0, {{207.0, 3364.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10698f700, {{207.0, 3364.7}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10698f840, {{300.7, 3364.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x10698f980, {{300.7, 3364.7}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                          Button, 0x10698fac0, {{16.0, 4145.3}, {370.0, 46.0}}, label: 'Check for new picks'
+                                            Image, 0x10698fc00, {{117.7, 4161.3}, {11.7, 14.3}}, identifier: 'arrow.clockwise', label: 'Refresh'
+                                            StaticText, 0x10698fd40, {{138.2, 4159.3}, {147.3, 18.0}}, label: 'Check for new picks'
+                                          StaticText, 0x10698fe80, {{127.5, 4203.3}, {147.0, 14.3}}, label: 'That's everything for now.'
+                            Toolbar, 0x106994000, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                              Other, 0x106994140, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x106994280, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x1069943c0, {{0.0, 791.0}, {402.0, 83.0}}
+                    Other, 0x106994500, {{0.0, 0.0}, {402.0, 874.0}}
+                      TabBar, 0x106994640, {{0.0, 791.0}, {402.0, 83.0}}, label: 'Tab Bar'
+                        Other, 0x106994780, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x1069948c0, {{21.0, 791.0}, {98.0, 54.0}}
+                          Other, 0x106994a00, {{21.0, 791.0}, {360.0, 62.0}}
+                            Button, 0x106994b40, {{25.0, 795.0}, {98.0, 54.0}}, label: 'Today', Selected
+                              Image, 0x106994c80, {{59.7, 800.0}, {29.0, 29.3}}, identifier: 'sun.max.fill', label: 'brightness higher'
+                            Button, 0x106994dc0, {{109.7, 795.0}, {98.0, 54.0}}, label: 'Finds'
+                              Image, 0x106994f00, {{145.7, 799.0}, {26.0, 30.0}}, identifier: 'sparkles', label: 'sparkle'
+                            Button, 0x106995040, {{194.3, 795.0}, {98.0, 54.0}}, label: 'Scouts'
+                              Image, 0x106995180, {{225.7, 802.3}, {35.3, 25.7}}, identifier: 'binoculars.fill', label: 'Binoculars, filled'
+                            Button, 0x1069952c0, {{279.0, 795.0}, {98.0, 54.0}}, label: 'Friends'
+                              Image, 0x106995400, {{314.3, 801.3}, {27.3, 27.3}}, identifier: 'heart.circle.fill', label: 'love'
+                          Other, 0x106995540, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x106995680, {{25.0, 795.0}, {98.0, 54.0}}
+                            Other, 0x1069957c0, {{25.0, 795.0}, {98.0, 54.0}}
+                              Other, 0x106995900, {{25.0, 795.0}, {98.0, 54.0}}
+                              Other, 0x106995a40, {{25.0, 795.0}, {98.0, 54.0}}
+                                Other, 0x106995b80, {{25.0, 795.0}, {98.0, 54.0}}
+                                  Other, 0x106995cc0, {{25.0, 795.0}, {98.0, 54.0}}
+                                    Other, 0x106995e00, {{25.0, 795.0}, {98.0, 54.0}}
+                                  Other, 0x106995f40, {{25.0, 795.0}, {98.0, 54.0}}
+                                Other, 0x106996080, {{25.0, 795.0}, {98.0, 54.0}}
+                    Other, 0x1069961c0, {{0.0, 791.0}, {402.0, 83.0}}
+                      Other, 0x106996300, {{0.0, 791.0}, {402.0, 83.0}}
+                        Other, 0x106996440, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x106996580, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x1069966c0, {{0.0, 791.0}, {402.0, 83.0}}
+                              Other, 0x106996800, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x106996940, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x106996a80, {{0.0, 791.0}, {402.0, 83.0}}
+      Other, 0x106996bc0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x106996d00, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x106996e40, {{0.0, 0.0}, {402.0, 874.0}}
+            ScrollView, 0x106996f80, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x1069970c0, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x106997200, {{0.0, 0.0}, {402.0, 102.0}}
+              Other, 0x106997340, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x106997480, {{0.0, 62.0}, {402.0, 883.3}}
+                StaticText, 0x1069975c0, {{130.7, 200.0}, {129.3, 57.3}}, label: 'Baget'
+                StaticText, 0x106997700, {{260.0, 200.0}, {11.3, 57.3}}, label: '.'
+                StaticText, 0x106997840, {{58.8, 271.3}, {284.3, 26.3}}, label: 'Never miss what you'd love.'
+                StaticText, 0x106997980, {{37.7, 311.7}, {326.7, 64.3}}, label: 'Baget gives you personal scouts that learn your taste, hunt the web and tell you when they find something worth buying.'
+                StaticText, 0x106997ac0, {{24.0, 404.0}, {354.0, 117.7}}, label: 'Whatever you're into, they find it, Rare vinyl, a vintage chair, the perfect gift or your next car. Name it, and your scouts search stores, resale sites and small shops for you.'
+                  StaticText, 0x106997c00, {{88.0, 418.0}, {233.3, 18.0}}, label: 'Whatever you're into, they find it'
+                  Image, 0x106997d40, {{47.7, 427.7}, {16.7, 16.7}}, identifier: 'sparkle.magnifyingglass', label: 'Sparkle In A Magnifying Glass'
+                  StaticText, 0x106997e80, {{88.0, 438.0}, {262.0, 69.7}}, label: 'Rare vinyl, a vintage chair, the perfect gift or your next car. Name it, and your scouts search stores, resale sites and small shops for you.'
+                StaticText, 0x1069a0000, {{24.0, 531.7}, {354.0, 81.7}}, label: 'They learn your taste, Every like and pass makes their next picks sharper.'
+                  StaticText, 0x1069a0140, {{88.0, 545.7}, {151.0, 18.0}}, label: 'They learn your taste'
+                  Image, 0x1069a0280, {{48.3, 556.0}, {15.7, 15.7}}, identifier: 'heart.text.square', label: 'Heart With Text In A Square'
+                  StaticText, 0x1069a03c0, {{88.0, 565.7}, {222.7, 33.7}}, label: 'Every like and pass makes their next picks sharper.'
+                StaticText, 0x1069a0500, {{24.0, 623.3}, {354.0, 81.7}}, label: 'They tell you first, A heads-up when something you'd love drops, restocks or goes on sale.'
+                  StaticText, 0x1069a0640, {{88.0, 637.3}, {124.0, 18.0}}, label: 'They tell you first'
+                  Image, 0x1069a0780, {{47.7, 646.0}, {17.0, 18.7}}, identifier: 'bell.badge', label: 'Bell With A Notification Badge'
+                  StaticText, 0x1069a08c0, {{88.0, 657.3}, {242.7, 33.7}}, label: 'A heads-up when something you'd love drops, restocks or goes on sale.'
+                Button, 0x1069a0a00, {{24.0, 733.0}, {354.0, 52.0}}, label: 'Continue with Apple'
+                Button, 0x1069a0b40, {{24.0, 797.0}, {354.0, 52.0}}, label: 'Continue with email'
+                  StaticText, 0x1069a0c80, {{24.0, 797.0}, {354.0, 52.0}}, label: 'Continue with email'
+                  Image, 0x1069a0dc0, {{108.3, 815.7}, {20.7, 15.0}}, identifier: 'envelope.fill', label: 'Get Mail'
+                Button, 0x1069a0f00, {{145.0, 865.0}, {112.3, 18.0}}, label: 'Take a look first'
+                StaticText, 0x1069a1040, {{59.8, 899.0}, {282.3, 30.3}}, label: 'By continuing, you agree to the Terms of Use and Privacy Policy.'
+                  Link, 0x1069a1180, {{241.2, 899.0}, {74.9, 16.0}}, identifier: 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/', label: 'Terms of Use'
+                  Link, 0x1069a12c0, {{160.4, 915.0}, {77.5, 14.3}}, identifier: 'https://lwhite15.github.io/baget-site/privacy/', label: 'Privacy Policy'
+              Other, 0x1069a1400, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                Other, 0x1069a1540, {{396.0, 65.0}, {3.0, 664.0}}
+              Other, 0x1069a1680, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                Other, 0x1069a17c0, {{396.0, 65.0}, {3.0, 664.0}}
+Path to element:
+ →Application, 0x102a23200, pid: 8484, label: 'Baget'
+Query chain:
+ →Find: Target Application 'app.baget.ios'
+  Output: {
+    Application, 0x1069a1900, pid: 8484, label: 'Baget'
+  }
+)

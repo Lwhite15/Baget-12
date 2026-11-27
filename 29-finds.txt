@@ -1,0 +1,210 @@
+Optional(Attributes: Application, 0x1058552c0, pid: 8484, label: 'Baget'
+Element subtree:
+ →Application, 0x1058552c0, pid: 8484, label: 'Baget'
+    Window (Main), 0x1063c0140, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1063c21c0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1063c1a40, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1063c30c0, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x1063c08c0, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1063c2d00, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x1063c1cc0, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x1063c0640, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x1063c1540, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1063c1e00, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x106988000, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x106988140, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x106988280, {{0.0, 0.0}, {402.0, 874.0}}
+                            NavigationBar, 0x1069883c0, {{0.0, 62.0}, {402.0, 54.0}}, identifier: '_TtGC7SwiftUI29PresentationHosting'
+                              Other, 0x106988500, {{20.0, 66.0}, {42.0, 36.0}}
+                                Other, 0x106988640, {{20.0, 66.0}, {42.0, 36.0}}
+                                  Button, 0x106988780, {{20.0, 66.0}, {42.0, 36.0}}, label: 'You: icon, settings and account'
+                                    StaticText, 0x1069888c0, {{20.0, 66.0}, {42.0, 36.0}}, label: 'CT'
+                              Other, 0x106988a00, {{151.3, 70.7}, {99.0, 26.7}}
+                                Other, 0x106988b40, {{151.3, 70.7}, {99.0, 26.7}}
+                                  StaticText, 0x106988c80, {{151.3, 71.0}, {26.0, 26.0}}
+                                  StaticText, 0x106988dc0, {{185.3, 70.8}, {59.0, 26.3}}, label: 'Baget'
+                                  StaticText, 0x106988f00, {{244.3, 70.8}, {6.0, 26.3}}, label: '.'
+                              Other, 0x106989040, {{346.0, 66.0}, {36.0, 36.0}}
+                                Other, 0x106989180, {{346.0, 66.0}, {36.0, 36.0}}
+                                  Button, 0x1069892c0, {{349.3, 66.0}, {29.3, 36.0}}, label: 'Notifications, 8 unread'
+                                    Image, 0x106989400, {{349.3, 66.0}, {29.3, 36.0}}, identifier: 'bell.fill', label: 'Notifications'
+                                    StaticText, 0x106989540, {{376.0, 65.7}, {6.7, 11.0}}, label: '8'
+                            Other, 0x106989680, {{0.0, 0.0}, {402.0, 874.0}}
+                              Other, 0x1069897c0, {{0.0, 0.0}, {402.0, 874.0}}
+                                Other, 0x106989900, {{0.0, 0.0}, {402.0, 874.0}}
+                                  Other, 0x106989a40, {{0.0, 0.0}, {402.0, 874.0}}
+                                    ScrollView, 0x106989b80, {{0.0, 0.0}, {402.0, 874.0}}
+                                      Other, 0x106989cc0, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x106989e00, {{0.0, 0.0}, {402.0, 156.0}}
+                                        Other, 0x106989f40, {{0.0, 741.0}, {402.0, 133.0}}
+                                      Other, 0x10698a080, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x10698a1c0, {{0.0, 741.0}, {402.0, 133.0}}
+                                      Other, 0x10698a300, {{0.0, 116.0}, {402.0, 4641.0}}
+                                        Other, 0x10698a440, {{16.0, 120.0}, {370.0, 4612.7}}
+                                          StaticText, 0x10698a580, {{16.0, 120.0}, {215.7, 67.0}}, label: 'Good afternoon, Claude'
+                                          Button, 0x10698a6c0, {{314.0, 173.7}, {36.0, 30.0}}, identifier: 'rectangle.portrait', label: 'Swipe cards', Selected
+                                          StaticText, 0x10698a800, {{16.0, 190.0}, {244.0, 15.7}}, label: '2 scouts hunting for you · Friday, Nov 27'
+                                          Button, 0x10698a940, {{362.0, 182.7}, {12.0, 12.0}}, identifier: 'square.grid.2x2', label: 'Grid'
+                                          Button, 0x10698aa80, {{16.0, 225.7}, {370.0, 70.0}}, label: 'New scout'
+                                            Image, 0x10698abc0, {{42.3, 252.0}, {17.3, 17.3}}, identifier: 'plus', label: 'Add'
+                                            StaticText, 0x10698ad00, {{84.0, 250.5}, {84.3, 20.3}}, label: 'New scout'
+                                            Image, 0x10698ae40, {{362.7, 253.3}, {8.3, 14.7}}, identifier: 'chevron.right', label: 'Forward'
+                                          StaticText, 0x10698af80, {{16.0, 315.7}, {370.0, 402.0}}, label: 'U2000335, New Balance, Overkill, 71% match, 1 of 12, from Retro Runner Scout, U2000335, ≈ $165 · Overkill, From New Balance, a brand you like'
+                                            StaticText, 0x10698b0c0, {{28.0, 327.7}, {103.0, 20.3}}, label: 'New Balance'
+                                            StaticText, 0x10698b200, {{295.0, 330.7}, {72.0, 14.3}}, label: '71% match'
+                                            Image, 0x10698b340, {{26.0, 379.7}, {350.0, 198.0}}, label: 'U2000335'
+                                            StaticText, 0x10698b480, {{28.0, 591.7}, {36.7, 12.0}}, label: 'Overkill'
+                                            StaticText, 0x10698b5c0, {{30.0, 627.7}, {39.7, 13.3}}, label: '1 of 12'
+                                            StaticText, 0x10698b700, {{236.7, 627.7}, {135.3, 13.3}}, label: 'from Retro Runner Scout'
+                                            StaticText, 0x10698b840, {{30.0, 645.0}, {87.3, 20.3}}, label: 'U2000335'
+                                            StaticText, 0x10698b980, {{30.0, 669.3}, {111.0, 18.0}}, label: '≈ $165 · Overkill'
+                                            Image, 0x10698bac0, {{31.3, 693.0}, {11.7, 11.0}}, identifier: 'heart.fill', label: 'Love'
+                                            StaticText, 0x10698bc00, {{31.3, 691.3}, {222.7, 14.3}}, label: 'From New Balance, a brand you like'
+                                          Image, 0x10698bd40, {{25.2, 337.7}, {351.5, 381.9}}, label: 'U19061OP'
+                                          StaticText, 0x10698be80, {{36.6, 349.1}, {97.8, 19.3}}, label: 'New Balance'
+                                          StaticText, 0x10698c000, {{290.3, 352.0}, {68.4, 13.6}}, label: '71% match'
+                                          StaticText, 0x10698c140, {{36.6, 599.9}, {34.8, 11.4}}, label: 'Overkill'
+                                          StaticText, 0x10698c280, {{38.5, 634.1}, {37.7, 12.7}}, label: '1 of 12'
+                                          StaticText, 0x10698c3c0, {{234.9, 634.1}, {128.6, 12.7}}, label: 'from Retro Runner Scout'
+                                          StaticText, 0x10698c500, {{38.5, 650.6}, {80.4, 19.3}}, label: 'U19061OP'
+                                          StaticText, 0x10698c640, {{38.5, 673.7}, {105.5, 17.1}}, label: '≈ $156 · Overkill'
+                                          StaticText, 0x10698c780, {{39.8, 694.6}, {211.5, 13.6}}, label: 'From New Balance, a brand you like'
+                                          Image, 0x10698c8c0, {{39.8, 696.2}, {11.1, 10.5}}, identifier: 'heart.fill', label: 'Love'
+                                          Button, 0x10698ca00, {{87.3, 733.7}, {52.0, 52.0}}, identifier: 'xmark', label: 'Pass'
+                                          Button, 0x10698cb40, {{155.3, 729.7}, {60.0, 60.0}}, identifier: 'heart.fill', label: 'Like'
+                                          Button, 0x10698cc80, {{231.3, 733.7}, {83.7, 52.0}}, label: 'Buy'
+                                            Image, 0x10698cdc0, {{249.0, 754.0}, {11.7, 11.7}}, identifier: 'arrow.up.right', label: 'Up-Right Diagonal Arrow'
+                                            StaticText, 0x10698cf00, {{249.0, 750.7}, {49.8, 18.0}}, label: 'Buy'
+                                          StaticText, 0x10698d040, {{70.0, 801.7}, {262.0, 14.3}}, label: 'Swipe right to like, left to pass. Tap for details.'
+                                          StaticText, 0x10698d180, {{16.0, 836.0}, {122.3, 24.0}}, label: 'More for you'
+                                          StaticText, 0x10698d2c0, {{16.0, 872.0}, {279.0, 14.3}}, label: 'Ranked by your taste. Every ♥ and ✕ sharpens it.'
+                                          Other, 0x10698d400, {{16.0, 898.3}, {370.0, 927.0}}
+                                            Button, 0x10698d540, {{16.0, 898.3}, {179.0, 150.0}}, label: '2010 - Pumpernickel/Pink Eraser, New Balance, Feature'
+                                              StaticText, 0x10698d680, {{28.0, 910.3}, {103.0, 20.3}}, label: 'New Balance'
+                                              Image, 0x10698d7c0, {{67.7, 948.3}, {76.0, 76.0}}, label: '2010 - Pumpernickel/Pink Eraser'
+                                              StaticText, 0x10698d900, {{28.0, 1024.3}, {36.7, 12.0}}, label: 'Feature'
+                                            Button, 0x10698da40, {{207.0, 898.3}, {179.0, 150.0}}, label: 'Air Jordan Nike Trunner O/S SP (Purple Smoke/Light Photo Blue/Grape Ice), Air Jordan, Concepts'
+                                              StaticText, 0x10698db80, {{219.0, 910.3}, {82.0, 20.3}}, label: 'Air Jordan'
+                                              Image, 0x10698dcc0, {{217.0, 948.3}, {159.0, 76.0}}, label: 'Air Jordan Nike Trunner O/S SP (Purple Smoke/Light Photo Blue/Grape Ice)'
+                                              StaticText, 0x10698de00, {{219.0, 1024.3}, {46.3, 12.0}}, label: 'Concepts'
+                                            StaticText, 0x10698df40, {{16.0, 1054.3}, {135.0, 33.7}}, label: '2010 - Pumpernickel/Pink Eraser'
+                                            StaticText, 0x10698e080, {{207.0, 1054.3}, {178.7, 33.7}}, label: 'Air Jordan Nike Trunner O/S SP (Purple Smoke/Light Photo Blue/Grape Ice)'
+                                            StaticText, 0x10698e1c0, {{16.0, 1094.3}, {75.7, 13.3}}, label: '$145 · Feature'
+                                            StaticText, 0x10698e300, {{207.0, 1094.3}, {84.0, 13.3}}, label: '$115 · Concepts'
+                                            StaticText, 0x10698e440, {{16.0, 1113.7}, {174.3, 26.3}}, label: 'A men's sneaker from New Balance in a brown and pink colorway. Its sporty shape suits everyday wear.'
+                                            StaticText, 0x10698e580, {{207.0, 1113.7}, {176.7, 26.3}}, label: 'A lifestyle sneaker from Nike's Trunner line with a Jordan design, in purple, light blue and grape tones. It's sold for men and women.'
+                                            Image, 0x10698e6c0, {{16.7, 1148.0}, {9.3, 9.3}}, identifier: 'wand.and.stars', label: 'Magic Wand With Stars'
+                                            StaticText, 0x10698e800, {{31.3, 1146.0}, {87.0, 13.3}}, label: 'Matches "2010"'
+                                            Image, 0x10698e940, {{208.0, 1147.7}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x10698ea80, {{221.7, 1146.0}, {125.0, 13.3}}, label: 'New to you · Air Jordan'
+                                            Button, 0x10698ebc0, {{16.0, 1165.3}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10698ed00, {{109.7, 1165.3}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x10698ee40, {{207.0, 1165.3}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x10698ef80, {{300.7, 1165.3}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x10698f0c0, {{16.0, 1211.3}, {179.0, 150.0}}, label: 'New Balance Made in USA 992 (Blue), New Balance, Concepts'
+                                              StaticText, 0x10698f200, {{28.0, 1223.3}, {103.0, 20.3}}, label: 'New Balance'
+                                              Image, 0x10698f340, {{29.3, 1261.3}, {152.3, 76.0}}, label: 'New Balance Made in USA 992 (Blue)'
+                                              StaticText, 0x10698f480, {{28.0, 1337.3}, {46.3, 12.0}}, label: 'Concepts'
+                                            Button, 0x10698f5c0, {{207.0, 1211.3}, {179.0, 150.0}}, label: 'Asics Gel-Kayano 14 (Cream/Obsidian Grey), Asics, Concepts'
+                                              StaticText, 0x10698f700, {{219.0, 1223.3}, {43.0, 20.3}}, label: 'Asics'
+                                              Image, 0x10698f840, {{222.0, 1261.3}, {149.0, 76.0}}, label: 'Asics Gel-Kayano 14 (Cream/Obsidian Grey)'
+                                              StaticText, 0x10698f980, {{219.0, 1337.3}, {46.3, 12.0}}, label: 'Concepts'
+                                            StaticText, 0x10698fac0, {{16.0, 1367.3}, {168.7, 33.7}}, label: 'New Balance Made in USA 992 (Blue)'
+                                            StaticText, 0x10698fc00, {{207.0, 1367.3}, {145.3, 33.7}}, label: 'Asics Gel-Kayano 14 (Cream/Obsidian Grey)'
+                                            StaticText, 0x10698fd40, {{16.0, 1407.3}, {87.7, 13.3}}, label: '$200 · Concepts'
+                                            StaticText, 0x10698fe80, {{207.0, 1407.3}, {86.0, 13.3}}, label: '$160 · Concepts'
+                                            StaticText, 0x11020c000, {{16.0, 1426.7}, {179.0, 26.3}}, label: 'A blue sneaker made in the USA, built for everyday comfort with a cushioned, running-style feel. It works well for walking or all-day wear.'
+                                            StaticText, 0x11020c140, {{207.0, 1426.7}, {174.0, 26.3}}, label: 'A retro running shoe with gel cushioning in the heel and forefoot, in a soft cream and dark grey colorway. It has a classic 1990s look and suits everyday wear as well as running.'
+                                            Image, 0x11020c280, {{16.7, 1461.0}, {9.3, 9.3}}, identifier: 'wand.and.stars', label: 'Magic Wand With Stars'
+                                            StaticText, 0x11020c3c0, {{31.3, 1459.0}, {162.0, 13.3}}, label: 'Because you like New Balance'
+                                            Image, 0x11020c500, {{208.0, 1460.7}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x11020c640, {{221.7, 1459.0}, {98.7, 13.3}}, label: 'New to you · Asics'
+                                            Button, 0x11020c780, {{16.0, 1478.3}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x11020c8c0, {{109.7, 1478.3}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x11020ca00, {{207.0, 1478.3}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x11020cb40, {{300.7, 1478.3}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x11020cc80, {{16.0, 1524.3}, {179.0, 150.0}}, label: 'Salomon XT-4 OG Recon (Black/Bluing), Salomon, Concepts'
+                                              StaticText, 0x11020cdc0, {{28.0, 1536.3}, {69.3, 20.3}}, label: 'Salomon'
+                                              Image, 0x11020cf00, {{33.3, 1574.3}, {144.3, 76.0}}, label: 'Salomon XT-4 OG Recon (Black/Bluing)'
+                                              StaticText, 0x11020d040, {{28.0, 1650.3}, {46.3, 12.0}}, label: 'Concepts'
+                                            Button, 0x11020d180, {{207.0, 1524.3}, {179.0, 150.0}}, label: 'Clifton - Black, Hoka, Feature'
+                                              StaticText, 0x11020d2c0, {{219.0, 1536.3}, {41.3, 20.3}}, label: 'Hoka'
+                                              Image, 0x11020d400, {{258.7, 1574.3}, {76.0, 76.0}}, label: 'Clifton - Black'
+                                              StaticText, 0x11020d540, {{219.0, 1650.3}, {36.7, 12.0}}, label: 'Feature'
+                                            StaticText, 0x11020d680, {{16.0, 1680.3}, {159.0, 33.7}}, label: 'Salomon XT-4 OG Recon (Black/Bluing)'
+                                            StaticText, 0x11020d7c0, {{207.0, 1680.3}, {90.0, 15.7}}, label: 'Clifton - Black'
+                                            StaticText, 0x11020d900, {{16.0, 1720.3}, {87.7, 13.3}}, label: '$200 · Concepts'
+                                            StaticText, 0x11020da40, {{207.0, 1720.3}, {76.3, 13.3}}, label: '$275 · Feature'
+                                            StaticText, 0x11020db80, {{16.0, 1739.7}, {174.0, 26.3}}, label: 'A black and blue sneaker from Salomon's XT-4 line, with a retro, outdoor-inspired look. It's an easy pick for everyday wear.'
+                                            StaticText, 0x11020dcc0, {{207.0, 1739.7}, {177.7, 26.3}}, label: 'A lightweight, cushioned running shoe with a soft, bouncy feel for everyday runs. This black version is an easy pick that goes with almost anything.'
+                                            Image, 0x11020de00, {{16.7, 1774.0}, {9.3, 9.3}}, identifier: 'wand.and.stars', label: 'Magic Wand With Stars'
+                                            StaticText, 0x11020df40, {{31.3, 1772.0}, {126.3, 13.3}}, label: 'For your sneakers taste'
+                                            Image, 0x11020e080, {{208.0, 1773.7}, {8.7, 10.3}}, identifier: 'sparkles', label: 'Sparkle'
+                                            StaticText, 0x11020e1c0, {{221.7, 1772.0}, {97.3, 13.3}}, label: 'New to you · Hoka'
+                                            Button, 0x11020e300, {{16.0, 1791.3}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x11020e440, {{109.7, 1791.3}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                            Button, 0x11020e580, {{207.0, 1791.3}, {85.7, 34.0}}, identifier: 'xmark', label: 'Not for me'
+                                            Button, 0x11020e6c0, {{300.7, 1791.3}, {85.3, 34.0}}, identifier: 'heart.fill', label: 'Like'
+                                          Button, 0x11020e800, {{16.0, 4660.3}, {370.0, 46.0}}, label: 'Check for new picks'
+                                            Image, 0x11020e940, {{117.7, 4676.3}, {11.7, 14.3}}, identifier: 'arrow.clockwise', label: 'Refresh'
+                                            StaticText, 0x11020ea80, {{138.2, 4674.3}, {147.3, 18.0}}, label: 'Check for new picks'
+                                          StaticText, 0x11020ebc0, {{127.5, 4718.3}, {147.0, 14.3}}, label: 'That's everything for now.'
+                            Toolbar, 0x11020ed00, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                              Other, 0x11020ee40, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x11020ef80, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x11020f0c0, {{0.0, 791.0}, {402.0, 83.0}}
+                    Other, 0x11020f200, {{0.0, 0.0}, {402.0, 874.0}}
+                      TabBar, 0x11020f340, {{0.0, 791.0}, {402.0, 83.0}}, label: 'Tab Bar'
+                        Other, 0x11020f480, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x11020f5c0, {{21.0, 791.0}, {98.0, 54.0}}
+                          Other, 0x11020f700, {{21.0, 791.0}, {360.0, 62.0}}
+                            Button, 0x11020f840, {{25.0, 795.0}, {98.0, 54.0}}, identifier: 'sun.max.fill', label: 'Today', Selected
+                              Image, 0x11020f980, {{59.7, 800.0}, {29.0, 29.3}}, identifier: 'sun.max.fill', label: 'brightness higher'
+                            Button, 0x11020fac0, {{109.7, 795.0}, {98.0, 54.0}}, identifier: 'sparkles', label: 'Finds', value: 19 items
+                              Image, 0x11020fc00, {{145.7, 799.0}, {26.0, 30.0}}, identifier: 'sparkles', label: 'sparkle'
+                            Button, 0x11020fd40, {{194.3, 795.0}, {98.0, 54.0}}, identifier: 'binoculars.fill', label: 'Scouts'
+                              Image, 0x11020fe80, {{225.7, 802.3}, {35.3, 25.7}}, identifier: 'binoculars.fill', label: 'Binoculars, filled'
+                            Button, 0x106390000, {{279.0, 795.0}, {98.0, 54.0}}, identifier: 'heart.circle.fill', label: 'Friends'
+                              Image, 0x106390140, {{314.3, 801.3}, {27.3, 27.3}}, identifier: 'heart.circle.fill', label: 'love'
+                          Other, 0x106390280, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x1063903c0, {{25.0, 795.0}, {98.0, 54.0}}
+                            Other, 0x106390500, {{25.0, 795.0}, {98.0, 54.0}}
+                              Other, 0x106390640, {{25.0, 795.0}, {98.0, 54.0}}
+                              Other, 0x106390780, {{25.0, 795.0}, {98.0, 54.0}}
+                                Other, 0x1063908c0, {{25.0, 795.0}, {98.0, 54.0}}
+                                  Other, 0x106390a00, {{25.0, 795.0}, {98.0, 54.0}}
+                                    Other, 0x106390b40, {{25.0, 795.0}, {98.0, 54.0}}
+                                  Other, 0x106390c80, {{25.0, 795.0}, {98.0, 54.0}}
+                                Other, 0x106390dc0, {{25.0, 795.0}, {98.0, 54.0}}
+                    Other, 0x106390f00, {{0.0, 791.0}, {402.0, 83.0}}
+                      Other, 0x106391040, {{0.0, 791.0}, {402.0, 83.0}}
+                        Other, 0x106391180, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x1063912c0, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x106391400, {{0.0, 791.0}, {402.0, 83.0}}
+                              Other, 0x106391540, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x106391680, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x1063917c0, {{0.0, 791.0}, {402.0, 83.0}}
+      Other, 0x106391900, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x106391a40, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x106391b80, {{0.0, 0.0}, {402.0, 874.0}}
+            StaticText, 0x106391cc0, {{24.0, 108.0}, {303.0, 71.7}}, label: 'Got photos of things you love?'
+            StaticText, 0x106391e00, {{33.0, 197.7}, {49.0, 14.3}}, label: 'Optional'
+            StaticText, 0x106391f40, {{24.0, 230.0}, {343.7, 58.0}}, label: 'Add up to 3 screenshots or photos of pieces you own or want and your scouts read your taste from them. No photos? Skip it.'
+            Button, 0x106392080, {{24.0, 302.0}, {111.3, 110.0}}, label: 'Add a photo'
+              Image, 0x1063921c0, {{67.7, 339.0}, {24.0, 18.7}}, identifier: 'camera.fill', label: 'Camera'
+              StaticText, 0x106392300, {{68.7, 363.3}, {22.0, 13.3}}, label: 'Add'
+            Button, 0x106392440, {{145.3, 302.0}, {111.3, 110.0}}, identifier: 'plus', label: 'Add a photo'
+            Button, 0x106392580, {{266.7, 302.0}, {111.3, 110.0}}, identifier: 'plus', label: 'Add a photo'
+            Button, 0x1063926c0, {{24.0, 746.3}, {354.0, 40.0}}, label: 'Skip and build my scouts'
+            Button, 0x106392800, {{186.0, 800.3}, {30.0, 15.7}}, label: 'Back'
+    Window, 0x106392940, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x106392a80, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x106392bc0, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x1058552c0, pid: 8484, label: 'Baget'
+Query chain:
+ →Find: Target Application 'app.baget.ios'
+  Output: {
+    Application, 0x106392d00, pid: 8484, label: 'Baget'
+  }
+)

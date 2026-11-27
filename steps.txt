@@ -1,0 +1,98 @@
+[01] snap 01-welcome
+[02] snap 02-welcome-scrolled
+[02] tap Continue with email
+[03] snap 03-email-sheet
+[04] snap 04-email-filled
+[04] submit at y=402 enabled=true
+[05] snap 05-after-submit
+[05] TIME sign-up to setup 1.3s
+[06] snap 06-setup-1-interests
+[06] tap Sneakers
+[06] tap Vinyl & music
+[07] snap 07-setup-1-picked
+[07] tap Watches
+[08] snap 08-setup-1-third-pick
+[08] tap (forced) Describe your taste in your own words
+[09] snap 09-setup-1-editor
+[10] snap 10-setup-1-editor-typed
+[10] MISSING Done
+[11] snap 11-setup-1-typed
+[11] tap Next
+[12] snap 12-setup-2-vibe
+[12] tap New Balance
+[12] tap Salomon
+[12] tap (forced) Size 10.5
+[12] tap Running & retro
+[12] tap (forced) Up to $250
+[13] snap 13-setup-2-picked
+[13] MISSING Next
+[13] MISSING Skip
+[14] snap 14-setup-3-taste-check
+[14] TIME taste check load 5.1s
+[14] tap Love it
+[14] tap Love it
+[15] snap 15-setup-3-mid
+[15] tap Not for me
+[15] tap Love it
+[15] tap Love it
+[15] tap Not for me
+[16] snap 16-setup-3-after
+[16] MISSING Next
+[16] tap Done
+[17] snap 17-setup-4-photos
+[17] tap Skip and build my scouts
+[18] snap 18-setup-5-building
+[18] TIME build squad 63.8s
+[19] snap 19-setup-5-first-hunt
+[20] snap 20-setup-5-wait-45s
+[21] snap 21-setup-5-wait-90s
+[22] snap 22-setup-5-wait-150s
+[23] snap 23-setup-5-end
+[23] MISSING Not now, see my finds
+[23] MISSING Not now, show me Today
+[23] MISSING See my finds
+[23] MISSING Show me Today
+[23] MISSING how-to after setup
+[24] snap 24-today
+[25] snap 25-today-scroll-1
+[26] snap 26-today-scroll-2
+[27] snap 27-today-scroll-3
+[27] TIME scroll to bottom of Today (60 swipes) 97.4s
+[27] MISSING Load more / Check for new picks button at the bottom of Today
+[27] tap (forced) Today
+[28] snap 28-today-back-top
+[28] MISSING Send a new scout
+[28] MISSING Send a new scout
+[28] MISSING See all
+[28] tap (forced) Finds
+[29] snap 29-finds
+[29] tap (forced) Grid
+[30] snap 30-finds-grid
+[30] MISSING List
+[30] MISSING New
+[30] MISSING product card image
+[31] snap 31-finds-after-detail
+[31] tap (forced) Pass
+[32] snap 32-pass-reasons
+[32] MISSING Not my size
+[32] MISSING Not my size (this find may not be clothing or shoes)
+[32] close via swipe
+[32] tap (forced) Scouts
+[33] snap 33-squad
+[34] snap 34-squad-scroll
+[34] tap (forced) Friends
+[35] snap 35-friends
+[35] MISSING ~Notifications
+[35] tap (forced) You: icon, settings and account
+[36] snap 36-profile
+[37] snap 37-profile-scroll-1
+[38] snap 38-profile-scroll-2
+[38] close via swipe
+[38] tap (forced) Scouts
+[38] MISSING ~Go Pro
+[38] MISSING ~Pro
+[38] tap (forced) Today
+[39] snap 39-today-later
+[39] tap (forced) Finds
+[40] snap 40-finds-later
+[40] TIME whole session 823.0s
