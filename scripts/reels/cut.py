@@ -19,8 +19,8 @@ def font(face, size):
         if os.path.exists(d + face): return ImageFont.truetype(d + face, size)
     return ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", size)
 
-# 1. Read the top of the screen twice a second.
-subprocess.run(["ffmpeg", "-v", "error", "-i", src, "-vf", f"fps={FPS_SCAN},crop=iw:ih*0.42:0:0,scale=700:-1,format=gray", f"{work}/f%05d.png"], check=True)
+# 1. Read the top of the screen twice a second (the whole screen for chat, where the typed ask sits above the keyboard).
+subprocess.run(["ffmpeg", "-v", "error", "-i", src, "-vf", f"fps={FPS_SCAN},crop=iw:ih*{1.0 if P.get('mode') == 'chat' else 0.42}:0:0,scale=700:-1,format=gray", f"{work}/f%05d.png"], check=True)
 frames = sorted(glob.glob(f"{work}/f*.png"))
 from concurrent.futures import ThreadPoolExecutor
 def ocr(f):
