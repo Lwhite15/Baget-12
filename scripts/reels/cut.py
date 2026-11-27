@@ -96,10 +96,13 @@ elif P.get("mode") == "chat":
     chat = first(has("tell me what you've", "hey, i'm"), after=scouts or 0)
     typed = first(has(key), after=chat or 0)          # the ask, fully typed
     # The reply pushes the scout's greeting off the top of the chat.
-    reply = first(lambda t: "tell me what you" not in t and "your scouts" not in t and "finds" not in t, after=(typed or 0) + 1)
+    home = ("fitness", "reminders", "utilities", "contacts")   # the simulator's home screen: the app went away
+    reply = first(lambda t: "tell me what you" not in t and "your scouts" not in t and "finds" not in t and "done" in t.replace("bone", "done")
+                  and not any(w in t for w in home), after=(typed or 0) + 1)
     finds = first(lambda t: "finds" in t and ("best match" in t or "scouts hunting" in t), after=(reply or chat or 0) + 3)
     print("timeline", dict(scouts=scouts, chat=chat, typed=typed, reply=reply, finds=finds, duration=duration))
     if chat is None or typed is None: sys.exit("Couldn't find the chat in the recording.")
+    if reply is None: sys.exit("The scout's reply never showed on screen (the app may have closed): no chat reel from this recording.")
     add(scouts, 2.5, 1.2, "Your scouts work for you.", "Talk to them like a friend")
     add(max(chat, typed - 9), 4, 2.5, "Ask in plain words:", P.get("hook", ""))
     if reply is not None:
