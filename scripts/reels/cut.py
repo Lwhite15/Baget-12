@@ -69,6 +69,50 @@ if P.get("mode") == "longterm":
         span = float(P.get("detail_len") or max(1.2, min(duration, detail + 0.6 + 7.8) - (detail + 0.6)))
         add(detail, 4.5, min(1.3, span / 4.5), "Every find checked:", "in stock, real price")
     hook = "a team of AI scouts that never stops hunting"
+elif P.get("mode") == "friends":
+    # A friend's profile (sample data): taste match, shared taste DNA, grails, twin finds, gift radar, Taste Cards.
+    profile = first(has("taste dna", "hetty"))
+    both = first(has("you both love", "both love"), after=(profile or 0) + 1)
+    grails = first(has("grails", "twin finds"), after=profile or 0)
+    gift = first(has("gift radar", "birthday", "picked for hetty"), after=profile or 0)
+    card = first(has("taste card", "fresh minimalist", "match with you"), after=max(x for x in (profile, both, grails, gift, 0) if x is not None))
+    mine = first(has("oud collector"), after=card or 0)
+    friends = first(lambda t: "friends" in t and "taste dna" not in t, after=(mine or card or profile or 0) + 2)
+    print("timeline", dict(profile=profile, both=both, grails=grails, gift=gift, card=card, mine=mine, friends=friends, duration=duration))
+    if profile is None: sys.exit("Couldn't find the friend profile in the recording.")
+    add(profile, 3.5, 1, "Add your friends.", "See how your taste lines up")
+    add(both, 3, 1.2, "The taste you share", "and where you differ")
+    add(grails, 3, 1.2, "Their grails,", "and finds you both love")
+    add(gift, 3.5, 1.2, "Birthday coming up?", "Gift ideas that fit their taste")
+    add(card, 3, 1, "Swap Taste Cards", "with your crew")
+    add(mine, 2.5, 1, "Yours updates", "as your taste changes")
+    hook = "the friends feature"
+elif P.get("mode") == "chat":
+    # Ask a scout for something in plain words; it replies and goes hunting.
+    scouts = first(has("your scouts"))
+    chat = first(has("ask me to", "tell me what you're into", "talk to"), after=scouts or 0)
+    finds = first(lambda t: "finds" in t and ("sort" in t or "saved" in t), after=(chat or scouts or 0) + 8)
+    print("timeline", dict(scouts=scouts, chat=chat, finds=finds, duration=duration))
+    if chat is None: sys.exit("Couldn't find the chat in the recording.")
+    add(scouts, 3, 1.2, "Your scouts work for you.", "Talk to them like a friend")
+    end = finds or duration
+    span = max(6, end - chat - 2)
+    add(chat, 4, max(1.5, span * 0.45 / 4), "Ask in plain words", P.get("hook", "\"under $200, in my size\""))
+    add(chat + span * 0.5, 5, max(1.2, span * 0.5 / 5), "It answers,", "then goes and hunts")
+    add(finds, 3.5, 1, "New finds land", "in minutes")
+    hook = "talking to my AI scouts"
+elif P.get("mode") == "drops":
+    # Never miss a drop: coming soon, the texts, a find up close.
+    coming = first(has("coming soon"))
+    inbox = first(has("mark all read", "background and alerts"), after=coming or 0)
+    detail = first(lambda t: "match" in t and not any(w in t for w in ("finds", "sort", "saved", "coming soon", "mark all")), after=(inbox or coming or 0) + 3)
+    print("timeline", dict(coming=coming, inbox=inbox, detail=detail, duration=duration))
+    if coming is None and inbox is None: sys.exit("Couldn't find the screens in the recording.")
+    add(coming, 5, 1.3, "Know what's dropping", "before it drops")
+    add(inbox, 6, 1.5, "Restocks, price drops,", "new releases: texted to you")
+    if detail is not None:
+        add(detail, 4.5, 1.3, "Every find checked:", "in stock, real price")
+    hook = "never missing a drop"
 else:
     words = [w for w in re.findall(r"[a-z]{5,}", P["prompt"].lower())][:4]
     welcome = first(has("never miss what", "continue with apple"))
@@ -85,22 +129,21 @@ else:
     if found is None or finds is None:
         sys.exit("The hunt never showed finds: no reel today.")
 
+    # Open on the payoff (real finds for this ask), then a quick run through how it got there.
     hook = P.get("hook", "")
-    add(welcome, 4, 1, "I asked Baget for", hook)
+    add(finds + 1.0, 3, 1, "I asked Baget for", hook)
     if typing is not None:
         end = taste if taste and taste > typing else typing + 10
-        add(typing - 1, min(8, (end - typing) / 1.6), 1.6, "Say it in", "your own words")
+        add(typing - 1, 3, max(1.6, (end - typing) / 3), "Say it in", "your own words")
     else:
-        add(ask, 4, 1.3, "Tell it what", "you're into")
-    add(taste, 3.5, 1.3, "Pick the vibe", "you're after")
+        add(ask, 2.5, 1.5, "Tell it what", "you're into")
     if quiz is not None:
         span = max(4, (quiz_end or quiz + 20) - quiz)
-        add(quiz, 8, min(2.2, max(1.5, span / 8)), "Swipe to teach", "your taste")
-    add(found, 5, 1.2, "Minutes later:", "first finds are in")
-    add(finds + 1.0, 4.5, 1, "Real stores, real prices,", "picked for you")
-    add(detail, 6, 1.3, "Every find checked:", "in stock, real price")
-    add(chat, 9, 1.6, "Ask for more", "and it digs deeper")
-
+        add(quiz, 3, max(2, span / 3), "A few quick swipes", "teach it your taste")
+    add(found, 2.5, 1.5, "Minutes later:", "your scouts are hunting")
+    add(finds + 4.0, 4, 1.2, "Real stores, real prices,", "picked for you")
+    add(detail, 4.5, 1.3, "Every find checked:", "in stock, real price")
+    add(chat, 6, 2, "Ask for more", "and it digs deeper")
 
 def bg():
     b = Image.new("RGB", (W, H), NAVY); g = Image.new("RGB", (W, H), NAVY); d = ImageDraw.Draw(g)
@@ -150,8 +193,16 @@ open(f"{work}/list.txt", "w").write("".join(f"file '{f}'\n" for f in files))
 subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", f"{work}/list.txt", "-c", "copy", "-movflags", "+faststart", out_mp4], check=True)
 
 tag = re.sub(r"[^a-z]", "", P.get("pill", "shopping").lower())
+mode = P.get("mode", "ask")
+first_line = {
+    "longterm": (f"{P['days']} days ago" if P.get("days") else "A few weeks ago") + " I set up my AI scouts. They're still finding things for me every day 👀",
+    "friends": "My friends and I swap Taste Cards now. Baget shows how our taste lines up and what to get them for their birthday 🎁",
+    "chat": "I just text my AI scouts what I want, in plain words, and they go find it 👀",
+    "drops": "I haven't missed a drop since. My AI scouts text me restocks, price drops and what's coming soon 🔔",
+}.get(mode, f"I asked my AI personal shopper for {hook}. Here's what it found 👀")
+tags = {"friends": "#friends #gifts", "chat": "#aiassistant", "drops": "#restock #drops"}.get(mode, f"#{tag}")
 open(out_txt, "w").write(
-    (f"{P.get('days', 'Weeks')} days ago I set up my AI scouts. They're still finding things for me every day 👀\n\n" if P.get("mode") == "longterm" else f"I asked my AI personal shopper for {hook}. Here's what it found 👀\n\n") +
+    f"{first_line}\n\n"
     f"Baget sends your own AI scouts across the web, checks the price and stock, and tells you when they find something worth it.\n\n"
-    f"Free on the App Store (US).\n\n#baget #personalshopper #aishopping #{tag} #shoppingfinds #founditonbaget\n")
+    f"Free on the App Store (US).\n\n#baget #personalshopper #aishopping {tags} #shoppingfinds #founditonbaget\n")
 print("segments", [(round(a, 1), round(b, 1), sp, l1) for a, b, sp, l1, _ in segs])

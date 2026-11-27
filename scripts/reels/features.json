@@ -1,0 +1,9 @@
+{
+  "rotation": ["longterm", "friends", "ask", "chat", "drops"],
+  "chat": [
+    {"hook": "\"a gift for my dad, under $150\"", "prompt": "Find a gift for my dad. He loves coffee and old watches. Under $150."},
+    {"hook": "\"something like this, cheaper\"", "prompt": "Find me something like my last saved find but under $200, in stock."},
+    {"hook": "\"tell me when it restocks\"", "prompt": "Watch for restocks of anything I saved and text me the second one comes back."},
+    {"hook": "\"an outfit for a wedding\"", "prompt": "I need an outfit for a fall wedding. Smart but not stiff, under $400 total."}
+  ]
+}

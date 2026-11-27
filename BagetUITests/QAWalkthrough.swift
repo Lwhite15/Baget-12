@@ -453,4 +453,79 @@ final class QAWalkthrough: XCTestCase {
         }
         scene("end"); Thread.sleep(forTimeInterval: 2)
     }
+
+    // MARK: Feature reels (one part of the app per day, on the long-running demo account)
+
+    /// Signs in to the long-running demo account (weeks of hunting) and waits for Today.
+    private func launchDemoAccount(extra: [String] = []) {
+        let env = ProcessInfo.processInfo.environment
+        app.launchArguments += ["-BagetDemoSignedIn"] + extra
+        app.launchEnvironment["BAGET_SHOT_EMAIL"] = env["QA_SHOT_EMAIL"] ?? ""
+        app.launchEnvironment["BAGET_SHOT_PASSWORD"] = env["QA_SHOT_PASSWORD"] ?? ""
+        app.launch()
+        _ = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Good '")).firstMatch.waitForExistence(timeout: 60)
+        Thread.sleep(forTimeInterval: 3)
+    }
+
+    /// Footage for the Friends reel (QA_FEATURE=friends): a friend's profile with sample data (taste match, shared taste
+    /// DNA, their grails, twin finds, gift radar for their birthday), then swapping Taste Cards.
+    func testFriendsReel() throws {
+        guard ProcessInfo.processInfo.environment["QA_FEATURE"] == "friends" else { throw XCTSkip("no QA_FEATURE=friends") }
+        launchDemoAccount(extra: ["-BagetFriendPreview"])
+        _ = app.staticTexts["Taste DNA"].waitForExistence(timeout: 15)
+        scene("profile"); Thread.sleep(forTimeInterval: 3.5)
+        for i in 1...5 { app.swipeUp(velocity: .slow); scene("scroll\(i)"); Thread.sleep(forTimeInterval: 2.2) }
+        for _ in 0..<6 { app.swipeDown(velocity: .fast) }
+        Thread.sleep(forTimeInterval: 1)
+        if !tap("Swap Taste Cards", timeout: 3) { for _ in 0..<6 { app.swipeUp() }; tap("Swap Taste Cards", timeout: 3) }
+        scene("card"); Thread.sleep(forTimeInterval: 3.5)
+        if tap("See mine", timeout: 3) { scene("mine"); Thread.sleep(forTimeInterval: 3) }
+        closeSheet(); Thread.sleep(forTimeInterval: 1)
+        closeSheet(); Thread.sleep(forTimeInterval: 1)
+        if tap("Friends", timeout: 3) { scene("friends"); Thread.sleep(forTimeInterval: 3.5); slowScroll(1, pause: 2) }
+        scene("end"); Thread.sleep(forTimeInterval: 2)
+    }
+
+    /// Footage for the Chat reel (QA_FEATURE=chat): the scouts, then asking one for something in plain words and its reply.
+    func testChatReel() throws {
+        let env = ProcessInfo.processInfo.environment
+        guard env["QA_FEATURE"] == "chat" else { throw XCTSkip("no QA_FEATURE=chat") }
+        let ask = env["QA_PROMPT"] ?? "Find me something like this but under $200, in stock in my size."
+        launchDemoAccount()
+        tap("Scouts"); scene("scouts"); Thread.sleep(forTimeInterval: 3.5)
+        slowScroll(1, pause: 2); app.swipeDown(); app.swipeDown(); Thread.sleep(forTimeInterval: 1)
+        if tapContaining("Talk to") {
+            scene("chat"); Thread.sleep(forTimeInterval: 2.5)
+            let field = app.textFields.firstMatch.exists ? app.textFields.firstMatch : app.textViews.firstMatch
+            if field.waitForExistence(timeout: 4) {
+                field.tap(); Thread.sleep(forTimeInterval: 0.6)
+                typeSlowly(field, ask)
+                Thread.sleep(forTimeInterval: 1)
+                tap("Send", timeout: 3)
+                scene("reply"); Thread.sleep(forTimeInterval: 30)
+                slowScroll(1, pause: 3)
+            }
+            closeSheet(); Thread.sleep(forTimeInterval: 1)
+        }
+        tap("Finds"); scene("finds"); Thread.sleep(forTimeInterval: 3.5); slowScroll(1, pause: 2)
+        scene("end"); Thread.sleep(forTimeInterval: 2)
+    }
+
+    /// Footage for the Drops reel (QA_FEATURE=drops): what's coming soon, the texts (restocks, price drops, new drops),
+    /// and one find up close with its price and stock.
+    func testDropsReel() throws {
+        guard ProcessInfo.processInfo.environment["QA_FEATURE"] == "drops" else { throw XCTSkip("no QA_FEATURE=drops") }
+        launchDemoAccount()
+        tap("Finds"); Thread.sleep(forTimeInterval: 2)
+        if tap("Coming soon", timeout: 4) { scene("coming"); Thread.sleep(forTimeInterval: 3.5); slowScroll(2, pause: 2); app.swipeDown(); app.swipeDown(); Thread.sleep(forTimeInterval: 1) }
+        if tapContaining("Notifications") { scene("inbox"); Thread.sleep(forTimeInterval: 3.5); slowScroll(3, pause: 1.8); closeSheet(); Thread.sleep(forTimeInterval: 1) }
+        if tap("All", timeout: 3) { Thread.sleep(forTimeInterval: 2) }
+        let card = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "% match")).firstMatch
+        if card.waitForExistence(timeout: 4), card.isHittable {
+            card.tap(); scene("detail"); Thread.sleep(forTimeInterval: 4.5)
+            app.swipeUp(velocity: .slow); Thread.sleep(forTimeInterval: 3)
+            closeSheet(); Thread.sleep(forTimeInterval: 1)
+        }
+        scene("end"); Thread.sleep(forTimeInterval: 2)
+    }
 }
