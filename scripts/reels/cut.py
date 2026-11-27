@@ -91,17 +91,21 @@ elif P.get("mode") == "friends":
     hook = "the friends feature"
 elif P.get("mode") == "chat":
     # Ask a scout for something in plain words; it replies and goes hunting.
+    key = (P.get("key") or "under").lower()
     scouts = first(has("your scouts"))
-    chat = first(has("ask me to", "tell me what you're into", "talk to"), after=scouts or 0)
-    finds = first(lambda t: "finds" in t and ("sort" in t or "saved" in t), after=(chat or scouts or 0) + 8)
-    print("timeline", dict(scouts=scouts, chat=chat, finds=finds, duration=duration))
-    if chat is None: sys.exit("Couldn't find the chat in the recording.")
-    add(scouts, 3, 1.2, "Your scouts work for you.", "Talk to them like a friend")
-    end = finds or duration
-    span = max(6, end - chat - 2)
-    add(chat, 4, max(1.5, span * 0.45 / 4), "Ask in plain words", P.get("hook", "\"under $200, in my size\""))
-    add(chat + span * 0.5, 5, max(1.2, span * 0.5 / 5), "It answers,", "then goes and hunts")
-    add(finds, 3.5, 1, "New finds land", "in minutes")
+    chat = first(has("tell me what you've", "hey, i'm"), after=scouts or 0)
+    typed = first(has(key), after=chat or 0)          # the ask, fully typed
+    sent = last(has(key), after=typed or 0)           # the last moment it is still in the box
+    reply = (sent + 1.0) if sent is not None else None
+    finds = first(lambda t: "finds" in t and ("best match" in t or "scouts hunting" in t), after=(reply or chat or 0) + 3)
+    print("timeline", dict(scouts=scouts, chat=chat, typed=typed, sent=sent, finds=finds, duration=duration))
+    if chat is None or typed is None: sys.exit("Couldn't find the chat in the recording.")
+    add(scouts, 2.5, 1.2, "Your scouts work for you.", "Talk to them like a friend")
+    add(chat, 4, max(1.5, (typed + 1.5 - chat) / 4), "Ask in plain words:", P.get("hook", ""))
+    if reply is not None:
+        add(reply, 3, 1, "It answers in seconds", "with real picks")
+        add(reply + 6, 3, 1.5, "and keeps hunting", "for you after")
+    add(finds, 3, 1, "New finds land", "in your feed")
     hook = "talking to my AI scouts"
 elif P.get("mode") == "drops":
     # Never miss a drop: coming soon, the texts, a find up close.
