@@ -30,6 +30,8 @@ def ocr(f):
 with ThreadPoolExecutor(max_workers=os.cpu_count() or 4) as ex: texts = list(ex.map(ocr, frames))
 T = lambda i: i / FPS_SCAN
 duration = T(len(frames))
+# What the screen said every 3 seconds, so a cut that misses can be fixed from the log alone.
+for i in range(0, len(texts), 3 * FPS_SCAN): print(f"ocr {T(i):6.1f}s  {texts[i][:140]}")
 
 def first(pred, after=0.0, before=1e9):
     for i, t in enumerate(texts):
