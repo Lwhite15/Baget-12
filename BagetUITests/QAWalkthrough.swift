@@ -475,9 +475,8 @@ final class QAWalkthrough: XCTestCase {
         _ = app.staticTexts["Taste DNA"].waitForExistence(timeout: 15)
         scene("profile"); Thread.sleep(forTimeInterval: 3.5)
         for i in 1...5 { app.swipeUp(velocity: .slow); scene("scroll\(i)"); Thread.sleep(forTimeInterval: 2.2) }
-        for _ in 0..<6 { app.swipeDown(velocity: .fast) }
-        Thread.sleep(forTimeInterval: 1)
-        if !tap("Swap Taste Cards", timeout: 3) { for _ in 0..<6 { app.swipeUp() }; tap("Swap Taste Cards", timeout: 3) }
+        // The Swap Taste Cards button sits at the bottom of the profile, on screen after the scroll.
+        if !tap("Swap Taste Cards", timeout: 3) { app.swipeUp(); tap("Swap Taste Cards", timeout: 3) }
         scene("card"); Thread.sleep(forTimeInterval: 3.5)
         if tap("See mine", timeout: 3) { scene("mine"); Thread.sleep(forTimeInterval: 3) }
         closeSheet(); Thread.sleep(forTimeInterval: 1)

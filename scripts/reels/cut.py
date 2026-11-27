@@ -75,9 +75,9 @@ elif P.get("mode") == "friends":
     # A friend's profile (sample data): taste match, shared taste DNA, grails, twin finds, gift radar, Taste Cards.
     profile = first(has("taste dna", "hetty"))
     both = first(has("you both love", "both love"), after=(profile or 0) + 1)
-    grails = first(has("grails", "twin finds"), after=profile or 0)
-    gift = first(has("gift radar", "birthday", "picked for hetty"), after=profile or 0)
-    card = first(has("taste card", "fresh minimalist", "match with you"), after=max(x for x in (profile, both, grails, gift, 0) if x is not None))
+    grails = first(has("grails"), after=(both or profile) + 1)
+    gift = first(has("gift radar", "picked for hetty"), after=(grails or both or profile) + 3)
+    card = first(has("taste card", "oud collector", "cards swap"), after=(gift or grails or profile) + 1)
     mine = first(has("oud collector"), after=card or 0)
     friends = first(lambda t: "friends" in t and "taste dna" not in t, after=(mine or card or profile or 0) + 2)
     print("timeline", dict(profile=profile, both=both, grails=grails, gift=gift, card=card, mine=mine, friends=friends, duration=duration))
