@@ -516,8 +516,8 @@ final class QAWalkthrough: XCTestCase {
         guard ProcessInfo.processInfo.environment["QA_FEATURE"] == "drops" else { throw XCTSkip("no QA_FEATURE=drops") }
         launchDemoAccount()
         tap("Finds"); Thread.sleep(forTimeInterval: 2)
-        if tap("Coming soon", timeout: 4) { scene("coming"); Thread.sleep(forTimeInterval: 3.5); slowScroll(2, pause: 2); app.swipeDown(); app.swipeDown(); Thread.sleep(forTimeInterval: 1) }
-        if tapContaining("Notifications") { scene("inbox"); Thread.sleep(forTimeInterval: 3.5); slowScroll(3, pause: 1.8); closeSheet(); Thread.sleep(forTimeInterval: 1) }
+        if tapContaining("Notifications") { scene("inbox"); Thread.sleep(forTimeInterval: 3.5); slowScroll(4, pause: 2); closeSheet(); Thread.sleep(forTimeInterval: 1) }
+        if tapContaining("Coming soon", timeout: 4) { scene("coming"); Thread.sleep(forTimeInterval: 3.5); slowScroll(1, pause: 2); app.swipeDown(); app.swipeDown(); Thread.sleep(forTimeInterval: 1) }
         if tap("All", timeout: 3) { Thread.sleep(forTimeInterval: 2) }
         let card = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "% match")).firstMatch
         if card.waitForExistence(timeout: 4), card.isHittable {

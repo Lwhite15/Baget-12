@@ -108,16 +108,18 @@ elif P.get("mode") == "chat":
     add(finds, 3, 1, "New finds land", "in your feed")
     hook = "talking to my AI scouts"
 elif P.get("mode") == "drops":
-    # Never miss a drop: coming soon, the texts, a find up close.
-    coming = first(has("coming soon"))
-    inbox = first(has("mark all read", "background and alerts"), after=coming or 0)
-    detail = first(lambda t: "match" in t and not any(w in t for w in ("finds", "sort", "saved", "coming soon", "mark all")), after=(inbox or coming or 0) + 3)
-    print("timeline", dict(coming=coming, inbox=inbox, detail=detail, duration=duration))
-    if coming is None and inbox is None: sys.exit("Couldn't find the screens in the recording.")
-    add(coming, 5, 1.3, "Know what's dropping", "before it drops")
-    add(inbox, 6, 1.5, "Restocks, price drops,", "new releases: texted to you")
+    # Never miss a drop: the texts (restocks, price drops, new drops), then a find up close with its price check.
+    inbox = first(has("mark all read", "background and alerts"))
+    inbox_end = last(has("mark all read", "background and alerts"), after=inbox or 0)
+    detail = first(lambda t: "match" in t and not any(w in t for w in ("finds", "sort", "saved", "mark all", "scouts hunting")), after=(inbox_end or 0) + 1)
+    print("timeline", dict(inbox=inbox, inbox_end=inbox_end, detail=detail, duration=duration))
+    if inbox is None: sys.exit("Couldn't find the texts in the recording.")
+    span = max(6, (inbox_end or inbox + 12) - inbox)
+    add(inbox, 4, max(1.2, span * 0.4 / 4), "Your scouts text you", "the moment something drops")
+    add(inbox + span * 0.45, 4.5, max(1.2, span * 0.5 / 4.5), "Restocks in your size,", "price drops, new releases")
     if detail is not None:
-        add(detail, 4.5, 1.3, "Every find checked:", "in stock, real price")
+        add(detail, 3.5, 1, "Every find checked:", "in stock, real price")
+        add(detail + 4.5, 3.5, 1.2, "and where it's", "cheaper elsewhere")
     hook = "never missing a drop"
 else:
     words = [w for w in re.findall(r"[a-z]{5,}", P["prompt"].lower())][:4]
