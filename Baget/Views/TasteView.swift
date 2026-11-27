@@ -329,11 +329,38 @@ struct OnboardingView: View {
 
     // MARK: 3. Quick taste check
 
+    /// Custom interests that sit inside a quiz category; the rest (vinyl, kitchen, cameras...) have no quiz items.
+    private static let extraCategory: [String: Category] = [
+        String(localized: "Home decor"): .furniture, String(localized: "Bags"): .accessories, String(localized: "Jewelry"): .accessories,
+        String(localized: "Vintage"): .apparel, String(localized: "Trading cards"): .collectibles, String(localized: "Toys & games"): .collectibles,
+    ]
+
+    /// Words in "your own words" that point at a quiz category.
+    nonisolated static func categories(in text: String) -> Set<Category> {
+        let t = text.lowercased()
+        let map: [(Category, [String])] = [
+            (.sneakers, ["sneaker", "jordan", "dunk", "yeezy", "new balance", "trainer"]),
+            (.apparel, ["tee", "t-shirt", "hoodie", "denim", "jeans", "jacket", "shirt", "knit", "sweater", "pants", "basics", "streetwear", "coat"]),
+            (.fragrance, ["fragrance", "perfume", "scent", "cologne", "oud", "parfum"]),
+            (.watches, ["watch", "seiko", "rolex", "omega", "chronograph"]),
+            (.furniture, ["lamp", "chair", "sofa", "table", "rug", "decor", "furniture", "ceramic", "vase", "shelf", "lighting"]),
+            (.accessories, ["bag", "wallet", "sunglasses", "belt", "jewelry", "ring", "necklace"]),
+            (.collectibles, ["card", "figure", "lego", "collectible"]),
+            (.cars, ["car", "porsche", "bmw", "truck"]),
+        ]
+        return Set(map.filter { _, words in words.contains { t.contains($0) } }.map(\.0))
+    }
+
     private func startQuiz() {
         withAnimation { step = 2 }
         quizLoading = true
+        // Quiz only what they're into: picked categories, custom interests that fit one, and clues in their words.
+        // Before, picking only custom interests (or none) gave a random mix from every category: jeans for a lamp hunter.
+        var cats = picked.union(extras.compactMap { Self.extraCategory[$0] })
+        if cats.isEmpty { cats = Self.categories(in: text) }
+        let nothingFits = cats.isEmpty && (!extras.isEmpty || !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         Task { @MainActor in
-            quiz = await store.tasteQuiz(Array(picked), brands: brands.values.flatMap { Array($0) }, department: department)
+            quiz = nothingFits ? [] : await store.tasteQuiz(Array(cats), brands: brands.values.flatMap { Array($0) }, department: department)
             quizIndex = 0
             quizLoading = false
             if quiz.isEmpty { withAnimation { step = 3 } }   // nothing to rate yet: go straight on
