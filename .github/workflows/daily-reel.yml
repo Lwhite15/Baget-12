@@ -7,6 +7,8 @@ name: Daily reel
 on:
   schedule:
     - cron: "7 6 * * *"
+    # Backup start in case GitHub drops or badly delays the first one; skipped if today's Reel is already there.
+    - cron: "7 8 * * *"
   workflow_dispatch:
     inputs:
       feature:
@@ -17,10 +19,30 @@ on:
       index:
         description: "Prompt number to use for the ask/chat reels (empty: today's)"
         default: ""
+      name:
+        description: "File name suffix, for a test Reel that must not replace today's (e.g. test → YYYY-MM-DD-test.mp4)"
+        default: ""
 permissions:
   contents: write
+concurrency:
+  group: daily-reel
+  cancel-in-progress: false
 jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      go: ${{ steps.g.outputs.go }}
+    steps:
+      - id: g
+        run: |
+          D=$(date -u +%F)
+          if [ "${{ github.event_name }}" = schedule ] && git ls-remote --exit-code https://github.com/${{ github.repository }} reels >/dev/null \
+             && curl -fsI "https://raw.githubusercontent.com/${{ github.repository }}/reels/reels/$D.mp4" >/dev/null; then
+            echo "::notice::Today's Reel is already there; nothing to do."; echo "go=false" >> "$GITHUB_OUTPUT"
+          else echo "go=true" >> "$GITHUB_OUTPUT"; fi
   record:
+    needs: gate
+    if: needs.gate.outputs.go == 'true'
     runs-on: xcode-27
     timeout-minutes: 60
     env:
@@ -156,7 +178,7 @@ jobs:
           pip install -q pillow
       - name: Cut the Reel
         run: |
-          D=$(jq -r .date raw/prompt.json)
+          D=$(jq -r .date raw/prompt.json)${{ inputs.name && format('-{0}', inputs.name) || '' }}
           mkdir -p out && python3 scripts/reels/cut.py raw/demo.mp4 raw/prompt.json "out/$D.mp4" "out/$D.txt"
           echo "::notice::Reel $D: $(jq -r '.mode + " " + (.hook // "")' raw/prompt.json) ($(ffprobe -v error -show_entries format=duration -of csv=p=0 out/$D.mp4)s)"
       - name: Put it on the reels branch
