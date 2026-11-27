@@ -72,6 +72,12 @@ def version_loc():
         **({"whatsNew": L["whatsNew"]} if L.get("whatsNew") and want and want != "1.0" else {})}}})
 step("Description, keywords, support link, promotional text, what's new", version_loc)
 
+def release_type_only():
+    # Just the version's release setting (allowed while it waits for review): MANUAL or AFTER_APPROVAL.
+    call("PATCH", f"/appStoreVersions/{vid}", {"data": {"type": "appStoreVersions", "id": vid, "attributes": {"releaseType": L["releaseType"]}}})
+    note(f"Release type: {L['releaseType']}")
+step("Release type only", release_type_only)
+
 def promo_only():
     # Promotional text can change any time, even on a live version or one in review. Update every current version.
     vs = call("GET", f"/apps/{aid}/appStoreVersions?filter[platform]=IOS&limit=5")["data"]
