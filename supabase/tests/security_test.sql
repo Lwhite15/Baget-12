@@ -435,6 +435,20 @@ select t.ok(public.title_overlap('Bal D''Afrique Eau De Parfum', 'Byredo Bal d''
 select t.ok(public.title_overlap('Seed Runner Suede', 'Seedco Trail Suede') < 0.6, 'a different product is not');
 do $d$ declare r record; begin for r in select x ->> 'kind' k, x -> 'listing' ->> 'title' t, x ->> 'reason' re from public.for_you(10) x loop raise notice 'FY % | % | %', r.k, r.t, r.re; end loop; end $d$;
 select t.ok(exists (select 1 from public.for_you(10) x where x -> 'listing' ->> 'title' = 'Gel-Kayano 14 Silver'), 'something new in what they hunt is mixed in');
+reset role;
+-- A Funko hunter: "collectibles" is broad, so a record store's vinyl needs more than the category to show up.
+create temp table fy_keep as select id, mission_category, keywords from public.agents where user_id = 'aaaaaaaa-0000-0000-0000-000000000001' order by created_at limit 1;
+update public.agents a set mission_category = 'collectibles', keywords = '{funko pop,vaulted funko}' from fy_keep k where a.id = k.id;
+insert into public.listings (fingerprint, title, brand, category, url, image_url, traits, tags, price) values
+  ('fy|record', 'Mac Miller - Swimming (Colored Vinyl)', 'Rollin Records', 'collectibles', 'https://records.example/p/1', 'https://img.example/r1.jpg', '{hip hop,pop}', '{catalog}', 40),
+  ('fy|funko', 'Funko Pop! Star Wars Vaulted Chase', 'Funko', 'collectibles', 'https://toys.example/p/1', 'https://img.example/f1.jpg', '{vaulted}', '{catalog}', 15);
+set role authenticated;
+select set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', false);
+select t.ok(not exists (select 1 from public.for_you(60) x where x -> 'listing' ->> 'title' like 'Mac Miller%'), 'a Funko hunter isn''t shown vinyl records just for being "collectibles"');
+select t.ok(exists (select 1 from public.for_you(60) x where x -> 'listing' ->> 'title' like 'Funko Pop!%'), 'but is shown the Funko that matches their keywords');
+reset role;
+update public.agents a set mission_category = k.mission_category, keywords = k.keywords from fy_keep k where a.id = k.id;
+delete from public.listings where fingerprint in ('fy|record', 'fy|funko');
 select t.ok(not exists (select 1 from public.for_you(10) x where x -> 'listing' ->> 'title' = 'Arc Floor Lamp'), 'but only within what their scouts hunt');
 select t.ok(jsonb_array_length(public.taste_top(8)) > 0, 'taste profile is readable by its owner');
 select t.ok(t.n($$select * from public.taste_quiz(array['sneakers'], 10)$$) >= 1, 'taste check has sneakers to rate');
