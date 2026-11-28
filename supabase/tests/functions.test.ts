@@ -1473,6 +1473,17 @@ await test("store pages: product, US price, stock and photo are read from what t
   assert.equal(eur.price, null, "never shows a euro price as dollars");
 });
 
+await test("match: a scout with specific taste doesn't take broad category matches (records for a Funko scout)", async () => {
+  const M = await import("../functions/_shared/match.ts");
+  const funko = { name: "Funko Grail Scout", mission_category: "collectibles", mission_custom: null, keywords: ["star wars funko pop", "vaulted funko", "chase variant"], traits: ["vaulted", "chase"], makers: ["Funko"], creators: [], size: null, price_note: 0, learned: {} } as any;
+  const record = { title: "Travis Scott - Days Before Rodeo (Colored Vinyl)", brand: "Rollin' Records", category: "collectibles", tags: [], traits: [], price: 30, creator: null } as any;
+  const pop = { title: "Funko Pop! Vinyl: Star Wars Anakin Skywalker Vaulted", brand: "Funko", category: "collectibles", tags: [], traits: ["vaulted"], price: 12, creator: null } as any;
+  assert.equal(M.match(funko, record), null, "a record isn't a Funko find");
+  assert.ok((M.match(funko, pop)?.score ?? 0) >= 45, "a vaulted Funko still is");
+  const fresh = { ...funko, keywords: [], traits: [], makers: [] };
+  assert.match(M.match(fresh, record)?.why[0] ?? "", /Broad mission match only/, "a brand-new scout still takes broad matches");
+});
+
 await test("store pages: a sample next to the full bottle is priced at the full bottle; a re-read can't swing the price wildly", async () => {
   const I3 = await import("../functions/_shared/images.ts");
   const decants = I3.productFromHtml(`<script type="application/ld+json">{"@type":"Product","name":"Zoologist Hyrax Extrait","offers":[

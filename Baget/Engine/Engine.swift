@@ -203,6 +203,8 @@ enum Matcher {
         let intelBoost = Double(intel(a))
         if fit == true { why.append(String(localized: "In stock in your size, \(a.size)")) }
         if why.isEmpty || (why.count == 1 && fit == true) {
+            // A scout with specific taste doesn't get whatever else shares the category (records for a Funko scout).
+            if a.keywords.filter({ !$0.isEmpty }).count + a.style.makers.count + a.style.traits.count >= 3 { return nil }
             return Match(score: Int(safe: (28 + intelBoost * 0.12).rounded()), why: [String(localized: "Broad mission match only")] + why)
         }
         let s = Int(safe: (35 + pts * 0.55 + intelBoost * 0.1).rounded())

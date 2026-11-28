@@ -202,6 +202,11 @@ export function partialProduct(a: Agent, title: string): boolean {
   return !PARTIAL.test([a.mission_custom ?? "", ...a.keywords, ...a.traits].join(" "));
 }
 
+/** How much the scout knows that a product could actually match: keywords, brands, styles. */
+export function specifics(a: Agent): number {
+  return a.keywords.filter(Boolean).length + a.makers.length + a.traits.length;
+}
+
 export function intel(a: Agent): number {
   let k = 26 + Math.min(a.keywords.length, 5) * 6 + ((a.size || !sizeRequired(a)) ? 10 : 0) +
     Math.min(a.traits.length, 5) * 6 + Math.min(a.makers.length, 3) * 5 + Math.min(a.creators.length, 2) * 5;
@@ -251,7 +256,13 @@ export function match(a: Agent, l: Listing, photoTags: string[] = [], opts: { ow
   if (fit === true) why.push(`In stock in your size, ${a.size}`);
   if (cap && l.price && l.price > cap * 1.1) { pts -= 25; why.push(`A bit over your $${Math.round(cap).toLocaleString("en-US")} budget`); }
   const boost = intel(a);
-  if (why.length === 0 || (why.length === 1 && fit === true)) return { score: Math.round(28 + boost * 0.12), why: ["Broad mission match only", ...why] };
+  if (why.length === 0 || (why.length === 1 && fit === true)) {
+    // Nothing about it matches what they told the scout. A scout with specific taste (Funko chase variants) shouldn't
+    // be handed whatever else shares the category (vinyl records labeled "collectibles"); only a scout that knows
+    // little yet takes broad matches.
+    if (specifics(a) >= 3) return null;
+    return { score: Math.round(28 + boost * 0.12), why: ["Broad mission match only", ...why] };
+  }
   return { score: Math.max(5, Math.min(98, Math.round(35 + pts * 0.55 + boost * 0.1))), why };
 }
 
