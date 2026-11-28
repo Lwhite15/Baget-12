@@ -1480,6 +1480,11 @@ await test("match: a scout with specific taste doesn't take broad category match
   const pop = { title: "Funko Pop! Vinyl: Star Wars Anakin Skywalker Vaulted", brand: "Funko", category: "collectibles", tags: [], traits: ["vaulted"], price: 12, creator: null } as any;
   assert.equal(M.match(funko, record), null, "a record isn't a Funko find");
   assert.ok((M.match(funko, pop)?.score ?? 0) >= 45, "a vaulted Funko still is");
+  const popRecord = { ...record, title: "Beyoncé - Dangerously in Love Colored Vinyl", brand: "Rollin' Records", traits: ["2lp", "pop", "hip hop"] };
+  assert.equal(M.match({ ...funko, traits: ["bitty pop", "vaulted"] }, popRecord), null, "a record's genre 'pop' isn't a Funko 'bitty pop'");
+  assert.equal(M.traitMatch("bitty pop", "pop"), false);
+  assert.equal(M.traitMatch("vaulted", "vaulted chase"), true);
+  assert.equal(M.traitMatch("metal", "metallic"), false);
   const fresh = { ...funko, keywords: [], traits: [], makers: [] };
   assert.match(M.match(fresh, record)?.why[0] ?? "", /Broad mission match only/, "a brand-new scout still takes broad matches");
 });

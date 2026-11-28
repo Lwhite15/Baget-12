@@ -69,6 +69,13 @@ export function loose(a: string, b: string): boolean {
   const x = norm(a), y = norm(b);
   return !!x && !!y && (x.includes(y) || y.includes(x));
 }
+/** A product's style tag matches a style the scout looks for only if it says at least as much: every word of the scout's
+ *  ("bitty pop") must be in the product's ("bitty pop 4-pack"). The old two-way substring check let a record's
+ *  genre "pop" count as the scout's "bitty pop". */
+export function traitMatch(scoutTrait: string, productTrait: string): boolean {
+  const need = words(scoutTrait), have = new Set(words(productTrait));
+  return need.length > 0 && need.every((w) => have.has(w));
+}
 export function words(q: string): string[] {
   return norm(q).split(/[\s,]+/).filter((w) => w.length > 1 && !STOP.has(w)).map((w) => (w.endsWith("s") && w.length > 2 ? w.slice(0, -1) : w));
 }
@@ -237,7 +244,7 @@ export function match(a: Agent, l: Listing, photoTags: string[] = [], opts: { ow
   if (hits.length) { pts += hits.length * 12; why.push(`Matches your keywords: ${hits.slice(0, 3).join(", ")}`); }
   if (a.makers.some((m) => loose(m, l.brand))) { pts += 20; why.push(`From ${l.brand}, a ${inf.makerNoun} you like`); }
   if (l.creator && a.creators.some((c) => loose(c, l.creator!))) { pts += 18; why.push(`${inf.creatorVerb} ${l.creator}, ${inf.creatorNoun} you follow`); }
-  const shared = a.traits.filter((t) => l.traits.some((x) => loose(x, t)));
+  const shared = a.traits.filter((t) => l.traits.some((x) => traitMatch(t, x)));
   if (shared.length) {
     pts += shared.length * 9;
     const photo = new Set(photoTags.map(norm));

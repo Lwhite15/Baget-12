@@ -26,6 +26,13 @@ enum TextMatch {
         return x.contains(y) || y.contains(x)
     }
 
+    /// A product's style tag matches a scout's style only if it says at least as much (every word of "bitty pop" in it):
+    /// a record's genre "pop" is not a Funko "bitty pop".
+    static func traitMatch(_ scoutTrait: String, _ productTrait: String) -> Bool {
+        let need = words(scoutTrait), have = Set(words(productTrait))
+        return !need.isEmpty && need.allSatisfy { have.contains($0) }
+    }
+
     /// Meaningful words of a query, with a trailing plural "s" dropped.
     static func words(_ q: String) -> [String] {
         norm(q).components(separatedBy: CharacterSet(charactersIn: " ,"))
@@ -176,7 +183,7 @@ enum Matcher {
         if let c = item.creator, a.style.creators.contains(where: { TextMatch.loose($0, c) }) {
             pts += 18; why.append(String(localized: "\(info.creatorVerb) \(c), \(info.creatorNoun) you follow"))
         }
-        let shared = a.style.traits.filter { t in item.traits.contains { TextMatch.loose($0, t) } }
+        let shared = a.style.traits.filter { t in item.traits.contains { TextMatch.traitMatch(t, $0) } }
         if !shared.isEmpty {
             pts += Double(shared.count * 9)
             let photoTags = Set(a.tasteBoard.flatMap { $0.tags.map(TextMatch.norm) })
@@ -290,7 +297,7 @@ enum FriendVoice {
 
     /// The item's own trait that matches your profile, so the text names something real about it.
     static func hookFor(_ a: Agent, _ item: Item) -> String {
-        if let t = item.traits.first(where: { x in a.style.traits.contains { TextMatch.loose(x, $0) } }) { return t }
+        if let t = item.traits.first(where: { x in a.style.traits.contains { TextMatch.traitMatch($0, x) } }) { return t }
         if a.style.makers.contains(where: { TextMatch.loose($0, item.brand) }) { return item.brand }
         return item.traits.first ?? item.brand
     }
